@@ -130,11 +130,11 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
 
   const getSortIcon = (column: SortConfig['column']) => {
     if (sortConfig.column !== column) {
-      return <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+      return <ChevronsUpDown className="h-4 w-4 text-gray-400 dark:text-gray-500" />
     }
     return sortConfig.direction === 'asc'
-      ? <ChevronUp className="h-4 w-4 text-gray-700" />
-      : <ChevronDown className="h-4 w-4 text-gray-700" />
+      ? <ChevronUp className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+      : <ChevronDown className="h-4 w-4 text-gray-700 dark:text-gray-300" />
   }
 
   const densityClasses = {
@@ -163,13 +163,13 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           State-by-State Results
         </h3>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
           {displayedStates.length} of {states.length} states
         </div>
       </div>
@@ -220,54 +220,54 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
       </div>
 
       {/* Table */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-gray-50 sticky top-0 z-10">
-              <TableRow className="hover:bg-gray-50">
-                <TableHead className="border-b border-gray-200">
+            <TableHeader className="bg-gray-50 dark:bg-gray-700/50 sticky top-0 z-10">
+              <TableRow className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <TableHead className="border-b border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => handleSort('state')}
-                    className="flex items-center gap-2 font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                    className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                   >
                     State
                     {getSortIcon('state')}
                   </button>
                 </TableHead>
-                <TableHead className="border-b border-gray-200">
+                <TableHead className="border-b border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => handleSort('nexus_status')}
-                    className="flex items-center gap-2 font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                    className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                   >
                     Status
                     {getSortIcon('nexus_status')}
                   </button>
                 </TableHead>
-                <TableHead className="text-right border-b border-gray-200">
+                <TableHead className="text-right border-b border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => handleSort('sales')}
-                    className="flex items-center gap-2 ml-auto font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                    className="flex items-center gap-2 ml-auto font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                   >
                     Total Sales
                     {getSortIcon('sales')}
                   </button>
                 </TableHead>
-                <TableHead className="text-right border-b border-gray-200">
+                <TableHead className="text-right border-b border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => handleSort('liability')}
-                    className="flex items-center gap-2 ml-auto font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                    className="flex items-center gap-2 ml-auto font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                   >
                     Est. Liability
                     {getSortIcon('liability')}
                   </button>
                 </TableHead>
-                <TableHead className="border-b border-gray-200">Actions</TableHead>
+                <TableHead className="border-b border-gray-200 dark:border-gray-700">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {displayedStates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-gray-500">
+                  <TableCell colSpan={5} className="text-center py-12 text-gray-500 dark:text-gray-400">
                     No states found matching your filters
                   </TableCell>
                 </TableRow>
@@ -275,26 +275,26 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
                 displayedStates.map((state) => (
                   <TableRow
                     key={state.state_code}
-                    className="hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0"
                   >
-                    <TableCell className={`font-medium text-gray-900 ${densityClasses[density]}`}>
+                    <TableCell className={`font-medium text-gray-900 dark:text-gray-100 ${densityClasses[density]}`}>
                       {state.state_name} ({state.state_code})
                     </TableCell>
                     <TableCell className={densityClasses[density]}>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
                         state.nexus_status === 'has_nexus'
-                          ? 'bg-red-100 text-red-800'
+                          ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                           : state.nexus_status === 'approaching'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-green-100 text-green-800'
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                          : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                       }`}>
                         {getNexusStatusLabel(state.nexus_status)}
                       </span>
                     </TableCell>
-                    <TableCell className={`text-right text-gray-700 ${densityClasses[density]}`}>
+                    <TableCell className={`text-right text-gray-700 dark:text-gray-300 ${densityClasses[density]}`}>
                       ${state.total_sales.toLocaleString()}
                     </TableCell>
-                    <TableCell className={`text-right text-gray-900 font-medium ${densityClasses[density]}`}>
+                    <TableCell className={`text-right text-gray-900 dark:text-gray-100 font-medium ${densityClasses[density]}`}>
                       ${state.estimated_liability.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
@@ -306,7 +306,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
                           variant="ghost"
                           size="sm"
                           onClick={() => window.location.href = `/analysis/${analysisId}/states/${state.state_code}`}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                         >
                           <Eye className="h-4 w-4 mr-1.5" />
                           View Details
@@ -314,7 +314,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors px-2"
+                          className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors px-2"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
@@ -329,15 +329,15 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-        <p className="text-sm text-gray-600">
-          Showing <span className="font-medium text-gray-900">{displayedStates.length}</span> of{' '}
-          <span className="font-medium text-gray-900">{states.length}</span> states
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Showing <span className="font-medium text-gray-900 dark:text-gray-100">{displayedStates.length}</span> of{' '}
+          <span className="font-medium text-gray-900 dark:text-gray-100">{states.length}</span> states
         </p>
         <Button
           variant="outline"
           size="sm"
-          className="border-gray-200 text-gray-700 hover:bg-gray-50"
+          className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
           disabled
         >
           Generate Report (Coming Soon)
