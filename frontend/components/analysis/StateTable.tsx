@@ -18,6 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,6 +36,9 @@ import {
   Download,
   Eye,
   MoreHorizontal,
+  FileText,
+  Tag,
+  TrendingUp,
 } from 'lucide-react'
 import {
   getNexusStatusLabel,
@@ -311,13 +322,35 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
                           <Eye className="h-4 w-4 mr-1.5" />
                           View Details
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors px-2"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors px-2"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuLabel className="text-xs text-gray-500 dark:text-gray-400">
+                              Coming Soon
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem disabled>
+                              <FileText className="h-4 w-4 mr-2" />
+                              Export State Data
+                            </DropdownMenuItem>
+                            <DropdownMenuItem disabled>
+                              <Tag className="h-4 w-4 mr-2" />
+                              Add Notes/Tags
+                            </DropdownMenuItem>
+                            <DropdownMenuItem disabled>
+                              <TrendingUp className="h-4 w-4 mr-2" />
+                              Compare with Previous
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>
