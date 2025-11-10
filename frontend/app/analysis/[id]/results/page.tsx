@@ -313,8 +313,8 @@ export default function ResultsPage() {
             </div>
           </div>
 
-          {/* Calculate Button or Top States */}
-          {calculationStatus === 'pending' ? (
+          {/* Calculate Button */}
+          {calculationStatus === 'pending' && (
             <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-6 mb-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -341,32 +341,7 @@ export default function ResultsPage() {
                 </Button>
               </div>
             </div>
-          ) : results && results.top_states_by_liability.length > 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Top States by Tax Liability</h3>
-              <div className="space-y-3">
-                {results.top_states_by_liability.map((state, index) => (
-                  <div key={state.state} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-bold text-gray-400">#{index + 1}</span>
-                      <div>
-                        <p className="font-medium text-gray-900">{state.state}</p>
-                        <p className="text-xs text-gray-500">
-                          {state.nexus_type || 'economic'} • ${(state.total_sales || 0).toLocaleString()} in sales
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-indigo-600">
-                        ${(state.estimated_liability || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-gray-500">est. liability</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
+          )}
 
           {/* Subtle back link */}
           <div className="mb-6">
