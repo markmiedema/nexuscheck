@@ -451,6 +451,129 @@ async def upload_transactions(
         )
 
 
+@router.post("/{analysis_id}/validate-and-save")
+async def validate_and_save_mappings(
+    analysis_id: str,
+    column_mappings: dict,
+    user_id: str = Depends(require_auth)
+):
+    """
+    Validate column mappings and save transactions to database.
+
+    This endpoint is called after user confirms mappings (either from confirmation dialog
+    or from full mapping page).
+
+    Body:
+        column_mappings: {
+            "transaction_date": {"source_column": "date", "date_format": "YYYY-MM-DD"},
+            "customer_state": {"source_column": "state"},
+            "revenue_amount": {"source_column": "amount"},
+            "sales_channel": {"source_column": "channel", "value_mappings": {...}}
+        }
+    """
+    supabase = get_supabase()
+
+    try:
+        # Verify analysis exists
+        analysis_result = supabase.table('analyses').select('*').eq('id', analysis_id).eq('user_id', user_id).execute()
+
+        if not analysis_result.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Analysis not found"
+            )
+
+        # Retrieve raw CSV from storage
+        storage_path = f"uploads/{user_id}/{analysis_id}/raw_data.csv"
+
+        try:
+            file_data = supabase.storage.from_('analysis-uploads').download(storage_path)
+            df = pd.read_csv(io.BytesIO(file_data))
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Raw data file not found. Please re-upload your CSV."
+            )
+
+        # Extract mapping configuration
+        transaction_date_config = column_mappings.get('transaction_date', {})
+        customer_state_config = column_mappings.get('customer_state', {})
+        revenue_amount_config = column_mappings.get('revenue_amount', {})
+        sales_channel_config = column_mappings.get('sales_channel', {})
+
+        # Validate required mappings exist
+        if not transaction_date_config.get('source_column'):
+            raise HTTPException(status_code=400, detail="transaction_date mapping required")
+        if not customer_state_config.get('source_column'):
+            raise HTTPException(status_code=400, detail="customer_state mapping required")
+        if not revenue_amount_config.get('source_column'):
+            raise HTTPException(status_code=400, detail="revenue_amount mapping required")
+        if not sales_channel_config.get('source_column'):
+            raise HTTPException(status_code=400, detail="sales_channel mapping required")
+
+        # Apply column mappings and rename
+        mapped_df = pd.DataFrame({
+            'transaction_date': df[transaction_date_config['source_column']],
+            'customer_state': df[customer_state_config['source_column']],
+            'revenue_amount': df[revenue_amount_config['source_column']],
+            'sales_channel': df[sales_channel_config['source_column']],
+        })
+
+        # Clean data
+        mapped_df = mapped_df.dropna(subset=['transaction_date', 'customer_state', 'revenue_amount', 'sales_channel'])
+
+        if len(mapped_df) == 0:
+            raise HTTPException(status_code=400, detail="No valid transactions after applying mappings")
+
+        # Convert dates
+        mapped_df['transaction_date'] = pd.to_datetime(mapped_df['transaction_date']).dt.strftime('%Y-%m-%d')
+
+        # Prepare transactions for insertion
+        transactions = []
+        for _, row in mapped_df.iterrows():
+            transaction = {
+                "analysis_id": analysis_id,
+                "transaction_date": row['transaction_date'],
+                "customer_state": str(row['customer_state']).strip().upper()[:2],
+                "sales_amount": float(row['revenue_amount']),
+                "sales_channel": str(row['sales_channel']).strip().lower(),
+                "transaction_count": 1,
+                "tax_collected": None,
+            }
+            transactions.append(transaction)
+
+        # Insert transactions in batches
+        batch_size = 1000
+        total_inserted = 0
+
+        for i in range(0, len(transactions), batch_size):
+            batch = transactions[i:i + batch_size]
+            supabase.table('sales_transactions').insert(batch).execute()
+            total_inserted += len(batch)
+
+        # Update analysis status
+        supabase.table('analyses').update({
+            "status": "processing",
+            "updated_at": datetime.utcnow().isoformat()
+        }).eq('id', analysis_id).execute()
+
+        logger.info(f"Saved {total_inserted} transactions for analysis {analysis_id}")
+
+        return {
+            "message": "Mappings validated and data saved successfully",
+            "transactions_saved": total_inserted
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error validating and saving mappings: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save transactions: {str(e)}"
+        )
+
+
 @router.get("/{analysis_id}/columns")
 async def get_column_info(
     analysis_id: str,
