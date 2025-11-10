@@ -521,61 +521,133 @@ export default function MappingPage() {
               </CardContent>
             </Card>
 
-              {/* Optional Fields */}
-              <div className="bg-gray-50 p-4 rounded-md">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Optional Fields</h3>
+            {/* Optional Fields - Lighter Treatment */}
+            <Card className="mb-6 border-dashed">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <span>Optional Mappings</span>
+                  <Badge variant="secondary" className="text-xs font-normal">Optional</Badge>
+                </CardTitle>
+                <CardDescription>
+                  These fields provide additional insights but aren't required for nexus calculation.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Product Type (optional):</label>
-                    <select
+                {/* Product Type */}
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Your Column</Label>
+                    <Select
                       value={mappings.product_type || ''}
-                      onChange={(e) => handleMappingChange('product_type', e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      onValueChange={(val) => handleMappingChange('product_type', val)}
                     >
-                      <option value="">-- Not mapped --</option>
-                      {columns.map(col => (
-                        <option key={col.name} value={col.name}>{col.name}</option>
-                      ))}
-                    </select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Not mapped" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Not mapped</SelectItem>
+                        {columns.map(col => (
+                          <SelectItem key={col.name} value={col.name}>{col.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Customer Type (optional):</label>
-                    <select
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Maps To</Label>
+                    <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
+                      <span className="text-sm">Product Type</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="my-2" />
+
+                {/* Customer Type */}
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Your Column</Label>
+                    <Select
                       value={mappings.customer_type || ''}
-                      onChange={(e) => handleMappingChange('customer_type', e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      onValueChange={(val) => handleMappingChange('customer_type', val)}
                     >
-                      <option value="">-- Not mapped --</option>
-                      {columns.map(col => (
-                        <option key={col.name} value={col.name}>{col.name}</option>
-                      ))}
-                    </select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Not mapped" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Not mapped</SelectItem>
+                        {columns.map(col => (
+                          <SelectItem key={col.name} value={col.name}>{col.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Data Summary */}
-            {dataSummary && (
-              <div className="mt-8 p-4 bg-indigo-50 rounded-md border border-indigo-200">
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Data Summary:</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-                  <div>
-                    <span className="font-medium">Total transactions:</span> {dataSummary.total_rows.toLocaleString()}
-                  </div>
-                  <div>
-                    <span className="font-medium">Date range:</span> {dataSummary.date_range.start} to {dataSummary.date_range.end}
-                  </div>
-                  <div>
-                    <span className="font-medium">States found:</span> {dataSummary.unique_states}
-                  </div>
-                  <div>
-                    <span className="font-medium">Estimated processing time:</span> {dataSummary.estimated_time}
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Maps To</Label>
+                    <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
+                      <span className="text-sm">Customer Type</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+
+              </CardContent>
+            </Card>
+
+            {/* Data Summary - Clean Stats Grid */}
+            {dataSummary && (
+              <Card className="mb-6 bg-gradient-to-br from-indigo-50/50 to-blue-50/50 border-indigo-100 dark:from-indigo-950/20 dark:to-blue-950/20 dark:border-indigo-900">
+                <CardHeader>
+                  <CardTitle className="text-base">Data Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Transactions
+                      </p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {dataSummary.total_rows.toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        States Found
+                      </p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {dataSummary.unique_states}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Date Range
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {dataSummary.date_range.start}
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {dataSummary.date_range.end}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Est. Time
+                      </p>
+                      <p className="text-lg font-semibold text-foreground">
+                        {dataSummary.estimated_time}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             {/* Validation Status */}
