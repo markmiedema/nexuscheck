@@ -166,6 +166,76 @@ export default function ClientSetupPage() {
     }
   }
 
+  const handleConfirmCalculation = async () => {
+    if (!analysisId || !uploadResponse) return
+
+    try {
+      setCalculating(true)
+      setShowConfirmDialog(false)
+
+      // Step 1: Save mappings
+      const mappingPayload = {
+        column_mappings: {
+          transaction_date: {
+            source_column: uploadResponse.auto_detected_mappings.mappings.transaction_date
+          },
+          customer_state: {
+            source_column: uploadResponse.auto_detected_mappings.mappings.customer_state
+          },
+          revenue_amount: {
+            source_column: uploadResponse.auto_detected_mappings.mappings.revenue_amount
+          },
+          sales_channel: {
+            source_column: uploadResponse.auto_detected_mappings.mappings.sales_channel
+          }
+        }
+      }
+
+      await apiClient.post(
+        `/api/v1/analyses/${analysisId}/validate-and-save`,
+        mappingPayload
+      )
+
+      // Step 2: Trigger calculation
+      await apiClient.post(`/api/v1/analyses/${analysisId}/calculate`)
+
+      // Step 3: Poll for completion
+      let attempts = 0
+      const maxAttempts = 30
+
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1 second
+
+        const statusResponse = await apiClient.get(`/api/v1/analyses/${analysisId}`)
+
+        if (statusResponse.data.status === 'complete') {
+          // Calculation complete!
+          showSuccess('Analysis complete!')
+          router.push(`/analysis/${analysisId}/results`)
+          return
+        }
+
+        attempts++
+      }
+
+      // Timeout - redirect anyway with warning
+      showSuccess('Calculation started - results may take a moment to appear')
+      router.push(`/analysis/${analysisId}/results`)
+
+    } catch (err) {
+      const errorMsg = handleApiError(err, { userMessage: 'Failed to process analysis' })
+      setError(errorMsg)
+      setCalculating(false)
+    }
+  }
+
+  const handleAdjustMappings = () => {
+    setShowConfirmDialog(false)
+    if (analysisId) {
+      router.push(`/analysis/${analysisId}/mapping`)
+    }
+  }
+
   return (
     <ProtectedRoute>
       <AppLayout
