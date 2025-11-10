@@ -174,8 +174,8 @@ export default function MappingPage() {
       setValidationStatus('idle')
       setValidationErrors([])
 
-      // Step 1: Validate data
-      const validateResponse = await apiClient.post(`/api/v1/analyses/${analysisId}/validate`, {
+      // Prepare mapping payload for new endpoint
+      const mappingPayload = {
         column_mappings: {
           transaction_date: {
             source_column: mappings.transaction_date,
@@ -192,33 +192,38 @@ export default function MappingPage() {
             value_mappings: valueMappings,
           },
         },
-      })
-
-      const result = validateResponse.data
-
-      if (result.status === 'passed') {
-        setValidationStatus('passed')
-
-        // Step 2: Immediately run nexus calculation
-        try {
-          await apiClient.post(`/api/v1/analyses/${analysisId}/calculate`)
-        } catch (calcError: any) {
-          console.error('Calculation failed:', calcError)
-          // Continue to results page anyway - user can retry from there
-        }
-
-        // Navigate to results page
-        showSuccess('Column mapping saved successfully')
-        setTimeout(() => {
-          router.push(`/analysis/${analysisId}/results`)
-        }, 1000)
-      } else {
-        setValidationStatus('failed')
-        setValidationErrors(result.errors || [])
-        setShowErrors(true)
       }
-    } catch (error) {
-      handleApiError(error, { userMessage: 'Validation failed' })
+
+      // Call validate-and-save endpoint
+      const saveResponse = await apiClient.post(
+        `/api/v1/analyses/${analysisId}/validate-and-save`,
+        mappingPayload
+      )
+
+      showSuccess(`Saved ${saveResponse.data.transactions_saved} transactions`)
+
+      // Run nexus calculation
+      try {
+        await apiClient.post(`/api/v1/analyses/${analysisId}/calculate`)
+      } catch (calcError: any) {
+        console.error('Calculation failed:', calcError)
+        // Continue to results page anyway
+      }
+
+      // Navigate to results
+      setTimeout(() => {
+        router.push(`/analysis/${analysisId}/results`)
+      }, 1000)
+
+    } catch (error: any) {
+      // Handle validation errors
+      if (error.response?.status === 400 && error.response?.data?.errors) {
+        setValidationStatus('failed')
+        setValidationErrors(error.response.data.errors)
+        setShowErrors(true)
+      } else {
+        handleApiError(error, { userMessage: 'Failed to save mappings' })
+      }
     } finally {
       setValidating(false)
     }
