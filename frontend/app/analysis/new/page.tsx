@@ -452,7 +452,7 @@ export default function ClientSetupPage() {
                   disabled={loading}
                   className="flex items-center"
                 >
-                  {loading ? 'Creating...' : 'Continue to Upload'}
+                  {loading ? 'Creating...' : 'Create Analysis'}
                   {!loading && (
                     <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -521,6 +521,34 @@ export default function ClientSetupPage() {
                 )}
               </CardContent>
             </Card>
+          )}
+
+          {/* Confirmation Dialog */}
+          {showConfirmDialog && uploadResponse?.auto_detected_mappings && (
+            <ColumnMappingConfirmationDialog
+              isOpen={showConfirmDialog}
+              onClose={() => setShowConfirmDialog(false)}
+              onConfirm={handleConfirmCalculation}
+              onAdjust={handleAdjustMappings}
+              detectedMappings={uploadResponse.auto_detected_mappings.mappings}
+              samplesByColumn={uploadResponse.auto_detected_mappings.samples}
+              dataSummary={uploadResponse.auto_detected_mappings.summary}
+            />
+          )}
+
+          {/* Loading overlay during calculation */}
+          {calculating && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-8 max-w-md text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Calculating Nexus...
+                </h3>
+                <p className="text-sm text-gray-600">
+                  This may take a minute. Please don't close this page.
+                </p>
+              </div>
+            </div>
           )}
           </div>
       </AppLayout>
