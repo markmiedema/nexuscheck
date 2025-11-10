@@ -461,6 +461,67 @@ export default function ClientSetupPage() {
                 </Button>
               </div>
             </form>
+
+          {/* File Upload Zone - Appears after analysis creation */}
+          {showUploadZone && (
+            <Card className="mt-8 border-2 border-dashed">
+              <CardHeader>
+                <CardTitle className="text-xl">Upload Transaction Data</CardTitle>
+                <CardDescription>
+                  Upload your CSV file containing sales transactions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!uploadedFile ? (
+                  <div
+                    onDrop={handleFileDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-indigo-500 hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                  >
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      id="file-upload"
+                      disabled={uploading}
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <UploadCloud className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                      <p className="text-lg font-medium text-gray-700 mb-2">
+                        Drop your CSV file here or click to browse
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Supports CSV files up to 50MB
+                      </p>
+                    </label>
+                  </div>
+                ) : uploading ? (
+                  <div className="text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-4"></div>
+                    <p className="text-gray-600">Processing your file...</p>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                    <CheckCircle2 className="mx-auto h-12 w-12 text-green-600 mb-4" />
+                    <p className="text-lg font-medium text-green-900 mb-2">
+                      File uploaded successfully!
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-sm text-green-700">
+                      <FileText className="h-4 w-4" />
+                      <span>{uploadedFile.name}</span>
+                    </div>
+                  </div>
+                )}
+
+                {uploadError && (
+                  <div className="mt-4 rounded-md bg-red-50 border border-red-200 p-4">
+                    <p className="text-sm text-red-800">{uploadError}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
           </div>
       </AppLayout>
     </ProtectedRoute>
