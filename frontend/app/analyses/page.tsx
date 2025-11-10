@@ -171,26 +171,27 @@ export default function AnalysesPage() {
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Period</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">States with Nexus</TableHead>
-                        <TableHead className="text-right">Est. Liability</TableHead>
-                        <TableHead className="text-right">Created</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader className="bg-gray-50 dark:bg-gray-700/50">
+                        <TableRow className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <TableHead className="text-gray-700 dark:text-gray-300">Client</TableHead>
+                          <TableHead className="text-gray-700 dark:text-gray-300">Period</TableHead>
+                          <TableHead className="text-gray-700 dark:text-gray-300">Status</TableHead>
+                          <TableHead className="text-right text-gray-700 dark:text-gray-300">States with Nexus</TableHead>
+                          <TableHead className="text-right text-gray-700 dark:text-gray-300">Est. Liability</TableHead>
+                          <TableHead className="text-right text-gray-700 dark:text-gray-300">Created</TableHead>
+                          <TableHead className="text-right text-gray-700 dark:text-gray-300">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                       {analyses.map((analysis) => {
                         const statusConfig = STATUS_CONFIG[analysis.status]
                         const StatusIcon = statusConfig.icon
 
                         return (
-                          <TableRow key={analysis.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                          <TableRow key={analysis.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 border-b border-gray-100 dark:border-gray-700 last:border-0">
                             <TableCell className="font-medium text-gray-900 dark:text-gray-100">
                               {analysis.client_company_name}
                             </TableCell>
@@ -249,6 +250,7 @@ export default function AnalysesPage() {
                       })}
                     </TableBody>
                   </Table>
+                  </div>
                 </div>
 
                 <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
