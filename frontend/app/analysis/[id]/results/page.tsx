@@ -361,17 +361,6 @@ export default function ResultsPage() {
               <StateTable analysisId={analysisId} embedded={true} />
             </div>
           )}
-
-          {/* Single action button at bottom */}
-          <div className="flex justify-end">
-            <Button
-              disabled
-              variant="outline"
-              size="lg"
-            >
-              Generate Report (Coming Soon)
-            </Button>
-          </div>
       </AppLayout>
     </ProtectedRoute>
   )
