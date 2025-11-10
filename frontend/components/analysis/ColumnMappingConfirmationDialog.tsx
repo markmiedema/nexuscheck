@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import { CheckCircle2, ArrowRight } from 'lucide-react'
 
 interface ColumnMappingConfirmationDialogProps {
@@ -52,11 +53,45 @@ export default function ColumnMappingConfirmationDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Confirm Column Mappings</DialogTitle>
-          <DialogDescription>
-            We've automatically detected your column mappings. Please verify they look correct.
-          </DialogDescription>
+          <DialogTitle>Confirm Analysis Setup</DialogTitle>
         </DialogHeader>
+
+        {/* Data Summary - Top Section */}
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg p-4 mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <h3 className="font-semibold text-green-900 dark:text-green-100">
+              Analysis Ready to Calculate
+            </h3>
+          </div>
+
+          {dataSummary && (
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">Transactions</p>
+                <p className="font-semibold text-lg">{dataSummary.total_rows.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">States</p>
+                <p className="font-semibold text-lg">{dataSummary.unique_states}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Period</p>
+                <p className="font-semibold text-sm leading-tight">
+                  {dataSummary.date_range.start}
+                  <br />
+                  {dataSummary.date_range.end}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <Separator className="my-4" />
+
+        <DialogDescription>
+          We've automatically detected your column mappings. Please verify they look correct.
+        </DialogDescription>
 
         {/* Mappings Grid */}
         <div className="space-y-3 py-4">
@@ -89,28 +124,6 @@ export default function ColumnMappingConfirmationDialog({
             )
           })}
         </div>
-
-        {/* Data Summary */}
-        {dataSummary && (
-          <div className="bg-muted/50 rounded-lg p-4">
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Transactions</p>
-                <p className="font-semibold">{dataSummary.total_rows.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">States</p>
-                <p className="font-semibold">{dataSummary.unique_states}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Date Range</p>
-                <p className="font-semibold text-xs">
-                  {dataSummary.date_range.start} - {dataSummary.date_range.end}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={onAdjust}>
