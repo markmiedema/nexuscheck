@@ -1,0 +1,6 @@
+transaction_date,customer_state,revenue_amount,sales_channel,transaction_id
+2024-01-15,CA,150.00,marketplace,TXN001
+2024-01-16,NY,200.50,direct,TXN002
+2024-01-17,TX,99.99,marketplace,TXN003
+2024-01-18,FL,175.25,other,TXN004
+2024-01-19,CA,210.00,direct,TXN005

@@ -1,0 +1,4 @@
+transaction_date,location,revenue_amount,vendor
+2024-01-15,CA,150.00,Amazon
+2024-01-16,NY,200.50,Direct Website
+2024-01-17,TX,99.99,eBay
