@@ -130,11 +130,11 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
 
   const getSortIcon = (column: SortConfig['column']) => {
     if (sortConfig.column !== column) {
-      return <ChevronsUpDown className="h-4 w-4 text-slate-400" />
+      return <ChevronsUpDown className="h-4 w-4 text-gray-400" />
     }
     return sortConfig.direction === 'asc'
-      ? <ChevronUp className="h-4 w-4 text-slate-700" />
-      : <ChevronDown className="h-4 w-4 text-slate-700" />
+      ? <ChevronUp className="h-4 w-4 text-gray-700" />
+      : <ChevronDown className="h-4 w-4 text-gray-700" />
   }
 
   const densityClasses = {
@@ -148,7 +148,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-          <p className="mt-4 text-slate-600">Loading state results...</p>
+          <p className="mt-4 text-gray-600">Loading state results...</p>
         </div>
       </div>
     )
@@ -163,13 +163,13 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
   }
 
   return (
-    <div className={embedded ? '' : 'bg-white rounded-lg shadow-sm border border-slate-200 p-6'}>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-slate-900">
+        <h3 className="text-lg font-semibold text-gray-900">
           State-by-State Results
         </h3>
-        <div className="text-sm text-slate-600">
+        <div className="text-sm text-gray-600">
           {displayedStates.length} of {states.length} states
         </div>
       </div>
@@ -178,19 +178,19 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         {/* Left side - Search */}
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search states..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+            className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
         {/* Right side - Filters and Actions */}
         <div className="flex gap-2">
           <Select value={nexusFilter} onValueChange={setNexusFilter}>
-            <SelectTrigger className="w-40 border-slate-200">
+            <SelectTrigger className="w-40 border-gray-200">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -202,7 +202,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
           </Select>
 
           <Select value={density} onValueChange={(v) => setDensity(v as Density)}>
-            <SelectTrigger className="w-36 border-slate-200">
+            <SelectTrigger className="w-36 border-gray-200">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -212,7 +212,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
             </SelectContent>
           </Select>
 
-          <Button variant="outline" size="sm" className="border-slate-200">
+          <Button variant="outline" size="sm" className="border-gray-200">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -220,54 +220,54 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
       </div>
 
       {/* Table */}
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-50 sticky top-0 z-10">
-              <TableRow className="hover:bg-slate-50">
-                <TableHead className="border-b border-slate-200">
+            <TableHeader className="bg-gray-50 sticky top-0 z-10">
+              <TableRow className="hover:bg-gray-50">
+                <TableHead className="border-b border-gray-200">
                   <button
                     onClick={() => handleSort('state')}
-                    className="flex items-center gap-2 font-medium text-slate-700 hover:text-slate-900 transition-colors"
+                    className="flex items-center gap-2 font-medium text-gray-700 hover:text-gray-900 transition-colors"
                   >
                     State
                     {getSortIcon('state')}
                   </button>
                 </TableHead>
-                <TableHead className="border-b border-slate-200">
+                <TableHead className="border-b border-gray-200">
                   <button
                     onClick={() => handleSort('nexus_status')}
-                    className="flex items-center gap-2 font-medium text-slate-700 hover:text-slate-900 transition-colors"
+                    className="flex items-center gap-2 font-medium text-gray-700 hover:text-gray-900 transition-colors"
                   >
                     Status
                     {getSortIcon('nexus_status')}
                   </button>
                 </TableHead>
-                <TableHead className="text-right border-b border-slate-200">
+                <TableHead className="text-right border-b border-gray-200">
                   <button
                     onClick={() => handleSort('sales')}
-                    className="flex items-center gap-2 ml-auto font-medium text-slate-700 hover:text-slate-900 transition-colors"
+                    className="flex items-center gap-2 ml-auto font-medium text-gray-700 hover:text-gray-900 transition-colors"
                   >
                     Total Sales
                     {getSortIcon('sales')}
                   </button>
                 </TableHead>
-                <TableHead className="text-right border-b border-slate-200">
+                <TableHead className="text-right border-b border-gray-200">
                   <button
                     onClick={() => handleSort('liability')}
-                    className="flex items-center gap-2 ml-auto font-medium text-slate-700 hover:text-slate-900 transition-colors"
+                    className="flex items-center gap-2 ml-auto font-medium text-gray-700 hover:text-gray-900 transition-colors"
                   >
                     Est. Liability
                     {getSortIcon('liability')}
                   </button>
                 </TableHead>
-                <TableHead className="border-b border-slate-200">Actions</TableHead>
+                <TableHead className="border-b border-gray-200">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {displayedStates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-slate-500">
+                  <TableCell colSpan={5} className="text-center py-12 text-gray-500">
                     No states found matching your filters
                   </TableCell>
                 </TableRow>
@@ -275,9 +275,9 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
                 displayedStates.map((state) => (
                   <TableRow
                     key={state.state_code}
-                    className="hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
+                    className="hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
                   >
-                    <TableCell className={`font-medium text-slate-900 ${densityClasses[density]}`}>
+                    <TableCell className={`font-medium text-gray-900 ${densityClasses[density]}`}>
                       {state.state_name} ({state.state_code})
                     </TableCell>
                     <TableCell className={densityClasses[density]}>
@@ -291,10 +291,10 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
                         {getNexusStatusLabel(state.nexus_status)}
                       </span>
                     </TableCell>
-                    <TableCell className={`text-right text-slate-700 ${densityClasses[density]}`}>
+                    <TableCell className={`text-right text-gray-700 ${densityClasses[density]}`}>
                       ${state.total_sales.toLocaleString()}
                     </TableCell>
-                    <TableCell className={`text-right text-slate-900 font-medium ${densityClasses[density]}`}>
+                    <TableCell className={`text-right text-gray-900 font-medium ${densityClasses[density]}`}>
                       ${state.estimated_liability.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
@@ -314,7 +314,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors px-2"
+                          className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors px-2"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
@@ -329,15 +329,15 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-200">
-        <p className="text-sm text-slate-600">
-          Showing <span className="font-medium text-slate-900">{displayedStates.length}</span> of{' '}
-          <span className="font-medium text-slate-900">{states.length}</span> states
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+        <p className="text-sm text-gray-600">
+          Showing <span className="font-medium text-gray-900">{displayedStates.length}</span> of{' '}
+          <span className="font-medium text-gray-900">{states.length}</span> states
         </p>
         <Button
           variant="outline"
           size="sm"
-          className="border-slate-200 text-slate-700 hover:bg-slate-50"
+          className="border-gray-200 text-gray-700 hover:bg-gray-50"
           disabled
         >
           Generate Report (Coming Soon)
