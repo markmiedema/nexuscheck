@@ -270,162 +270,256 @@ export default function MappingPage() {
               Match your CSV columns to the required fields. We've auto-detected most mappings - please verify.
             </p>
 
-            {/* Required Fields */}
-            <div className="space-y-6">
-              {/* Transaction Date */}
-              <div className="border-b border-gray-200 pb-6">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Transaction Date <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Your column:</label>
-                    <select
+            {/* Required Fields - Single Clean Card */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Required Column Mappings</CardTitle>
+                <CardDescription>
+                  We've auto-detected these mappings from your CSV. Verify they look correct.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+
+                {/* Transaction Date Mapping */}
+                <div className="grid grid-cols-[1fr_auto_1fr_auto] gap-4 items-start">
+                  {/* Your Column */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Your Column
+                    </Label>
+                    <Select
                       value={mappings.transaction_date}
-                      onChange={(e) => handleMappingChange('transaction_date', e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      onValueChange={(val) => handleMappingChange('transaction_date', val)}
                     >
-                      <option value="">-- Select column --</option>
-                      {columns.map(col => (
-                        <option key={col.name} value={col.name}>{col.name}</option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select column..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {columns.map(col => (
+                          <SelectItem key={col.name} value={col.name}>
+                            {col.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {mappings.transaction_date && (
+                      <div className="flex gap-1 flex-wrap">
+                        {getColumnSamples(mappings.transaction_date).slice(0, 3).map((val, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs font-normal">
+                            {val}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Date format:</label>
-                    <select
-                      value={dateFormat}
-                      onChange={(e) => setDateFormat(e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+
+                  {/* Arrow */}
+                  <div className="flex items-center pt-8">
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+
+                  {/* Maps To */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Maps To
+                    </Label>
+                    <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
+                      <span className="text-sm font-medium">Transaction Date</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Select value={dateFormat} onValueChange={setDateFormat}>
+                        <SelectTrigger className="w-auto text-xs h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                          <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                          <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Status Indicator */}
+                  <div className="flex items-center pt-8">
+                    {mappings.transaction_date ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                    )}
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Customer State Mapping */}
+                <div className="grid grid-cols-[1fr_auto_1fr_auto] gap-4 items-start">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Your Column
+                    </Label>
+                    <Select
+                      value={mappings.customer_state}
+                      onValueChange={(val) => handleMappingChange('customer_state', val)}
                     >
-                      <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                      <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                      <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                      <option value="YYYY/MM/DD">YYYY/MM/DD</option>
-                    </select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select column..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {columns.map(col => (
+                          <SelectItem key={col.name} value={col.name}>
+                            {col.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {mappings.customer_state && (
+                      <div className="flex gap-1 flex-wrap">
+                        {getColumnSamples(mappings.customer_state).slice(0, 5).map((val, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs font-normal">
+                            {val}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-                {mappings.transaction_date && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-600 mb-1">Sample values:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {getColumnSamples(mappings.transaction_date).slice(0, 5).map((val, idx) => (
-                        <span key={idx} className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                          {val}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="mt-1 text-xs text-green-600 flex items-center">
-                      <span className="mr-1">✓</span> Looks good
-                    </p>
-                  </div>
-                )}
-              </div>
 
-              {/* Customer State */}
-              <div className="border-b border-gray-200 pb-6">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Customer State <span className="text-red-500">*</span>
-                </label>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Your column:</label>
-                  <select
-                    value={mappings.customer_state}
-                    onChange={(e) => handleMappingChange('customer_state', e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">-- Select column --</option>
-                    {columns.map(col => (
-                      <option key={col.name} value={col.name}>{col.name}</option>
-                    ))}
-                  </select>
-                </div>
-                {mappings.customer_state && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-600 mb-1">Sample values:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {getColumnSamples(mappings.customer_state).slice(0, 8).map((val, idx) => (
-                        <span key={idx} className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                          {val}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="mt-1 text-xs text-green-600 flex items-center">
-                      <span className="mr-1">✓</span> All valid state codes
-                    </p>
+                  <div className="flex items-center pt-8">
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </div>
-                )}
-              </div>
 
-              {/* Revenue Amount */}
-              <div className="border-b border-gray-200 pb-6">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Revenue Amount <span className="text-red-500">*</span>
-                </label>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Your column:</label>
-                  <select
-                    value={mappings.revenue_amount}
-                    onChange={(e) => handleMappingChange('revenue_amount', e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">-- Select column --</option>
-                    {columns.map(col => (
-                      <option key={col.name} value={col.name}>{col.name}</option>
-                    ))}
-                  </select>
-                </div>
-                {mappings.revenue_amount && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-600 mb-1">Sample values:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {getColumnSamples(mappings.revenue_amount).slice(0, 5).map((val, idx) => (
-                        <span key={idx} className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                          ${val}
-                        </span>
-                      ))}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Maps To
+                    </Label>
+                    <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
+                      <span className="text-sm font-medium">Customer State</span>
                     </div>
-                    <p className="mt-1 text-xs text-green-600 flex items-center">
-                      <span className="mr-1">✓</span> All numeric values
-                    </p>
                   </div>
-                )}
-              </div>
 
-              {/* Sales Channel */}
-              <div className="border-b border-gray-200 pb-6">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Sales Channel <span className="text-red-500">*</span>
-                </label>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Your column:</label>
-                  <select
-                    value={mappings.sales_channel}
-                    onChange={(e) => handleMappingChange('sales_channel', e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">-- Select column --</option>
-                    {columns.map(col => (
-                      <option key={col.name} value={col.name}>{col.name}</option>
-                    ))}
-                  </select>
-                </div>
-                {mappings.sales_channel && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-600 mb-1">Sample values:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {getColumnSamples(mappings.sales_channel).slice(0, 5).map((val, idx) => (
-                        <span key={idx} className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                          {val}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="mt-1 text-xs text-green-600 flex items-center">
-                      <span className="mr-1">✓</span> Looks good
-                    </p>
+                  <div className="flex items-center pt-8">
+                    {mappings.customer_state ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+
+                <Separator />
+
+                {/* Revenue Amount Mapping */}
+                <div className="grid grid-cols-[1fr_auto_1fr_auto] gap-4 items-start">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Your Column
+                    </Label>
+                    <Select
+                      value={mappings.revenue_amount}
+                      onValueChange={(val) => handleMappingChange('revenue_amount', val)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select column..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {columns.map(col => (
+                          <SelectItem key={col.name} value={col.name}>
+                            {col.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {mappings.revenue_amount && (
+                      <div className="flex gap-1 flex-wrap">
+                        {getColumnSamples(mappings.revenue_amount).slice(0, 3).map((val, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs font-normal">
+                            ${val}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center pt-8">
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Maps To
+                    </Label>
+                    <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
+                      <span className="text-sm font-medium">Revenue Amount</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center pt-8">
+                    {mappings.revenue_amount ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                    )}
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Sales Channel Mapping */}
+                <div className="grid grid-cols-[1fr_auto_1fr_auto] gap-4 items-start">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Your Column
+                    </Label>
+                    <Select
+                      value={mappings.sales_channel}
+                      onValueChange={(val) => handleMappingChange('sales_channel', val)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select column..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {columns.map(col => (
+                          <SelectItem key={col.name} value={col.name}>
+                            {col.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {mappings.sales_channel && (
+                      <div className="flex gap-1 flex-wrap">
+                        {getColumnSamples(mappings.sales_channel).slice(0, 4).map((val, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs font-normal">
+                            {val}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center pt-8">
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Maps To
+                    </Label>
+                    <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
+                      <span className="text-sm font-medium">Sales Channel</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center pt-8">
+                    {mappings.sales_channel ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                    )}
+                  </div>
+                </div>
+
+              </CardContent>
+            </Card>
 
               {/* Optional Fields */}
               <div className="bg-gray-50 p-4 rounded-md">
