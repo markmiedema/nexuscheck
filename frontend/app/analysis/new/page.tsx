@@ -111,6 +111,61 @@ export default function ClientSetupPage() {
     router.push('/dashboard')
   }
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setUploadedFile(file)
+      handleFileUpload(file)
+    }
+  }
+
+  const handleFileDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    const file = event.dataTransfer.files?.[0]
+    if (file) {
+      setUploadedFile(file)
+      handleFileUpload(file)
+    }
+  }
+
+  const handleFileUpload = async (file: File) => {
+    if (!analysisId) {
+      setUploadError('Analysis ID not found. Please try again.')
+      return
+    }
+
+    setUploading(true)
+    setUploadError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await apiClient.post(
+        `/api/v1/analyses/${analysisId}/upload`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
+      )
+
+      setUploadResponse(response.data)
+
+      // Show confirmation dialog if all columns detected
+      if (response.data.all_required_detected) {
+        setShowConfirmDialog(true)
+      } else {
+        // Redirect to mapping page for manual mapping
+        router.push(`/analysis/${analysisId}/mapping`)
+      }
+    } catch (err) {
+      const errorMsg = handleApiError(err, { userMessage: 'Failed to upload file' })
+      setUploadError(errorMsg)
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <ProtectedRoute>
       <AppLayout
