@@ -95,11 +95,10 @@ export default function ClientSetupPage() {
         })),
       })
 
-      const analysisId = response.data.id
-
-      // Navigate to upload screen
-      showSuccess('Analysis created successfully')
-      router.push(`/analysis/${analysisId}/upload`)
+      const newAnalysisId = response.data.id
+      setAnalysisId(newAnalysisId)
+      setShowUploadZone(true)
+      showSuccess('Analysis created! Now upload your transaction data.')
     } catch (err) {
       const errorMsg = handleApiError(err, { userMessage: 'Failed to create analysis' })
       setError(errorMsg)
