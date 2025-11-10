@@ -650,60 +650,63 @@ export default function MappingPage() {
               </Card>
             )}
 
-            {/* Validation Status */}
+            {/* Validation Passed */}
             {validationStatus === 'passed' && (
-              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-md">
-                <p className="text-green-800 font-medium flex items-center">
-                  <span className="mr-2">✓</span> Validation passed! Redirecting to results...
-                </p>
-              </div>
+              <Alert className="mb-6 border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertTitle className="text-green-900 dark:text-green-100">Validation Passed</AlertTitle>
+                <AlertDescription className="text-green-800 dark:text-green-200">
+                  All mappings look good. Redirecting to results...
+                </AlertDescription>
+              </Alert>
             )}
 
-            {/* Validation Errors */}
+            {/* Validation Failed */}
             {validationStatus === 'failed' && showErrors && (
-              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-md">
-                <h3 className="text-red-900 font-semibold mb-2">⚠️ Data Validation Failed</h3>
-                <p className="text-red-800 text-sm mb-4">
-                  Found {validationErrors.length} issues. Please review and fix:
-                </p>
-                <div className="max-h-60 overflow-y-auto space-y-2">
+              <Alert variant="destructive" className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Data Validation Failed</AlertTitle>
+                <AlertDescription>
+                  Found {validationErrors.length} issues in your data.
+                </AlertDescription>
+                <div className="mt-4 max-h-48 overflow-y-auto space-y-2">
                   {validationErrors.slice(0, 10).map((error, idx) => (
-                    <div key={idx} className="text-sm text-red-700 bg-white p-2 rounded border border-red-200">
+                    <div key={idx} className="text-xs bg-background rounded-md p-2 border">
                       <span className="font-medium">Row {error.row}:</span> {error.column} = "{error.value}" - {error.message}
                     </div>
                   ))}
                   {validationErrors.length > 10 && (
-                    <p className="text-sm text-red-600 italic">
+                    <p className="text-xs italic mt-2">
                       ... and {validationErrors.length - 10} more issues
                     </p>
                   )}
                 </div>
-                <div className="mt-4 flex gap-4">
-                  <Button
-                    onClick={() => setShowErrors(false)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    Hide Errors
-                  </Button>
-                </div>
-              </div>
+              </Alert>
             )}
 
-            {/* Action Buttons */}
-            <div className="mt-8 flex justify-between">
-              <Button
-                onClick={handleBack}
-                variant="outline"
-              >
-                ← Back to Upload
+            {/* Action Buttons - Clean and Clear */}
+            <div className="flex justify-between items-center pt-6">
+              <Button variant="ghost" onClick={handleBack}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Upload
               </Button>
+
               <Button
                 onClick={handleValidateAndProcess}
                 disabled={validating}
+                size="lg"
               >
-                {validating ? 'Calculating Nexus...' : 'Calculate Nexus →'}
+                {validating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Calculating Nexus...
+                  </>
+                ) : (
+                  <>
+                    Calculate Nexus
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </div>
           </div>
