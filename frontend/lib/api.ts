@@ -1,0 +1,86 @@
+import apiClient from './api/client'
+
+export interface StateDetailResponse {
+  state_code: string
+  state_name: string
+  analysis_id: string
+  has_transactions: boolean
+  analysis_period: {
+    years_available: number[]
+  }
+  year_data: YearData[]
+  compliance_info: ComplianceInfo
+  // Aggregate totals across all years (for "All Years" view)
+  total_sales?: number
+  estimated_liability?: number
+  nexus_type?: string
+  first_nexus_year?: number
+}
+
+export interface YearData {
+  year: number
+  nexus_status: 'has_nexus' | 'approaching' | 'none'
+  nexus_date?: string // V2: Date when nexus was established
+  obligation_start_date?: string // V2: Date when tax obligation begins
+  first_nexus_year?: number // V2: Year when nexus was first established (for sticky nexus)
+  summary: {
+    total_sales: number
+    transaction_count: number
+    direct_sales: number
+    marketplace_sales: number
+    taxable_sales: number
+    estimated_liability: number
+    base_tax: number
+  }
+  threshold_info: {
+    revenue_threshold: number | null
+    transaction_threshold: number | null
+    threshold_operator: string | null
+    percentage_of_threshold: number
+    amount_until_nexus: number
+    amount_over_nexus: number | null
+    approaching: boolean
+  }
+  monthly_sales: {
+    month: string
+    sales: number
+    transaction_count: number
+  }[]
+  transactions: {
+    transaction_id: string
+    transaction_date: string
+    sales_amount: number
+    sales_channel: string
+    running_total: number
+  }[]
+}
+
+export interface ComplianceInfo {
+  tax_rates: {
+    state_rate: number
+    avg_local_rate: number
+    combined_rate: number
+  }
+  threshold_info: {
+    revenue_threshold: number | null
+    transaction_threshold: number | null
+    threshold_operator: string | null
+  }
+  registration_info: {
+    registration_fee: number
+    filing_frequencies: string[]
+    registration_url: string | null
+    dor_website: string | null
+  }
+}
+
+export async function getStateDetail(
+  analysisId: string,
+  stateCode: string
+): Promise<StateDetailResponse> {
+  const url = `/api/v1/analyses/${analysisId}/states/${stateCode}`
+
+  const response = await apiClient.get<StateDetailResponse>(url)
+
+  return response.data
+}
