@@ -45,7 +45,7 @@ export default function DashboardPage() {
                 New Analysis
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Start a new SALT nexus analysis
+                Start a new nexus analysis
               </p>
             </button>
 
