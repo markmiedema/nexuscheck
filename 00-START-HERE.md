@@ -1,6 +1,6 @@
-# SALT Tax Tool - Project Documentation
+# Nexus Check - Project Documentation
 
-**Last Updated:** 2025-11-07
+**Last Updated:** 2025-11-10
 **Status:** Phase 1A Complete - V2 Nexus Calculator Production-Ready ✅
 **Current Phase:** Phase 1A Complete → Phase 1B (Rolling 12-Month Lookback)
 
