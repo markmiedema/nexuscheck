@@ -44,7 +44,7 @@ async def health_check():
 async def root():
     """Root endpoint"""
     return {
-        "message": "SALT Tax Tool API",
+        "message": "Nexus Check API",
         "version": "1.0.0",
         "docs": "/docs"
     }
@@ -63,4 +63,4 @@ app.include_router(
 # app.include_router(upload.router, prefix=f"{settings.API_V1_PREFIX}/upload", tags=["upload"])
 # ... etc
 
-logger.info(f"SALT Tax Tool API starting in {settings.ENVIRONMENT} mode")
+logger.info(f"Nexus Check API starting in {settings.ENVIRONMENT} mode")
