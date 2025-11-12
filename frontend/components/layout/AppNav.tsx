@@ -20,11 +20,11 @@ export default function AppNav() {
   }
 
   const handleHome = () => {
-    router.push('/dashboard')
+    router.push('/analyses')
   }
 
   return (
-    <nav className="bg-white dark:bg-slate-700 shadow-card border-b-2 border-gray-300 dark:border-slate-500">
+    <nav className="bg-card shadow-card border-b-2 border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand - Clickable to Dashboard */}
@@ -42,10 +42,10 @@ export default function AppNav() {
               size="sm"
               onClick={handleHome}
               className="hidden sm:flex"
-              aria-label="Go to dashboard"
+              aria-label="Go to analyses"
             >
               <Home className="h-4 w-4 mr-2" />
-              Dashboard
+              Analyses
             </Button>
             <span className="text-sm text-gray-600 dark:text-gray-400 hidden sm:inline">
               {user?.email}

@@ -1,7 +1,11 @@
 # SALT Professional Task Breakdown
 
-**Last Updated:** 2025-11-01  
-**Location:** Save as `03-planning/task-breakdown.md`
+**Last Updated:** 2025-11-11 (header clarification added)
+**Originally Created:** 2025-11-01
+**Document Type:** Reference - Historical planning artifact
+**Purpose:** Documents the tasks that Nexus Check was designed to automate
+
+**Note:** This document was created during initial planning (Nov 2025) to identify automation opportunities. Many of these tasks are now automated in the production application. See `_05-development/CURRENT_STATUS_2025-11-05.md` for current feature status.
 
 ---
 
@@ -10,10 +14,10 @@
 This document catalogs all typical tasks a SALT tax professional at a boutique agency performs, organized by workflow phase. Each task is assessed for automation potential.
 
 **Key:**
-- â­â­â­ = MVP target (highest value)
-- â­â­ = High automation potential
-- â­ = Medium automation potential
-- â—‹ = Low automation potential (human expertise required)
+- *** = MVP target (highest value)
+- ** = High automation potential
+- * = Medium automation potential
+- [ ] = Low automation potential (human expertise required)
 
 ---
 
@@ -27,7 +31,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 5. **Fee estimation** - Calculate hours and pricing
 6. **Contract negotiation** - Discuss terms with client
 
-**Automation Potential:** â­ Medium
+**Automation Potential:** * Medium
 - Templates + AI can speed up engagement letter/proposal creation
 - Fee estimation could be guided by complexity analysis
 - Initial consultation requires human touch
@@ -47,7 +51,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 6. **Identifying data gaps** - Find missing periods or states
 7. **Converting formats** - From various systems to workable Excel
 
-**Automation Potential:** â­â­ High
+**Automation Potential:** ** High
 - Data validation and cleaning highly automatable
 - Format conversion can be systematized
 - Request templates can be standardized
@@ -56,7 +60,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 
 ---
 
-## Phase 3: Nexus Analysis â­â­â­ MVP TARGET
+## Phase 3: Nexus Analysis *** MVP TARGET
 
 ### Tasks:
 1. **Economic nexus determination** - Check revenue/transaction thresholds by state
@@ -67,7 +71,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 6. **Historical nexus determination** - When did nexus begin in each state?
 7. **Multi-state nexus summary** - Create comprehensive state-by-state report
 
-**Automation Potential:** â­â­â­ VERY HIGH
+**Automation Potential:** *** VERY HIGH
 - Most time-consuming manual task (12-20 hours)
 - Highly systematic process
 - Perfect for automation
@@ -77,7 +81,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 
 ---
 
-## Phase 4: Liability Estimation â­â­â­ MVP TARGET
+## Phase 4: Liability Estimation *** MVP TARGET
 
 ### Tasks:
 1. **Tax rate research** - State + average local rates
@@ -88,7 +92,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 6. **Multi-year lookback calculation** - Historical liability across years
 7. **Exposure analysis report** - Total risk quantification
 
-**Automation Potential:** â­â­â­ VERY HIGH
+**Automation Potential:** *** VERY HIGH
 - Systematic calculation process
 - Natural pairing with nexus analysis
 - Clear rules-based logic
@@ -106,7 +110,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 4. **Gap analysis** - Should be vs. are registered
 5. **Compliance risk assessment** - Prioritize states by risk
 
-**Automation Potential:** â­â­ High
+**Automation Potential:** ** High
 - Flows naturally from nexus analysis
 - Can be systematized once nexus is determined
 
@@ -124,7 +128,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 5. **Negotiating with states** - Back-and-forth on terms
 6. **Managing VDA timeline** - Track deadlines and responses
 
-**Automation Potential:** â­ Medium (preparation) / â—‹ Low (negotiation)
+**Automation Potential:** * Medium (preparation) / [ ] Low (negotiation)
 - Form preparation can be automated
 - Calculation systematic
 - Negotiation requires human expertise
@@ -142,7 +146,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 4. **Tracking registration status** - Follow up with states
 5. **Managing credentials** - Store login info and certificates
 
-**Automation Potential:** â­ Medium
+**Automation Potential:** * Medium
 - Form-filling can be automated
 - State-specific variations are tricky
 - Follow-up tracking can be systematized
@@ -161,7 +165,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 5. **Payment processing** - Arrange payment of tax due
 6. **Reconciling returns** - Match to liability estimates
 
-**Automation Potential:** â­â­ High
+**Automation Potential:** ** High
 - Repetitive calculation and form completion
 - Filing can be systematized
 - Payment requires client approval
@@ -180,7 +184,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 5. **Negotiating audit findings** - Dispute assessments
 6. **Managing audit timelines** - Meet deadlines, coordinate meetings
 
-**Automation Potential:** â­ Medium (document prep) / â—‹ Low (strategy)
+**Automation Potential:** * Medium (document prep) / [ ] Low (strategy)
 - Document organization can be automated
 - Analysis tools can help find patterns
 - Strategy and negotiation require expertise
@@ -198,7 +202,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 4. **Quarterly/annual data review** - Check for new nexus triggers
 5. **Economic nexus recalculation** - Update as sales change
 
-**Automation Potential:** â­â­ High
+**Automation Potential:** ** High
 - Perfect for automation with periodic data uploads
 - Threshold monitoring is systematic
 - Alerts can be automatically generated
@@ -216,7 +220,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 4. **Use tax analysis** - Determine use tax obligations
 5. **Sourcing rule determination** - Origin vs. destination sourcing
 
-**Automation Potential:** â­â­ Medium-High
+**Automation Potential:** ** Medium-High
 - Database + AI can handle much of this
 - Nuanced questions require human judgment
 - Common questions can be systematized
@@ -235,7 +239,7 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 5. **Answering client questions** - Ongoing support
 6. **Documentation and record keeping** - File management
 
-**Automation Potential:** â­â­ High
+**Automation Potential:** ** High
 - Report generation highly automatable
 - Templates can standardize outputs
 - Q&A requires human touch
@@ -247,9 +251,9 @@ This document catalogs all typical tasks a SALT tax professional at a boutique a
 ## Summary: Automation Opportunity
 
 ### Highest Value (MVP):
-- **Nexus Analysis** (12-20 hours â†’ <1 hour)
+- **Nexus Analysis** (12-20 hours -> <1 hour)
 - **Liability Estimation** (included in above)
-- **Report Generation** (3-4 hours â†’ minutes)
+- **Report Generation** (3-4 hours -> minutes)
 
 **Total MVP Time Savings: 15-23 hours per engagement**
 

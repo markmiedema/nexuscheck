@@ -1,6 +1,8 @@
 # Nexus Check - Development Repository
 
-**Status:** Phase 4, Sprint 1 - COMPLETE ✅ | Sprint 2 - Ready to Start
+**Status:** Core App Complete ✅ | Sprint 1 (Physical Nexus, VDA, Exempt Sales) in Planning
+**Last Updated:** 2025-11-11
+**For Current Status:** See `CURRENT_STATUS_2025-11-05.md`
 **Tech Stack:** Next.js 14 + FastAPI + Supabase PostgreSQL
 
 ---
@@ -46,8 +48,12 @@ SALT-Tax-Tool-Clean/
 │   │   │   └── supabase.py         # Database client
 │   │   ├── api/v1/
 │   │   │   └── analyses.py         # API endpoints
-│   │   └── schemas/
-│   │       └── analysis.py         # Pydantic validation
+│   │   ├── schemas/
+│   │   │   └── analysis.py         # Pydantic validation
+│   │   └── services/               # Business logic
+│   ├── migrations/                 # Database migrations (deployed)
+│   ├── scripts/                    # Utility scripts
+│   ├── tests/                      # Test suite
 │   ├── requirements.txt            # Python dependencies
 │   └── .env.example               # Environment template
 │
@@ -63,7 +69,6 @@ SALT-Tax-Tool-Clean/
 │   ├── package.json               # Node dependencies
 │   └── .env.example              # Environment template
 │
-├── 📁 migrations/                  # Database migrations (deployed)
 │   ├── 001_initial_schema.sql
 │   ├── 002_row_level_security.sql
 │   ├── 005_populate_state_data.sql
@@ -392,9 +397,16 @@ npm run type-check
 
 ---
 
-**Ready to build? Start with the [Sprint 1 Setup Guide](SPRINT_1_SETUP_GUIDE.md)!** 🚀
+---
+
+## 📖 Related Documentation
+
+- **Current Status:** See `CURRENT_STATUS_2025-11-05.md` for detailed project status
+- **Project Overview:** See `../00-START-HERE.md` for high-level orientation
+- **Sprint Plans:** See `../docs/plans/ROADMAP.md` for sprint roadmap
+- **Backend Docs:** See `../backend/README.md` for backend-specific info
+- **LLM Guides:** See `../_08-llm-guides/` for AI assistant instructions
 
 ---
 
-**Last Updated:** 2025-11-04
-**Project Status:** Phase 4, Sprint 1 - Screens 1-4 Complete (UI), Building Calculation Engine
+**Last Updated:** 2025-11-11

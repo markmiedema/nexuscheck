@@ -1,9 +1,12 @@
 # Nexus Check - State Rules Database Specification
 
-**Created:** 2025-11-02  
-**Purpose:** Define database schema for state-specific tax rules and thresholds  
-**Status:** Phase 1, Step 2 - Draft  
+**Created:** 2025-11-02
+**Updated:** 2025-11-11 (status clarification)
+**Document Type:** Technical Reference - Database Schema
+**Status:** Implemented in production Supabase database
 **Database:** Supabase (Managed PostgreSQL)
+
+**Note:** This document was created during database design (Nov 2025). The schema described here is implemented in the production database. Use as reference for database structure and query patterns.
 
 ---
 
@@ -195,9 +198,9 @@ WHERE effective_to IS NULL;
 
 **`count_toward_threshold`:**
 - **TRUE**: Marketplace sales count when determining if nexus exists
-  - Example: If threshold is $100k, and you have $80k direct + $30k marketplace = $110k total â†’ Nexus exists
+  - Example: If threshold is $100k, and you have $80k direct + $30k marketplace = $110k total â†' Nexus exists
 - **FALSE**: Only direct sales count toward threshold
-  - Example: Same scenario â†’ Only $80k counts â†’ No nexus
+  - Example: Same scenario â†' Only $80k counts â†' No nexus
 
 **`exclude_from_liability`:**
 - **TRUE** (default): Marketplace already collected tax, exclude from liability estimate
@@ -439,9 +442,9 @@ WHERE effective_to IS NULL;
 
 ### 5.2 Interest Calculation Methods
 
-**`simple`**: Interest = Principal Ã— Rate Ã— Time
+**`simple`**: Interest = Principal Ã-- Rate Ã-- Time
 - Most common for sales tax
-- Example: $10,000 tax Ã— 3% Ã— 3 years = $900
+- Example: $10,000 tax Ã-- 3% Ã-- 3 years = $900
 
 **`compound_monthly`**: Interest compounds monthly
 - Some states (rare)

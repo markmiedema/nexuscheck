@@ -23,7 +23,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
-      router.push('/dashboard')
+      router.push('/analyses')
     } catch (err: any) {
       setError(err.message || 'Failed to login')
     } finally {
@@ -32,22 +32,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-700 p-10 rounded-2xl shadow-floating border-2 border-gray-300 dark:border-slate-500">
+      <div className="max-w-md w-full space-y-8 bg-card p-10 rounded-2xl shadow-floating border-2 border-border">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-950 dark:text-gray-50">Nexus Check</h1>
-          <h2 className="mt-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          <h1 className="text-3xl font-bold text-foreground">Nexus Check</h1>
+          <h2 className="mt-6 text-2xl font-semibold text-foreground">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             Or{' '}
             <Link
               href="/signup"
-              className="font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+              className="font-medium text-foreground hover:text-foreground/80 underline"
             >
               create a new account
             </Link>
@@ -64,7 +64,7 @@ export default function LoginPage() {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="email" className="block text-sm font-medium text-foreground">
                 Email address
               </label>
               <input
@@ -75,13 +75,13 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-500 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-200 focus:border-slate-900 dark:focus:border-slate-200 hover:border-gray-400 dark:hover:border-slate-400 transition-colors duration-200"
+                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="password" className="block text-sm font-medium text-foreground">
                 Password
               </label>
               <input
@@ -92,7 +92,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-500 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-200 focus:border-slate-900 dark:focus:border-slate-200 hover:border-gray-400 dark:hover:border-slate-400 transition-colors duration-200"
+                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
                 placeholder="••••••••"
               />
             </div>

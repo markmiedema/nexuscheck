@@ -1,9 +1,8 @@
 # Nexus Check - Current Status
 
-**Rebranding Update:** 2025-11-10 - Project rebranded from "SALT Tax Tool" to "Nexus Check"
-**Date:** November 7, 2025
-**Version:** Phase 1A Complete + Analysis Management
+**Last Updated:** 2025-11-11
 **Production Status:** ✅ Deployed and Operational
+**Current Work:** Sprint 1 (Physical Nexus, VDA, Exempt Sales) - Planning Complete
 
 ---
 
@@ -11,14 +10,43 @@
 
 Nexus Check is a **production-ready web application** for automating sales tax nexus analysis. The application is fully functional with Next.js frontend, FastAPI backend, and Supabase PostgreSQL database.
 
-**Phase 1A Status:** ✅ **COMPLETE**
-- Calendar year lookback logic implemented for 44 states
+**Core Application:** ✅ **COMPLETE**
+- Economic nexus calculation (calendar year lookback for 44 states)
 - Multi-year analysis with sticky nexus tracking
-- Comprehensive test coverage
-- Production-ready API and UI
+- Data upload, validation, and column mapping
+- Results dashboard with state-by-state breakdown
+- Analysis management (list, view, delete)
 - Demo-ready for investors/clients
 
-**Current Focus:** Phase 1B - Rolling 12-Month Lookback (5 states)
+**Current Focus:** Sprint 1 - Adding Physical Nexus, VDA Mode, and Exempt Sales support
+
+---
+
+## 📘 Terminology Clarification
+
+To avoid confusion, here's how we refer to development work:
+
+**Historical Phases (Completed):**
+- **Phase 1-2:** Planning and database design
+- **Phase 3:** Technical architecture
+- **Phase 4:** Core application build (completed)
+
+**Current Sprint Structure (Nov 11, 2025):**
+- **Sprint 1:** Physical Nexus, VDA, Exempt Sales (10-12 days) - Planning complete
+- **Sprint 2:** Multiple calculation methods (8-10 days)
+- **Sprint 3:** Modularity & advanced UX (10-12 days)
+- **Sprint 4:** Export & reporting (8-10 days)
+- **Sprint 5:** Pre-launch polish (12-15 days)
+
+See `docs/plans/ROADMAP.md` for complete sprint roadmap.
+
+**Recent Ad-Hoc Features (Nov 2025):**
+- Analysis Management (Nov 7)
+- Auto-Detect Date Range (Nov 7)
+- Streamlined Analysis Flow (Nov 9)
+- Smart Column Mapping (Nov 9)
+
+These were unplanned UX improvements added before Sprint 1 planning.
 
 ---
 

@@ -18,6 +18,8 @@ This test plan covers end-to-end testing of the smart column mapping feature, wh
 
 ## Test Data Files
 
+**Location:** `/test-data/manual-testing/`
+
 ### File 1: Exact Match CSV (`test-exact-match.csv`)
 ```csv
 transaction_date,customer_state,revenue_amount,sales_channel,transaction_id

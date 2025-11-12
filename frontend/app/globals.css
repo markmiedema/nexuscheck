@@ -4,70 +4,44 @@
 
 @layer base {
   :root {
-    /* ===== PRIMITIVE TOKENS - Slate Neutral Scale ===== */
-    --slate-50: oklch(0.98 0.00 248);
-    --slate-100: oklch(0.97 0.01 248);
-    --slate-200: oklch(0.93 0.01 256);
-    --slate-300: oklch(0.87 0.02 253);
-    --slate-400: oklch(0.71 0.04 257);
-    --slate-500: oklch(0.55 0.04 257);
-    --slate-600: oklch(0.45 0.04 257);
-    --slate-700: oklch(0.37 0.04 257);
-    --slate-800: oklch(0.28 0.04 260);
-    --slate-900: oklch(0.21 0.04 266);
-    --slate-950: oklch(0.13 0.04 265);
-
-    /* ===== PRIMITIVE TOKENS - Blue Accent Scale ===== */
-    --blue-50: oklch(0.98 0.01 248);
-    --blue-100: oklch(0.97 0.02 251);
-    --blue-200: oklch(0.95 0.03 254);
-    --blue-300: oklch(0.92 0.06 255);
-    --blue-400: oklch(0.86 0.11 254);
-    --blue-500: oklch(0.80 0.15 255);
-    --blue-600: oklch(0.71 0.15 255);
-    --blue-700: oklch(0.63 0.13 255);
-    --blue-800: oklch(0.54 0.11 255);
-    --blue-900: oklch(0.48 0.10 255);
-    --blue-950: oklch(0.37 0.07 255);
-
     /* ===== SEMANTIC TOKENS - Light Mode ===== */
 
     /* Backgrounds */
-    --background: var(--slate-50);           /* Soft background, not harsh white */
-    --foreground: var(--slate-900);          /* Rich text color */
+    --background: oklch(0.98 0.00 248);           /* Slate-50: Soft background */
+    --foreground: oklch(0.21 0.04 266);           /* Slate-900: Rich text color */
 
     /* Cards & Elevated Surfaces */
-    --card: 0 0% 100%;                       /* Pure white for card elevation */
-    --card-foreground: var(--slate-900);
+    --card: 0 0% 100%;                            /* Pure white for card elevation */
+    --card-foreground: oklch(0.21 0.04 266);      /* Slate-900 */
 
     /* Popovers & Dropdowns */
     --popover: 0 0% 100%;
-    --popover-foreground: var(--slate-900);
+    --popover-foreground: oklch(0.21 0.04 266);   /* Slate-900 */
 
-    /* Primary Interactive (Blue Accent) */
-    --primary: var(--blue-600);              /* Primary action color */
-    --primary-foreground: 0 0% 100%;         /* White text on blue */
+    /* Primary Interactive (Neutral) */
+    --primary: oklch(0.21 0.04 266);              /* Slate-900: Neutral primary */
+    --primary-foreground: oklch(0.98 0.00 248);   /* Slate-50: Light text on dark */
 
     /* Secondary Interactive */
-    --secondary: var(--slate-100);           /* Subtle secondary actions */
-    --secondary-foreground: var(--slate-900);
+    --secondary: oklch(0.97 0.01 248);            /* Slate-100: Subtle secondary */
+    --secondary-foreground: oklch(0.21 0.04 266); /* Slate-900 */
 
     /* Muted/Disabled */
-    --muted: var(--slate-100);               /* Muted backgrounds */
-    --muted-foreground: var(--slate-600);    /* Muted text */
+    --muted: oklch(0.97 0.01 248);                /* Slate-100: Muted backgrounds */
+    --muted-foreground: oklch(0.45 0.04 257);     /* Slate-600: Muted text */
 
     /* Accent (Hover States) */
-    --accent: var(--slate-100);              /* Hover backgrounds */
-    --accent-foreground: var(--slate-900);
+    --accent: oklch(0.97 0.01 248);               /* Slate-100: Hover backgrounds */
+    --accent-foreground: oklch(0.21 0.04 266);    /* Slate-900 */
 
     /* Destructive */
-    --destructive: 0 84.2% 60.2%;            /* Red for destructive actions */
+    --destructive: 0 84.2% 60.2%;                 /* Red for destructive actions */
     --destructive-foreground: 0 0% 100%;
 
     /* Borders & Inputs */
-    --border: var(--slate-200);              /* Subtle but visible borders */
-    --input: var(--slate-200);               /* Input borders */
-    --ring: var(--blue-600);                 /* Focus ring */
+    --border: oklch(0.93 0.01 256);               /* Slate-200: Subtle borders */
+    --input: oklch(0.93 0.01 256);                /* Slate-200: Input borders */
+    --ring: oklch(0.71 0.04 257);                 /* Slate-400: Neutral focus ring */
 
     /* Radius */
     --radius: 0.5rem;
@@ -81,44 +55,44 @@
   }
 
   .dark {
-    /* ===== SEMANTIC TOKENS - Dark Mode ===== */
+    /* ===== SEMANTIC TOKENS - Dark Mode (Medium-Dark) ===== */
 
     /* Backgrounds */
-    --background: var(--slate-950);          /* Deep background */
-    --foreground: var(--slate-50);           /* Bright text */
+    --background: oklch(0.45 0.04 257);           /* Slate-600: Medium charcoal */
+    --foreground: oklch(0.98 0.00 248);           /* Slate-50: Bright text */
 
     /* Cards & Elevated Surfaces */
-    --card: var(--slate-900);                /* Elevated card background */
-    --card-foreground: var(--slate-50);
+    --card: oklch(0.55 0.04 257);                 /* Slate-500: Lighter cards */
+    --card-foreground: oklch(0.98 0.00 248);      /* Slate-50 */
 
     /* Popovers & Dropdowns */
-    --popover: var(--slate-900);
-    --popover-foreground: var(--slate-50);
+    --popover: oklch(0.55 0.04 257);              /* Slate-500 */
+    --popover-foreground: oklch(0.98 0.00 248);   /* Slate-50 */
 
-    /* Primary Interactive (Blue Accent - Brighter for Dark) */
-    --primary: var(--blue-500);              /* Brighter blue for dark backgrounds */
-    --primary-foreground: var(--slate-950);  /* Dark text on blue */
+    /* Primary Interactive (Neutral) */
+    --primary: oklch(0.97 0.01 248);              /* Slate-100: Light buttons */
+    --primary-foreground: oklch(0.28 0.04 260);   /* Slate-800: Dark text */
 
     /* Secondary Interactive */
-    --secondary: var(--slate-800);           /* Subtle secondary actions */
-    --secondary-foreground: var(--slate-50);
+    --secondary: oklch(0.55 0.04 257);            /* Slate-500 */
+    --secondary-foreground: oklch(0.98 0.00 248); /* Slate-50 */
 
     /* Muted/Disabled */
-    --muted: var(--slate-800);               /* Muted backgrounds */
-    --muted-foreground: var(--slate-400);    /* Muted text */
+    --muted: oklch(0.45 0.04 257);                /* Slate-600: Muted backgrounds */
+    --muted-foreground: oklch(0.87 0.02 253);     /* Slate-300: Muted text */
 
     /* Accent (Hover States) */
-    --accent: var(--slate-800);              /* Hover backgrounds */
-    --accent-foreground: var(--slate-50);
+    --accent: oklch(0.55 0.04 257);               /* Slate-500: Hover backgrounds */
+    --accent-foreground: oklch(0.98 0.00 248);    /* Slate-50 */
 
     /* Destructive */
-    --destructive: 0 62.8% 50%;              /* Slightly darker red for dark mode */
-    --destructive-foreground: var(--slate-50);
+    --destructive: 0 62.8% 50%;                   /* Darker red for dark mode */
+    --destructive-foreground: oklch(0.98 0.00 248); /* Slate-50 */
 
     /* Borders & Inputs */
-    --border: var(--slate-700);              /* Visible borders in dark */
-    --input: var(--slate-700);               /* Input borders */
-    --ring: var(--blue-500);                 /* Brighter focus ring */
+    --border: oklch(0.45 0.04 257);               /* Slate-600: Borders */
+    --input: oklch(0.45 0.04 257);                /* Slate-600: Input borders */
+    --ring: oklch(0.71 0.04 257);                 /* Slate-400: Focus ring */
 
     /* Chart Colors */
     --chart-1: 220 70% 50%;

@@ -1,7 +1,8 @@
 # Nexus Check
 
-**Status:** Active Development
-**Last Updated:** November 10, 2025
+**Status:** Core App Complete [x] | Sprint 1 in Planning
+**Last Updated:** November 11, 2025
+**For Detailed Status:** See `_05-development/CURRENT_STATUS_2025-11-05.md`
 
 ---
 
@@ -79,7 +80,7 @@ Frontend runs on `http://localhost:3000`
 
 ## 📊 Features
 
-### ✅ Implemented
+### [x] Implemented
 
 **Screen 1: Upload & Analysis Creation**
 - CSV file upload with drag-and-drop
@@ -258,9 +259,27 @@ npm run type-check
 
 ## 📚 Documentation
 
-- **Implementation Plans:** See `docs/plans/` for detailed feature specs
-- **Database Migrations:** See `migrations/` for schema evolution
-- **API Documentation:** Run backend and visit `http://localhost:8000/docs`
+### For Developers
+- **Setup Guide:** `_05-development/README_DEVELOPMENT.md` - Complete development setup
+- **Current Status:** `_05-development/CURRENT_STATUS_2025-11-05.md` - What's working now
+- **Backend README:** `backend/README.md` - Backend-specific documentation
+- **API Docs:** Run backend and visit http://localhost:8000/docs
+
+### For Planning
+- **Sprint Roadmap:** `docs/plans/ROADMAP.md` - 5-sprint plan to launch
+- **Sprint 1 Plan:** `docs/plans/sprint-1/` - Current sprint details
+- **Decision Log:** `_07-decisions/decision-log.md` - Architecture decisions
+
+### For LLMs
+- **Start Here:** `00-START-HERE.md` - Project overview and orientation
+- **LLM Guides:** `_08-llm-guides/` - Onboarding and instructions
+- **Integration Guide:** `_04-technical-specs/INTEGRATION_AND_DEPENDENCIES.md`
+
+### Technical Specs
+- **Database Schema:** `_04-technical-specs/data-model-specification.md`
+- **State Rules:** `_04-technical-specs/state-rules-schema.md`
+- **API Architecture:** `_04-technical-specs/PHASE_3_TECHNICAL_ARCHITECTURE.md`
+- **Database Migrations:** `backend/migrations/` - SQL migration files
 
 ---
 
@@ -276,5 +295,5 @@ Proprietary - All rights reserved
 
 ---
 
-**Last Updated:** November 10, 2025
-**Version:** 0.1.0 (MVP in progress)
+**Last Updated:** November 11, 2025
+**Version:** 0.1.0 (Core app complete, Sprint 1 in planning)

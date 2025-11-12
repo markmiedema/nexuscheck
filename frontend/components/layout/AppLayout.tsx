@@ -24,7 +24,7 @@ const maxWidthClasses = {
 
 export default function AppLayout({ children, maxWidth = '7xl', breadcrumbs }: AppLayoutProps) {
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-900">
+    <div className="min-h-screen bg-background">
       <AppNav />
       <main className={`${maxWidthClasses[maxWidth]} mx-auto px-4 sm:px-6 lg:px-8 py-8`}>
         {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}

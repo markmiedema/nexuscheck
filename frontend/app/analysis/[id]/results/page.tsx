@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
 import USMap from '@/components/dashboard/USMap'
 import StateTable from '@/components/analysis/StateTable'
+import { PhysicalNexusManager } from '@/components/analysis/PhysicalNexusManager'
+import { VDAModePanel } from '@/components/analysis/VDAModePanel'
 
 interface AnalysisSummary {
   company_name: string
@@ -49,6 +51,9 @@ interface StateResult {
   nexus_status: 'has_nexus' | 'approaching' | 'no_nexus'
   total_sales: number
   estimated_liability: number
+  base_tax: number
+  interest: number
+  penalties: number
 }
 
 export default function ResultsPage() {
@@ -62,6 +67,7 @@ export default function ResultsPage() {
   const [results, setResults] = useState<CalculationResults | null>(null)
   const [stateResults, setStateResults] = useState<StateResult[]>([])
   const [calculationStatus, setCalculationStatus] = useState<'pending' | 'calculated' | 'error'>('pending')
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   useEffect(() => {
     fetchAnalysisSummary()
@@ -140,19 +146,26 @@ export default function ResultsPage() {
     router.push(`/analysis/${analysisId}/mapping`)
   }
 
+  const handleRecalculated = async () => {
+    // Refresh results after physical nexus changes trigger recalculation
+    await fetchResults()
+    // Trigger StateTable refresh by incrementing counter
+    setRefreshTrigger(prev => prev + 1)
+  }
+
   if (loading) {
     return (
       <ProtectedRoute>
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
-            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Analyses', href: '/analyses' },
             { label: 'Analysis Results' },
           ]}
         >
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
               <p className="mt-4 text-gray-600">Loading results...</p>
             </div>
           </div>
@@ -166,7 +179,7 @@ export default function ResultsPage() {
       <AppLayout
         maxWidth="7xl"
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Analyses', href: '/analyses' },
           { label: 'Analysis Results' },
         ]}
       >
@@ -198,7 +211,7 @@ export default function ResultsPage() {
             {/* States with Nexus */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">States w/ Nexus</h3>
-              <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">
+              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
                 {results ? results.summary.states_with_nexus : '—'}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -209,7 +222,7 @@ export default function ResultsPage() {
             {/* Estimated Liability */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Est. Liability</h3>
-              <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">
+              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
                 {results ? `$${(results.summary.total_estimated_liability || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -220,7 +233,7 @@ export default function ResultsPage() {
             {/* Confidence */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Confidence</h3>
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
+              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
                 High
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">Based on data quality</p>
@@ -313,6 +326,24 @@ export default function ResultsPage() {
             </div>
           </div>
 
+          {/* Physical Nexus Configuration */}
+          <div className="mb-6">
+            <PhysicalNexusManager
+              analysisId={analysisId}
+              onRecalculated={handleRecalculated}
+            />
+          </div>
+
+          {/* VDA Mode - Voluntary Disclosure Agreement */}
+          {calculationStatus === 'calculated' && stateResults.length > 0 && (
+            <div className="mb-6">
+              <VDAModePanel
+                analysisId={analysisId}
+                stateResults={stateResults}
+              />
+            </div>
+          )}
+
           {/* Calculate Button */}
           {calculationStatus === 'pending' && (
             <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 p-6 mb-6">
@@ -349,7 +380,7 @@ export default function ResultsPage() {
               onClick={handleBack}
               variant="ghost"
               size="sm"
-              className="text-gray-600 hover:text-gray-900"
+              className="text-muted-foreground hover:text-foreground"
             >
               ← Back to Mapping
             </Button>
@@ -358,7 +389,7 @@ export default function ResultsPage() {
           {/* Embedded State Table */}
           {calculationStatus === 'calculated' && (
             <div className="mb-6">
-              <StateTable analysisId={analysisId} embedded={true} />
+              <StateTable analysisId={analysisId} embedded={true} refreshTrigger={refreshTrigger} />
             </div>
           )}
       </AppLayout>

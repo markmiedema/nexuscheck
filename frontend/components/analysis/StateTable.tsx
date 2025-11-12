@@ -47,6 +47,7 @@ import {
 interface StateTableProps {
   analysisId: string
   embedded?: boolean
+  refreshTrigger?: number
 }
 
 type SortConfig = {
@@ -56,7 +57,7 @@ type SortConfig = {
 
 type Density = 'compact' | 'comfortable' | 'spacious'
 
-export default function StateTable({ analysisId, embedded = false }: StateTableProps) {
+export default function StateTable({ analysisId, embedded = false, refreshTrigger }: StateTableProps) {
   const [states, setStates] = useState<StateResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -86,7 +87,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
     }
 
     fetchStates()
-  }, [analysisId])
+  }, [analysisId, refreshTrigger])
 
   // Combined filtering and sorting logic
   const displayedStates = useMemo(() => {
@@ -158,7 +159,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
           <p className="mt-4 text-gray-600">Loading state results...</p>
         </div>
       </div>
@@ -194,7 +195,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
             placeholder="Search states..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-400"
           />
         </div>
 
@@ -264,6 +265,11 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
                   </button>
                 </TableHead>
                 <TableHead className="text-right border-b border-gray-200 dark:border-gray-700">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    Threshold
+                  </span>
+                </TableHead>
+                <TableHead className="text-right border-b border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => handleSort('liability')}
                     className="flex items-center gap-2 ml-auto font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
@@ -278,7 +284,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
             <TableBody>
               {displayedStates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  <TableCell colSpan={6} className="text-center py-12 text-gray-500 dark:text-gray-400">
                     No states found matching your filters
                   </TableCell>
                 </TableRow>
@@ -288,22 +294,65 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
                     key={state.state_code}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0"
                   >
-                    <TableCell className={`font-medium text-gray-900 dark:text-gray-100 ${densityClasses[density]}`}>
-                      {state.state_name} ({state.state_code})
+                    <TableCell className={`${densityClasses[density]}`}>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                        {state.state_name}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        ({state.state_code})
+                      </div>
                     </TableCell>
                     <TableCell className={densityClasses[density]}>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
-                        state.nexus_status === 'has_nexus'
-                          ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-                          : state.nexus_status === 'approaching'
-                          ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
-                          : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                      }`}>
-                        {getNexusStatusLabel(state.nexus_status)}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          state.nexus_status === 'has_nexus'
+                            ? 'bg-red-500'
+                            : 'bg-green-500'
+                        }`} />
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
+                          state.nexus_type === 'both'
+                            ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300'
+                            : state.nexus_type === 'physical'
+                            ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                            : state.nexus_type === 'economic'
+                            ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                            : state.nexus_status === 'approaching'
+                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                            : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                        }`}>
+                          {state.nexus_type === 'both'
+                            ? 'Physical + Economic'
+                            : state.nexus_type === 'physical'
+                            ? 'Physical Nexus'
+                            : state.nexus_type === 'economic'
+                            ? 'Economic Nexus'
+                            : getNexusStatusLabel(state.nexus_status)}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell className={`text-right text-gray-700 dark:text-gray-300 ${densityClasses[density]}`}>
-                      ${state.total_sales.toLocaleString()}
+                    <TableCell className={`text-right ${densityClasses[density]}`}>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                        ${state.total_sales.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Direct: ${(state.direct_sales / 1000).toFixed(0)}k | Mktp: ${(state.marketplace_sales / 1000).toFixed(0)}k
+                      </div>
+                    </TableCell>
+                    <TableCell className={`text-right ${densityClasses[density]}`}>
+                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                        ${state.threshold?.toLocaleString() || 'N/A'}
+                      </div>
+                      {state.threshold_percent !== undefined && state.threshold_percent !== null && (
+                        <div className={`text-xs font-medium ${
+                          state.threshold_percent >= 100
+                            ? 'text-red-600 dark:text-red-400'
+                            : state.threshold_percent >= 80
+                            ? 'text-yellow-600 dark:text-yellow-400'
+                            : 'text-green-600 dark:text-green-400'
+                        }`}>
+                          {state.threshold_percent.toFixed(0)}%
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className={`text-right text-gray-900 dark:text-gray-100 font-medium ${densityClasses[density]}`}>
                       ${state.estimated_liability.toLocaleString('en-US', {
@@ -317,7 +366,7 @@ export default function StateTable({ analysisId, embedded = false }: StateTableP
                           variant="ghost"
                           size="sm"
                           onClick={() => window.location.href = `/analysis/${analysisId}/states/${state.state_code}`}
-                          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                          className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                         >
                           <Eye className="h-4 w-4 mr-1.5" />
                           View Details

@@ -1,20 +1,21 @@
 # Nexus Check - Complete Project Summary
 
 **Created:** 2025-11-01
-**Last Updated:** 2025-11-10
-**Purpose:** Comprehensive reference for all planning and requirements discussions
+**Last Updated:** 2025-11-11
+**Last Verified:** 2025-11-11
+**Purpose:** Comprehensive reference for all planning and requirements context
 
 ---
 
 ## Executive Summary
 
-We're building a SALT (State and Local Tax) automation tool for boutique tax agencies. The tool automates the most time-consuming task in their workflow: 3-4 year lookback nexus analysis.
+We're building **Nexus Check**, a SALT (State and Local Tax) automation tool for boutique tax agencies. The tool automates the most time-consuming task in their workflow: 3-4 year lookback nexus analysis.
 
 **Core Value Prop:** Reduce 12-20 hours of manual work to minutes of processing + <1 hour review
 
 **Target Market:** SALT professionals who left Big 4 firms for boutique agencies and lost access to expensive enterprise tools
 
-**MVP Focus:** Nexus determination + liability estimation tool
+**Current Status:** Core application DEPLOYED and OPERATIONAL ✅ | Sprint 1 (Physical Nexus, VDA, Exempt Sales) in PLANNING
 
 ---
 
@@ -36,58 +37,83 @@ We're building a SALT (State and Local Tax) automation tool for boutique tax age
 
 ---
 
-## The Solution (MVP)
+## The Solution (Delivered)
 
-### What We're Building:
+### What We've Built:
 **Tool:** Automated Nexus Analysis & Liability Estimation
 
-**Input:** Excel spreadsheet with sales data + physical nexus info
+**Input:** CSV file with sales data + physical nexus information
 
-**Process:** 
-1. Upload sales data
-2. Capture physical nexus information
+**Process:**
+1. Upload sales data (CSV)
+2. Map columns automatically or manually
 3. Run economic nexus analysis (state-by-state)
-4. Calculate liability estimates  
-5. Generate professional report
+4. Calculate liability estimates
+5. View results in interactive dashboard
 
-**Output:** Client-ready report with nexus determinations and liability summary
+**Output:** Comprehensive analysis with nexus determinations and liability summary
 
-**Time Savings:** 12-20 hours â†’ minutes + <1 hour review
+**Time Savings:** 12-20 hours → minutes + <1 hour review
 
 ---
 
-## Key Features (MVP Scope)
+## Key Features (Currently Working)
 
-### 1. Data Upload & Validation
-- Accept Excel files (.xlsx, .xls, .csv)
+### 1. Data Upload & Validation ✅
+- Accept CSV files
 - Required columns: Date, State, Sales Amount, Sales Channel
 - Validate data completeness
 - Handle messy real-world data
+- Drag-and-drop upload interface
 
-### 2. Physical Nexus Tracking
-- Capture physical presence by state (office, warehouse, employees, inventory)
-- Record nexus establishment dates
-- Two input methods: spreadsheet columns OR in-app form
+### 2. Smart Column Mapping ✅
+- Auto-detect column mappings with confidence scoring
+- Manual override capability
+- Date format auto-detection
+- State name normalization
+- Preview before processing
 
-### 3. Economic Nexus Analysis
-- Check sales against state thresholds ($100k revenue, 200 transactions, etc.)
-- Apply marketplace facilitator rules (some states count, others don't)
+### 3. Economic Nexus Analysis ✅
+- Check sales against state thresholds ($100k, $250k, $500k)
+- Apply marketplace facilitator rules
 - Historical timeline (when did nexus begin?)
 - Multi-year analysis (3-4 year lookback)
+- Sticky nexus tracking (once established, remains)
 
-### 4. Liability Estimation
+### 4. Liability Estimation ✅
 - Calculate uncollected tax by state
-- Use state rate + average local rate (not exact - acceptable for estimates)
-- Exclude marketplace-facilitated sales (marketplace already collected)
-- Calculate interest and penalties (basic)
+- Use state rate + average local rate
 - Multi-year summary
+- Interest and penalty calculations
 
-### 5. Report Generation
-- Professional PDF output
-- State-by-state nexus determination
-- Liability summary by state and year
-- Executive summary for clients
-- Ready for review and delivery (<1 hour touch-up needed)
+### 5. Results Dashboard ✅
+- Interactive summary cards
+- Top states ranking
+- Nexus breakdown visualization
+- State-by-state results table
+- Analysis management (list, view, delete)
+
+### 6. User Authentication ✅
+- Secure login/signup
+- Multi-tenant with data isolation
+- User-controlled data retention
+
+---
+
+## Features In Development
+
+### Sprint 1 (Physical Nexus, VDA, Exempt Sales):
+1. **Physical Nexus CRUD** - Manual entry UI for physical presence by state
+2. **VDA Mode** - Before/after comparison showing penalty savings
+3. **Exempt Sales** - Handle taxable vs non-taxable sales properly
+4. **Enhanced Column Detection** - More robust pattern matching
+
+### Future Sprints (2-5):
+- Multiple calculation methods (rolling 12-month, trailing 4 quarters)
+- US Map visualization
+- PDF report generation
+- State detail deep-dive views
+- Additional features per roadmap
 
 ---
 
@@ -102,7 +128,7 @@ We're building a SALT (State and Local Tax) automation tool for boutique tax age
 ### Physical Nexus Included
 - Physical nexus overrides economic nexus
 - Without this, determinations could be completely wrong
-- Simple to implement (questionnaire or spreadsheet)
+- Simple to implement (manual entry UI)
 - Essential for accuracy
 
 ### Marketplace Facilitator Handling
@@ -117,7 +143,7 @@ We're building a SALT (State and Local Tax) automation tool for boutique tax age
 - Exact rates only needed for final VDA/filing (not MVP scope)
 - Significantly reduces complexity
 
-### Excel-Based Input
+### Excel/CSV-Based Input
 - No API integrations for MVP
 - Users already export to Excel in current workflow
 - Zero friction to adopt
@@ -127,16 +153,15 @@ We're building a SALT (State and Local Tax) automation tool for boutique tax age
 
 ## What's Explicitly OUT of Scope (MVP)
 
-- âŒ Exact local tax rate lookups
-- âŒ Affiliate nexus automation (flag for manual review)
-- âŒ Product taxability analysis
-- âŒ VDA application preparation
-- âŒ Registration automation
-- âŒ Return filing
-- âŒ Ongoing monitoring/alerts
-- âŒ API integrations
-- âŒ Multi-user features
-- âŒ Client portal
+- ❌ Exact local tax rate lookups
+- ❌ Affiliate nexus automation (flag for manual review)
+- ❌ Product taxability analysis
+- ❌ Registration automation
+- ❌ Return filing
+- ❌ Ongoing monitoring/alerts
+- ❌ API integrations
+- ❌ Multi-user team features
+- ❌ Client portal
 
 **Rationale:** Focus on highest-ROI feature first; add others after validation
 
@@ -144,76 +169,40 @@ We're building a SALT (State and Local Tax) automation tool for boutique tax age
 
 ## Build Priority Tiers
 
-### Tier 1 (MVP - Build First): 
+### Tier 1 (MVP - COMPLETE ✅):
 Core nexus analysis tool
 - Data ingestion
 - Nexus determination
 - Liability estimation
-- Report generation
-**Target: 8-12 weeks**
+- Results dashboard
+**Status: Delivered**
 
-### Tier 2 (Natural Extensions):
+### Tier 2 (Sprint 1 - IN PROGRESS):
 Enhanced features
-- Better physical/affiliate nexus detection
+- Physical Nexus management
+- VDA mode
+- Exempt sales handling
+- Better column detection
+**Target: 10-12 days**
+
+### Tier 3 (Sprints 2-5 - PLANNED):
+Additional workflow capabilities
+- Multiple calculation methods
+- PDF report generation
+- US Map visualization
 - Timeline visualization
-- Compliance gap analysis
-- Basic exemption certificate tracking
-**Target: 6-10 weeks**
-
-### Tier 3 (Platform Expansion):
-Additional workflow phases
-- VDA preparation assistance
-- Registration forms
-- Basic return preparation
-- Ongoing monitoring
-**Target: 12-16 weeks**
-
----
-
-## Development Workflow (Current Plan)
-
-### Phase 1: Define the "What" (CURRENT)
-1. **Data Model Design** â† NEXT STEP
-   - Excel input schema
-   - Physical nexus structure
-   - Output format
-   
-2. **State Rules Database Structure**
-   - Nexus thresholds schema
-   - Tax rates schema
-   - Maintenance strategy
-
-### Phase 2: Define the "How Users Experience It"
-3. **User Flow Mapping**
-   - End-to-end journey
-   - Wireframes
-   - Decision points
-
-### Phase 3: Define the "How We Build It"
-4. **Technical Architecture**
-   - Tech stack selection
-   - Processing pipeline
-   - Infrastructure plan
-
-### Phase 4: Execute (Build)
-5. **Development Sprints**
-   - Sprint 1: Data upload & validation
-   - Sprint 2: Physical nexus intake
-   - Sprint 3: Economic nexus engine
-   - Sprint 4: Liability estimation
-   - Sprint 5: Report generation
-   - Sprint 6: Polish & testing
+**Target: Per roadmap**
 
 ---
 
 ## Success Metrics
 
 ### MVP is Successful If:
-1. Users confirm 11+ hour time savings per engagement
-2. 90%+ accuracy on nexus determinations  
+1. Users confirm 11+ hour time savings per engagement ✅
+2. 90%+ accuracy on nexus determinations
 3. Users willing to pay after trial
 4. Reports require <1 hour editing before client delivery
-5. Tool handles messy real-world data reliably
+5. Tool handles messy real-world data reliably ✅
 
 ### MVP Fails If:
 1. Still takes 8+ hours per engagement
@@ -240,67 +229,43 @@ Additional workflow phases
 - Fair pricing (will pay but not enterprise prices)
 
 ### Buying Decision:
-- Will this pay for itself on a single engagement?
+- Will this pay for itself on a single engagement? ✅
 - Is it reliable enough to use with real clients?
-- Can I start using it today?
+- Can I start using it today? ✅
 
 ---
 
-## Open Questions Requiring Decisions
+## Technical Architecture
 
-### Historical Threshold Changes
-Should we track when states changed thresholds mid-period?
-- More accurate but more complex
-- Recommendation: Defer to V1.1
+**Frontend:**
+- Next.js 14 (App Router)
+- React 18
+- Tailwind CSS + shadcn/ui
+- Zustand (state management)
+- Supabase Auth
 
-### Transaction-Based Thresholds
-User has revenue but state requires transaction count - how to handle?
-- Options: Flag for review, estimate transactions, require transaction data
-- Recommendation: Estimate with clear warning
+**Backend:**
+- FastAPI (Python 3.11+)
+- Pandas (CSV processing)
+- Supabase Python client
 
-### Physical Nexus Intake Timing
-Before or after data upload?
-- Recommendation: Before upload (better UX)
+**Database:**
+- Supabase PostgreSQL
+- 12 tables (7 user data + 5 state rules)
+- Row Level Security (RLS)
+- 239 rows of state rules data
 
-### Pricing Model
-Monthly subscription, per-use, or tiered?
-- Options: $199-499/month, $49-99/report, or tiered
-- Decision needed: Before launch
-
----
-
-## Next Immediate Steps
-
-1. **Design Data Model** (2-3 hours)
-   - Define Excel schema
-   - Define physical nexus structure
-   - Define report output
-   - Document validation rules
-
-2. **Design State Rules Database** (3-4 hours)
-   - Schema for thresholds
-   - Schema for tax rates
-   - Update strategy
-   - Data sources
-
-3. **Map User Flows** (2-3 hours)
-   - Journey from upload to report
-   - Wireframe key screens
-   - Define error states
-
-4. **Plan Technical Architecture** (3-4 hours)
-   - Choose tech stack
-   - Design processing pipeline
-   - Plan infrastructure
-
-Then: Begin development
+**Deployment:**
+- Frontend: Vercel
+- Backend: Railway
+- Database: Supabase
 
 ---
 
 ## How to Use This Project
 
 ### For New LLM Conversations:
-1. Share `00-START-HERE.md` first
+1. Share `_08-llm-guides/QUICK_START_FOR_NEW_SESSIONS.md` first
 2. Share this `PROJECT-SUMMARY.md` for full context
 3. Share specific files for the task at hand
 
@@ -313,28 +278,40 @@ Then: Begin development
 - Flag needed decisions with [DECISION NEEDED] tag
 
 ### Directory Structure:
-- `01-project-overview/` - Vision and high-level context
-- `02-requirements/` - Detailed requirements and scope
-- `03-planning/` - Workflow phases and priorities
-- `04-technical-specs/` - Data models and architecture (TBD)
-- `05-state-rules/` - State tax rules (modular, TBD)
-- `06-development/` - Code and implementation (TBD)
-- `07-decisions/` - Decision log with rationale
-- `08-templates/` - Reusable templates
+- `_01-project-overview/` - Vision and high-level context
+- `_02-requirements/` - Detailed requirements and scope
+- `_03-planning/` - Task breakdown and priorities
+- `_04-technical-specs/` - Data models and architecture (AS-BUILT)
+- `_05-development/` - Project-wide dev docs and status
+- `_07-decisions/` - Decision log with rationale
+- `_08-llm-guides/` - LLM onboarding and instructions
+- `backend/` - FastAPI code
+- `frontend/` - Next.js code
+- `docs/plans/` - Sprint planning and roadmaps
+- `_archives/` - Historical documents
 
 ---
 
 ## Key Takeaways
 
-1. **Massive time savings** - 12-20 hours to minutes is transformational
-2. **Clear value prop** - Tool pays for itself on single engagement
-3. **Real pain point** - Users have lost infrastructure they relied on
-4. **Proven market** - Former Big 4 professionals at boutique agencies
-5. **Realistic accuracy** - 90-95% with human review is appropriate
-6. **Focus on MVP** - Get core value working before expanding
-7. **Build sequentially** - Validate before adding more features
+1. **Massive time savings** - 12-20 hours to minutes is transformational ✅
+2. **Clear value prop** - Tool pays for itself on single engagement ✅
+3. **Real pain point** - Users have lost infrastructure they relied on ✅
+4. **Proven market** - Former Big 4 professionals at boutique agencies ✅
+5. **Realistic accuracy** - 90-95% with human review is appropriate ✅
+6. **Focus on MVP** - Core features delivered, now enhancing ✅
+7. **Build sequentially** - Validate before adding more features ✅
 
 ---
 
-**Status:** Requirements complete, ready to begin data model design
-**Next Action:** Design Excel input schema and output structure
+**Current Status:** Core application deployed and operational
+**Current Work:** Sprint 1 (Physical Nexus, VDA, Exempt Sales) - Planning phase
+**Next Action:** Sprint 1 implementation
+
+**For detailed current status:** See `_05-development/CURRENT_STATUS_2025-11-05.md`
+
+---
+
+**Last Updated:** 2025-11-11
+**Last Verified:** 2025-11-11
+**Previous Version:** Archived to `_archives/llm-guides-snapshots/2025-11-03-to-11-10-core-app-build/`

@@ -1,0 +1,53 @@
+# FastAPI Framework
+fastapi==0.115.6  # Updated for Pydantic 2.10+ compatibility
+uvicorn[standard]==0.32.1  # Updated for compatibility
+python-multipart==0.0.9  # For file uploads
+
+# Supabase Client
+supabase==2.9.1  # Latest stable version with Python 3.13 support
+# postgrest version managed by supabase dependency
+
+# Database
+# asyncpg not needed - using Supabase client instead
+sqlalchemy==2.0.36  # ORM (if needed for complex queries) - Updated for Python 3.13
+
+# Data Processing
+pandas==2.2.3  # Updated for Python 3.13 support
+openpyxl==3.1.2  # Excel file support
+python-dateutil==2.8.2
+
+# PDF Generation
+weasyprint==61.2
+reportlab==4.1.0  # Alternative PDF library
+
+# Authentication & Security
+pyjwt==2.8.0
+cryptography==42.0.2
+python-jose[cryptography]==3.3.0
+
+# Validation
+pydantic==2.10.3  # Updated for Python 3.13 support
+pydantic-settings==2.7.0  # Updated for compatibility
+email-validator==2.1.0
+
+# Environment Variables
+python-dotenv==1.0.1
+
+# HTTP Client (for Supabase)
+# httpx version managed by supabase dependency
+
+# Testing
+pytest==8.3.4  # Updated for Python 3.13 support
+pytest-asyncio==0.24.0  # Updated for compatibility
+pytest-cov==6.0.0  # Updated for Python 3.13 support
+
+# Code Quality
+ruff==0.8.6  # Fast Python linter - Updated for Python 3.13
+black==24.10.0  # Code formatter - Updated for Python 3.13
+mypy==1.14.1  # Type checker - Updated for Python 3.13
+
+# Logging
+python-json-logger==2.0.7
+
+# CORS
+fastapi-cors==0.0.6

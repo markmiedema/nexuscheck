@@ -1,0 +1,209 @@
+# Sprint 1 Plan - Complete Index
+
+## ✅ Available Now
+
+### 📖 **README.md**
+- Navigation guide for all plan files
+- How to use this plan
+- Quick status overview
+
+### 📋 **00-overview.md**
+**Complete** - 10KB
+- Sprint goals and objectives
+- Features from pre-MVP analysis
+- Current project status
+- Timeline overview (Days 1-12)
+- Key decisions made (Exempt sales, Physical nexus, etc.)
+- Success metrics
+- Risk mitigation strategies
+
+### 🔧 **01-physical-nexus.md**
+**✅ COMPLETE** - 20KB - **[Days 1-2 DONE]**
+- Day 1: Backend implementation ✅
+  - Complete API router code (`physical_nexus.py`)
+  - Pydantic schemas
+  - All CRUD endpoints
+  - Import/export functionality
+  - Recalculation endpoint (enhancement)
+- Day 2: Frontend implementation ✅
+  - Custom hook (`usePhysicalNexusConfig.ts`)
+  - PhysicalNexusManager component
+  - PhysicalNexusForm modal
+  - Integrated with results page
+  - Testing checklist
+
+**Completion Reports:**
+- **DAY-1-COMPLETE.md** - Backend summary (604 lines)
+- **DAY-2-COMPLETE.md** - Frontend summary (780 lines)
+
+---
+
+## 🚧 To Be Created (Coming Next)
+
+### **02-vda-mode.md** - Days 3-5
+- Day 3: Backend VDA calculator
+  - Database migrations for VDA columns
+  - VDA calculation service
+  - State-specific rules
+- Days 4-5: Frontend VDA UI
+  - `useVDAMode` hook
+  - VDA panel component
+  - State selection UI
+  - Savings comparison display
+  - Pie chart visualization
+
+### **03-column-detection-exempt-sales.md** - Days 6-8
+- Enhanced column detection
+  - More column aliases
+  - Date format auto-detection
+  - State name normalization
+  - Sales channel mapping
+- Exempt sales support
+  - `is_taxable` column support
+  - `exempt_amount` column support
+  - Hybrid calculation logic
+  - Gross vs. taxable distinction
+
+### **04-integration-polish.md** - Days 9-10
+- US Map enhancements
+  - Color coding by nexus type
+  - Click handlers and tooltips
+  - Legend component
+- General UI polish
+  - Loading states
+  - Empty states
+  - Error boundaries
+  - Responsive design
+  - Accessibility improvements
+
+### **05-testing-documentation.md** - Days 11-12
+- Test scenarios
+  - CSV format variations
+  - Physical nexus CRUD
+  - VDA calculations
+  - Exempt sales edge cases
+- Documentation
+  - User guide updates
+  - CSV template
+  - FAQ
+  - API docs
+
+### **06-deliverables-next-steps.md**
+**Complete** - 15KB
+- Sprint 1 deliverables checklist
+- Success criteria validation
+- Known issues and technical debt
+- Sprint 2 preview
+- Long-term roadmap (Sprints 3-5)
+
+---
+
+## 📂 Folder Structure
+
+```
+docs/plans/
+├── SPRINT_1_SUMMARY.md          ← Quick overview (in parent)
+└── sprint-1/
+    ├── README.md                ← Start here
+    ├── INDEX.md                 ← This file
+    ├── 00-overview.md           ✅ Updated (16% complete)
+    ├── 01-physical-nexus.md     ✅ Complete (implementation guide)
+    ├── DAY-1-COMPLETE.md        ✅ Backend completion report
+    ├── DAY-2-COMPLETE.md        ✅ Frontend completion report
+    ├── ENHANCEMENTS-FROM-REFERENCE.md  ✅ Enhancement notes
+    ├── 02-vda-mode.md           ✅ Complete (← NEXT)
+    ├── 03-column-detection-exempt-sales.md  ✅ Complete
+    ├── 04-integration-polish.md ✅ Complete
+    ├── 05-testing-documentation.md  ✅ Complete
+    └── 06-deliverables-next-steps.md  ✅ Complete
+```
+
+---
+
+## 🎯 What's Been Completed
+
+### ✅ Implemented Features (Days 1-2):
+1. **Physical Nexus Backend** - Complete API with 7 endpoints
+   - CRUD operations (Create, Read, Update, Delete)
+   - Import/Export functionality
+   - Recalculation endpoint (enhancement)
+   - 604 lines of backend code
+
+2. **Physical Nexus Frontend** - Complete UI components
+   - Custom React hook (usePhysicalNexusConfig)
+   - Manager component with table display
+   - Modal form with validation
+   - Integrated with results page
+   - 780 lines of frontend code
+
+### 📊 Completion Reports:
+- **DAY-1-COMPLETE.md** - Backend implementation details, API docs, testing checklist
+- **DAY-2-COMPLETE.md** - Frontend components, user workflows, testing checklist
+
+---
+
+## 🚀 Next Steps
+
+### Option A: Test Physical Nexus Feature
+- Backend and frontend are complete
+- Manual testing checklist in DAY-2-COMPLETE.md
+- Test all CRUD operations
+- Verify import/export works
+- Confirm recalculation triggers
+
+### Option B: Continue to VDA Mode (Days 3-5)
+- Physical Nexus is complete and ready
+- Move on to next Sprint 1 feature
+- VDA Mode implementation guide in 02-vda-mode.md
+- This is your favorite feature from the pre-MVP
+
+### Option C: Review Completed Work
+- Read DAY-1-COMPLETE.md for backend details
+- Read DAY-2-COMPLETE.md for frontend details
+- Review implementation patterns used
+- Check if anything needs adjustment
+
+---
+
+## ⏱️ File Creation Priority
+
+If you want me to create the remaining files, I'll do them in this order:
+1. **02-vda-mode.md** (Days 3-5) - Your favorite feature
+2. **03-column-detection-exempt-sales.md** (Days 6-8) - Critical for accuracy
+3. **04-integration-polish.md** (Days 9-10) - UX improvements
+4. **05-testing-documentation.md** (Days 11-12) - Quality assurance
+5. **06-deliverables-next-steps.md** - Wrap-up
+
+Each file will be ~15-25KB with complete code examples and checklists.
+
+---
+
+## 📝 Sprint 1 Progress Summary
+
+**Completed (Days 1-2):**
+- ✅ Sprint goals and rationale
+- ✅ Key architectural decisions
+- ✅ Success metrics
+- ✅ Risk mitigation
+- ✅ **Physical nexus backend (100% complete)**
+- ✅ **Physical nexus frontend (100% complete)**
+- ✅ Backend completion report (DAY-1-COMPLETE.md)
+- ✅ Frontend completion report (DAY-2-COMPLETE.md)
+- ✅ Enhancement documentation (ENHANCEMENTS-FROM-REFERENCE.md)
+
+**Ready to Implement (Days 3-5):**
+- ⏳ VDA mode backend calculator
+- ⏳ VDA mode frontend UI
+- ⏳ State selection and savings comparison
+
+**Planned (Days 6-12):**
+- ⏳ Exempt sales support
+- ⏳ Column detection enhancements
+- ⏳ Integration & polish
+- ⏳ Testing scenarios
+
+---
+
+**Progress:** 16% complete (2 of 12 days)
+
+**Status:** Physical Nexus feature complete and ready for testing. VDA Mode is next!

@@ -1,6 +1,6 @@
 # Priority Tiers for Development
 
-**Last Updated:** 2025-11-01  
+**Last Updated:** 2025-11-11
 **Location:** Save as `03-planning/priority-tiers.md`
 
 ---
@@ -11,11 +11,13 @@ This document defines what to build and when, based on user value, technical dep
 
 **Guiding Principle:** Deliver massive value quickly, then expand systematically.
 
+**Sprint 1 Update (2025-11-11):** Tier 1 expanded to include VDA mode, exempt sales handling, enhanced column detection, and physical nexus CRUD. Multiple calculation methods deferred to Tier 2/Sprint 2.
+
 ---
 
-## Tier 1: MVP - Build First ðŸŽ¯
+## Tier 1: MVP - Build First
 
-**Goal:** Prove the core value proposition (12-20 hours â†’ <1 hour)
+**Goal:** Prove the core value proposition (12-20 hours -> <1 hour)
 
 ### Features:
 1. **Data ingestion & cleaning**
@@ -30,19 +32,41 @@ This document defines what to build and when, based on user value, technical dep
    - Historical nexus timeline (when did nexus begin?)
    - Multi-year analysis (3-4 year lookback)
 
-3. **Physical nexus intake**
-   - Simple questionnaire or spreadsheet import
+3. **Physical nexus management**
+   - In-app CRUD interface (add, edit, delete states)
+   - Import/Export JSON configuration
    - State-by-state physical presence tracking
    - Nexus establishment dates
+   - Manual entry (post-upload)
 
-4. **Liability estimation**
+4. **Exempt sales handling**
+   - Support both boolean (is_taxable Y/N) and dollar amount (exempt_amount $)
+   - Use gross sales for nexus determination
+   - Use taxable sales for liability calculation
+   - Hybrid approach for multiple industry formats
+
+5. **VDA mode (Voluntary Disclosure Agreement)**
+   - State selection UI (All, None, Top N)
+   - Before/after comparison
+   - Penalty/interest waiver modeling
+   - Savings breakdown and visualization
+   - Binary waiver approach (penalty waived or not)
+
+6. **Enhanced column detection**
+   - Auto-detect date formats (MM/DD/YYYY, YYYY-MM-DD, etc.)
+   - State name normalization ("California" → "CA")
+   - Sales channel normalization
+   - Multiple column aliases per field
+   - Transformation preview
+
+7. **Liability estimation**
    - State rate + average local rate calculation
    - Exclude marketplace-facilitated sales
    - Interest calculation (basic)
    - Penalty estimation (basic)
    - Multi-year liability summary
 
-5. **Report generation**
+8. **Report generation**
    - Professional PDF output
    - Nexus analysis by state
    - Liability summary
@@ -50,12 +74,15 @@ This document defines what to build and when, based on user value, technical dep
    - Exportable format
 
 ### Success Metrics:
-- âœ… 11+ hour time savings validated
-- âœ… 90%+ accuracy on nexus determinations
-- âœ… Users willing to pay after trial
-- âœ… Reports require <1 hour touch-up
+- [x] 11+ hour time savings validated
+- [x] 90%+ accuracy on nexus determinations
+- [x] Users willing to pay after trial
+- [x] Reports require <1 hour touch-up
 
-### Estimated Build Time: 8-12 weeks
+### Estimated Build Time:
+- **Sprint 1 (Current):** 10-12 days for core features 1-8
+- **Original estimate:** 8-12 weeks total (included features now in Tier 2/3)
+- **Status:** Phase 1-2 complete, Sprint 1 in planning
 
 ### Why This First:
 - Proves core value proposition
@@ -65,12 +92,18 @@ This document defines what to build and when, based on user value, technical dep
 
 ---
 
-## Tier 2: Natural Extensions - Add Next ðŸ“ˆ
+## Tier 2: Natural Extensions - Add Next
 
 **Goal:** Enhance core product and reduce additional manual work
 
 ### Features:
-6. **Physical/affiliate nexus detection flags**
+6. **Multiple calculation methods** (Sprint 2)
+   - Rolling 12-month window
+   - Trailing 4 quarters
+   - Current or prior year (whichever higher)
+   - Calculation method comparison
+
+7. **Physical/affiliate nexus detection flags**
    - Automatic detection of potential physical nexus indicators
    - Flag for manual review (not full automation)
    - Smart questions based on business type
@@ -96,9 +129,9 @@ This document defines what to build and when, based on user value, technical dep
     - Batch processing for multiple clients
 
 ### Success Metrics:
-- âœ… Users adopt 3+ Tier 2 features regularly
-- âœ… Further time savings (5+ additional hours)
-- âœ… Increased willingness to pay (higher plan tier)
+- [x] Users adopt 3+ Tier 2 features regularly
+- [x] Further time savings (5+ additional hours)
+- [x] Increased willingness to pay (higher plan tier)
 
 ### Estimated Build Time: 6-10 weeks
 
@@ -110,16 +143,16 @@ This document defines what to build and when, based on user value, technical dep
 
 ---
 
-## Tier 3: Platform Expansion - Build Later ðŸš€
+## Tier 3: Platform Expansion - Build Later
 
 **Goal:** Expand to additional workflow phases
 
 ### Features:
-11. **VDA preparation assistance**
-    - VDA eligibility checker by state
-    - Form generation
-    - Limited lookback calculation
+11. **VDA application form preparation** (modeling moved to Tier 1)
+    - Automated form generation for VDA applications
+    - State-specific templates
     - Letter templates
+    - Document preparation
 
 12. **Registration form preparation**
     - State-specific application forms
@@ -143,9 +176,9 @@ This document defines what to build and when, based on user value, technical dep
     - Account for states that changed thresholds mid-lookback
 
 ### Success Metrics:
-- âœ… Users replace manual processes with tool for 4+ workflow phases
-- âœ… Engagement from "point solution" to "platform"
-- âœ… Higher LTV through expanded usage
+- [x] Users replace manual processes with tool for 4+ workflow phases
+- [x] Engagement from "point solution" to "platform"
+- [x] Higher LTV through expanded usage
 
 ### Estimated Build Time: 12-16 weeks
 

@@ -134,7 +134,7 @@ export default function MappingPage() {
       const match = cols.find(c => c.name.toLowerCase() === candidate.toLowerCase())
       if (match) return match.name
     }
-    return ''
+    return '' // Empty string is OK for required fields - they just won't be pre-selected
   }
 
   const handleMappingChange = (field: keyof MappingConfig, value: string) => {
@@ -239,7 +239,7 @@ export default function MappingPage() {
         <AppLayout
           maxWidth="4xl"
           breadcrumbs={[
-            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Analyses', href: '/analyses' },
             { label: 'New Analysis', href: '/analysis/new' },
             { label: 'Upload Data', href: `/analysis/${analysisId}/upload` },
             { label: 'Map Columns' },
@@ -247,7 +247,7 @@ export default function MappingPage() {
         >
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
               <p className="mt-4 text-gray-600">Loading column information...</p>
             </div>
           </div>
@@ -261,7 +261,7 @@ export default function MappingPage() {
       <AppLayout
         maxWidth="4xl"
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Analyses', href: '/analyses' },
           { label: 'New Analysis', href: '/analysis/new' },
           { label: 'Upload Data', href: `/analysis/${analysisId}/upload` },
           { label: 'Map Columns' },
@@ -293,7 +293,7 @@ export default function MappingPage() {
                       Your Column
                     </Label>
                     <Select
-                      value={mappings.transaction_date}
+                      value={mappings.transaction_date || undefined}
                       onValueChange={(val) => handleMappingChange('transaction_date', val)}
                     >
                       <SelectTrigger className="w-full">
@@ -364,7 +364,7 @@ export default function MappingPage() {
                       Your Column
                     </Label>
                     <Select
-                      value={mappings.customer_state}
+                      value={mappings.customer_state || undefined}
                       onValueChange={(val) => handleMappingChange('customer_state', val)}
                     >
                       <SelectTrigger className="w-full">
@@ -420,7 +420,7 @@ export default function MappingPage() {
                       Your Column
                     </Label>
                     <Select
-                      value={mappings.revenue_amount}
+                      value={mappings.revenue_amount || undefined}
                       onValueChange={(val) => handleMappingChange('revenue_amount', val)}
                     >
                       <SelectTrigger className="w-full">
@@ -476,7 +476,7 @@ export default function MappingPage() {
                       Your Column
                     </Label>
                     <Select
-                      value={mappings.sales_channel}
+                      value={mappings.sales_channel || undefined}
                       onValueChange={(val) => handleMappingChange('sales_channel', val)}
                     >
                       <SelectTrigger className="w-full">
@@ -544,14 +544,13 @@ export default function MappingPage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Your Column</Label>
                     <Select
-                      value={mappings.product_type || ''}
+                      value={mappings.product_type || undefined}
                       onValueChange={(val) => handleMappingChange('product_type', val)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Not mapped" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Not mapped</SelectItem>
                         {columns.map(col => (
                           <SelectItem key={col.name} value={col.name}>{col.name}</SelectItem>
                         ))}
@@ -576,14 +575,13 @@ export default function MappingPage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Your Column</Label>
                     <Select
-                      value={mappings.customer_type || ''}
+                      value={mappings.customer_type || undefined}
                       onValueChange={(val) => handleMappingChange('customer_type', val)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Not mapped" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Not mapped</SelectItem>
                         {columns.map(col => (
                           <SelectItem key={col.name} value={col.name}>{col.name}</SelectItem>
                         ))}
@@ -606,7 +604,7 @@ export default function MappingPage() {
 
             {/* Data Summary - Clean Stats Grid */}
             {dataSummary && (
-              <Card className="mb-6 bg-gradient-to-br from-indigo-50/50 to-blue-50/50 border-indigo-100 dark:from-indigo-950/20 dark:to-blue-950/20 dark:border-indigo-900">
+              <Card className="mb-6 bg-gradient-to-br from-gray-50/50 to-gray-50/50 border-gray-200 dark:from-gray-950/20 dark:to-gray-950/20 dark:border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-base">Data Summary</CardTitle>
                 </CardHeader>

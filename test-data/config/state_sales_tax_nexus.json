@@ -1,0 +1,382 @@
+{
+  "title": "State-by-State Sales Tax Nexus Rules",
+  "description": "Each U.S. state defines its own nexus thresholds and enforcement policies, including economic nexus thresholds, physical nexus criteria, and detailed information for each state.",
+  "states": [
+    {
+      "state": "Alabama",
+      "economic_nexus_threshold": "$250,000",
+      "lookback_period": "Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Arizona",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Arkansas",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": true,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "California",
+      "economic_nexus_threshold": "$500,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Colorado",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Connecticut",
+      "economic_nexus_threshold": "$100,000 AND 200 transactions",
+      "lookback_period": "12-month period ending on September 30",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "District of Columbia",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Florida",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": true,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Georgia",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Hawaii",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Idaho",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Illinois",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Preceding 12 calendar months",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Indiana",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Iowa",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Kansas",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Kentucky",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Louisiana",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Maine",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Maryland",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Massachusetts",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Michigan",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Minnesota",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Preceding 12 calendar months",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Mississippi",
+      "economic_nexus_threshold": "$250,000",
+      "lookback_period": "Preceding 12 calendar months",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Missouri",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": true,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Nebraska",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Nevada",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "New Jersey",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "New Mexico",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": true,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "New York",
+      "economic_nexus_threshold": "$500,000 AND 100 transactions",
+      "lookback_period": "Preceding 4 Sales Tax Quarters",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "North Carolina",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "North Dakota",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": true,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Ohio",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Oklahoma",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": true,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Pennsylvania",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Puerto Rico",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Seller's accounting year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Rhode Island",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "South Carolina",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "South Dakota",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Tennessee",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Preceding 12 calendar months",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Texas",
+      "economic_nexus_threshold": "$500,000",
+      "lookback_period": "Preceding 12 calendar months",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Utah",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Vermont",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Preceding 4 calendar Quarters",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Virginia",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": true
+    },
+    {
+      "state": "Washington",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "West Virginia",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Wisconsin",
+      "economic_nexus_threshold": "$100,000",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": false,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    },
+    {
+      "state": "Wyoming",
+      "economic_nexus_threshold": "$100,000 OR 200 transactions",
+      "lookback_period": "Current or Previous Calendar Year",
+      "marketplace_transactions_excluded": true,
+      "non_taxable_transactions_excluded": false,
+      "resale_transactions_excluded": false
+    }
+  ]
+}

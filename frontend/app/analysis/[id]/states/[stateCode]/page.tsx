@@ -63,7 +63,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
-            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Analyses', href: '/analyses' },
             { label: 'Analysis Results', href: `/analysis/${params.id}/results` },
             { label: params.stateCode.toUpperCase() },
           ]}
@@ -93,7 +93,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
-            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Analyses', href: '/analyses' },
             { label: 'Analysis Results', href: `/analysis/${params.id}/results` },
             { label: params.stateCode.toUpperCase() },
           ]}
@@ -122,7 +122,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
   // For "all years" mode, create aggregate view
   const isAllYearsView = selectedYear === 'all';
   const aggregateNexusStatus: 'has_nexus' | 'approaching' | 'none' =
-    data.nexus_type === 'economic' || data.nexus_type === 'physical'
+    data.nexus_type === 'economic' || data.nexus_type === 'physical' || data.nexus_type === 'both'
       ? 'has_nexus'
       : 'none';
 
@@ -172,7 +172,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
       <AppLayout
         maxWidth="7xl"
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Analyses', href: '/analyses' },
           { label: 'Analysis Results', href: `/analysis/${params.id}/results` },
           { label: `${params.stateCode.toUpperCase()} - ${data.state_name}` },
         ]}
@@ -183,7 +183,12 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
         <StateDetailHeader
           stateName={data.state_name}
           stateCode={data.state_code}
-          nexusStatus={nexusStatus}
+          nexusStatus={nexusStatus === 'zero_sales' ? 'none' : nexusStatus}
+          nexusType={
+            isAllYearsView
+              ? data.nexus_type
+              : yearData?.nexus_type
+          }
           totalSales={
             isAllYearsView
               ? data.total_sales || 0

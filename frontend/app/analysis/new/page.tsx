@@ -108,7 +108,7 @@ export default function ClientSetupPage() {
   }
 
   const handleCancel = () => {
-    router.push('/dashboard')
+    router.push('/analyses')
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -241,7 +241,7 @@ export default function ClientSetupPage() {
       <AppLayout
         maxWidth="4xl"
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Analyses', href: '/analyses' },
           { label: 'New Analysis' },
         ]}
       >
@@ -272,7 +272,7 @@ export default function ClientSetupPage() {
                     {...register('companyName')}
                     type="text"
                     id="companyName"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-400 focus:border-gray-400"
                     placeholder="Enter company name"
                   />
                   {errors.companyName && (
@@ -293,7 +293,7 @@ export default function ClientSetupPage() {
                       {...register('businessType')}
                       type="radio"
                       value="product_sales"
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                      className="h-4 w-4 text-gray-900 focus:ring-gray-400 border-gray-300"
                     />
                     <span className="ml-3">
                       <span className="block text-sm font-medium text-gray-900">
@@ -307,7 +307,7 @@ export default function ClientSetupPage() {
                       {...register('businessType')}
                       type="radio"
                       value="digital_products"
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                      className="h-4 w-4 text-gray-900 focus:ring-gray-400 border-gray-300"
                     />
                     <span className="ml-3">
                       <span className="block text-sm font-medium text-gray-900">
@@ -321,7 +321,7 @@ export default function ClientSetupPage() {
                       {...register('businessType')}
                       type="radio"
                       value="mixed"
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                      className="h-4 w-4 text-gray-900 focus:ring-gray-400 border-gray-300"
                     />
                     <span className="ml-3">
                       <span className="block text-sm font-medium text-gray-900">
@@ -368,7 +368,7 @@ export default function ClientSetupPage() {
                   <button
                     type="button"
                     onClick={() => setShowAddState(true)}
-                    className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                    className="text-sm text-gray-900 hover:text-gray-900 font-medium"
                   >
                     + Add State
                   </button>
@@ -384,7 +384,7 @@ export default function ClientSetupPage() {
                           maxLength={2}
                           value={newState.stateCode}
                           onChange={(e) => setNewState({ ...newState, stateCode: e.target.value.toUpperCase() })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-400 focus:border-gray-400"
                           placeholder="CA"
                         />
                       </div>
@@ -396,7 +396,7 @@ export default function ClientSetupPage() {
                           type="date"
                           value={newState.registrationDate}
                           onChange={(e) => setNewState({ ...newState, registrationDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-400 focus:border-gray-400"
                         />
                       </div>
                     </div>
@@ -404,7 +404,7 @@ export default function ClientSetupPage() {
                       <button
                         type="button"
                         onClick={handleAddState}
-                        className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700"
+                        className="px-3 py-1.5 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800"
                       >
                         Add
                       </button>
@@ -432,7 +432,7 @@ export default function ClientSetupPage() {
                   {...register('notes')}
                   id="notes"
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-400 focus:border-gray-400"
                   placeholder="Add any internal notes about this analysis..."
                 />
               </div>
@@ -476,7 +476,7 @@ export default function ClientSetupPage() {
                   <div
                     onDrop={handleFileDrop}
                     onDragOver={(e) => e.preventDefault()}
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-indigo-500 hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-gray-400 hover:bg-gray-50/50 transition-colors cursor-pointer"
                   >
                     <input
                       type="file"
@@ -498,7 +498,7 @@ export default function ClientSetupPage() {
                   </div>
                 ) : uploading ? (
                   <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-4"></div>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400 mb-4"></div>
                     <p className="text-gray-600">Processing your file...</p>
                   </div>
                 ) : (
@@ -540,7 +540,7 @@ export default function ClientSetupPage() {
           {calculating && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-8 max-w-md text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400 mb-4"></div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Calculating Nexus...
                 </h3>

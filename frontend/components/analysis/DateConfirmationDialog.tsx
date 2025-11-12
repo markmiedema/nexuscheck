@@ -44,17 +44,17 @@ export default function DateConfirmationDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className="rounded-lg bg-slate-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-600 p-4">
+          <div className="rounded-lg bg-muted border border-border p-4">
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Period Start:</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-medium text-muted-foreground">Period Start:</span>
+                <span className="text-sm font-semibold text-foreground">
                   {formatDate(detectedStart)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Period End:</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-medium text-muted-foreground">Period End:</span>
+                <span className="text-sm font-semibold text-foreground">
                   {formatDate(detectedEnd)}
                 </span>
               </div>

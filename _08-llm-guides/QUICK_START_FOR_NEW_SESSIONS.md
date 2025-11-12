@@ -1,6 +1,7 @@
 # Quick Start Guide for New LLM Sessions
 
-**Last Updated:** 2025-11-10
+**Last Updated:** 2025-11-11
+**Last Verified:** 2025-11-11
 **Purpose:** Get up to speed quickly in new conversation sessions
 
 ---
@@ -15,7 +16,7 @@ D:\01 - Projects\SALT-Tax-Tool-Clean
 
 **Before reading any files, navigate to this directory first.**
 
-If you start in the wrong directory (like `C:\Users\markw\SALT-Tax-Tool`), you won't find the project files and will get confused. Always confirm you're in the correct directory before proceeding.
+If you start in the wrong directory, you won't find the project files. Always confirm you're in the correct directory before proceeding.
 
 ---
 
@@ -23,7 +24,7 @@ If you start in the wrong directory (like `C:\Users\markw\SALT-Tax-Tool`), you w
 
 You're helping build **Nexus Check**, a tool that automates nexus determination for boutique tax agencies.
 
-**Current Status:** Sprint 1 COMPLETE ✅ → Screens 1-4 functional with working calculation engine
+**Current Status:** Core app COMPLETE and DEPLOYED ✅ | Sprint 1 (Physical Nexus, VDA, Exempt Sales) in PLANNING
 
 **Tech Stack:** Next.js 14 + FastAPI + Supabase
 
@@ -34,15 +35,15 @@ You're helping build **Nexus Check**, a tool that automates nexus determination 
 Read these files in order for complete context:
 
 1. **THIS FILE** (you're here) - 2 min
-2. `DEVELOPMENT_NOTES.md` - **Latest decisions & implementation details** - 3 min
-3. `INTEGRATION_AND_DEPENDENCIES.md` - Critical for development - 3 min
+2. `_05-development/CURRENT_STATUS_2025-11-05.md` - **Current project status** - 3 min
+3. `_08-llm-guides/PROJECT-SUMMARY.md` - Complete context - 5 min
 
 **If working on specific tasks, also read:**
-- Planning work? → `PROJECT-SUMMARY.md`
-- UI/UX work? → `PHASE_2B_SCREEN_SPECIFICATIONS.md`
-- Backend work? → `PHASE_3_TECHNICAL_ARCHITECTURE.md`
-- Database work? → `data-model-specification.md` + `state-rules-schema.md`
-- Want to see what changed? → `CHANGELOG.md`
+- Planning work? → `docs/plans/ROADMAP.md`
+- Backend work? → `_04-technical-specs/PHASE_3_TECHNICAL_ARCHITECTURE.md`
+- Database work? → `_04-technical-specs/data-model-specification.md` + `state-rules-schema.md`
+- Integration? → `_04-technical-specs/INTEGRATION_AND_DEPENDENCIES.md` (**CRITICAL**)
+- Want to see what changed? → `_05-development/CHANGELOG.md`
 
 ---
 
@@ -52,11 +53,18 @@ Read these files in order for complete context:
 
 **Solution:** Automated tool that reduces analysis time to <1 hour with 90-95% accuracy.
 
-**MVP Features:**
-1. Upload CSV of transactions
-2. Determine economic nexus across all 50 states
-3. Calculate estimated tax liability
-4. Generate professional PDF report for clients
+**Current Features (Working):**
+1. Upload CSV of transactions ✅
+2. Determine economic nexus across all 50 states ✅
+3. Calculate estimated tax liability ✅
+4. Interactive results dashboard ✅
+5. Analysis management (list, view, delete) ✅
+
+**In Development (Sprint 1):**
+1. Physical Nexus CRUD UI
+2. VDA Mode (penalty savings comparison)
+3. Exempt Sales handling
+4. Enhanced column detection
 
 **Target User:** SALT tax professional at boutique agency, ex-Big 4, expert in tax law.
 
@@ -64,85 +72,39 @@ Read these files in order for complete context:
 
 ## 📊 Current Project Status
 
-### ✅ Completed Phases:
+### ✅ Core Application COMPLETE and DEPLOYED:
 
-**Phase 1: Data Model & State Rules Database**
-- 12 tables designed (user data + state rules)
-- All schemas documented
+**What's Working:**
+- Full user authentication (login/signup)
+- 7-screen workflow end-to-end
+- Economic nexus calculation (calendar year, 44 states)
+- Multi-year analysis with sticky nexus tracking
+- Data upload, validation, column mapping
+- Results dashboard and state-by-state breakdown
+- Analysis management
 
-**Phase 2A: Database Implementation**
-- Deployed to Supabase
+**Recent Additions (Nov 2025):**
+- Smart column mapping with auto-detection
+- Auto-detect date range from CSV
+- Streamlined analysis flow (75% click reduction)
+
+**Database:**
+- 12 tables deployed to Supabase
 - 239 rows of state rules data loaded
-- All RLS policies active
+- Row Level Security (RLS) active
 
-**Phase 2B: User Flow Design**
-- 7 core screens fully specified
-- Complete wireframes and user interactions
-- Error states documented
+### 🔜 What's Next:
 
-**Phase 3: Technical Architecture**
-- 30+ API endpoints specified
-- Frontend architecture (Next.js 14 + React + Tailwind)
-- Backend architecture (FastAPI + Python)
-- Authentication strategy (Supabase Auth + JWT)
-- Deployment plan (Vercel + Railway + Supabase)
+**Sprint 1 (Physical Nexus, VDA, Exempt Sales):**
+- Status: Planning complete, ready to implement
+- Timeline: 10-12 days estimated
+- See: `docs/plans/sprint-1/` for detailed plans
 
-**Phase 4, Sprint 1 - Week 1: ✅ COMPLETED**
-- ✅ Set up Next.js + FastAPI projects
-- ✅ Implemented Supabase Auth (login, signup, protected routes)
-- ✅ Built Screen 1: Client Setup
-- ✅ Backend API endpoint: POST /api/v1/analyses
-- ✅ Database integration working
-- ✅ Both dev servers running
+**Future Sprints:**
+- Sprint 2: Multiple calculation methods
+- Sprint 3-5: Additional features per roadmap
 
-**Phase 4, Sprint 1 - Week 2: ✅ COMPLETED**
-- ✅ Built Screen 2: CSV Upload with drag-and-drop
-- ✅ Backend endpoint: POST /api/v1/analyses/{id}/upload
-- ✅ CSV processing with pandas
-- ✅ 30 test transactions uploaded successfully
-- ✅ Built Screen 3: Data Mapping & Validation
-- ✅ Backend endpoints: GET /api/v1/analyses/{id}/columns, POST /api/v1/analyses/{id}/validate
-- ✅ Auto-detection of column mappings
-- ✅ Comprehensive data validation
-- ✅ End-to-end flow tested (Screens 1→2→3)
-- ✅ Built Screen 4: Results Dashboard (UI structure)
-- ✅ Backend endpoint: GET /api/v1/analyses/{id}
-- ✅ Complete dashboard UI with summary cards
-- ✅ US Map placeholder with legend
-- ✅ Nexus breakdown section
-- ✅ Action buttons and navigation
-
-**Phase 4, Sprint 1 - Week 3: ✅ COMPLETED**
-- ✅ Built Nexus Calculation Engine
-- ✅ Backend service: NexusCalculator class
-- ✅ Backend endpoints: POST /api/v1/analyses/{id}/calculate, GET /api/v1/analyses/{id}/results/summary
-- ✅ Aggregates transactions by state using pandas
-- ✅ Compares vs state-specific economic nexus thresholds ($100k/$250k/$500k)
-- ✅ Calculates estimated tax liability per state
-- ✅ Saves results to state_results table
-- ✅ Integrated Screen 4 with real calculated data
-- ✅ Streamlined workflow: Calculate button on mapping page triggers automatic calculation
-- ✅ Top states ranking, nexus breakdown, summary statistics
-- ✅ End-to-end tested with accurate sample data
-
-### ✅ Sprint 1 Complete!
-
-**Working Features:**
-1. User authentication (login/signup)
-2. Client setup form (Screen 1)
-3. CSV file upload with preview (Screen 2)
-4. Column mapping & validation (Screen 3)
-5. **Nexus calculation engine** (backend)
-6. Results dashboard with real data (Screen 4)
-7. Complete flow: Upload → Map → **Calculate → View Results**
-
-### 🔜 Next: Sprint 2
-
-**Upcoming Features:**
-- Screen 5: State Table (sortable/filterable list of all states)
-- Screen 6: State Detail View (complete breakdown per state)
-- US Map visualization with react-simple-maps
-- PDF Report generation
+**For detailed status:** Always check `_05-development/CURRENT_STATUS_2025-11-05.md`
 
 ---
 
@@ -150,26 +112,46 @@ Read these files in order for complete context:
 
 ```
 SALT-Tax-Tool-Clean/
-├── 00-START-HERE.md                    ← Read second
-├── QUICK_START_FOR_NEW_SESSIONS.md    ← You are here
-├── INTEGRATION_AND_DEPENDENCIES.md     ← Read third (CRITICAL)
-├── PROJECT-SUMMARY.md
-├── PHASE_2B_SCREEN_SPECIFICATIONS.md   ← Complete UX design
-├── PHASE_3_TECHNICAL_ARCHITECTURE.md   ← Complete API specs
-├── LLM-INSTRUCTIONS.md
-│
-├── data-model-specification.md         ← Tables 1-7 (user data)
-├── state-rules-schema.md               ← Tables 8-12 (state rules)
-│
-├── _01-project-overview/
-├── _02-requirements/
-├── _03-planning/
-├── _07-decisions/
-│   └── decision-log.md                 ← Key architectural decisions
-│
-└── migrations/                         ← Supabase migrations (deployed ✅)
-    ├── 001-008 SQL files
-    └── DEPLOYMENT_GUIDE.md
+├── 00-START-HERE.md                   <- Overview and orientation
+├── _01-project-overview/               <- Vision and context
+├── _02-requirements/                   <- Target users, MVP scope
+├── _03-planning/                       <- Task breakdown, priorities
+├── _04-technical-specs/                <- Data models, architecture (AS-BUILT)
+│   ├── data-model-specification.md         <- LOCKED SCHEMA (Tables 1-7)
+│   ├── state-rules-schema.md               <- LOCKED SCHEMA (Tables 8-12)
+│   ├── PHASE_3_TECHNICAL_ARCHITECTURE.md   <- AS-BUILT architecture
+│   └── INTEGRATION_AND_DEPENDENCIES.md     <- Critical integration patterns
+├── _05-development/                    <- Project-wide dev docs
+│   ├── CURRENT_STATUS_2025-11-05.md        <- PRIMARY STATUS DOCUMENT
+│   ├── CHANGELOG.md                        <- Version history
+│   ├── README_DEVELOPMENT.md               <- Developer onboarding
+│   └── (assessments, audit reports)
+├── _07-decisions/                      <- Architectural decisions
+│   ├── decision-log.md                     <- All major decisions with rationale
+│   └── SECURITY_NOTES.md                   <- Security audit findings
+├── _08-llm-guides/                     <- You are here
+│   ├── QUICK_START_FOR_NEW_SESSIONS.md    <- This file
+│   ├── LLM-INSTRUCTIONS.md                 <- Quick reference
+│   ├── LLM-ONBOARDING-WORKFLOW.md
+│   └── PROJECT-SUMMARY.md
+├── backend/                            <- FastAPI backend code
+│   ├── app/                                <- Application code
+│   ├── tests/                              <- Test suite
+│   ├── migrations/                         <- Database migrations (deployed)
+│   └── README.md                           <- Backend-specific setup
+├── frontend/                           <- Next.js frontend code
+│   ├── app/                                <- Next.js App Router
+│   ├── lib/                                <- Shared utilities
+│   └── README.md                           <- Frontend-specific setup
+├── docs/plans/                         <- Sprint planning
+│   ├── ROADMAP.md                          <- Sprint 1-5 breakdown
+│   └── sprint-1/                           <- Sprint 1 detailed plans
+├── _archives/                          <- Historical documents
+│   ├── completion-reports/                 <- Milestone completion docs
+│   ├── development-logs/                   <- Historical dev notes
+│   ├── llm-guides-snapshots/               <- Previous versions of LLM guides
+│   └── (other archived docs)
+└── test-data/                          <- Test CSV files
 ```
 
 ---
@@ -189,7 +171,7 @@ SALT-Tax-Tool-Clean/
 - FastAPI 0.110.0
 - Python 3.11+
 - Pandas (CSV processing)
-- WeasyPrint (PDF generation)
+- Supabase Python client
 
 **Database:**
 - Supabase (PostgreSQL 15)
@@ -206,96 +188,46 @@ SALT-Tax-Tool-Clean/
 1. **Database schema is LOCKED** - Don't modify without updating specs first
 2. **90-95% accuracy target** - Not 100%, human review required
 3. **Professional users** - Conservative, serious design
-4. **10-15 minute workflow** - Upload to report
-5. **User-controlled data retention** - Privacy-focused (delete immediately, 90 days, 1 year)
+4. **10-15 minute workflow** - Upload to results
+5. **User-controlled data retention** - Privacy-focused
 
 ### Key Design Decisions:
 
-1. **Physical nexus included in MVP** - Essential for accuracy
+1. **Physical nexus included** - Essential for accuracy (being added in Sprint 1)
 2. **Marketplace facilitator handling** - Critical for e-commerce clients
 3. **Average local tax rates** - Not exact (acceptable for estimates)
-4. **Excel/CSV input only** - No API integrations for MVP
+4. **CSV input only** - No API integrations for MVP
 5. **Human-in-the-loop** - Tool assists, doesn't replace professional judgment
-
----
-
-## 🚀 If Starting Development Now
-
-### Step 1: Verify Supabase Access (2 min)
-
-```bash
-# Get credentials from user
-# Supabase Dashboard → Settings → API
-
-SUPABASE_URL=https://[project-ref].supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-SUPABASE_JWT_SECRET=...
-```
-
-### Step 2: Test Database Connection (1 min)
-
-```python
-from supabase import create_client
-
-supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-states = supabase.table('states').select('*').execute()
-print(f"Connected! Found {len(states.data)} states")
-# Should print: Connected! Found 52 states
-```
-
-### Step 3: Read Critical Files (5 min)
-
-1. `INTEGRATION_AND_DEPENDENCIES.md` - **MUST READ before coding**
-   - Complete dependency versions
-   - Integration points (frontend ↔ backend ↔ database)
-   - Common issues and solutions
-
-2. `PHASE_3_TECHNICAL_ARCHITECTURE.md`
-   - API endpoint specifications
-   - Request/response examples
-   - Authentication flow
-
-3. `PHASE_2B_SCREEN_SPECIFICATIONS.md`
-   - User flow (7 screens)
-   - Wireframes
-   - What each screen should do
-
-### Step 4: Set Up Development Environment
-
-Follow instructions in `INTEGRATION_AND_DEPENDENCIES.md` → Section 4 (Setup Validation Checklist)
 
 ---
 
 ## 📋 Quick Reference
 
-### API Endpoints (Summary)
+### API Endpoints
 
-**✅ Implemented:**
+**Currently Implemented:**
 - `POST /api/v1/analyses` - Create analysis
+- `GET /api/v1/analyses` - List analyses
 - `GET /api/v1/analyses/{id}` - Get analysis details
+- `DELETE /api/v1/analyses/{id}` - Delete analysis
 - `POST /api/v1/analyses/{id}/upload` - Upload CSV
-- `GET /api/v1/analyses/{id}/columns` - Get column info & summary
+- `GET /api/v1/analyses/{id}/columns` - Get column info
 - `POST /api/v1/analyses/{id}/validate` - Validate data
-- `POST /api/v1/analyses/{id}/calculate` - **Run nexus calculations** ✨
-- `GET /api/v1/analyses/{id}/results/summary` - **Get results summary** ✨
+- `POST /api/v1/analyses/{id}/calculate` - Run nexus calculations
+- `GET /api/v1/analyses/{id}/results/summary` - Get results summary
+- `GET /api/v1/analyses/{id}/states/{state_code}` - Get state detail
 
-**🔜 Coming Soon:**
-- `GET /api/v1/analyses/{id}/results/states` - Get all states table data
-- `GET /api/v1/analyses/{id}/results/states/{state_code}` - Get single state detail
-- `GET /api/v1/analyses/{id}/results/map` - Get map data
-- `POST /api/v1/analyses/{id}/reports/generate` - Generate PDF
+See `_04-technical-specs/PHASE_3_TECHNICAL_ARCHITECTURE.md` for complete specs with request/response examples.
 
-See `PHASE_3_TECHNICAL_ARCHITECTURE.md` for complete specs with request/response examples.
-
-### Database Tables (Summary)
+### Database Tables
 
 **User Data (7 tables):**
 1. `analyses` - Analysis projects
-2. `data_upload_log` - CSV uploads
+2. `sales_transactions` - Transaction data
 3. `physical_nexus` - Physical presence data
-4. `nexus_determination` - Nexus results per state
-5. `tax_liability_estimate` - Liability calculations
-6. `marketplace_sales` - Marketplace aggregations
+4. `state_results` - Nexus results per state
+5. `client_profiles` - Client information
+6. `analysis_settings` - Configuration
 7. `error_logs` - Validation errors
 
 **State Rules (5 tables):**
@@ -305,29 +237,27 @@ See `PHASE_3_TECHNICAL_ARCHITECTURE.md` for complete specs with request/response
 11. `state_tax_rates` - State + avg local rates
 12. `state_interest_penalty_rates` - Interest/penalty rates
 
-See `data-model-specification.md` and `state-rules-schema.md` for complete schemas.
+See `_04-technical-specs/data-model-specification.md` and `state-rules-schema.md` for complete schemas.
 
 ### The 7-Screen User Flow
 
-1. **Client Setup** ✅ - Company name, period, retention choice
-2. **CSV Upload** ✅ - Drag-and-drop, preview
-3. **Data Mapping** ✅ - Map CSV columns, **calculate nexus**
-4. **Results Dashboard** ✅ - **Real calculated results**, summary cards, top states
-5. **State Table** 🔜 - Sortable/filterable all states
-6. **State Detail** 🔜 - Complete breakdown per state
-7. **Export & Reports** 🔜 - Generate PDF, download
-
-See `PHASE_2B_SCREEN_SPECIFICATIONS.md` for complete wireframes.
+1. **Login/Signup** ✅ - Authentication
+2. **Analyses List** ✅ - View all analyses
+3. **Client Setup** ✅ - Company name, period, retention choice
+4. **CSV Upload** ✅ - Drag-and-drop, preview
+5. **Data Mapping** ✅ - Map CSV columns, calculate nexus
+6. **Results Dashboard** ✅ - Summary cards, top states, nexus breakdown
+7. **State Details** ✅ - Complete breakdown per state
 
 ---
 
-## ⚠️ Common Pitfalls (From Previous Attempts)
+## ⚠️ Common Pitfalls (From Previous Development)
 
 ### 1. Integration Issues
 
 **Problem:** Frontend can't talk to backend, CORS errors, JWT validation fails.
 
-**Solution:** Read `INTEGRATION_AND_DEPENDENCIES.md` → Section 6 (Common Issues & Solutions)
+**Solution:** Read `_04-technical-specs/INTEGRATION_AND_DEPENDENCIES.md` before coding.
 
 ### 2. Database RLS Blocking Queries
 
@@ -357,26 +287,25 @@ result = supabase.table('analyses').insert({
 - Backend: Load with `python-dotenv` before importing config
 - Restart dev servers after changing .env files
 
-### 4. Dependency Version Mismatches
+### 4. File Paths from Old Docs
 
-**Problem:** "Module not found", incompatible versions, build fails.
+**Problem:** Documentation references archived files.
 
-**Solution:** Use **exact versions** from `INTEGRATION_AND_DEPENDENCIES.md`:
-- Next.js 14.2.0
-- React 18.3.0
-- FastAPI 0.110.0
-- Python >= 3.11
-- Node >= 18.17.0
+**Solution:**
+- Check `_archives/` if file not found
+- Use current docs in main folders, not archives
+- Check file "Last Verified" dates
 
 ---
 
 ## 💡 Pro Tips
 
-1. **Start with integration tests first** - Verify all pieces connect before building features
+1. **Check CURRENT_STATUS.md first** - Single source of truth for project status
 2. **Use exact dependency versions** - Avoid "latest" to prevent compatibility issues
-3. **Test authentication early** - JWT flow is critical, test it works before building features
+3. **Test authentication early** - JWT flow is critical
 4. **Read error messages carefully** - They often point directly to config issues
 5. **Check RLS policies** - If queries return empty, likely RLS blocking access
+6. **Look in archives** - If a file isn't where expected, it may have been archived Nov 11
 
 ---
 
@@ -384,31 +313,32 @@ result = supabase.table('analyses').insert({
 
 | Question | File to Read |
 |----------|--------------|
-| What are we building? | `PROJECT-SUMMARY.md` |
+| What's the current status? | `_05-development/CURRENT_STATUS_2025-11-05.md` |
+| What are we building? | `_08-llm-guides/PROJECT-SUMMARY.md` |
 | Who is this for? | `_02-requirements/target-users.md` |
 | What's the MVP scope? | `_02-requirements/mvp-scope.md` |
-| How do screens work? | `PHASE_2B_SCREEN_SPECIFICATIONS.md` |
-| What are the API endpoints? | `PHASE_3_TECHNICAL_ARCHITECTURE.md` |
-| How does auth work? | `PHASE_3_TECHNICAL_ARCHITECTURE.md` → Section 3 |
-| What's the database schema? | `data-model-specification.md` + `state-rules-schema.md` |
-| How do I set up locally? | `INTEGRATION_AND_DEPENDENCIES.md` → Section 4 |
-| What if things don't connect? | `INTEGRATION_AND_DEPENDENCIES.md` → Section 6 |
+| What are the API endpoints? | `_04-technical-specs/PHASE_3_TECHNICAL_ARCHITECTURE.md` |
+| How does auth work? | `_04-technical-specs/PHASE_3_TECHNICAL_ARCHITECTURE.md` → Section 3 |
+| What's the database schema? | `_04-technical-specs/data-model-specification.md` + `state-rules-schema.md` |
+| How do I integrate components? | `_04-technical-specs/INTEGRATION_AND_DEPENDENCIES.md` |
 | What have we decided and why? | `_07-decisions/decision-log.md` |
+| What's the sprint roadmap? | `docs/plans/ROADMAP.md` |
 
 ---
 
 ## 🎯 Ready to Code?
 
-**For Sprint 1 (Data Upload & Validation):**
+**For Sprint 1 Implementation:**
 
-1. Read `INTEGRATION_AND_DEPENDENCIES.md` (15 min)
-2. Set up local environment (30 min)
-3. Run integration tests to verify everything connects (10 min)
-4. Start with Screen 1 (Client Setup) frontend + backend (2-3 hours)
-5. Move to Screen 2 (CSV Upload) with file handling (3-4 hours)
-6. Finish with Screen 3 (Data Mapping) and validation logic (4-5 hours)
+1. Read `_05-development/CURRENT_STATUS_2025-11-05.md` (5 min)
+2. Read `docs/plans/sprint-1/00-overview.md` (10 min)
+3. Read `_04-technical-specs/INTEGRATION_AND_DEPENDENCIES.md` (15 min)
+4. Choose a feature to implement (Physical Nexus, VDA, Exempt Sales)
+5. Read that feature's detailed plan in `docs/plans/sprint-1/`
+6. Create TodoWrite tasks for implementation
+7. Start coding!
 
-**Estimated Sprint 1 Duration:** 2-3 weeks
+**Estimated Sprint 1 Duration:** 10-12 days
 
 ---
 
@@ -417,16 +347,47 @@ result = supabase.table('analyses').insert({
 Before starting development, verify:
 
 - [ ] Read this file
-- [ ] Read `00-START-HERE.md`
-- [ ] Read `INTEGRATION_AND_DEPENDENCIES.md`
-- [ ] Have Supabase credentials
-- [ ] Tested database connection (52 states found)
+- [ ] Read `_05-development/CURRENT_STATUS_2025-11-05.md`
+- [ ] Understand current status (core app deployed, Sprint 1 in planning)
+- [ ] Know where key files are located
+- [ ] Aware database schema is LOCKED
 - [ ] Understand the 7-screen flow
 - [ ] Know where API endpoints are documented
-- [ ] Aware of common pitfalls from previous attempts
+- [ ] Aware of common pitfalls
+- [ ] Know to check `_archives/` if files not found
 
 ---
 
-**You're ready! Start with `INTEGRATION_AND_DEPENDENCIES.md` and follow the setup guide.**
+## 🚀 Important Reminders
+
+**Status Information:**
+- **Single source of truth:** `_05-development/CURRENT_STATUS_2025-11-05.md`
+- Don't trust status claims in other documents - they may be outdated
+- Check "Last Verified" dates on all documents
+
+**File Organization:**
+- Many files were archived Nov 11, 2025
+- If a file isn't where docs say, check `_archives/`
+- Archive READMEs explain why files were archived
+
+**Sprint Terminology:**
+- Current "Sprint 1" = Physical Nexus, VDA, Exempt Sales (in planning)
+- Different from historical "Sprint 1" which was core app build (complete)
+- Always use descriptive names to avoid confusion
+
+**Database:**
+- Schema is LOCKED - all 12 tables deployed and operational
+- Don't modify without updating specs first
+- RLS policies are active - always include user_id
+
+---
+
+**You're ready! Start with `_05-development/CURRENT_STATUS_2025-11-05.md` for current status.**
 
 Good luck! 🚀
+
+---
+
+**Last Updated:** 2025-11-11
+**Last Verified:** 2025-11-11
+**Previous Version:** Archived to `_archives/llm-guides-snapshots/2025-11-03-to-11-10-core-app-build/`

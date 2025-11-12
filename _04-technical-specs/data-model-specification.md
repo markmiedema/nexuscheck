@@ -1,9 +1,11 @@
-# Nexus Check - Data Model Specification (UPDATED)
+# Nexus Check - Data Model Specification
 
-**Created:** 2025-11-02  
-**Updated:** 2025-11-02  
-**Purpose:** Define data structures for input, processing, and output  
-**Status:** Phase 1, Step 1 - Complete with Gap Analysis Updates
+**Created:** 2025-11-02
+**Updated:** 2025-11-11 (status clarification)
+**Document Type:** Technical Reference - Data Models
+**Status:** Implemented in production database and application
+
+**Note:** This document was created during data model design (Nov 2025). The data structures described here are implemented in the production application. Use as reference for data schemas and validation rules.
 
 ---
 
@@ -276,11 +278,11 @@ auto_delete = calculate_auto_delete_date(analysis_created, retention)
 ### 8.1 Analysis Status States
 
 ```
-draft â”€â”€â”€â”€â”€â”€> processing â”€â”€â”€â”€â”€â”€> complete
-   â”‚              â”‚                   â”‚
-   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€> error â”€â”€â”€â”€â”˜
-                              â”‚
-                              â””â”€â”€> Can retry to processing
+draft â"€â"€â"€â"€â"€â"€> processing â"€â"€â"€â"€â"€â"€> complete
+   â"‚              â"‚                   â"‚
+   â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"´â"€â"€â"€â"€â"€â"€> error â"€â"€â"€â"€â"˜
+                              â"‚
+                              â""â"€â"€> Can retry to processing
 ```
 
 **Status Definitions:**
@@ -438,25 +440,25 @@ async def retry_with_backoff(
 
 **During Analysis Creation:**
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ New Analysis                            â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ Client Company Name: [____________]     â”‚
-â”‚ Analysis Period: [2021] to [2024]      â”‚
-â”‚                                         â”‚
-â”‚ Data Retention: â“˜                      â”‚
-â”‚   â—‹ Delete immediately after download   â”‚
-â”‚   â— Keep for 90 days (Recommended)      â”‚
-â”‚   â—‹ Keep for 1 year                     â”‚
-â”‚                                         â”‚
-â”‚ â“˜ Why this matters:                     â”‚
-â”‚ â€¢ Longer retention lets you access      â”‚
-â”‚   reports later without re-uploading    â”‚
-â”‚ â€¢ Shorter retention maximizes privacy   â”‚
-â”‚ â€¢ You can change this or delete early   â”‚
-â”‚                                         â”‚
-â”‚ [Continue] [Cancel]                     â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+â"Œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"
+â"‚ New Analysis                            â"‚
+â"œâ"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"¤
+â"‚ Client Company Name: [____________]     â"‚
+â"‚ Analysis Period: [2021] to [2024]      â"‚
+â"‚                                         â"‚
+â"‚ Data Retention: â"˜                      â"‚
+â"‚   â--‹ Delete immediately after download   â"‚
+â"‚   â-- Keep for 90 days (Recommended)      â"‚
+â"‚   â--‹ Keep for 1 year                     â"‚
+â"‚                                         â"‚
+â"‚ â"˜ Why this matters:                     â"‚
+â"‚ â€¢ Longer retention lets you access      â"‚
+â"‚   reports later without re-uploading    â"‚
+â"‚ â€¢ Shorter retention maximizes privacy   â"‚
+â"‚ â€¢ You can change this or delete early   â"‚
+â"‚                                         â"‚
+â"‚ [Continue] [Cancel]                     â"‚
+â""â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"˜
 ```
 
 ### 9.2 Scheduled Cleanup Job
@@ -678,19 +680,19 @@ log_audit_event('retention_extended', resource_id=analysis.id,
 
 ```
 users
-  â”œâ”€â”€ analyses (1:many)
-  â”‚     â”œâ”€â”€ sales_transactions (1:many)
-  â”‚     â”œâ”€â”€ physical_nexus (1:many)
-  â”‚     â”œâ”€â”€ state_results (1:many)
-  â”‚     â””â”€â”€ error_logs (1:many)
-  â”œâ”€â”€ error_logs (1:many)
-  â””â”€â”€ audit_log (1:many)
+  â"œâ"€â"€ analyses (1:many)
+  â"‚     â"œâ"€â"€ sales_transactions (1:many)
+  â"‚     â"œâ"€â"€ physical_nexus (1:many)
+  â"‚     â"œâ"€â"€ state_results (1:many)
+  â"‚     â""â"€â"€ error_logs (1:many)
+  â"œâ"€â"€ error_logs (1:many)
+  â""â"€â"€ audit_log (1:many)
 
 states
-  â”œâ”€â”€ economic_nexus_thresholds (1:many)
-  â”œâ”€â”€ marketplace_facilitator_rules (1:many)
-  â”œâ”€â”€ tax_rates (1:many)
-  â””â”€â”€ interest_penalty_rates (1:many)
+  â"œâ"€â"€ economic_nexus_thresholds (1:many)
+  â"œâ"€â"€ marketplace_facilitator_rules (1:many)
+  â"œâ"€â"€ tax_rates (1:many)
+  â""â"€â"€ interest_penalty_rates (1:many)
 ```
 
 ---

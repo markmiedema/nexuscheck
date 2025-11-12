@@ -2,7 +2,6 @@
 
 import { ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -16,6 +15,7 @@ interface StateDetailHeaderProps {
   stateName: string;
   stateCode: string;
   nexusStatus: 'has_nexus' | 'approaching' | 'none';
+  nexusType?: 'physical' | 'economic' | 'both' | 'none';
   totalSales: number;
   transactionCount: number;
   yearsAvailable: number[];
@@ -33,6 +33,7 @@ export function StateDetailHeader({
   stateName,
   stateCode,
   nexusStatus,
+  nexusType,
   totalSales,
   transactionCount,
   yearsAvailable,
@@ -44,20 +45,57 @@ export function StateDetailHeader({
 }: StateDetailHeaderProps) {
   const router = useRouter();
 
-  const getNexusBadgeVariant = () => {
+  // Debug logging
+  console.log('StateDetailHeader props:', { stateName, nexusStatus, nexusType });
+
+  const getBadgeClassName = () => {
+    // Use nexusType if available and state has nexus (exclude 'none')
+    if (nexusStatus === 'has_nexus' && nexusType && nexusType !== 'none') {
+      console.log('Using nexusType for badge color:', nexusType);
+      switch (nexusType) {
+        case 'both':
+          return 'bg-purple-200 dark:bg-purple-900/50 text-purple-900 dark:text-purple-200 hover:bg-purple-200 dark:hover:bg-purple-900/50';
+        case 'physical':
+          return 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/40';
+        case 'economic':
+          return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30';
+        default:
+          // Shouldn't reach here, but just in case
+          console.warn('Unexpected nexusType:', nexusType);
+          break;
+      }
+    }
+
+    // Fallback to status-based colors
     switch (nexusStatus) {
       case 'has_nexus':
-        return 'destructive';
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30';
       case 'approaching':
-        return 'default';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-100 dark:hover:bg-yellow-900/30';
       case 'none':
-        return 'secondary';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30';
       default:
-        return 'secondary';
+        return 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/30';
     }
   };
 
   const getNexusBadgeText = () => {
+    // Use nexusType if available and state has nexus (exclude 'none')
+    if (nexusStatus === 'has_nexus' && nexusType && nexusType !== 'none') {
+      switch (nexusType) {
+        case 'both':
+          return 'Physical + Economic';
+        case 'physical':
+          return 'Physical Nexus';
+        case 'economic':
+          return 'Economic Nexus';
+        default:
+          // Shouldn't reach here, but just in case
+          break;
+      }
+    }
+
+    // Fallback to status-based text
     switch (nexusStatus) {
       case 'has_nexus':
         return 'Has Nexus';
@@ -93,13 +131,13 @@ export function StateDetailHeader({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold">{stateName}</h1>
-          <Badge variant={getNexusBadgeVariant()} className="text-sm px-3 py-1">
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getBadgeClassName()}`}>
             {getNexusBadgeText()}
-          </Badge>
+          </span>
         </div>
         <Button
           variant="outline"
-          onClick={() => router.push(`/analysis/${analysisId}/states`)}
+          onClick={() => router.push(`/analysis/${analysisId}/results`)}
         >
           <ChevronLeft className="mr-2 h-4 w-4" />
           Back

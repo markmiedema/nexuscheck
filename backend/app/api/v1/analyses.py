@@ -392,15 +392,27 @@ async def upload_transactions(
         storage_path = f"uploads/{user_id}/{analysis_id}/raw_data.csv"
 
         try:
-            supabase.storage.from_('analysis-uploads').upload(
+            # Try to remove existing file first (in case of re-upload)
+            try:
+                supabase.storage.from_('analysis-uploads').remove([storage_path])
+                logger.info(f"Removed existing file at {storage_path}")
+            except:
+                pass  # File doesn't exist, that's fine
+
+            # Upload new file
+            upload_result = supabase.storage.from_('analysis-uploads').upload(
                 storage_path,
                 content,
                 file_options={"content-type": file.content_type or "text/csv"}
             )
-            logger.info(f"Stored raw CSV for analysis {analysis_id} at {storage_path}")
+            logger.info(f"Stored raw CSV for analysis {analysis_id} at {storage_path}: {upload_result}")
         except Exception as e:
-            logger.warning(f"Failed to store file in storage: {str(e)}")
-            # Continue even if storage fails - we have the data in memory
+            logger.error(f"Failed to store file in storage: {str(e)}")
+            # This is now a critical error - we need the file in storage for the new workflow
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to store file in storage. Please ensure the 'analysis-uploads' bucket exists and is accessible: {str(e)}"
+            )
 
         # Calculate data summary from raw DataFrame (only if all required detected)
         summary = None
@@ -454,7 +466,7 @@ async def upload_transactions(
 @router.post("/{analysis_id}/validate-and-save")
 async def validate_and_save_mappings(
     analysis_id: str,
-    column_mappings: dict,
+    request_body: dict,
     user_id: str = Depends(require_auth)
 ):
     """
@@ -464,11 +476,13 @@ async def validate_and_save_mappings(
     or from full mapping page).
 
     Body:
-        column_mappings: {
-            "transaction_date": {"source_column": "date", "date_format": "YYYY-MM-DD"},
-            "customer_state": {"source_column": "state"},
-            "revenue_amount": {"source_column": "amount"},
-            "sales_channel": {"source_column": "channel", "value_mappings": {...}}
+        {
+            "column_mappings": {
+                "transaction_date": {"source_column": "date", "date_format": "YYYY-MM-DD"},
+                "customer_state": {"source_column": "state"},
+                "revenue_amount": {"source_column": "amount"},
+                "sales_channel": {"source_column": "channel", "value_mappings": {...}}
+            }
         }
     """
     supabase = get_supabase()
@@ -494,6 +508,9 @@ async def validate_and_save_mappings(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Raw data file not found. Please re-upload your CSV."
             )
+
+        # Extract column_mappings from request body
+        column_mappings = request_body.get('column_mappings', {})
 
         # Extract mapping configuration
         transaction_date_config = column_mappings.get('transaction_date', {})
@@ -595,33 +612,36 @@ async def get_column_info(
                 detail="Analysis not found"
             )
 
-        # Get sample transactions to analyze columns
-        transactions_result = supabase.table('sales_transactions') \
-            .select('*') \
-            .eq('analysis_id', analysis_id) \
-            .limit(100) \
-            .execute()
+        # Try to get data from stored CSV file first (new workflow)
+        storage_path = f"uploads/{user_id}/{analysis_id}/raw_data.csv"
+        df = None
 
-        if not transactions_result.data or len(transactions_result.data) == 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No transaction data found. Please upload data first."
-            )
+        try:
+            # Try to download raw CSV from storage
+            file_data = supabase.storage.from_('analysis-uploads').download(storage_path)
+            df = pd.read_csv(io.BytesIO(file_data))
+            logger.info(f"Loaded column info from stored CSV for analysis {analysis_id}")
+        except Exception as e:
+            logger.info(f"No stored CSV found, trying sales_transactions table: {str(e)}")
+            # Fallback to old workflow - check sales_transactions table
+            transactions_result = supabase.table('sales_transactions') \
+                .select('*') \
+                .eq('analysis_id', analysis_id) \
+                .limit(100) \
+                .execute()
 
-        # Convert to DataFrame for analysis
-        df = pd.DataFrame(transactions_result.data)
+            if not transactions_result.data or len(transactions_result.data) == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No transaction data found. Please upload data first."
+                )
 
-        # Get all transactions for summary
-        all_transactions_result = supabase.table('sales_transactions') \
-            .select('id,transaction_date,customer_state') \
-            .eq('analysis_id', analysis_id) \
-            .execute()
+            # Convert to DataFrame for analysis
+            df = pd.DataFrame(transactions_result.data)
 
-        total_rows = len(all_transactions_result.data)
-
-        # Analyze columns (excluding metadata columns)
-        exclude_columns = {'id', 'analysis_id', 'created_at', 'transaction_count', 'tax_collected'}
-        data_columns = [col for col in df.columns if col not in exclude_columns]
+        # Analyze columns - use all columns from CSV
+        total_rows = len(df)
+        data_columns = list(df.columns)
 
         columns_info = []
         for col in data_columns:
@@ -643,24 +663,36 @@ async def get_column_info(
                 "data_type": dtype
             })
 
-        # Create data summary
-        all_df = pd.DataFrame(all_transactions_result.data)
-        date_series = pd.to_datetime(all_df['transaction_date'])
-        unique_states = all_df['customer_state'].nunique()
-
-        # Estimate processing time based on row count
-        estimated_seconds = max(30, min(120, total_rows // 100))
-        estimated_time = f"{estimated_seconds}-{estimated_seconds + 15} seconds"
-
+        # Create data summary from the DataFrame
         summary = {
             "total_rows": total_rows,
-            "date_range": {
-                "start": date_series.min().strftime('%Y-%m-%d'),
-                "end": date_series.max().strftime('%Y-%m-%d')
-            },
-            "unique_states": unique_states,
-            "estimated_time": estimated_time
+            "estimated_time": f"{max(30, min(120, total_rows // 100))}-{max(30, min(120, total_rows // 100)) + 15} seconds"
         }
+
+        # Try to add date range and unique states if columns exist
+        # Use auto-detection to find the right columns
+        detector = ColumnDetector(list(df.columns))
+        detected = detector.detect_mappings()
+
+        if detected.get('mappings'):
+            if 'transaction_date' in detected['mappings']:
+                date_col = detected['mappings']['transaction_date']
+                try:
+                    date_series = pd.to_datetime(df[date_col], errors='coerce').dropna()
+                    if len(date_series) > 0:
+                        summary["date_range"] = {
+                            "start": date_series.min().strftime('%Y-%m-%d'),
+                            "end": date_series.max().strftime('%Y-%m-%d')
+                        }
+                except:
+                    pass
+
+            if 'customer_state' in detected['mappings']:
+                state_col = detected['mappings']['customer_state']
+                try:
+                    summary["unique_states"] = df[state_col].nunique()
+                except:
+                    pass
 
         return {
             "columns": columns_info,
@@ -931,6 +963,91 @@ async def calculate_nexus(
         )
 
 
+@router.post("/{analysis_id}/recalculate")
+async def recalculate_analysis(
+    analysis_id: str,
+    user_id: str = Depends(require_auth)
+):
+    """
+    Recalculate analysis results after configuration changes.
+
+    This endpoint re-runs the nexus calculator with the current data and
+    configuration (including physical nexus settings). Use this endpoint
+    after:
+    - Adding/updating/deleting physical nexus configurations
+    - Changing VDA settings
+    - Modifying any other analysis parameters
+
+    ENHANCEMENT: Enables real-time result updates without page refresh
+    when physical nexus or other configurations change.
+
+    Returns:
+        Summary of recalculation with states updated count
+    """
+    try:
+        supabase = get_supabase()
+
+        # Verify analysis exists and belongs to user
+        analysis_result = supabase.table('analyses').select('*').eq('id', analysis_id).eq('user_id', user_id).execute()
+
+        if not analysis_result.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Analysis not found"
+            )
+
+        analysis = analysis_result.data[0]
+
+        # Check if there are transactions to analyze
+        transactions_result = supabase.table('sales_transactions') \
+            .select('id') \
+            .eq('analysis_id', analysis_id) \
+            .limit(1) \
+            .execute()
+
+        if not transactions_result.data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No transaction data found. Cannot recalculate without data."
+            )
+
+        # Initialize calculator and run recalculation
+        # Note: This uses the same calculation logic as initial calculation
+        # but the calculator will pick up any updated physical nexus configs
+        calculator = NexusCalculatorV2(supabase)
+        result = calculator.calculate_nexus_for_analysis(analysis_id)
+
+        logger.info(f"Analysis recalculated for {analysis_id} (triggered after config change)")
+
+        return {
+            "message": "Analysis recalculated successfully",
+            "analysis_id": analysis_id,
+            "states_updated": result.get('states_calculated', 0) if isinstance(result, dict) else 0,
+            "timestamp": datetime.utcnow().isoformat(),
+            "summary": result
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error recalculating analysis {analysis_id}: {str(e)}")
+
+        # Update analysis status to error
+        try:
+            supabase.table('analyses').update({
+                "status": "error",
+                "error_message": str(e),
+                "last_error_at": datetime.utcnow().isoformat()
+            }).eq('id', analysis_id).execute()
+        except:
+            pass
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to recalculate analysis: {str(e)}"
+        )
+
+
 @router.get("/{analysis_id}/results/summary")
 async def get_results_summary(
     analysis_id: str,
@@ -1127,13 +1244,13 @@ async def get_state_results(
 
         # 4. Check which states are registered (from physical_nexus table)
         physical_nexus_response = supabase.table('physical_nexus').select(
-            'state'
+            'state_code'
         ).eq(
             'analysis_id', analysis_id
         ).execute()
 
         registered_states = {
-            pn['state']
+            pn['state_code']
             for pn in physical_nexus_response.data
         }
 
@@ -1424,6 +1541,7 @@ async def get_state_detail(
             year_data.append({
                 'year': year,
                 'nexus_status': nexus_status,
+                'nexus_type': nexus_type,  # Include nexus type for color-coded badges
                 'summary': {
                     'total_sales': total_sales,
                     'transaction_count': len(year_transactions),
@@ -1488,6 +1606,21 @@ async def get_state_detail(
         # Determine if nexus exists in any year
         has_nexus_any_year = any(yr['nexus_status'] == 'has_nexus' for yr in year_data)
 
+        # Determine aggregate nexus type by combining all years
+        aggregate_nexus_type = 'none'
+        if has_nexus_any_year and year_data:
+            has_physical = any(yr.get('nexus_type') in ['physical', 'both'] for yr in year_data)
+            has_economic = any(yr.get('nexus_type') in ['economic', 'both'] for yr in year_data)
+
+            if has_physical and has_economic:
+                aggregate_nexus_type = 'both'
+            elif has_physical:
+                aggregate_nexus_type = 'physical'
+            elif has_economic:
+                aggregate_nexus_type = 'economic'
+            else:
+                aggregate_nexus_type = 'none'
+
         # Find first nexus year from V2 results
         first_nexus_year = None
         for yr in sorted(year_data, key=lambda x: x['year']):
@@ -1497,6 +1630,13 @@ async def get_state_detail(
                 if first_year:
                     first_nexus_year = first_year
                     break
+
+        # Debug logging to check nexus_type values
+        logger.info(f"State detail API response for {state_code}:")
+        logger.info(f"  Aggregate nexus_type: {aggregate_nexus_type}")
+        if year_data:
+            for yr in year_data:
+                logger.info(f"  Year {yr['year']}: nexus_type={yr.get('nexus_type')}, nexus_status={yr.get('nexus_status')}")
 
         return {
             'state_code': state_code,
@@ -1511,7 +1651,7 @@ async def get_state_detail(
             # Aggregate totals for "All Years" view
             'total_sales': total_sales_all_years,
             'estimated_liability': total_liability_all_years,
-            'nexus_type': 'economic' if has_nexus_any_year else 'none',
+            'nexus_type': aggregate_nexus_type,  # Use latest year's nexus type
             'first_nexus_year': first_nexus_year
         }
 

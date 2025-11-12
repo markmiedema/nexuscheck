@@ -1,4 +1,6 @@
-# Changelog
+# Nexus Check - Changelog
+
+**Last Updated:** 2025-11-11
 
 All notable changes to this project will be documented in this file.
 

@@ -1,12 +1,12 @@
 # Nexus Check - Project Documentation
 
-**Last Updated:** 2025-11-10
-**Status:** Phase 1A Complete - V2 Nexus Calculator Production-Ready ✅
-**Current Phase:** Phase 1A Complete → Phase 1B (Rolling 12-Month Lookback)
+**Last Updated:** 2025-11-11
+**For Current Status:** See `_05-development/CURRENT_STATUS_2025-11-05.md`
+**Quick Summary:** Core app complete [x] | Sprint 1 (Physical Nexus, VDA, Exempt Sales) in planning
 
 ---
 
-## ðŸŽ¯ Quick Start for LLMs
+## Quick Start for LLMs
 
 You are helping build a SALT (State and Local Tax) automation tool for boutique tax agencies. This document is your entry point to understand the project.
 
@@ -17,84 +17,52 @@ You are helping build a SALT (State and Local Tax) automation tool for boutique 
 4. `_03-planning/task-breakdown.md` - Full professional workflow
 5. `_03-planning/priority-tiers.md` - What to build when
 
-### Current Work:
-- **Phase 1 Complete:** âœ… Data model and state rules database designed
-- **Phase 2A Complete:** âœ… Database implemented and deployed to Supabase (all migrations run successfully)
-  - 12 tables created with RLS policies
-  - 239 rows of state rules data (52 states, 47 nexus rules, 47 marketplace rules, 46 tax rates, 47 interest/penalty rates)
-  - See `migrations/DEPLOYMENT_GUIDE.md` for complete deployment summary
-- **Phase 2B Complete:** ✅ User Flow Design finished with 7 core screens
-  - See `_04-technical-specs/PHASE_2B_SCREEN_SPECIFICATIONS.md` for complete UX specifications
-- **Phase 3 Complete:** ✅ Technical Architecture fully defined
-  - 30+ API endpoints specified
-  - Frontend/Backend architecture designed
-  - Authentication & security strategy
-  - Deployment infrastructure planned
-  - See `_04-technical-specs/PHASE_3_TECHNICAL_ARCHITECTURE.md` for complete technical specs
-- **Phase 4 Sprints 1-5:** ✅ Core application built and deployed
-  - Next.js frontend + FastAPI backend fully functional
-  - Data upload, validation, and processing working
-  - Economic nexus calculation engine operational
-  - Liability estimation complete
-  - Report generation functional
-- **Phase 1A Complete:** ✅ V2 Nexus Calculator with Calendar Year Lookback (44 states)
-  - Chronological processing algorithm
-  - Sticky nexus tracking across years
-  - Multi-year analysis with year-by-year breakdown
-  - Marketplace facilitator rules (30 count, 14 don't count)
-  - Production-ready API and UI
-  - Comprehensive test coverage (8/8 tests passing)
-  - See `docsplans/PHASE_1A_COMPLETION_SUMMARY.md` for complete details
-- **Sprint 1A Complete:** ✅ Analysis Management (Nov 7, 2025)
-  - List and search previous analyses
-  - View saved analysis results
-  - Delete analyses (soft delete)
-  - Dashboard integration
-  - 5 unit tests + integration test
-  - Comprehensive manual testing checklist
-- **Sprint 1C Complete:** ✅ Auto-Detect Date Range (Nov 7, 2025)
-  - Removed date inputs from analysis creation form
-  - Automatic date detection from CSV upload
-  - Date confirmation dialog with shadcn/ui
-  - Database migration for nullable dates
-  - Simplified user experience
-  - 4 unit tests + integration testing checklist
-- **UX Improvements:** ✅ Streamlined Analysis Flow (Nov 9, 2025)
-  - Merged new analysis + upload into one page
-  - Single confirmation dialog (replaces 2 separate dialogs)
-  - Fixed calculation race condition with polling
-  - Embedded state table in results page
-  - 75% reduction in user clicks (7 clicks → 2 clicks)
-  - See `docs/plans/2025-11-09-streamlined-analysis-flow-implementation.md`
-- **Next Up:** Sprint 1B - PDF Generation (12-16 hours) - Last remaining Week 1 sprint
-- **See:** `_03-planning/workflow-phases.md` for the full build roadmap
+### What's Been Built:
+- [x] **Core Application** (Phases 1-4, completed 2025)
+  - Data model, database (Supabase with 239 rows of state rules)
+  - Next.js frontend + FastAPI backend
+  - Economic nexus calculation (calendar year lookback, 44 states)
+  - Multi-year analysis with sticky nexus tracking
+  - Data upload, validation, column mapping
+  - Results dashboard and state-by-state breakdown
+  - Analysis management (list, view, delete)
+
+- [x] **Recent UX Improvements** (Nov 2025)
+  - Smart column mapping with auto-detection
+  - Auto-detect date range from CSV
+  - Streamlined analysis flow (75% click reduction)
+
+### What's Next:
+- **Sprint 1** (Physical Nexus, VDA, Exempt Sales) - Planning complete, ready to build
+- **Sprint 2-5** - Outlined in `docs/plans/ROADMAP.md`
+
+**For detailed current status:** See `_05-development/CURRENT_STATUS_2025-11-05.md`
 
 ---
 
-## ðŸ“ Project Structure
+## Project Structure
 
 ```
 SALT-Tax-Tool/
-â”œâ”€â”€ 00-START-HERE.md              â† You are here
-â”œâ”€â”€ PROJECT-SUMMARY.md            â† Complete summary of all planning
-â”œâ”€â”€ LLM-INSTRUCTIONS.md           â† Quick reference for LLMs
-â”œâ”€â”€ 01-project-overview/          â† High-level context and vision
-â”œâ”€â”€ 02-requirements/              â† Requirements from definition framework
-â”œâ”€â”€ 03-planning/                  â† Workflow, priorities, roadmap
-â”œâ”€â”€ 04-technical-specs/           â† Data models, architecture
-â”‚   â”œâ”€â”€ data-model-specification.md      (Phase 1, Step 1) âœ…
-â”‚   â””â”€â”€ state-rules-schema.md            (Phase 1, Step 2) âœ…
-â”œâ”€â”€ 05-state-rules/               â† State-specific tax rules (modular)
-â”œâ”€â”€ 06-development/               â† Code and implementation
-â”œâ”€â”€ 07-decisions/                 â† Decision log with rationale
-â”‚   â”œâ”€â”€ decision-log.md                  (current version)
-â”‚   â””â”€â”€ _archives/                       (previous versions)
-â””â”€â”€ 08-templates/                 â† Reusable templates and examples
+├── 00-START-HERE.md               You are here
+├── _01-project-overview/          High-level context and vision
+├── _02-requirements/              Requirements from definition framework
+├── _03-planning/                  Workflow, priorities, roadmap
+├── _04-technical-specs/           Data models, architecture
+│   ├── data-model-specification.md      (Phase 1, Step 1) [DONE]
+│   └── state-rules-schema.md            (Phase 1, Step 2) [DONE]
+├── _05-development/               Project-wide dev docs (status, changelog, guides)
+├── _07-decisions/                 Decision log with rationale
+├── _08-llm-guides/                LLM instructions and project summary
+├── backend/                       FastAPI backend code
+├── frontend/                      Next.js frontend code
+├── docs/                          Sprint planning and roadmaps
+└── _archives/                     Historical documents
 ```
 
 ---
 
-## ðŸš¨ Critical Rules for Working on This Project
+## š¨ Critical Rules for Working on This Project
 
 ### Token Limits
 - **No single file over 25,000 tokens** - Break large files into logical modules
@@ -102,10 +70,11 @@ SALT-Tax-Tool/
 - Each part should be self-contained enough to be useful independently
 
 ### File Organization
-- Use numbered prefixes for reading order (01-, 02-, etc.)
+- Use numbered prefixes for reading order (_01, _02, etc.)
 - Use descriptive filenames (no abbreviations unless obvious)
 - Include "Last Updated" date at top of each file
 - Cross-reference related files clearly
+- **Note:** Numbering skips _06 because: (1) state rules live in Supabase database, not files; (2) actual code lives in `/backend` and `/frontend` at root level; `_05-development/` contains project-wide development documentation
 
 ### Documentation Standards
 - Write for LLMs reading cold (assume no prior context)
@@ -116,25 +85,25 @@ SALT-Tax-Tool/
 
 ---
 
-## ðŸ“Š Project Status
+## "Š Project Status
 
 ### Completed:
-âœ… Problem definition and user research
-âœ… Task breakdown for SALT professionals
-âœ… MVP scope definition
-âœ… Priority tier planning
-âœ… Project structure setup
-âœ… **Phase 1 - Technical Foundation:**
+[DONE] Problem definition and user research
+[DONE] Task breakdown for SALT professionals
+[DONE] MVP scope definition
+[DONE] Priority tier planning
+[DONE] Project structure setup
+[DONE] **Phase 1 - Technical Foundation:**
   - **Step 1:** Data Model Design (Excel input, physical nexus, report output)
   - **Step 2:** State Rules Database Structure (5 tables, optimized queries)
-âœ… **Phase 2A - Database Implementation:**
+[DONE] **Phase 2A - Database Implementation:**
   - All 12 tables created in Supabase with RLS policies
   - 9 migration scripts deployed successfully (001, 002, 003, 004b, 005, 006, 007, 007b, 008)
   - 239 rows of state rules data loaded and verified
   - Complete deployment guide with lessons learned
 
 ### Recently Completed:
-ðŸ"„ **Phase 3:** Technical Architecture (November 3, 2025)
+"„ **Phase 3:** Technical Architecture (November 3, 2025)
 - 30+ API endpoints fully specified with request/response examples
 - Frontend architecture (Next.js 14 + React + Tailwind + shadcn/ui)
 - Backend architecture (FastAPI + Python 3.11)
@@ -162,7 +131,7 @@ SALT-Tax-Tool/
 
 ---
 
-## ðŸ”§ Technical Stack (Decided)
+## "§ Technical Stack (Decided)
 
 **Frontend:** Next.js 14 + React + Tailwind CSS  
 **Backend:** FastAPI (Python 3.11+)  
@@ -177,35 +146,35 @@ See `_07-decisions/decision-log.md` for full rationale.
 
 ---
 
-## ðŸ” Finding What You Need
+## " Finding What You Need
 
 ### "What are we building?"
-â†' `_08-llm-guides/PROJECT-SUMMARY.md` or `_01-project-overview/vision.md`
+' `_08-llm-guides/PROJECT-SUMMARY.md` or `_01-project-overview/vision.md`
 
 ### "Who is this for?"
-→ `_02-requirements/target-users.md`
+-> `_02-requirements/target-users.md`
 
 ### "What's in the MVP?"
-→ `_02-requirements/mvp-scope.md`
+-> `_02-requirements/mvp-scope.md`
 
 ### "What should I work on next?"
-→ `_03-planning/workflow-phases.md`
+-> `_03-planning/workflow-phases.md`
 
 ### "What have we decided and why?"
-→ `_07-decisions/decision-log.md`
+-> `_07-decisions/decision-log.md`
 
 ### "How is the data structured?"
-→ `_04-technical-specs/data-model-specification.md`
+-> `_04-technical-specs/data-model-specification.md`
 
 ### "How are state rules stored?"
-→ `_04-technical-specs/state-rules-schema.md`
+-> `_04-technical-specs/state-rules-schema.md`
 
 ### "What's the current status?"
-→ `_05-development/CURRENT_STATUS_2025-11-05.md`
+-> `_05-development/CURRENT_STATUS_2025-11-05.md`
 
 ---
 
-## ðŸ’¡ Context for New Conversations
+## '¡ Context for New Conversations
 
 **For New LLM Sessions:**
 
@@ -227,7 +196,7 @@ See `_07-decisions/decision-log.md` for full rationale.
 
 ---
 
-## ðŸ“ How to Update This Project
+## " How to Update This Project
 
 **Use the Documentation Update Checklist:** `_05-development/DOCUMENTATION_UPDATE_CHECKLIST.md`
 
@@ -242,7 +211,7 @@ See `_07-decisions/decision-log.md` for full rationale.
 
 ---
 
-## ðŸŽ¯ Current Priorities
+## Current Priorities
 
 ### Immediate Next Steps:
 1. **Optional but Recommended:** Implement database in Supabase (2 days)
@@ -263,12 +232,12 @@ See `_07-decisions/decision-log.md` for full rationale.
 
 ---
 
-## ðŸ“ˆ Progress Summary
+##  Progress Summary
 
 **Time Invested:** ~6-8 hours planning + design  
 **Deliverables Created:** 12 documentation files + 2 technical specifications  
-**Phase 1 Status:** âœ… Complete  
-**Next Milestone:** Phase 2 complete â†’ Ready for detailed technical architecture  
+**Phase 1 Status:** [DONE] Complete  
+**Next Milestone:** Phase 2 complete ' Ready for detailed technical architecture  
 
 ---
 
@@ -278,19 +247,19 @@ If something is unclear or missing, note it in the appropriate file with a `[QUE
 
 ---
 
-## ðŸš€ Ready to Build
+## š€ Ready to Build
 
 With Phase 1 complete, you have:
-- âœ… Clear data structures (input, processing, output)
-- âœ… Complete database schema (5 normalized tables)
-- âœ… Technical stack decided (Supabase + FastAPI + Next.js)
-- âœ… All architectural decisions documented
-- âœ… MVP scope clearly defined
-- âœ… Priority roadmap established
+- [DONE] Clear data structures (input, processing, output)
+- [DONE] Complete database schema (5 normalized tables)
+- [DONE] Technical stack decided (Supabase + FastAPI + Next.js)
+- [DONE] All architectural decisions documented
+- [DONE] MVP scope clearly defined
+- [DONE] Priority roadmap established
 
 **You're now ready to either:**
 - Implement the database and start coding
 - Design the user experience (Phase 2)
 - Both in parallel (if you have resources)
 
-The foundation is solid. Time to build! ðŸŽ¯
+The foundation is solid. Time to build!

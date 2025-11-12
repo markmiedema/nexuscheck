@@ -308,8 +308,8 @@ export default function TransactionTable({
                           <span
                             className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
                               transaction.sales_channel === 'direct'
-                                ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                                ? 'bg-muted text-foreground'
+                                : 'bg-accent text-foreground'
                             }`}
                           >
                             {transaction.sales_channel === 'direct' ? 'Direct' : 'Marketplace'}

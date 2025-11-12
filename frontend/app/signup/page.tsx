@@ -60,11 +60,11 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
-        <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-700 p-10 rounded-2xl shadow-floating border-2 border-gray-300 dark:border-slate-500 text-center">
+        <div className="max-w-md w-full space-y-8 bg-card p-10 rounded-2xl shadow-floating border-2 border-border text-center">
           <div className="rounded-full bg-green-100 dark:bg-green-900/20 w-16 h-16 flex items-center justify-center mx-auto">
             <svg
               className="w-8 h-8 text-green-600 dark:text-green-400"
@@ -90,11 +90,11 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-700 p-10 rounded-2xl shadow-floating border-2 border-gray-300 dark:border-slate-500">
+      <div className="max-w-md w-full space-y-8 bg-card p-10 rounded-2xl shadow-floating border-2 border-border">
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-950 dark:text-gray-50">Nexus Check</h1>
@@ -105,7 +105,7 @@ export default function SignupPage() {
             Already have an account?{' '}
             <Link
               href="/login"
-              className="font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+              className="font-medium text-foreground hover:text-foreground/80 underline"
             >
               Sign in
             </Link>
@@ -133,7 +133,7 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-500 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-200 focus:border-slate-900 dark:focus:border-slate-200 hover:border-gray-400 dark:hover:border-slate-400 transition-colors duration-200"
+                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
                 placeholder="you@example.com"
               />
             </div>
@@ -150,7 +150,7 @@ export default function SignupPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-500 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-200 focus:border-slate-900 dark:focus:border-slate-200 hover:border-gray-400 dark:hover:border-slate-400 transition-colors duration-200"
+                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
                 placeholder="••••••••"
               />
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -170,7 +170,7 @@ export default function SignupPage() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-500 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-200 focus:border-slate-900 dark:focus:border-slate-200 hover:border-gray-400 dark:hover:border-slate-400 transition-colors duration-200"
+                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
                 placeholder="••••••••"
               />
             </div>

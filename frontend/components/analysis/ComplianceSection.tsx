@@ -139,7 +139,7 @@ export function ComplianceSection({
                       href={complianceInfo.registration_info.registration_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-slate-700 dark:text-slate-300 hover:underline"
+                      className="text-sm text-foreground hover:underline"
                     >
                       → Register Online - {stateName} Portal
                     </a>
@@ -182,7 +182,7 @@ export function ComplianceSection({
                       href={complianceInfo.registration_info.dor_website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-slate-700 dark:text-slate-300 hover:underline"
+                      className="text-sm text-foreground hover:underline"
                     >
                       → View Filing Requirements
                     </a>
@@ -246,7 +246,7 @@ export function ComplianceSection({
                   href={complianceInfo.registration_info.dor_website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-slate-700 dark:text-slate-300 hover:underline"
+                  className="block text-foreground hover:underline"
                 >
                   → {stateName} Department of Revenue
                 </a>
@@ -256,7 +256,7 @@ export function ComplianceSection({
                   href={complianceInfo.registration_info.registration_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-slate-700 dark:text-slate-300 hover:underline"
+                  className="block text-foreground hover:underline"
                 >
                   → Sales Tax Registration Portal
                 </a>
@@ -361,7 +361,7 @@ export function ComplianceSection({
                   href={complianceInfo.registration_info.dor_website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-slate-700 dark:text-slate-300 hover:underline"
+                  className="block text-foreground hover:underline"
                 >
                   → {stateName} Department of Revenue
                 </a>
@@ -371,7 +371,7 @@ export function ComplianceSection({
                   href={complianceInfo.registration_info.registration_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-slate-700 dark:text-slate-300 hover:underline"
+                  className="block text-foreground hover:underline"
                 >
                   → Sales Tax Registration Portal
                 </a>
@@ -451,7 +451,7 @@ export function ComplianceSection({
                   </span>
                 </div>
               </div>
-              <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800 rounded border border-gray-300 dark:border-slate-600">
+              <div className="mt-4 p-3 bg-muted rounded border border-border">
                 <p className="text-gray-700 dark:text-gray-300">
                   <strong>Note:</strong> If you reach the threshold, you'll need to register
                   within 30 days and begin collecting tax.
@@ -469,7 +469,7 @@ export function ComplianceSection({
                   href={complianceInfo.registration_info.dor_website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-slate-700 dark:text-slate-300 hover:underline"
+                  className="block text-foreground hover:underline"
                 >
                   → {stateName} Department of Revenue
                 </a>
@@ -487,13 +487,13 @@ export function ComplianceSection({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Info className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+            <Info className="h-5 w-5 text-muted-foreground" />
             Compliance Requirements
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Info Banner */}
-          <div className="rounded-md bg-slate-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-600 p-4">
+          <div className="rounded-md bg-muted border border-border p-4">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
               <Info className="h-5 w-5" />
               No Sales Activity
@@ -551,7 +551,7 @@ export function ComplianceSection({
                   href={complianceInfo.registration_info.dor_website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-slate-700 dark:text-slate-300 hover:underline"
+                  className="block text-foreground hover:underline"
                 >
                   → {stateName} Department of Revenue
                 </a>
