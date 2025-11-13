@@ -15,62 +15,88 @@ class ColumnDetector:
     # Patterns ordered by confidence (first = highest)
     COLUMN_PATTERNS = {
         'transaction_date': [
-            'transaction_date',
-            'date',
-            'order_date',
-            'sale_date',
-            'txn_date',
-            'trans_date',
-            'invoice_date',
+            'transaction_date', 'transaction date',
+            'date', 'order_date', 'order date',
+            'sale_date', 'sale date', 'sales_date',
+            'txn_date', 'trans_date', 'transaction_dt',
+            'invoice_date', 'invoice date',
+            'purchase_date', 'purchase date',
+            'created_date', 'created_at', 'created at',
+            'order_created', 'order_timestamp',
+            'timestamp', 'datetime'
         ],
         'customer_state': [
-            'customer_state',
-            'state',
-            'buyer_state',
-            'ship_to_state',
-            'shipping_state',
-            'customer_location',
-            'destination_state',
+            'customer_state', 'customer state',
+            'state', 'buyer_state', 'buyer state',
+            'ship_to_state', 'ship to state', 'shipto_state',
+            'shipping_state', 'shipping state',
+            'customer_location', 'destination_state', 'destination state',
+            'dest_state', 'to_state', 'delivery_state',
+            'recipient_state', 'ship_state',
+            'province', 'customer_province'
         ],
         'revenue_amount': [
-            'revenue_amount',
-            'amount',
-            'sales_amount',
-            'total',
-            'price',
-            'revenue',
-            'sales',
-            'total_amount',
+            'revenue_amount', 'revenue amount', 'revenue',
+            'amount', 'sales_amount', 'sales amount', 'sales',
+            'total', 'total_amount', 'total amount',
+            'price', 'sale_amount', 'order_total', 'order total',
+            'gross_sales', 'gross sales', 'gross_amount',
+            'line_total', 'subtotal', 'sub_total',
+            'net_amount', 'net_sales', 'value'
         ],
         'sales_channel': [
-            'sales_channel',
-            'channel',
-            'source',
-            'marketplace',
-            'order_source',
-            'sale_channel',
+            'sales_channel', 'sales channel',
+            'channel', 'source', 'order_source', 'order source',
+            'marketplace', 'platform', 'seller',
+            'sale_channel', 'sales_source',
+            'fulfillment_channel', 'fulfillment channel',
+            'order_channel', 'channel_name', 'sales_platform'
         ],
         'revenue_stream': [
-            'revenue_stream',
-            'revenue stream',
-            'product_type',
-            'product type',
-            'product_category',
-            'product category',
-            'item_type',
-            'item type',
-            'item_category',
-            'category',
-            'product_line',
-            'product line',
-            'revenue_type',
-            'revenue type',
-            'goods_type',
-            'service_type',
-            'line_of_business',
-            'sku_category',
-            'business_line',
+            'revenue_stream', 'revenue stream',
+            'product_type', 'product type',
+            'product_category', 'product category',
+            'item_type', 'item type',
+            'item_category', 'category',
+            'product_line', 'product line',
+            'revenue_type', 'revenue type',
+            'goods_type', 'service_type',
+            'line_of_business', 'sku_category',
+            'business_line'
+        ],
+        # Optional columns for exempt sales
+        'is_taxable': [
+            'is_taxable', 'is taxable', 'taxable',
+            'tax_status', 'tax status', 'taxability',
+            'exempt', 'is_exempt', 'is exempt',
+            'taxable_flag', 'tax_exempt', 'tax exempt',
+            'exemption_status', 'subject_to_tax'
+        ],
+        'exempt_amount': [
+            'exempt_amount', 'exempt amount', 'exempt',
+            'exempt_sales', 'exempt sales',
+            'non_taxable_amount', 'non taxable amount',
+            'exemption_amount', 'exemption amount',
+            'exempt_amt', 'tax_exempt_amount',
+            'nontaxable_amount'
         ]
+    }
+
+    # State name to code mapping (all 50 states + DC)
+    STATE_NAME_TO_CODE = {
+        'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR',
+        'california': 'CA', 'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE',
+        'florida': 'FL', 'georgia': 'GA', 'hawaii': 'HI', 'idaho': 'ID',
+        'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA', 'kansas': 'KS',
+        'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+        'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS',
+        'missouri': 'MO', 'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV',
+        'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY',
+        'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH', 'oklahoma': 'OK',
+        'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+        'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT',
+        'vermont': 'VT', 'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV',
+        'wisconsin': 'WI', 'wyoming': 'WY', 'district of columbia': 'DC', 'd.c.': 'DC'
     }
 
     def __init__(self, columns: List[str]):
@@ -291,3 +317,381 @@ class ColumnDetector:
             'notes': 'Unknown category. Assume taxable unless you have specific exemption.',
             'examples': 'Consult tax professional for guidance'
         })
+
+    @classmethod
+    def normalize_state_code(cls, value: Optional[str]) -> Optional[str]:
+        """
+        Normalize state names to 2-letter codes.
+
+        Handles:
+        - Full state names ("California" → "CA")
+        - Mixed case and whitespace
+        - Already-valid codes (just uppercase)
+
+        Args:
+            value: Raw state value from CSV
+
+        Returns:
+            2-letter state code or None if invalid
+        """
+        if not value or str(value).strip() == '':
+            return None
+
+        val_str = str(value).strip()
+
+        # If already 2-letter code, uppercase and return
+        if len(val_str) == 2:
+            return val_str.upper()
+
+        # Try state name lookup (case-insensitive)
+        val_lower = val_str.lower()
+        if val_lower in cls.STATE_NAME_TO_CODE:
+            return cls.STATE_NAME_TO_CODE[val_lower]
+
+        # Return uppercase of original (may be valid, may be error - validation will catch)
+        return val_str.upper()
+
+    @staticmethod
+    def normalize_date(value: Optional[str]) -> Optional[str]:
+        """
+        Normalize dates to YYYY-MM-DD format.
+
+        Tries multiple common formats:
+        - MM/DD/YYYY, MM-DD-YYYY
+        - YYYY-MM-DD, YYYY/MM/DD
+        - DD/MM/YYYY
+        - MM/DD/YY
+        - YYYYMMDD
+
+        Args:
+            value: Raw date string from CSV
+
+        Returns:
+            Date string in YYYY-MM-DD format or None if parsing fails
+        """
+        import pandas as pd
+        from datetime import datetime
+
+        if not value or str(value).strip() == '':
+            return None
+
+        val_str = str(value).strip()
+
+        # Common date formats to try (in order of likelihood)
+        formats = [
+            '%m/%d/%Y',      # 01/15/2024 (US common)
+            '%Y-%m-%d',      # 2024-01-15 (ISO standard)
+            '%m-%d-%Y',      # 01-15-2024
+            '%Y/%m/%d',      # 2024/01/15
+            '%d/%m/%Y',      # 15/01/2024 (European)
+            '%m/%d/%y',      # 01/15/24
+            '%Y%m%d',        # 20240115
+            '%m.%d.%Y',      # 01.15.2024
+            '%d-%m-%Y',      # 15-01-2024
+            '%d.%m.%Y',      # 15.01.2024
+        ]
+
+        for fmt in formats:
+            try:
+                parsed_date = datetime.strptime(val_str, fmt)
+                return parsed_date.strftime('%Y-%m-%d')
+            except ValueError:
+                continue
+
+        # If all fail, try pandas auto-detection as last resort
+        try:
+            parsed_date = pd.to_datetime(val_str, errors='raise')
+            return parsed_date.strftime('%Y-%m-%d')
+        except:
+            return None  # Could not parse
+
+    @staticmethod
+    def normalize_sales_channel(value: Optional[str]) -> str:
+        """
+        Normalize sales channel values to standard categories.
+
+        Maps variants to:
+        - "marketplace" - Amazon, eBay, Walmart, Etsy, etc.
+        - "direct" - Own website, retail, direct sales
+
+        Args:
+            value: Raw sales channel value from CSV
+
+        Returns:
+            Normalized channel ("marketplace" or "direct")
+        """
+        if not value or str(value).strip() == '':
+            return 'direct'  # Default to direct
+
+        val_lower = str(value).lower().strip()
+
+        # Marketplace indicators
+        marketplace_variants = [
+            'amazon', 'ebay', 'walmart', 'etsy', 'shopify marketplace',
+            'marketplace', 'third-party', '3rd party', 'third party',
+            'fba', 'fulfillment by amazon', 'seller central',
+            'walmart marketplace', 'ebay marketplace', 'amazon fba',
+            'target marketplace', 'wayfair', 'newegg',
+            'mcf', 'multi-channel fulfillment', 'fbm'
+        ]
+
+        # Direct sale indicators
+        direct_variants = [
+            'direct', 'website', 'web', 'online', 'store', 'retail',
+            'own site', 'ecommerce', 'e-commerce', 'shopify',
+            'woocommerce', 'magento', 'bigcommerce',
+            'pos', 'point of sale', 'in-store', 'brick and mortar'
+        ]
+
+        # Check for marketplace match
+        if any(variant in val_lower for variant in marketplace_variants):
+            return 'marketplace'
+
+        # Check for direct match
+        if any(variant in val_lower for variant in direct_variants):
+            return 'direct'
+
+        # Default to direct if no match
+        return 'direct'
+
+    @staticmethod
+    def calculate_taxable_amount(
+        revenue_amount: float,
+        is_taxable: Optional[str] = None,
+        exempt_amount: Optional[float] = None
+    ) -> tuple:
+        """
+        Calculate taxable amount using hybrid logic.
+
+        Priority:
+        1. If exempt_amount specified, subtract from revenue
+        2. If is_taxable specified, use Y/N logic
+        3. Default to fully taxable
+
+        Args:
+            revenue_amount: Gross revenue for transaction
+            is_taxable: Optional boolean string (Y/N, True/False, etc.)
+            exempt_amount: Optional exempt dollar amount
+
+        Returns:
+            Tuple of (taxable_amount, is_taxable_bool, exempt_amount)
+        """
+        revenue = float(revenue_amount) if revenue_amount else 0.0
+
+        # Priority 1: exempt_amount specified
+        if exempt_amount is not None:
+            try:
+                exempt = float(exempt_amount)
+                # Cap exempt at revenue (can't exempt more than sold)
+                exempt = min(exempt, revenue)
+                exempt = max(exempt, 0)  # Can't be negative
+                taxable = revenue - exempt
+                return (taxable, taxable > 0, exempt)
+            except (ValueError, TypeError):
+                pass
+
+        # Priority 2: is_taxable specified
+        if is_taxable is not None and str(is_taxable).strip() != '':
+            val_str = str(is_taxable).upper().strip()
+            # Check for "false" values
+            if val_str in ['N', 'NO', 'FALSE', '0', 'F', 'EXEMPT', 'NON-TAXABLE']:
+                return (0.0, False, revenue)
+            # Anything else treated as taxable
+            else:
+                return (revenue, True, 0.0)
+
+        # Priority 3: Default to fully taxable
+        return (revenue, True, 0.0)
+
+    def normalize_data(self, df, mappings: Dict) -> Dict:
+        """
+        Apply all normalizations to DataFrame.
+
+        This is the master normalization method that:
+        1. Normalizes dates to YYYY-MM-DD
+        2. Normalizes state names to codes
+        3. Normalizes sales channels
+        4. Normalizes revenue streams
+        5. Calculates taxable amounts
+
+        Args:
+            df: pandas DataFrame with raw CSV data
+            mappings: Column mapping dict from detect_mappings()
+
+        Returns:
+            Dict with:
+                - df: Normalized DataFrame
+                - transformations: List of transformations applied
+                - warnings: List of warnings
+        """
+        import pandas as pd
+
+        df = df.copy()
+        transformations = []
+        warnings = []
+
+        # Rename columns based on mappings
+        reverse_mapping = {v: k for k, v in mappings.items()}
+        df = df.rename(columns=reverse_mapping)
+
+        # 1. Normalize dates
+        if 'transaction_date' in df.columns:
+            original_count = df['transaction_date'].notna().sum()
+            df['transaction_date'] = df['transaction_date'].apply(self.normalize_date)
+            normalized_count = df['transaction_date'].notna().sum()
+
+            if normalized_count < original_count:
+                warnings.append({
+                    'field': 'transaction_date',
+                    'message': f'{original_count - normalized_count} dates could not be parsed and were set to null',
+                    'count': original_count - normalized_count
+                })
+            transformations.append('Normalized dates to YYYY-MM-DD format')
+
+        # 2. Normalize state codes
+        if 'customer_state' in df.columns:
+            df['customer_state'] = df['customer_state'].apply(self.normalize_state_code)
+            transformations.append('Normalized state names to 2-letter codes')
+
+        # 3. Normalize sales channel
+        if 'sales_channel' in df.columns:
+            df['sales_channel'] = df['sales_channel'].apply(self.normalize_sales_channel)
+            transformations.append('Normalized sales channels to "marketplace" or "direct"')
+
+        # 4. Normalize revenue streams
+        if 'revenue_stream' in df.columns:
+            df['revenue_stream'] = df['revenue_stream'].apply(self.normalize_revenue_stream)
+            transformations.append('Normalized revenue streams to standard categories')
+
+        # 5. Calculate taxable amounts
+        if 'revenue_amount' in df.columns:
+            df['taxable_amount'] = None
+            df['is_taxable'] = None
+            df['exempt_amount_calc'] = None
+
+            for idx, row in df.iterrows():
+                revenue = row.get('revenue_amount')
+                is_tax = row.get('is_taxable') if 'is_taxable' in df.columns else None
+                exempt = row.get('exempt_amount') if 'exempt_amount' in df.columns else None
+
+                taxable, is_taxable_bool, exempt_calc = self.calculate_taxable_amount(
+                    revenue, is_tax, exempt
+                )
+
+                df.at[idx, 'taxable_amount'] = taxable
+                df.at[idx, 'is_taxable'] = is_taxable_bool
+                df.at[idx, 'exempt_amount_calc'] = exempt_calc
+
+            transformations.append('Calculated taxable amounts based on exempt sales data')
+
+        return {
+            'df': df,
+            'transformations': transformations,
+            'warnings': warnings
+        }
+
+    def validate_normalized_data(self, df) -> Dict:
+        """
+        Validate normalized data and return errors/warnings.
+
+        Checks:
+        - Invalid state codes
+        - Future dates
+        - Negative amounts
+        - Null required fields
+        - Exempt > Revenue
+
+        Args:
+            df: Normalized DataFrame
+
+        Returns:
+            Dict with validation results
+        """
+        import pandas as pd
+        from datetime import datetime
+
+        errors = []
+        warnings = []
+
+        # Valid US state codes
+        valid_states = set(self.STATE_NAME_TO_CODE.values())
+
+        # 1. Validate state codes
+        if 'customer_state' in df.columns:
+            invalid_states_df = df[~df['customer_state'].isin(valid_states) & df['customer_state'].notna()]
+            if len(invalid_states_df) > 0:
+                invalid_codes = invalid_states_df['customer_state'].unique()
+                errors.append({
+                    'field': 'customer_state',
+                    'message': f'Invalid state codes found: {", ".join(invalid_codes)}',
+                    'count': len(invalid_states_df),
+                    'severity': 'error'
+                })
+
+        # 2. Validate dates
+        if 'transaction_date' in df.columns:
+            # Null dates
+            null_dates = df['transaction_date'].isna().sum()
+            if null_dates > 0:
+                errors.append({
+                    'field': 'transaction_date',
+                    'message': f'{null_dates} transactions have invalid or missing dates',
+                    'count': null_dates,
+                    'severity': 'error'
+                })
+
+            # Future dates
+            try:
+                df_with_dates = df[df['transaction_date'].notna()].copy()
+                df_with_dates['transaction_date'] = pd.to_datetime(df_with_dates['transaction_date'])
+                future_dates = df_with_dates[df_with_dates['transaction_date'] > pd.Timestamp.now()]
+                if len(future_dates) > 0:
+                    warnings.append({
+                        'field': 'transaction_date',
+                        'message': f'{len(future_dates)} transactions have future dates',
+                        'count': len(future_dates),
+                        'severity': 'warning'
+                    })
+            except:
+                pass
+
+        # 3. Validate amounts
+        if 'revenue_amount' in df.columns:
+            # Negative amounts
+            negative = df[df['revenue_amount'] < 0]
+            if len(negative) > 0:
+                warnings.append({
+                    'field': 'revenue_amount',
+                    'message': f'{len(negative)} transactions have negative amounts',
+                    'count': len(negative),
+                    'severity': 'warning'
+                })
+
+            # Null amounts
+            null_amounts = df['revenue_amount'].isna().sum()
+            if null_amounts > 0:
+                errors.append({
+                    'field': 'revenue_amount',
+                    'message': f'{null_amounts} transactions have missing amounts',
+                    'count': null_amounts,
+                    'severity': 'error'
+                })
+
+        # 4. Validate exempt amounts
+        if 'exempt_amount_calc' in df.columns and 'revenue_amount' in df.columns:
+            over_exempt = df[df['exempt_amount_calc'] > df['revenue_amount']]
+            if len(over_exempt) > 0:
+                warnings.append({
+                    'field': 'exempt_amount',
+                    'message': f'{len(over_exempt)} transactions have exempt amount > revenue (capped at revenue)',
+                    'count': len(over_exempt),
+                    'severity': 'warning'
+                })
+
+        return {
+            'valid': len(errors) == 0,
+            'errors': errors,
+            'warnings': warnings,
+            'total_rows': len(df),
+            'valid_rows': len(df) - sum(e['count'] for e in errors if e['severity'] == 'error')
+        }
