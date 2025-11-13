@@ -348,9 +348,9 @@ export default function MappingPage() {
                   {/* Status Indicator */}
                   <div className="flex items-center pt-8">
                     {mappings.transaction_date ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-5 w-5 text-success-foreground" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                      <AlertCircle className="h-5 w-5 text-warning-foreground" />
                     )}
                   </div>
                 </div>
@@ -404,9 +404,9 @@ export default function MappingPage() {
 
                   <div className="flex items-center pt-8">
                     {mappings.customer_state ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-5 w-5 text-success-foreground" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                      <AlertCircle className="h-5 w-5 text-warning-foreground" />
                     )}
                   </div>
                 </div>
@@ -460,9 +460,9 @@ export default function MappingPage() {
 
                   <div className="flex items-center pt-8">
                     {mappings.revenue_amount ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-5 w-5 text-success-foreground" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                      <AlertCircle className="h-5 w-5 text-warning-foreground" />
                     )}
                   </div>
                 </div>
@@ -516,9 +516,9 @@ export default function MappingPage() {
 
                   <div className="flex items-center pt-8">
                     {mappings.sales_channel ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-5 w-5 text-success-foreground" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-amber-500" />
+                      <AlertCircle className="h-5 w-5 text-warning-foreground" />
                     )}
                   </div>
                 </div>
@@ -655,10 +655,10 @@ export default function MappingPage() {
 
             {/* Validation Passed */}
             {validationStatus === 'passed' && (
-              <Alert className="mb-6 border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <AlertTitle className="text-green-900 dark:text-green-100">Validation Passed</AlertTitle>
-                <AlertDescription className="text-green-800 dark:text-green-200">
+              <Alert className="mb-6 border-success/20 bg-success/10">
+                <CheckCircle2 className="h-4 w-4 text-success-foreground" />
+                <AlertTitle className="text-success-foreground">Validation Passed</AlertTitle>
+                <AlertDescription className="text-success-foreground">
                   All mappings look good. Redirecting to results...
                 </AlertDescription>
               </Alert>
