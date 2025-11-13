@@ -56,10 +56,10 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
   // Get color based on nexus status and type
   const getStateColor = (geoName: string) => {
     const stateCode = getStateCode(geoName)
-    if (!stateCode) return 'hsl(var(--muted))' // Muted for unknown states
+    if (!stateCode) return 'hsl(215 20.2% 75%)' // Darker gray for unknown states (visible in light mode)
 
     const state = stateDataMap[stateCode]
-    if (!state) return 'hsl(var(--muted))' // Muted for no data
+    if (!state) return 'hsl(215 20.2% 75%)' // Darker gray for no data (visible in light mode)
 
     // If has nexus, differentiate by type (using professional, muted tones)
     if (state.nexus_status === 'has_nexus') {
