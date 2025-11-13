@@ -268,10 +268,10 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     Threshold
                   </span>
                 </TableHead>
-                <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('liability')}
-                    className="flex items-center gap-2 ml-auto hover:text-foreground transition-colors"
+                    className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
                   >
                     Est. Liability
                     {getSortIcon('liability')}
@@ -387,7 +387,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
+                    <TableCell className={`px-4 text-sm text-center text-card-foreground font-medium ${densityClasses[density]}`}>
                       ${state.estimated_liability.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
