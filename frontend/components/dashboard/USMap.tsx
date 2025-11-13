@@ -55,20 +55,20 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
   // Get color based on nexus status
   const getStateColor = (geoName: string) => {
     const stateCode = getStateCode(geoName)
-    if (!stateCode) return 'var(--muted)' // Muted for unknown states
+    if (!stateCode) return 'hsl(var(--muted))' // Muted for unknown states
 
     const state = stateDataMap[stateCode]
-    if (!state) return 'var(--muted)' // Muted for no data
+    if (!state) return 'hsl(var(--muted))' // Muted for no data
 
     switch (state.nexus_status) {
       case 'has_nexus':
-        return 'hsl(var(--destructive))' // Red - has nexus (HSL format)
+        return 'hsl(var(--destructive))' // Red - has nexus
       case 'approaching':
-        return 'var(--warning)' // Amber - approaching threshold (OKLCH)
+        return 'hsl(var(--warning))' // Amber - approaching threshold
       case 'none':
-        return 'var(--success)' // Green - no nexus (OKLCH)
+        return 'hsl(var(--success))' // Green - no nexus
       default:
-        return 'var(--muted)' // Muted gray (OKLCH)
+        return 'hsl(var(--muted))' // Muted gray
     }
   }
 
