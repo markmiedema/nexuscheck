@@ -121,15 +121,18 @@ docs/plans/sprint-1/  ← Everything in one place!
 │   ├── INTEGRATION-SUMMARY.md           ← Quick integration reference (8KB)
 │   └── INTEGRATION-NOTES.md             ← Detailed analysis (12KB)
 │
-├── ✅ SPRINT 1: COMPLETED (Days 1-5)
+├── ✅ SPRINT 1: COMPLETED (Days 1-7)
 │   ├── 01-physical-nexus.md             ← Days 1-2 implementation (26KB)
 │   ├── DAY-1-COMPLETE.md                ← Backend report (12KB)
 │   ├── DAY-2-COMPLETE.md                ← Frontend report (23KB)
 │   ├── 02-vda-mode.md                   ← Days 3-5 implementation (28KB)
-│   └── DAY-3-5-COMPLETE.md              ← VDA completion report (15KB)
+│   ├── DAY-3-5-COMPLETE.md              ← VDA completion report (15KB)
+│   ├── 03-column-detection-exempt-sales.md  ← Days 6-7 implementation (31KB)
+│   ├── DAY-6-COMPLETE.md                ← Column detection report (13KB)
+│   └── DAY-7-COMPLETE.md                ← Backend integration report (12KB)
 │
-├── 🚧 SPRINT 1: IN PROGRESS (Days 6-8)
-│   └── 03-column-detection-exempt-sales.md  ← CSV enhancements (31KB)
+├── 🚧 SPRINT 1: IN PROGRESS (Day 8)
+│   └── Frontend UI for exempt sales display
 │
 ├── ⏳ SPRINT 1: PENDING (Days 9-12)
 │   ├── 04-integration-polish.md         ← UI polish (17KB)
@@ -209,46 +212,67 @@ As time permits: tier-4-polish.md (enhances Sprint 1 basic states)
 
 ## 🎯 What's Been Completed
 
-### ✅ Implemented Features (Days 1-2):
-1. **Physical Nexus Backend** - Complete API with 7 endpoints
-   - CRUD operations (Create, Read, Update, Delete)
-   - Import/Export functionality
-   - Recalculation endpoint (enhancement)
-   - 604 lines of backend code
+### ✅ Sprint 1 Progress: 58% Complete (7 of 12 days)
 
-2. **Physical Nexus Frontend** - Complete UI components
-   - Custom React hook (usePhysicalNexusConfig)
-   - Manager component with table display
-   - Modal form with validation
-   - Integrated with results page
-   - 780 lines of frontend code
+**Days 1-2: Physical Nexus** ✅
+- Backend API with 7 endpoints (CRUD + Import/Export + Recalculate)
+- Frontend UI components (Hook, Manager, Form)
+- 1,384 lines of code
+- Reports: DAY-1-COMPLETE.md, DAY-2-COMPLETE.md
+
+**Days 3-5: VDA Mode** ✅
+- Backend VDA calculator with state-specific rules
+- Frontend VDA panel with savings visualization
+- State selection UI with presets
+- Report: DAY-3-5-COMPLETE.md
+
+**Days 6-7: Enhanced Column Detection** ✅
+- 58+ new column pattern aliases
+- 5 normalization methods (states, dates, channels, exempt sales)
+- Validation with comprehensive error checking
+- Backend API integration (preview + upload endpoints)
+- 982 lines of code added
+- Reports: DAY-6-COMPLETE.md, DAY-7-COMPLETE.md
+
+**Total Delivered:** 2,366+ lines of production code across 7 days
 
 ### 📊 Completion Reports:
-- **DAY-1-COMPLETE.md** - Backend implementation details, API docs, testing checklist
-- **DAY-2-COMPLETE.md** - Frontend components, user workflows, testing checklist
+- **DAY-1-COMPLETE.md** - Physical Nexus backend (604 lines)
+- **DAY-2-COMPLETE.md** - Physical Nexus frontend (780 lines)
+- **DAY-3-5-COMPLETE.md** - VDA Mode implementation
+- **DAY-6-COMPLETE.md** - Column detection & normalization (400+ lines)
+- **DAY-7-COMPLETE.md** - Backend API integration (223 lines)
 
 ---
 
 ## 🚀 Next Steps
 
-### Option A: Test Physical Nexus Feature
-- Backend and frontend are complete
-- Manual testing checklist in DAY-2-COMPLETE.md
-- Test all CRUD operations
-- Verify import/export works
-- Confirm recalculation triggers
+### Current: Day 8 - Frontend UI for Exempt Sales
+**What's Needed:**
+- Display exempt sales in results tables
+- Show gross vs. taxable distinction
+- Update analysis summary with exemption metrics
+- Add exempt sales to PDF reports
+- Testing checklist
 
-### Option B: Continue to VDA Mode (Days 3-5)
-- Physical Nexus is complete and ready
-- Move on to next Sprint 1 feature
-- VDA Mode implementation guide in 02-vda-mode.md
-- This is your favorite feature from the pre-MVP
+**Reference:** See `03-column-detection-exempt-sales.md` Day 8 section
 
-### Option C: Review Completed Work
-- Read DAY-1-COMPLETE.md for backend details
-- Read DAY-2-COMPLETE.md for frontend details
-- Review implementation patterns used
-- Check if anything needs adjustment
+### Then: Days 9-10 - Integration & Polish
+**Focus:**
+- US Map enhancements (colors, tooltips, click handlers)
+- Loading states and skeletons (basic - UX/UI will enhance later)
+- Empty states with helpful messages (basic - UX/UI will enhance later)
+- Error boundaries
+- Responsive design fixes
+- Accessibility improvements
+
+**Coordination:** Apply UX/UI guidelines from `tier-2-quality-improvements.md`
+
+### Finally: Days 11-12 - Testing & Documentation
+- Comprehensive testing across all features
+- User documentation updates
+- CSV template with exempt sales examples
+- API documentation
 
 ---
 

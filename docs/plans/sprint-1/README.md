@@ -7,7 +7,7 @@
 **New to these plans?** Read [`INDEX.md`](./INDEX.md) for complete navigation and recommended workflow.
 
 **Quick Status:**
-- **Sprint 1**: 42% complete (Days 1-5 done, Days 6-8 in progress)
+- **Sprint 1**: 58% complete (Days 1-7 done, Day 8 in progress)
 - **UX/UI**: Ready to start after Sprint 1 completes (23 tasks, 12-19 days)
 
 **For Stakeholders:** See [`EXECUTIVE-BRIEF.md`](./EXECUTIVE-BRIEF.md) for high-level summary and timeline.
@@ -21,7 +21,8 @@ This folder contains comprehensive implementation plans for both Sprint 1 featur
 ### Sprint 1 Plans (Days 1-12)
 - Physical Nexus ✅ (Days 1-2 complete)
 - VDA Mode ✅ (Days 3-5 complete)
-- Enhanced Column Detection + Exempt Sales 🚧 (Days 6-8 in progress)
+- Enhanced Column Detection ✅ (Days 6-7 complete)
+- Exempt Sales Frontend UI 🚧 (Day 8 in progress)
 - Integration & Polish ⏳ (Days 9-10 pending)
 - Testing & Documentation ⏳ (Days 11-12 pending)
 
