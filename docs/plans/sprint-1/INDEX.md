@@ -1,11 +1,17 @@
-# Sprint 1 Plan - Complete Index
+# Sprint 1 + UX/UI Plan - Complete Index
 
-## ✅ Available Now
+> **All plans consolidated in one place for streamlined workflow**
 
-### 📖 **README.md**
-- Navigation guide for all plan files
-- How to use this plan
-- Quick status overview
+## 📖 Quick Navigation
+
+### 🎯 **Start Here**
+- **README.md** - UX/UI Implementation Plans (overview, philosophy, task counts)
+- **EXECUTIVE-BRIEF.md** - High-level summary for stakeholders (12-19 days, 23 tasks)
+- **SPRINT-INTEGRATION.md** - Coordination between Sprint 1 and UX/UI work
+
+### 📊 **Sprint 1 Status (42% Complete)**
+- **STATUS.md** - Current progress tracking
+- **00-overview.md** - Sprint 1 goals and objectives
 
 ### 📋 **00-overview.md**
 **Complete** - 10KB
@@ -98,25 +104,106 @@
 
 ---
 
-## 📂 Folder Structure
+## 📂 Complete Folder Structure
 
 ```
-docs/plans/
-├── SPRINT_1_SUMMARY.md          ← Quick overview (in parent)
-└── sprint-1/
-    ├── README.md                ← Start here
-    ├── INDEX.md                 ← This file
-    ├── 00-overview.md           ✅ Updated (16% complete)
-    ├── 01-physical-nexus.md     ✅ Complete (implementation guide)
-    ├── DAY-1-COMPLETE.md        ✅ Backend completion report
-    ├── DAY-2-COMPLETE.md        ✅ Frontend completion report
-    ├── ENHANCEMENTS-FROM-REFERENCE.md  ✅ Enhancement notes
-    ├── 02-vda-mode.md           ✅ Complete (← NEXT)
-    ├── 03-column-detection-exempt-sales.md  ✅ Complete
-    ├── 04-integration-polish.md ✅ Complete
-    ├── 05-testing-documentation.md  ✅ Complete
-    └── 06-deliverables-next-steps.md  ✅ Complete
+docs/plans/sprint-1/  ← Everything in one place!
+│
+├── 📖 NAVIGATION & OVERVIEW
+│   ├── INDEX.md                         ← This file
+│   ├── README.md                        ← UX/UI plans overview (19KB)
+│   ├── EXECUTIVE-BRIEF.md               ← Stakeholder summary (9KB)
+│   ├── STATUS.md                        ← Sprint 1 progress (6KB)
+│   └── 00-overview.md                   ← Sprint 1 goals (11KB)
+│
+├── 🔄 INTEGRATION & COORDINATION
+│   ├── SPRINT-INTEGRATION.md            ← Sprint 1 + UX/UI coordination (10KB)
+│   ├── INTEGRATION-SUMMARY.md           ← Quick integration reference (8KB)
+│   └── INTEGRATION-NOTES.md             ← Detailed analysis (12KB)
+│
+├── ✅ SPRINT 1: COMPLETED (Days 1-5)
+│   ├── 01-physical-nexus.md             ← Days 1-2 implementation (26KB)
+│   ├── DAY-1-COMPLETE.md                ← Backend report (12KB)
+│   ├── DAY-2-COMPLETE.md                ← Frontend report (23KB)
+│   ├── 02-vda-mode.md                   ← Days 3-5 implementation (28KB)
+│   └── DAY-3-5-COMPLETE.md              ← VDA completion report (15KB)
+│
+├── 🚧 SPRINT 1: IN PROGRESS (Days 6-8)
+│   └── 03-column-detection-exempt-sales.md  ← CSV enhancements (31KB)
+│
+├── ⏳ SPRINT 1: PENDING (Days 9-12)
+│   ├── 04-integration-polish.md         ← UI polish (17KB)
+│   ├── 05-testing-documentation.md      ← Testing (17KB)
+│   └── 06-deliverables-next-steps.md    ← Wrap-up (21KB)
+│
+├── 🎨 UX/UI TIER 1: CRITICAL (After Sprint 1)
+│   └── tier-1-critical-improvements.md  ← 5 tasks, 2-3 days (45KB)
+│
+├── ✨ UX/UI TIER 2: QUALITY
+│   └── tier-2-quality-improvements.md   ← 7 tasks, 5-7 days (36KB)
+│
+├── 📊 UX/UI TIER 3: EVALUATE FIRST
+│   └── tier-3-evaluate-need.md          ← 4 tasks, 3-5 days (36KB)
+│
+├── 💎 UX/UI TIER 4: POLISH
+│   └── tier-4-polish.md                 ← 7 tasks, 2-4 days (46KB)
+│
+└── 📝 REFERENCE
+    └── ENHANCEMENTS-FROM-REFERENCE.md   ← Additional enhancements (11KB)
 ```
+
+**Total Documentation:** ~400KB of implementation guidance in one folder!
+
+---
+
+## 🚀 Recommended Workflow
+
+### Phase 1: Complete Sprint 1 (Current - Week 1-2)
+```
+1. Days 6-8 (IN PROGRESS):
+   → 03-column-detection-exempt-sales.md
+
+2. Days 9-10:
+   → 04-integration-polish.md
+   → Apply UX/UI guidelines from tier-2-quality-improvements.md
+
+3. Days 11-12:
+   → 05-testing-documentation.md
+   → 06-deliverables-next-steps.md
+```
+
+### Phase 2: UX/UI Critical Improvements (Week 3)
+```
+Start here: tier-1-critical-improvements.md
+- Task 1: URL State Persistence
+- Task 2: Enhanced Error Messages
+- Task 3: Form Auto-Save
+- Task 4: Action Priority Summary
+- Task 5: Calculation Progress Feedback
+```
+
+### Phase 3: UX/UI Quality & Accessibility (Week 4)
+```
+Continue with: tier-2-quality-improvements.md
+- Task 1: Optimistic Updates
+- Task 2: Skip Link
+- Task 3: Inline Form Validation
+- Task 4: Focus Management
+- Task 5: Upload Progress Indicator
+- Task 6: Responsive Typography ⭐
+- Task 7: Touch Target Accessibility ⭐
+```
+
+### Phase 4: Evaluate & Polish (Weeks 5-8)
+```
+If data supports need: tier-3-evaluate-need.md
+As time permits: tier-4-polish.md (enhances Sprint 1 basic states)
+```
+
+### 📋 Key Reference Documents
+- **SPRINT-INTEGRATION.md** - When Sprint 1 and UX/UI tasks overlap
+- **EXECUTIVE-BRIEF.md** - Share with stakeholders for approval
+- **INTEGRATION-SUMMARY.md** - Quick integration decisions reference
 
 ---
 
