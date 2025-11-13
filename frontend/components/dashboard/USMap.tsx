@@ -148,7 +148,7 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
   }
 
   return (
-    <div className="relative">
+    <div className="relative rounded-lg border border-border shadow-md bg-card p-4">
       <ComposableMap projection="geoAlbersUsa" className="w-full h-auto">
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
@@ -164,14 +164,21 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
                   stroke="#FFFFFF"
                   strokeWidth={0.5}
                   style={{
-                    default: { outline: 'none' },
+                    default: {
+                      outline: 'none',
+                      filter: 'drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15))',
+                    },
                     hover: {
                       outline: 'none',
                       fill: getStateColor(stateName),
                       opacity: 0.8,
                       cursor: 'pointer',
+                      filter: 'drop-shadow(0 3px 5px rgba(0, 0, 0, 0.2))',
                     },
-                    pressed: { outline: 'none' },
+                    pressed: {
+                      outline: 'none',
+                      filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))',
+                    },
                   }}
                   onMouseEnter={() => setHoveredState(stateName)}
                   onMouseLeave={() => setHoveredState(null)}
