@@ -321,7 +321,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
         ]}
       >
         <div className="mb-6">
-        <h1 className="text-2xl font-bold text-card-foreground mb-2">
+        <h1 className="text-3xl font-bold text-card-foreground mb-2">
           State-by-State Results
         </h1>
         <p className="text-muted-foreground">

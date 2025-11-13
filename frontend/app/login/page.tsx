@@ -36,7 +36,7 @@ export default function LoginPage() {
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="max-w-md w-full space-y-8 bg-card p-10 rounded-2xl shadow-floating border-2 border-border">
+      <div className="max-w-md w-full space-y-8 bg-card p-6 rounded-2xl shadow-floating border-2 border-border">
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-foreground">Nexus Check</h1>

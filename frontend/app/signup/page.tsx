@@ -64,7 +64,7 @@ export default function SignupPage() {
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
-        <div className="max-w-md w-full space-y-8 bg-card p-10 rounded-2xl shadow-floating border-2 border-border text-center">
+        <div className="max-w-md w-full space-y-8 bg-card p-6 rounded-2xl shadow-floating border-2 border-border text-center">
           <div className="rounded-full bg-success/10 w-16 h-16 flex items-center justify-center mx-auto">
             <svg
               className="w-8 h-8 text-success-foreground"
@@ -94,7 +94,7 @@ export default function SignupPage() {
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="max-w-md w-full space-y-8 bg-card p-10 rounded-2xl shadow-floating border-2 border-border">
+      <div className="max-w-md w-full space-y-8 bg-card p-6 rounded-2xl shadow-floating border-2 border-border">
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-card-foreground">Nexus Check</h1>

@@ -24,7 +24,7 @@ export default function AppNav() {
   }
 
   return (
-    <nav className="bg-card shadow-card border-b-2 border-border">
+    <nav className="bg-card shadow-sm border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand - Clickable to Dashboard */}
