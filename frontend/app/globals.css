@@ -73,10 +73,10 @@
 
   .dark {
     /* ===== SEMANTIC TOKENS - Dark Mode (Sophisticated Layering) ===== */
-    /* Visual hierarchy: slate-800 (bg) → slate-700 (card) → slate-600 (input) → white (CTA) */
+    /* Visual hierarchy: slate-900 (bg) → slate-700 (card) → slate-600 (input) → white (CTA) */
 
     /* Background Layer - Darkest */
-    --background: oklch(0.28 0.04 260);           /* Slate-800: Page background (darkest) */
+    --background: oklch(0.20 0.04 260);           /* Slate-900: Page background (darkest) */
     --foreground: oklch(0.98 0.00 248);           /* Slate-50: Primary text (brightest) */
 
     /* Surface/Card Layer - Medium Dark */
