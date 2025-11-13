@@ -94,19 +94,19 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
               </h3>
               <ul className="space-y-2 text-sm text-foreground">
                 <li className="flex items-start gap-2">
-                  <span className="text-success mt-0.5">✓</span>
+                  <span className="mt-0.5" style={{ color: 'hsl(142 71% 40%)' }}>✓</span>
                   <span><strong>Reduced/Waived Penalties</strong> - Most states waive penalties entirely</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-success mt-0.5">✓</span>
+                  <span className="mt-0.5" style={{ color: 'hsl(142 71% 40%)' }}>✓</span>
                   <span><strong>Limited Lookback</strong> - 3-4 years vs. unlimited audit period</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-success mt-0.5">✓</span>
+                  <span className="mt-0.5" style={{ color: 'hsl(142 71% 40%)' }}>✓</span>
                   <span><strong>No Criminal Liability</strong> - Protection from fraud prosecution</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-success mt-0.5">✓</span>
+                  <span className="mt-0.5" style={{ color: 'hsl(142 71% 40%)' }}>✓</span>
                   <span><strong>Reduced Interest</strong> - Some states offer interest reductions</span>
                 </li>
               </ul>
