@@ -73,18 +73,18 @@
 
   .dark {
     /* ===== SEMANTIC TOKENS - Dark Mode (Sophisticated Layering) ===== */
-    /* Visual hierarchy: slate-900 (bg) → slate-700 (card) → slate-600 (input) → white (CTA) */
+    /* Visual hierarchy: slate-800 (bg) → slate-600 (card) → slate-500 (input) → white (CTA) */
 
-    /* Background Layer - Darkest */
-    --background: oklch(0.20 0.04 260);           /* Slate-900: Page background (darkest) */
+    /* Background Layer - Dark but not oppressive */
+    --background: oklch(0.28 0.04 260);           /* Slate-800: Page background */
     --foreground: oklch(0.98 0.00 248);           /* Slate-50: Primary text (brightest) */
 
-    /* Surface/Card Layer - Medium Dark */
-    --card: oklch(0.37 0.04 257);                 /* Slate-700: Cards/elevated surfaces */
+    /* Surface/Card Layer - Noticeably lighter for clear separation */
+    --card: oklch(0.45 0.04 257);                 /* Slate-600: Cards/elevated surfaces (Δ 0.17 from bg) */
     --card-foreground: oklch(0.98 0.00 248);      /* Slate-50: Card text */
 
     /* Popovers & Dropdowns */
-    --popover: oklch(0.37 0.04 257);              /* Slate-700: Match cards */
+    --popover: oklch(0.45 0.04 257);              /* Slate-600: Match cards */
     --popover-foreground: oklch(0.98 0.00 248);   /* Slate-50 */
 
     /* Primary Interactive - High Contrast CTA */
@@ -96,11 +96,11 @@
     --secondary-foreground: oklch(0.98 0.00 248); /* Slate-50 */
 
     /* Muted/Disabled States */
-    --muted: oklch(0.45 0.04 257);                /* Slate-600: Muted backgrounds */
+    --muted: oklch(0.55 0.04 257);                /* Slate-500: Muted backgrounds */
     --muted-foreground: oklch(0.71 0.04 257);     /* Slate-400: Muted text */
 
     /* Accent (Hover States) */
-    --accent: oklch(0.45 0.04 257);               /* Slate-600: Hover backgrounds */
+    --accent: oklch(0.55 0.04 257);               /* Slate-500: Hover backgrounds */
     --accent-foreground: oklch(0.98 0.00 248);    /* Slate-50 */
 
     /* Destructive */
@@ -108,12 +108,12 @@
     --destructive-foreground: oklch(0.98 0.00 248); /* Slate-50 */
 
     /* Input Layer - Lighter than cards for "raised" effect */
-    --input: oklch(0.45 0.04 257);                /* Slate-600: Input backgrounds (lighter than card) */
-    --input-border: oklch(0.55 0.04 257);         /* Slate-500: Input borders */
+    --input: oklch(0.55 0.04 257);                /* Slate-500: Input backgrounds (lighter than card) */
+    --input-border: oklch(0.65 0.04 257);         /* Slate-400: Input borders */
 
     /* Borders */
     --border: oklch(0.55 0.04 257);               /* Slate-500: Default borders */
-    --ring: oklch(0.71 0.04 257);                 /* Slate-400: Focus rings */
+    --ring: oklch(0.65 0.04 257);                 /* Slate-400: Focus rings */
 
     /* Success State */
     --success: oklch(0.65 0.15 155);              /* Brighter green for dark backgrounds */
@@ -197,8 +197,8 @@
   .dark input[type="password"],
   .dark input[type="date"],
   .dark textarea {
-    background-color: oklch(0.45 0.04 257);  /* slate-600: default */
-    border-color: oklch(0.55 0.04 257);      /* slate-500: border */
+    background-color: oklch(0.55 0.04 257);  /* slate-500: default */
+    border-color: oklch(0.65 0.04 257);      /* slate-400: border */
   }
 
   .dark input[type="text"]:hover,
@@ -206,7 +206,7 @@
   .dark input[type="password"]:hover,
   .dark input[type="date"]:hover,
   .dark textarea:hover {
-    background-color: oklch(0.55 0.04 257);  /* slate-500: brighter on hover */
+    background-color: oklch(0.65 0.04 257);  /* slate-400: brighter on hover */
   }
 
   .dark input[type="text"]:focus,
@@ -215,7 +215,7 @@
   .dark input[type="date"]:focus,
   .dark textarea:focus {
     background-color: oklch(0.65 0.04 257);  /* slate-400: clearly interactive */
-    border-color: oklch(0.71 0.04 257);      /* brighter border on focus */
+    border-color: oklch(0.71 0.04 257);      /* slate-300 border on focus */
   }
 
   /* ===== Table Fixes ===== */
