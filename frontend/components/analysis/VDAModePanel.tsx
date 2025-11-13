@@ -114,7 +114,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
 
             <Button
               onClick={() => setVdaScopeOpen(true)}
-              className="w-full bg-[hsl(217.2_32.6%_17.5%)] text-[hsl(210_40%_98%)] hover:bg-[hsl(217.2_32.6%_17.5%)]/90 dark:bg-[hsl(217.2_32.6%_17.5%)] dark:text-[hsl(210_40%_98%)]"
+              className="w-full bg-[hsl(217.2_32.6%_17.5%)] text-[hsl(210_40%_98%)] hover:bg-[hsl(217.2_32.6%_17.5%)]/90 dark:bg-[hsl(217.2_32.6%_17.5%)] dark:text-[hsl(210_40%_98%)] border border-border/40"
             >
               <Calculator className="mr-2 h-4 w-4" />
               Enable VDA Mode
