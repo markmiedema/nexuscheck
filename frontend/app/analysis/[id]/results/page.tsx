@@ -184,7 +184,7 @@ export default function ResultsPage() {
         ]}
       >
           {/* Header Section */}
-          <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-6">
+          <div className="bg-card rounded-lg shadow-md border border-border p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-bold text-card-foreground">
                 {calculationStatus === 'calculated' ? 'Analysis Complete ✓' : 'Data Processed - Ready to Calculate'}
@@ -209,7 +209,7 @@ export default function ResultsPage() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* States with Nexus */}
-            <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div className="rounded-lg border border-border bg-card p-6 shadow-md hover:shadow-lg transition-all">
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">States w/ Nexus</h3>
               <div className="text-4xl font-bold text-foreground mt-3">
                 {results ? results.summary.states_with_nexus : '—'}
@@ -220,7 +220,7 @@ export default function ResultsPage() {
             </div>
 
             {/* Estimated Liability */}
-            <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div className="rounded-lg border border-border bg-card p-6 shadow-md hover:shadow-lg transition-all">
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Est. Liability</h3>
               <div className="text-4xl font-bold text-foreground mt-3">
                 {results ? `$${(results.summary.total_estimated_liability || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
@@ -231,7 +231,7 @@ export default function ResultsPage() {
             </div>
 
             {/* Confidence */}
-            <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div className="rounded-lg border border-border bg-card p-6 shadow-md hover:shadow-lg transition-all">
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Confidence</h3>
               <div className="text-4xl font-bold text-foreground mt-3">
                 High
@@ -241,7 +241,7 @@ export default function ResultsPage() {
           </div>
 
           {/* US Map */}
-          <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-6">
+          <div className="bg-card rounded-lg shadow-md border border-border p-6 mb-6">
             <h3 className="text-xl font-semibold text-foreground mb-4">United States Nexus Map</h3>
             {calculationStatus === 'calculated' && stateResults.length > 0 ? (
               <>
@@ -272,7 +272,7 @@ export default function ResultsPage() {
                 </div>
               </>
             ) : (
-              <div className="bg-muted rounded-lg p-12 text-center">
+              <div className="bg-muted/50 rounded-md border border-border p-12 text-center">
                 <div className="text-muted-foreground mb-4">
                   <svg className="mx-auto h-24 w-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -287,10 +287,10 @@ export default function ResultsPage() {
           </div>
 
           {/* Quick Stats */}
-          <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-6">
+          <div className="bg-card rounded-lg shadow-md border border-border p-6 mb-6">
             <h3 className="text-xl font-semibold text-foreground mb-4">Nexus Breakdown</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+              <div className="bg-muted/50 rounded-md border border-border p-4">
                 <h4 className="text-sm font-medium text-foreground mb-3">By Type:</h4>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex justify-between">
@@ -307,7 +307,7 @@ export default function ResultsPage() {
                   </li>
                 </ul>
               </div>
-              <div>
+              <div className="bg-muted/50 rounded-md border border-border p-4">
                 <h4 className="text-sm font-medium text-foreground mb-3">Approaching Threshold:</h4>
                 {results && results.approaching_threshold.length > 0 ? (
                   <ul className="space-y-1 text-sm text-muted-foreground">

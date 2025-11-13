@@ -50,7 +50,7 @@ export function SummaryCards({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card, index) => (
-        <Card key={index} className="rounded-lg border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
+        <Card key={index} className="rounded-lg border border-border bg-card shadow-md hover:shadow-lg transition-all">
           <CardContent className="pt-6">
             <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               {card.label}

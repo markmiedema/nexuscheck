@@ -51,14 +51,14 @@ export function LiabilityBreakdown({
   }
 
   return (
-    <Card className="border-border bg-card">
+    <Card className="border-border bg-card shadow-md">
       <CardHeader>
         <CardTitle className="text-lg">Estimated Tax Liability</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {/* Liability Amount - Prominent Display */}
-          <div className="text-center py-4 bg-background rounded-lg border-2 border-border">
+          <div className="text-center py-4 bg-muted/50 rounded-md border border-border">
             <p className="text-sm text-muted-foreground mb-1">
               Estimated Liability
             </p>

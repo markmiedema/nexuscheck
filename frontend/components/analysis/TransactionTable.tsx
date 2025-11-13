@@ -198,7 +198,7 @@ export default function TransactionTable({
   }
 
   return (
-    <Card className="mt-6">
+    <Card className="mt-6 shadow-md hover:shadow-lg transition-all">
       {/* Collapsible header */}
       <div className="p-4">
         <div className="flex items-center justify-between">
@@ -251,12 +251,12 @@ export default function TransactionTable({
           </div>
 
           {/* Table */}
-          <div className="rounded-md border">
+          <div className="rounded-md border border-border">
             <Table>
-              <TableHeader>
-                <TableRow>
+              <TableHeader className="bg-muted/80 border-b-2 border-border">
+                <TableRow className="hover:bg-muted/80">
                   <TableHead
-                    className="cursor-pointer select-none"
+                    className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider cursor-pointer select-none"
                     onClick={() => handleSort('date')}
                   >
                     <div className="flex items-center">
@@ -264,9 +264,9 @@ export default function TransactionTable({
                       {getSortIcon('date')}
                     </div>
                   </TableHead>
-                  <TableHead>Transaction ID</TableHead>
+                  <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Transaction ID</TableHead>
                   <TableHead
-                    className="cursor-pointer select-none text-right"
+                    className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider cursor-pointer select-none"
                     onClick={() => handleSort('amount')}
                   >
                     <div className="flex items-center justify-end">
@@ -274,8 +274,8 @@ export default function TransactionTable({
                       {getSortIcon('amount')}
                     </div>
                   </TableHead>
-                  <TableHead>Channel</TableHead>
-                  <TableHead className="text-right">Running Total</TableHead>
+                  <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Channel</TableHead>
+                  <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">Running Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -293,18 +293,18 @@ export default function TransactionTable({
                         key={transaction.transaction_id}
                         className={
                           isThresholdCrossing
-                            ? 'bg-warning/10 border-l-4 border-l-warning'
-                            : ''
+                            ? 'bg-warning/10 border-l-4 border-l-warning border-b border-border hover:bg-warning/20 transition-colors'
+                            : 'border-b border-border hover:bg-muted/30 transition-colors'
                         }
                       >
-                        <TableCell>{formatDate(transaction.transaction_date)}</TableCell>
-                        <TableCell className="font-mono text-sm">
+                        <TableCell className="px-4 py-3 text-sm text-foreground">{formatDate(transaction.transaction_date)}</TableCell>
+                        <TableCell className="px-4 py-3 text-sm text-foreground font-mono">
                           {transaction.transaction_id}
                         </TableCell>
-                        <TableCell className="text-right font-medium">
+                        <TableCell className="px-4 py-3 text-sm text-right font-medium text-foreground">
                           {formatCurrency(transaction.sales_amount)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="px-4 py-3 text-sm text-foreground">
                           <span
                             className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
                               transaction.sales_channel === 'direct'
@@ -315,7 +315,7 @@ export default function TransactionTable({
                             {transaction.sales_channel === 'direct' ? 'Direct' : 'Marketplace'}
                           </span>
                         </TableCell>
-                        <TableCell className="text-right font-semibold">
+                        <TableCell className="px-4 py-3 text-sm text-right font-semibold text-foreground">
                           {formatCurrency(transaction.running_total)}
                         </TableCell>
                       </TableRow>
