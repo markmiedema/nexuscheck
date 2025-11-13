@@ -65,9 +65,9 @@ export default function SignupPage() {
           <ThemeToggle />
         </div>
         <div className="max-w-md w-full space-y-8 bg-card p-10 rounded-2xl shadow-floating border-2 border-border text-center">
-          <div className="rounded-full bg-green-100 dark:bg-green-900/20 w-16 h-16 flex items-center justify-center mx-auto">
+          <div className="rounded-full bg-success/10 w-16 h-16 flex items-center justify-center mx-auto">
             <svg
-              className="w-8 h-8 text-green-600 dark:text-green-400"
+              className="w-8 h-8 text-success-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -80,8 +80,8 @@ export default function SignupPage() {
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-950 dark:text-gray-50">Account Created!</h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h2 className="text-2xl font-bold text-card-foreground">Account Created!</h2>
+          <p className="text-muted-foreground">
             Your account has been created successfully. Redirecting to login...
           </p>
         </div>
@@ -97,11 +97,11 @@ export default function SignupPage() {
       <div className="max-w-md w-full space-y-8 bg-card p-10 rounded-2xl shadow-floating border-2 border-border">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-950 dark:text-gray-50">Nexus Check</h1>
-          <h2 className="mt-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          <h1 className="text-3xl font-bold text-card-foreground">Nexus Check</h1>
+          <h2 className="mt-6 text-2xl font-semibold text-card-foreground">
             Create your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             Already have an account?{' '}
             <Link
               href="/login"
@@ -115,14 +115,14 @@ export default function SignupPage() {
         {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-md bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 p-4">
-              <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
+            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
+              <p className="text-sm text-destructive-foreground">{error}</p>
             </div>
           )}
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="email" className="block text-sm font-medium text-foreground">
                 Email address
               </label>
               <input
@@ -139,7 +139,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="password" className="block text-sm font-medium text-foreground">
                 Password
               </label>
               <input
@@ -153,13 +153,13 @@ export default function SignupPage() {
                 className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
                 placeholder="••••••••"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Must be at least 8 characters
               </p>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">
                 Confirm password
               </label>
               <input
