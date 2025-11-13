@@ -34,7 +34,6 @@ import {
   ChevronUp,
   ChevronsUpDown,
   Download,
-  Eye,
   MoreHorizontal,
   FileText,
   Tag,
@@ -400,7 +399,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                           onClick={() => window.location.href = `/analysis/${analysisId}/states/${state.state_code}`}
                           className="text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium inline-flex items-center gap-1 text-sm"
                         >
-                          <Eye className="h-4 w-4" />
                           View Details
                         </button>
                         <DropdownMenu>
