@@ -6,13 +6,13 @@ import { StateResult } from '@/types/states'
 export function getNexusColor(status: string): string {
   switch (status) {
     case 'has_nexus':
-      return 'bg-red-500'
+      return 'bg-destructive'
     case 'approaching':
-      return 'bg-yellow-500'
+      return 'bg-warning'
     case 'no_nexus':
-      return 'bg-green-500'
+      return 'bg-success'
     default:
-      return 'bg-gray-500'
+      return 'bg-muted'
   }
 }
 
@@ -21,11 +21,11 @@ export function getNexusColor(status: string): string {
  */
 export function getThresholdColor(percent: number): string {
   if (percent >= 100) {
-    return 'text-red-600 font-semibold'
+    return 'text-destructive-foreground font-semibold'
   } else if (percent >= 90) {
-    return 'text-yellow-600 font-semibold'
+    return 'text-warning-foreground font-semibold'
   } else {
-    return 'text-green-600'
+    return 'text-success-foreground'
   }
 }
 
@@ -69,13 +69,13 @@ export function getNexusTypeLabel(type: string): string {
 export function getConfidenceBadge(level: string): string {
   switch (level) {
     case 'high':
-      return 'bg-green-100 text-green-800'
+      return 'bg-success/10 text-success-foreground border border-success/20'
     case 'medium':
-      return 'bg-yellow-100 text-yellow-800'
+      return 'bg-warning/10 text-warning-foreground border border-warning/20'
     case 'low':
-      return 'bg-red-100 text-red-800'
+      return 'bg-destructive/10 text-destructive-foreground border border-destructive/20'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-muted text-muted-foreground'
   }
 }
 

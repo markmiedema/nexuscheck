@@ -247,8 +247,8 @@ export default function MappingPage() {
         >
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
-              <p className="mt-4 text-gray-600">Loading column information...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-ring"></div>
+              <p className="mt-4 text-muted-foreground">Loading column information...</p>
             </div>
           </div>
         </AppLayout>
@@ -267,11 +267,11 @@ export default function MappingPage() {
           { label: 'Map Columns' },
         ]}
       >
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-8">
+            <h2 className="text-2xl font-bold text-card-foreground mb-2">
               Map Your Data Columns
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-muted-foreground mb-8">
               Match your CSV columns to the required fields. We've auto-detected most mappings - please verify.
             </p>
 
@@ -604,7 +604,7 @@ export default function MappingPage() {
 
             {/* Data Summary - Clean Stats Grid */}
             {dataSummary && (
-              <Card className="mb-6 bg-gradient-to-br from-gray-50/50 to-gray-50/50 border-gray-200 dark:from-gray-950/20 dark:to-gray-950/20 dark:border-gray-700">
+              <Card className="mb-6 bg-muted/30 border-border">
                 <CardHeader>
                   <CardTitle className="text-base">Data Summary</CardTitle>
                 </CardHeader>

@@ -43,6 +43,18 @@
     --input: oklch(0.93 0.01 256);                /* Slate-200: Input borders */
     --ring: oklch(0.71 0.04 257);                 /* Slate-400: Neutral focus ring */
 
+    /* Success State */
+    --success: oklch(0.60 0.15 155);              /* Green for success (muted, not vibrant) */
+    --success-foreground: oklch(0.98 0.00 248);   /* Slate-50: Light text */
+
+    /* Warning State */
+    --warning: oklch(0.70 0.12 95);               /* Amber for warnings (muted) */
+    --warning-foreground: oklch(0.21 0.04 266);   /* Slate-900: Dark text for contrast */
+
+    /* Info State */
+    --info: oklch(0.60 0.10 255);                 /* Blue-slate for info (subtle) */
+    --info-foreground: oklch(0.98 0.00 248);      /* Slate-50: Light text */
+
     /* Radius */
     --radius: 0.5rem;
 
@@ -93,6 +105,18 @@
     --border: oklch(0.45 0.04 257);               /* Slate-600: Borders */
     --input: oklch(0.45 0.04 257);                /* Slate-600: Input borders */
     --ring: oklch(0.71 0.04 257);                 /* Slate-400: Focus ring */
+
+    /* Success State */
+    --success: oklch(0.65 0.15 155);              /* Brighter green for dark backgrounds */
+    --success-foreground: oklch(0.98 0.00 248);   /* Slate-50: Light text */
+
+    /* Warning State */
+    --warning: oklch(0.75 0.12 95);               /* Brighter amber for visibility */
+    --warning-foreground: oklch(0.21 0.04 266);   /* Slate-900: Dark text */
+
+    /* Info State */
+    --info: oklch(0.65 0.12 255);                 /* Brighter blue-slate */
+    --info-foreground: oklch(0.98 0.00 248);      /* Slate-50: Light text */
 
     /* Chart Colors */
     --chart-1: 220 70% 50%;

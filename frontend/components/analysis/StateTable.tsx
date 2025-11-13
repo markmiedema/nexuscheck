@@ -142,11 +142,11 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
 
   const getSortIcon = (column: SortConfig['column']) => {
     if (sortConfig.column !== column) {
-      return <ChevronsUpDown className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+      return <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
     }
     return sortConfig.direction === 'asc'
-      ? <ChevronUp className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-      : <ChevronDown className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+      ? <ChevronUp className="h-4 w-4 text-foreground" />
+      : <ChevronDown className="h-4 w-4 text-foreground" />
   }
 
   const densityClasses = {
@@ -159,8 +159,8 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
-          <p className="mt-4 text-gray-600">Loading state results...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="mt-4 text-muted-foreground">Loading state results...</p>
         </div>
       </div>
     )
@@ -168,20 +168,20 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <p className="text-red-800">{error}</p>
+      <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
+        <p className="text-destructive-foreground">{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-card rounded-lg shadow-sm border border-border p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-lg font-semibold text-card-foreground">
           State-by-State Results
         </h3>
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="text-sm text-muted-foreground">
           {displayedStates.length} of {states.length} states
         </div>
       </div>
@@ -190,19 +190,19 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         {/* Left side - Search */}
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search states..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-400"
+            className="pl-10 border-input focus:border-ring focus:ring-ring"
           />
         </div>
 
         {/* Right side - Filters and Actions */}
         <div className="flex gap-2">
           <Select value={nexusFilter} onValueChange={setNexusFilter}>
-            <SelectTrigger className="w-40 border-gray-200">
+            <SelectTrigger className="w-40 border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -214,7 +214,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
           </Select>
 
           <Select value={density} onValueChange={(v) => setDensity(v as Density)}>
-            <SelectTrigger className="w-36 border-gray-200">
+            <SelectTrigger className="w-36 border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -224,7 +224,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
             </SelectContent>
           </Select>
 
-          <Button variant="outline" size="sm" className="border-gray-200">
+          <Button variant="outline" size="sm" className="border-border">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -232,24 +232,24 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       </div>
 
       {/* Table */}
-      <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-gray-50 dark:bg-gray-700/50 sticky top-0 z-10">
-              <TableRow className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                <TableHead className="border-b border-gray-200 dark:border-gray-700">
+            <TableHeader className="bg-muted/50 sticky top-0 z-10">
+              <TableRow className="hover:bg-muted/70">
+                <TableHead className="border-b border-border">
                   <button
                     onClick={() => handleSort('state')}
-                    className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                    className="flex items-center gap-2 font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
                     State
                     {getSortIcon('state')}
                   </button>
                 </TableHead>
-                <TableHead className="border-b border-gray-200 dark:border-gray-700">
+                <TableHead className="border-b border-border">
                   <button
                     onClick={() => handleSort('nexus_status')}
-                    className="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                    className="flex items-center gap-2 font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Status
                     {getSortIcon('nexus_status')}
@@ -265,7 +265,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                   </button>
                 </TableHead>
                 <TableHead className="text-right border-b border-gray-200 dark:border-gray-700">
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                  <span className="font-medium text-muted-foreground">
                     Threshold
                   </span>
                 </TableHead>
@@ -278,13 +278,13 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     {getSortIcon('liability')}
                   </button>
                 </TableHead>
-                <TableHead className="border-b border-gray-200 dark:border-gray-700">Actions</TableHead>
+                <TableHead className="border-b border-border">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {displayedStates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                     No states found matching your filters
                   </TableCell>
                 </TableRow>
@@ -292,13 +292,13 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                 displayedStates.map((state) => (
                   <TableRow
                     key={state.state_code}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0"
+                    className="hover:bg-muted/30 transition-colors border-b border-border last:border-0"
                   >
                     <TableCell className={`${densityClasses[density]}`}>
-                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                      <div className="font-medium text-card-foreground">
                         {state.state_name}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         ({state.state_code})
                       </div>
                     </TableCell>
@@ -306,19 +306,19 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${
                           state.nexus_status === 'has_nexus'
-                            ? 'bg-red-500'
-                            : 'bg-green-500'
+                            ? 'bg-destructive'
+                            : 'bg-success'
                         }`} />
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border ${
                           state.nexus_type === 'both'
-                            ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300'
+                            ? 'bg-info/10 text-info-foreground border-info/20'
                             : state.nexus_type === 'physical'
-                            ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                            ? 'bg-info/5 text-info-foreground border-info/10'
                             : state.nexus_type === 'economic'
-                            ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                            ? 'bg-destructive/10 text-destructive-foreground border-destructive/20'
                             : state.nexus_status === 'approaching'
-                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
-                            : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                            ? 'bg-warning/10 text-warning-foreground border-warning/20'
+                            : 'bg-success/10 text-success-foreground border-success/20'
                         }`}>
                           {state.nexus_type === 'both'
                             ? 'Physical + Economic'
@@ -331,30 +331,30 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                       </div>
                     </TableCell>
                     <TableCell className={`text-right ${densityClasses[density]}`}>
-                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                      <div className="font-medium text-card-foreground">
                         ${state.total_sales.toLocaleString()}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         Direct: ${(state.direct_sales / 1000).toFixed(0)}k | Mktp: ${(state.marketplace_sales / 1000).toFixed(0)}k
                       </div>
                     </TableCell>
                     <TableCell className={`text-right ${densityClasses[density]}`}>
-                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                      <div className="text-sm text-foreground">
                         ${state.threshold?.toLocaleString() || 'N/A'}
                       </div>
                       {state.threshold_percent !== undefined && state.threshold_percent !== null && (
                         <div className={`text-xs font-medium ${
                           state.threshold_percent >= 100
-                            ? 'text-red-600 dark:text-red-400'
+                            ? 'text-destructive'
                             : state.threshold_percent >= 80
-                            ? 'text-yellow-600 dark:text-yellow-400'
-                            : 'text-green-600 dark:text-green-400'
+                            ? 'text-warning'
+                            : 'text-success'
                         }`}>
                           {state.threshold_percent.toFixed(0)}%
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className={`text-right text-gray-900 dark:text-gray-100 font-medium ${densityClasses[density]}`}>
+                    <TableCell className={`text-right text-card-foreground font-medium ${densityClasses[density]}`}>
                       ${state.estimated_liability.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
@@ -366,7 +366,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                           variant="ghost"
                           size="sm"
                           onClick={() => window.location.href = `/analysis/${analysisId}/states/${state.state_code}`}
-                          className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                          className="text-foreground hover:text-foreground hover:bg-muted transition-colors"
                         >
                           <Eye className="h-4 w-4 mr-1.5" />
                           View Details
@@ -376,13 +376,13 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors px-2"
+                              className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors px-2"
                             >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuLabel className="text-xs text-gray-500 dark:text-gray-400">
+                            <DropdownMenuLabel className="text-xs text-muted-foreground">
                               Coming Soon
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
@@ -411,15 +411,15 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Showing <span className="font-medium text-gray-900 dark:text-gray-100">{displayedStates.length}</span> of{' '}
-          <span className="font-medium text-gray-900 dark:text-gray-100">{states.length}</span> states
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+        <p className="text-sm text-muted-foreground">
+          Showing <span className="font-medium text-foreground">{displayedStates.length}</span> of{' '}
+          <span className="font-medium text-foreground">{states.length}</span> states
         </p>
         <Button
           variant="outline"
           size="sm"
-          className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          className="border-border text-foreground hover:bg-muted"
           disabled
         >
           Generate Report (Coming Soon)

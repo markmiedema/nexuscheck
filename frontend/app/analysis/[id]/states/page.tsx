@@ -181,7 +181,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
           </div>
 
           {/* Filter bar skeleton */}
-          <div className="bg-white rounded-lg border p-4 mb-6">
+          <div className="bg-card rounded-lg border p-4 mb-6">
             <div className="flex gap-4">
               <Skeleton className="h-10 flex-1" />
               <Skeleton className="h-10 flex-1" />
@@ -191,7 +191,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
           </div>
 
           {/* Table skeleton */}
-          <div className="bg-white rounded-lg border overflow-hidden">
+          <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-4 space-y-3">
               {[...Array(10)].map((_, i) => (
                 <Skeleton key={i} className="h-16 w-full" />
@@ -215,23 +215,23 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
             { label: 'State Table' },
           ]}
         >
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-2xl mx-auto text-center">
-            <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+          <div className="bg-warning/10 border border-warning/20 rounded-lg p-6 max-w-2xl mx-auto text-center">
+            <h3 className="text-lg font-semibold text-warning-foreground mb-2">
               Nexus Not Calculated Yet
             </h3>
-            <p className="text-yellow-700 mb-4">
+            <p className="text-warning-foreground mb-4">
               Please calculate nexus results before viewing the state table.
             </p>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => router.push(`/analysis/${analysisId}/mapping`)}
-                className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
+                className="px-4 py-2 bg-warning text-warning-foreground rounded-md hover:opacity-90"
               >
                 Go to Mapping Page
               </button>
               <button
                 onClick={() => router.push(`/analysis/${analysisId}/results`)}
-                className="px-4 py-2 border border-yellow-300 text-yellow-900 rounded-md hover:bg-yellow-100"
+                className="px-4 py-2 border border-warning/30 text-warning-foreground rounded-md hover:bg-warning/20"
               >
                 Back to Dashboard
               </button>
@@ -253,16 +253,16 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
             { label: 'State Table' },
           ]}
         >
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto text-center">
-            <h3 className="text-lg font-semibold text-red-900 mb-2">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 max-w-2xl mx-auto text-center">
+            <h3 className="text-lg font-semibold text-destructive-foreground mb-2">
               Analysis Not Found
             </h3>
-            <p className="text-red-700 mb-4">
+            <p className="text-destructive-foreground mb-4">
               This analysis does not exist or you don't have permission to access it.
             </p>
             <button
               onClick={() => router.push('/analyses')}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              className="px-4 py-2 bg-destructive text-white rounded-md hover:opacity-90"
             >
               Go to Analyses
             </button>
@@ -284,21 +284,21 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
             { label: 'State Table' },
           ]}
         >
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
-            <h3 className="text-lg font-semibold text-red-900 mb-2">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 max-w-2xl mx-auto">
+            <h3 className="text-lg font-semibold text-destructive-foreground mb-2">
               Error Loading States
             </h3>
-            <p className="text-red-700 mb-4">{error}</p>
+            <p className="text-destructive-foreground mb-4">{error}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                className="px-4 py-2 bg-destructive text-white rounded-md hover:opacity-90"
               >
                 Retry
               </button>
               <button
                 onClick={() => router.push(`/analysis/${analysisId}/results`)}
-                className="px-4 py-2 border border-red-300 text-red-900 rounded-md hover:bg-red-100"
+                className="px-4 py-2 border border-destructive/30 text-destructive-foreground rounded-md hover:bg-destructive/20"
               >
                 Back to Results
               </button>
@@ -321,20 +321,20 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
         ]}
       >
         <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl font-bold text-card-foreground mb-2">
           State-by-State Results
         </h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Showing {displayedStates.length} {displayedStates.length !== states.length ? `of ${states.length}` : ''} states
         </p>
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white rounded-lg border p-4 mb-6">
+      <div className="bg-card rounded-lg border p-4 mb-6">
         <div className="flex flex-wrap gap-4 items-end">
           {/* Nexus Status Filter */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Nexus Status
             </label>
             <Select value={nexusFilter} onValueChange={setNexusFilter}>
@@ -352,7 +352,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
 
           {/* Registration Filter */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Registration
             </label>
             <Select
@@ -372,7 +372,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
 
           {/* Confidence Filter */}
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Confidence
             </label>
             <Select
@@ -393,7 +393,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
 
           {/* Search */}
           <div className="flex-1 min-w-[250px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Search
             </label>
             <Input
@@ -427,83 +427,83 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
       </div>
 
       {/* State Table */}
-      <div className="bg-white rounded-lg border overflow-hidden">
+      <div className="bg-card rounded-lg border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead
-                className="w-[200px] cursor-pointer hover:bg-gray-50"
+                className="w-[200px] cursor-pointer hover:bg-accent"
                 onClick={() => handleSort('state')}
               >
                 <div className="flex items-center gap-2">
                   State
                   {sortBy === 'state' && (
-                    <span className="text-gray-900">
+                    <span className="text-card-foreground">
                       {sortOrder === 'asc' ? '↑' : '↓'}
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead
-                className="w-[180px] cursor-pointer hover:bg-gray-50"
+                className="w-[180px] cursor-pointer hover:bg-accent"
                 onClick={() => handleSort('nexus_status')}
               >
                 <div className="flex items-center gap-2">
                   Nexus Status
                   {sortBy === 'nexus_status' && (
-                    <span className="text-gray-900">
+                    <span className="text-card-foreground">
                       {sortOrder === 'asc' ? '↑' : '↓'}
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead
-                className="w-[180px] cursor-pointer hover:bg-gray-50"
+                className="w-[180px] cursor-pointer hover:bg-accent"
                 onClick={() => handleSort('revenue')}
               >
                 <div className="flex items-center gap-2">
                   Revenue
                   {sortBy === 'revenue' && (
-                    <span className="text-gray-900">
+                    <span className="text-card-foreground">
                       {sortOrder === 'asc' ? '↑' : '↓'}
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead
-                className="w-[150px] cursor-pointer hover:bg-gray-50"
+                className="w-[150px] cursor-pointer hover:bg-accent"
                 onClick={() => handleSort('threshold')}
               >
                 <div className="flex items-center gap-2">
                   Threshold
                   {sortBy === 'threshold' && (
-                    <span className="text-gray-900">
+                    <span className="text-card-foreground">
                       {sortOrder === 'asc' ? '↑' : '↓'}
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead
-                className="w-[150px] cursor-pointer hover:bg-gray-50"
+                className="w-[150px] cursor-pointer hover:bg-accent"
                 onClick={() => handleSort('liability')}
               >
                 <div className="flex items-center gap-2">
                   Est. Liability
                   {sortBy === 'liability' && (
-                    <span className="text-gray-900">
+                    <span className="text-card-foreground">
                       {sortOrder === 'asc' ? '↑' : '↓'}
                     </span>
                   )}
                 </div>
               </TableHead>
               <TableHead
-                className="w-[120px] cursor-pointer hover:bg-gray-50"
+                className="w-[120px] cursor-pointer hover:bg-accent"
                 onClick={() => handleSort('confidence')}
               >
                 <div className="flex items-center gap-2">
                   Confidence
                   {sortBy === 'confidence' && (
-                    <span className="text-gray-900">
+                    <span className="text-card-foreground">
                       {sortOrder === 'asc' ? '↑' : '↓'}
                     </span>
                   )}
@@ -515,7 +515,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
           <TableBody>
             {displayedStates.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                   No states match your filters
                 </TableCell>
               </TableRow>
@@ -526,7 +526,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
                   onClick={() =>
                     router.push(`/analysis/${analysisId}/states/${state.state_code}`)
                   }
-                  className="cursor-pointer hover:bg-gray-50 transition-colors group"
+                  className="cursor-pointer hover:bg-accent transition-colors group"
                 >
                   {/* State Column */}
                   <TableCell>
@@ -536,7 +536,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
                           state.nexus_status
                         )}`}
                       />
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-card-foreground">
                         {state.state_name}
                       </span>
                     </div>
@@ -545,11 +545,11 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
                   {/* Nexus Status Column */}
                   <TableCell>
                     <div className="text-sm">
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-card-foreground">
                         {getNexusStatusLabel(state.nexus_status)}
                       </div>
                       {state.nexus_type !== 'none' && (
-                        <div className="text-xs text-gray-500 mt-0.5">
+                        <div className="text-xs text-muted-foreground mt-0.5">
                           {getNexusTypeLabel(state.nexus_type)}
                         </div>
                       )}
@@ -559,16 +559,16 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
                   {/* Revenue Column */}
                   <TableCell>
                     <div className="text-sm">
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-card-foreground">
                         ${state.total_sales.toLocaleString()}
                       </div>
                       {state.direct_sales > 0 && (
-                        <div className="text-xs text-gray-500 mt-0.5">
+                        <div className="text-xs text-muted-foreground mt-0.5">
                           Direct: ${state.direct_sales.toLocaleString()}
                         </div>
                       )}
                       {state.marketplace_sales > 0 && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           Mktp: ${state.marketplace_sales.toLocaleString()}
                         </div>
                       )}
@@ -578,7 +578,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
                   {/* Threshold Column */}
                   <TableCell>
                     <div className="text-sm">
-                      <div className="text-gray-900">
+                      <div className="text-card-foreground">
                         ${state.threshold.toLocaleString()}
                       </div>
                       <div
@@ -593,7 +593,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
 
                   {/* Liability Column */}
                   <TableCell>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-card-foreground">
                       $
                       {state.estimated_liability.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
@@ -616,7 +616,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
 
                   {/* Arrow Column */}
                   <TableCell>
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground">
                       →
                     </span>
                   </TableCell>
@@ -629,7 +629,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
 
       {/* Results Count */}
       {displayedStates.length !== states.length && (
-        <div className="mt-4 text-sm text-gray-600">
+        <div className="mt-4 text-sm text-muted-foreground">
           Showing {displayedStates.length} of {states.length} states
         </div>
       )}

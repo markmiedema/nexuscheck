@@ -245,86 +245,86 @@ export default function ClientSetupPage() {
           { label: 'New Analysis' },
         ]}
       >
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-8">
+          <h2 className="text-2xl font-bold text-card-foreground mb-6">
             New Nexus Analysis
           </h2>
 
             {error && (
-              <div className="mb-6 rounded-md bg-red-50 border border-red-200 p-4">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="mb-6 rounded-md bg-destructive/10 border border-destructive/20 p-4">
+                <p className="text-sm text-destructive-foreground">{error}</p>
               </div>
             )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {/* Client Information */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                <h3 className="text-lg font-semibold text-card-foreground border-b border-border pb-2">
                   Client Information
                 </h3>
 
                 {/* Company Name */}
                 <div>
-                  <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
-                    Company Name <span className="text-red-500">*</span>
+                  <label htmlFor="companyName" className="block text-sm font-medium text-foreground mb-2">
+                    Company Name <span className="text-destructive">*</span>
                   </label>
                   <input
                     {...register('companyName')}
                     type="text"
                     id="companyName"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-400 focus:border-gray-400"
+                    className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-ring focus:border-ring"
                     placeholder="Enter company name"
                   />
                   {errors.companyName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.companyName.message}</p>
+                    <p className="mt-1 text-sm text-destructive">{errors.companyName.message}</p>
                   )}
                 </div>
               </div>
 
               {/* Business Type */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                  Business Type <span className="text-red-500">*</span>
+                <h3 className="text-lg font-semibold text-card-foreground border-b border-border pb-2">
+                  Business Type <span className="text-destructive">*</span>
                 </h3>
 
                 <div className="space-y-3">
-                  <label className="flex items-center p-4 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer">
+                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer">
                     <input
                       {...register('businessType')}
                       type="radio"
                       value="product_sales"
-                      className="h-4 w-4 text-gray-900 focus:ring-gray-400 border-gray-300"
+                      className="h-4 w-4 text-primary focus:ring-ring border-input"
                     />
                     <span className="ml-3">
-                      <span className="block text-sm font-medium text-gray-900">
+                      <span className="block text-sm font-medium text-foreground">
                         Product Sales (Physical goods)
                       </span>
                     </span>
                   </label>
 
-                  <label className="flex items-center p-4 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer">
+                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer">
                     <input
                       {...register('businessType')}
                       type="radio"
                       value="digital_products"
-                      className="h-4 w-4 text-gray-900 focus:ring-gray-400 border-gray-300"
+                      className="h-4 w-4 text-primary focus:ring-ring border-input"
                     />
                     <span className="ml-3">
-                      <span className="block text-sm font-medium text-gray-900">
+                      <span className="block text-sm font-medium text-foreground">
                         Digital Products/Services
                       </span>
                     </span>
                   </label>
 
-                  <label className="flex items-center p-4 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer">
+                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer">
                     <input
                       {...register('businessType')}
                       type="radio"
                       value="mixed"
-                      className="h-4 w-4 text-gray-900 focus:ring-gray-400 border-gray-300"
+                      className="h-4 w-4 text-primary focus:ring-ring border-input"
                     />
                     <span className="ml-3">
-                      <span className="block text-sm font-medium text-gray-900">
+                      <span className="block text-sm font-medium text-foreground">
                         Mixed (Products + Services)
                       </span>
                     </span>
@@ -332,30 +332,30 @@ export default function ClientSetupPage() {
                 </div>
 
                 {errors.businessType && (
-                  <p className="text-sm text-red-600">{errors.businessType.message}</p>
+                  <p className="text-sm text-destructive">{errors.businessType.message}</p>
                 )}
               </div>
 
               {/* Known State Registrations */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                  Known State Registrations <span className="text-gray-500 text-sm font-normal">(Optional)</span>
+                <h3 className="text-lg font-semibold text-card-foreground border-b border-border pb-2">
+                  Known State Registrations <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
                 </h3>
 
                 {stateRegistrations.length > 0 && (
                   <div className="space-y-2">
                     {stateRegistrations.map((reg) => (
-                      <div key={reg.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-200">
+                      <div key={reg.id} className="flex items-center justify-between p-3 bg-muted rounded-md border border-border">
                         <div>
-                          <span className="font-medium text-gray-900">{reg.stateCode}</span>
-                          <span className="text-sm text-gray-600 ml-3">
+                          <span className="font-medium text-foreground">{reg.stateCode}</span>
+                          <span className="text-sm text-muted-foreground ml-3">
                             Registration Date: {new Date(reg.registrationDate).toLocaleDateString()}
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleRemoveState(reg.id)}
-                          className="text-sm text-red-600 hover:text-red-800"
+                          className="text-sm text-destructive hover:text-destructive/80"
                         >
                           Remove
                         </button>
@@ -368,15 +368,15 @@ export default function ClientSetupPage() {
                   <button
                     type="button"
                     onClick={() => setShowAddState(true)}
-                    className="text-sm text-gray-900 hover:text-gray-900 font-medium"
+                    className="text-sm text-primary hover:text-primary/80 font-medium"
                   >
                     + Add State
                   </button>
                 ) : (
-                  <div className="p-4 border border-gray-300 rounded-md space-y-3">
+                  <div className="p-4 border border-input rounded-md space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-foreground mb-1">
                           State Code
                         </label>
                         <input
@@ -384,19 +384,19 @@ export default function ClientSetupPage() {
                           maxLength={2}
                           value={newState.stateCode}
                           onChange={(e) => setNewState({ ...newState, stateCode: e.target.value.toUpperCase() })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-400 focus:border-gray-400"
+                          className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-ring focus:border-ring"
                           placeholder="CA"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-foreground mb-1">
                           Registration Date
                         </label>
                         <input
                           type="date"
                           value={newState.registrationDate}
                           onChange={(e) => setNewState({ ...newState, registrationDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-400 focus:border-gray-400"
+                          className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-ring focus:border-ring"
                         />
                       </div>
                     </div>
@@ -404,7 +404,7 @@ export default function ClientSetupPage() {
                       <button
                         type="button"
                         onClick={handleAddState}
-                        className="px-3 py-1.5 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800"
+                        className="px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90"
                       >
                         Add
                       </button>
@@ -414,7 +414,7 @@ export default function ClientSetupPage() {
                           setShowAddState(false)
                           setNewState({ stateCode: '', registrationDate: '' })
                         }}
-                        className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded-md hover:bg-gray-300"
+                        className="px-3 py-1.5 bg-secondary text-secondary-foreground text-sm rounded-md hover:bg-secondary/90"
                       >
                         Cancel
                       </button>
@@ -425,8 +425,8 @@ export default function ClientSetupPage() {
 
               {/* Notes */}
               <div className="space-y-2">
-                <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-                  Notes <span className="text-gray-500">(Optional)</span>
+                <label htmlFor="notes" className="block text-sm font-medium text-foreground">
+                  Notes <span className="text-muted-foreground">(Optional)</span>
                 </label>
                 <textarea
                   {...register('notes')}
@@ -476,7 +476,7 @@ export default function ClientSetupPage() {
                   <div
                     onDrop={handleFileDrop}
                     onDragOver={(e) => e.preventDefault()}
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-gray-400 hover:bg-gray-50/50 transition-colors cursor-pointer"
+                    className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-ring hover:bg-muted/50 transition-colors cursor-pointer"
                   >
                     <input
                       type="file"
@@ -487,27 +487,27 @@ export default function ClientSetupPage() {
                       disabled={uploading}
                     />
                     <label htmlFor="file-upload" className="cursor-pointer">
-                      <UploadCloud className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-lg font-medium text-gray-700 mb-2">
+                      <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                      <p className="text-lg font-medium text-foreground mb-2">
                         Drop your CSV file here or click to browse
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground">
                         Supports CSV files up to 50MB
                       </p>
                     </label>
                   </div>
                 ) : uploading ? (
                   <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400 mb-4"></div>
-                    <p className="text-gray-600">Processing your file...</p>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+                    <p className="text-muted-foreground">Processing your file...</p>
                   </div>
                 ) : (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-                    <CheckCircle2 className="mx-auto h-12 w-12 text-green-600 mb-4" />
-                    <p className="text-lg font-medium text-green-900 mb-2">
+                  <div className="bg-success/10 border border-success/20 rounded-lg p-6 text-center">
+                    <CheckCircle2 className="mx-auto h-12 w-12 text-success mb-4" />
+                    <p className="text-lg font-medium text-success-foreground mb-2">
                       File uploaded successfully!
                     </p>
-                    <div className="flex items-center justify-center gap-2 text-sm text-green-700">
+                    <div className="flex items-center justify-center gap-2 text-sm text-success-foreground">
                       <FileText className="h-4 w-4" />
                       <span>{uploadedFile.name}</span>
                     </div>
@@ -515,8 +515,8 @@ export default function ClientSetupPage() {
                 )}
 
                 {uploadError && (
-                  <div className="mt-4 rounded-md bg-red-50 border border-red-200 p-4">
-                    <p className="text-sm text-red-800">{uploadError}</p>
+                  <div className="mt-4 rounded-md bg-destructive/10 border border-destructive/20 p-4">
+                    <p className="text-sm text-destructive-foreground">{uploadError}</p>
                   </div>
                 )}
               </CardContent>
@@ -539,12 +539,12 @@ export default function ClientSetupPage() {
           {/* Loading overlay during calculation */}
           {calculating && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-8 max-w-md text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400 mb-4"></div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className="bg-card rounded-lg p-8 max-w-md text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                <h3 className="text-lg font-semibold text-card-foreground mb-2">
                   Calculating Nexus...
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   This may take a minute. Please don't close this page.
                 </p>
               </div>

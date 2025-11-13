@@ -165,8 +165,8 @@ export default function ResultsPage() {
         >
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
-              <p className="mt-4 text-gray-600">Loading results...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="mt-4 text-muted-foreground">Loading results...</p>
             </div>
           </div>
         </AppLayout>
@@ -184,17 +184,17 @@ export default function ResultsPage() {
         ]}
       >
           {/* Header Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+          <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-2xl font-bold text-card-foreground">
                 {calculationStatus === 'calculated' ? 'Analysis Complete ✓' : 'Data Processed - Ready to Calculate'}
               </h2>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 {summary && new Date(summary.completed_at).toLocaleString()}
               </span>
             </div>
             {summary && (
-              <div className="text-gray-600 dark:text-gray-300">
+              <div className="text-muted-foreground">
                 <p className="text-lg font-medium">{summary.company_name}</p>
                 <p className="text-sm">
                   {summary.period_start} to {summary.period_end}
@@ -209,40 +209,40 @@ export default function ResultsPage() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* States with Nexus */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">States w/ Nexus</h3>
-              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">States w/ Nexus</h3>
+              <div className="text-3xl font-bold text-card-foreground mb-1">
                 {results ? results.summary.states_with_nexus : '—'}
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 {results ? `out of ${results.summary.total_states_analyzed} analyzed` : 'Run calculation to see results'}
               </p>
             </div>
 
             {/* Estimated Liability */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Est. Liability</h3>
-              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Est. Liability</h3>
+              <div className="text-3xl font-bold text-card-foreground mb-1">
                 {results ? `$${(results.summary.total_estimated_liability || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 {results ? 'Total estimated tax liability' : 'Run calculation to see results'}
               </p>
             </div>
 
             {/* Confidence */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Confidence</h3>
-              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Confidence</h3>
+              <div className="text-3xl font-bold text-card-foreground mb-1">
                 High
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Based on data quality</p>
+              <p className="text-xs text-muted-foreground">Based on data quality</p>
             </div>
           </div>
 
           {/* US Map */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">United States Nexus Map</h3>
+          <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-6">
+            <h3 className="text-lg font-semibold text-card-foreground mb-4">United States Nexus Map</h3>
             {calculationStatus === 'calculated' && stateResults.length > 0 ? (
               <>
                 <USMap
@@ -258,28 +258,28 @@ export default function ResultsPage() {
                 {/* Legend */}
                 <div className="mt-4 flex justify-center gap-6 text-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-red-500"></div>
-                    <span className="text-gray-600 dark:text-gray-300">Has Nexus</span>
+                    <div className="w-4 h-4 rounded bg-destructive"></div>
+                    <span className="text-muted-foreground">Has Nexus</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-yellow-400"></div>
-                    <span className="text-gray-600 dark:text-gray-300">Approaching</span>
+                    <div className="w-4 h-4 rounded bg-warning"></div>
+                    <span className="text-muted-foreground">Approaching</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-green-500"></div>
-                    <span className="text-gray-600 dark:text-gray-300">No Nexus</span>
+                    <div className="w-4 h-4 rounded bg-success"></div>
+                    <span className="text-muted-foreground">No Nexus</span>
                   </div>
                 </div>
               </>
             ) : (
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-12 text-center">
-                <div className="text-gray-400 dark:text-gray-500 mb-4">
+              <div className="bg-muted rounded-lg p-12 text-center">
+                <div className="text-muted-foreground mb-4">
                   <svg className="mx-auto h-24 w-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                   </svg>
                 </div>
-                <h4 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Run Calculation to View Map</h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                <h4 className="text-lg font-medium text-foreground mb-2">Run Calculation to View Map</h4>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
                   The interactive map will show nexus status by state once calculation is complete.
                 </p>
               </div>
@@ -287,12 +287,12 @@ export default function ResultsPage() {
           </div>
 
           {/* Quick Stats */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Nexus Breakdown</h3>
+          <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-6">
+            <h3 className="text-lg font-semibold text-card-foreground mb-4">Nexus Breakdown</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">By Type:</h4>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <h4 className="text-sm font-medium text-foreground mb-3">By Type:</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex justify-between">
                     <span>• Physical Nexus:</span>
                     <span className="font-medium">{results ? results.nexus_breakdown.physical_nexus : '—'}</span>
@@ -308,9 +308,9 @@ export default function ResultsPage() {
                 </ul>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Approaching Threshold:</h4>
+                <h4 className="text-sm font-medium text-foreground mb-3">Approaching Threshold:</h4>
                 {results && results.approaching_threshold.length > 0 ? (
-                  <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                  <ul className="space-y-1 text-sm text-muted-foreground">
                     {results.approaching_threshold.map((state) => (
                       <li key={state.state}>
                         {state.state}: ${(state.total_sales || 0).toLocaleString()} / ${(state.threshold || 0).toLocaleString()}
@@ -318,7 +318,7 @@ export default function ResultsPage() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                  <p className="text-sm text-muted-foreground italic">
                     {results ? 'No states approaching threshold' : 'Run calculation to see results'}
                   </p>
                 )}
@@ -346,13 +346,13 @@ export default function ResultsPage() {
 
           {/* Calculate Button */}
           {calculationStatus === 'pending' && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 p-6 mb-6">
+            <div className="bg-warning/10 rounded-lg border border-warning/20 p-6 mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-200 mb-2">
+                  <h3 className="text-lg font-semibold text-warning-foreground mb-2">
                     ⚠️ Calculation Not Yet Run
                   </h3>
-                  <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                  <p className="text-sm text-warning-foreground">
                     The calculation should have run automatically. If you're seeing this, click the button to calculate now.
                   </p>
                 </div>
