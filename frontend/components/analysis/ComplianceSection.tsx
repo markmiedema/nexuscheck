@@ -90,12 +90,12 @@ export function ComplianceSection({
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Status Banner */}
-          <div className="rounded-md bg-red-50 border border-red-200 p-4">
-            <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
+          <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
+            <h3 className="font-semibold text-destructive-foreground mb-2 flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
               Action Required - Nexus Established
             </h3>
-            <div className="space-y-1 text-sm text-red-800">
+            <div className="space-y-1 text-sm text-destructive-foreground">
               {nexusFirstEstablishedYear && (
                 <>
                   <p>
@@ -109,7 +109,7 @@ export function ComplianceSection({
                   )}
                 </>
               )}
-              <div className="mt-3 p-3 bg-red-100 rounded border border-red-300">
+              <div className="mt-3 p-3 bg-destructive/20 rounded border border-destructive/30">
                 <p className="font-medium">
                   Important: Once nexus is established, it typically persists until you
                   formally close your state account.
@@ -274,18 +274,18 @@ export function ComplianceSection({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-yellow-600" />
+            <AlertCircle className="h-5 w-5 text-warning-foreground" />
             Compliance Requirements
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Warning Banner */}
-          <div className="rounded-md bg-yellow-50 border border-yellow-200 p-4">
-            <h3 className="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
+          <div className="rounded-md bg-warning/10 border border-warning/20 p-4">
+            <h3 className="font-semibold text-warning-foreground mb-2 flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
               Approaching Nexus Threshold
             </h3>
-            <div className="space-y-1 text-sm text-yellow-800">
+            <div className="space-y-1 text-sm text-warning-foreground">
               <p>
                 <strong>Your sales:</strong> {formatCurrency(summary.totalSales)} (
                 {thresholdInfo.percentage_of_threshold.toFixed(0)}% of threshold)
@@ -389,18 +389,18 @@ export function ComplianceSection({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-600" />
+            <CheckCircle className="h-5 w-5 text-success-foreground" />
             Compliance Requirements
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Success Banner */}
-          <div className="rounded-md bg-green-50 border border-green-200 p-4">
-            <h3 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
+          <div className="rounded-md bg-success/10 border border-success/20 p-4">
+            <h3 className="font-semibold text-success-foreground mb-2 flex items-center gap-2">
               <CheckCircle className="h-5 w-5" />
               No Nexus - No Action Required
             </h3>
-            <div className="space-y-1 text-sm text-green-800">
+            <div className="space-y-1 text-sm text-success-foreground">
               <p>
                 <strong>Your sales:</strong> {formatCurrency(summary.totalSales)} (
                 {thresholdInfo.percentage_of_threshold.toFixed(0)}% of threshold)
@@ -452,7 +452,7 @@ export function ComplianceSection({
                 </div>
               </div>
               <div className="mt-4 p-3 bg-muted rounded border border-border">
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="text-foreground">
                   <strong>Note:</strong> If you reach the threshold, you'll need to register
                   within 30 days and begin collecting tax.
                 </p>
@@ -494,11 +494,11 @@ export function ComplianceSection({
         <CardContent className="space-y-6">
           {/* Info Banner */}
           <div className="rounded-md bg-muted border border-border p-4">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
+            <h3 className="font-semibold text-card-foreground mb-2 flex items-center gap-2">
               <Info className="h-5 w-5" />
               No Sales Activity
             </h3>
-            <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            <div className="space-y-1 text-sm text-foreground">
               <p>
                 No transactions recorded in {stateName} for {currentYear}.
               </p>
