@@ -210,33 +210,33 @@ export default function ResultsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* States with Nexus */}
             <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">States w/ Nexus</h3>
-              <div className="text-4xl font-bold text-foreground mt-2 mb-1">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">States w/ Nexus</h3>
+              <div className="text-4xl font-bold text-foreground mt-3">
                 {results ? results.summary.states_with_nexus : '—'}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-1">
                 {results ? `out of ${results.summary.total_states_analyzed} analyzed` : 'Run calculation to see results'}
               </p>
             </div>
 
             {/* Estimated Liability */}
             <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">Est. Liability</h3>
-              <div className="text-4xl font-bold text-foreground mt-2 mb-1">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Est. Liability</h3>
+              <div className="text-4xl font-bold text-foreground mt-3">
                 {results ? `$${(results.summary.total_estimated_liability || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-1">
                 {results ? 'Total estimated tax liability' : 'Run calculation to see results'}
               </p>
             </div>
 
             {/* Confidence */}
             <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">Confidence</h3>
-              <div className="text-4xl font-bold text-foreground mt-2 mb-1">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Confidence</h3>
+              <div className="text-4xl font-bold text-foreground mt-3">
                 High
               </div>
-              <p className="text-xs text-muted-foreground">Based on data quality</p>
+              <p className="text-xs text-muted-foreground mt-1">Based on data quality</p>
             </div>
           </div>
 
