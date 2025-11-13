@@ -74,47 +74,47 @@
   .dark {
     /* ===== SEMANTIC TOKENS - Dark Mode (Sophisticated Layering) ===== */
     /* Visual hierarchy: slate-800 (bg) → slate-700 (card) → slate-600 (input) → slate-500 (hover) */
-    /* Using ACTUAL Tailwind slate OKLCH values */
+    /* Using HSL for guaranteed browser rendering */
 
     /* Background Layer - slate-800 (DARKEST ALLOWED) */
-    --background: oklch(0.28 0.03 257);           /* Slate-800: Page background */
-    --foreground: oklch(0.98 0.00 248);           /* Slate-50: Primary text */
+    --background: 222 47% 11%;                    /* Slate-800: #1e293b */
+    --foreground: 210 40% 98%;                    /* Slate-50: #f8fafc */
 
     /* Surface/Card Layer - slate-700 */
-    --card: oklch(0.37 0.03 260);                 /* Slate-700: Cards/elevated surfaces */
-    --card-foreground: oklch(0.98 0.00 248);      /* Slate-50: Card text */
+    --card: 215 25% 27%;                          /* Slate-700: #334155 */
+    --card-foreground: 210 40% 98%;               /* Slate-50 */
 
     /* Popovers & Dropdowns */
-    --popover: oklch(0.37 0.03 260);              /* Slate-700: Match cards */
-    --popover-foreground: oklch(0.98 0.00 248);   /* Slate-50 */
+    --popover: 215 25% 27%;                       /* Slate-700 */
+    --popover-foreground: 210 40% 98%;            /* Slate-50 */
 
     /* Primary Interactive - High Contrast CTA */
-    --primary: oklch(0.98 0.00 248);              /* Slate-50: Brightest element */
-    --primary-foreground: oklch(0.28 0.03 257);   /* Slate-800: Dark text on light button */
+    --primary: 210 40% 98%;                       /* Slate-50: Brightest */
+    --primary-foreground: 222 47% 11%;            /* Slate-800: Dark text */
 
     /* Secondary Interactive */
-    --secondary: oklch(0.55 0.02 264);            /* Slate-500: Secondary actions */
-    --secondary-foreground: oklch(0.98 0.00 248); /* Slate-50 */
+    --secondary: 215 20% 40%;                     /* Slate-500: #64748b */
+    --secondary-foreground: 210 40% 98%;          /* Slate-50 */
 
     /* Muted/Disabled States */
-    --muted: oklch(0.55 0.02 264);                /* Slate-500: Muted backgrounds */
-    --muted-foreground: oklch(0.71 0.02 261);     /* Slate-400: Muted text */
+    --muted: 215 20% 40%;                         /* Slate-500 */
+    --muted-foreground: 215 16% 47%;              /* Slate-400: #94a3b8 */
 
     /* Accent (Hover States) */
-    --accent: oklch(0.55 0.02 264);               /* Slate-500: Hover backgrounds */
-    --accent-foreground: oklch(0.98 0.00 248);    /* Slate-50 */
+    --accent: 215 20% 40%;                        /* Slate-500 */
+    --accent-foreground: 210 40% 98%;             /* Slate-50 */
 
     /* Destructive */
-    --destructive: 0 62.8% 50%;                   /* Darker red for dark mode */
-    --destructive-foreground: oklch(0.98 0.00 248); /* Slate-50 */
+    --destructive: 0 62.8% 50%;                   /* Red */
+    --destructive-foreground: 210 40% 98%;        /* Slate-50 */
 
     /* Input Layer - slate-600 (lighter than cards) */
-    --input: oklch(0.45 0.03 257);                /* Slate-600: Input backgrounds */
-    --input-border: oklch(0.55 0.02 264);         /* Slate-500: Input borders */
+    --input: 215 21% 36%;                         /* Slate-600: #475569 */
+    --input-border: 215 20% 40%;                  /* Slate-500 */
 
     /* Borders */
-    --border: oklch(0.55 0.02 264);               /* Slate-500: Default borders */
-    --ring: oklch(0.71 0.02 261);                 /* Slate-400: Focus rings */
+    --border: 215 20% 40%;                        /* Slate-500 */
+    --ring: 215 16% 47%;                          /* Slate-400 */
 
     /* Success State */
     --success: oklch(0.65 0.15 155);              /* Brighter green for dark backgrounds */
@@ -198,8 +198,8 @@
   .dark input[type="password"],
   .dark input[type="date"],
   .dark textarea {
-    background-color: oklch(0.45 0.03 257);  /* slate-600: default */
-    border-color: oklch(0.55 0.02 264);      /* slate-500: border */
+    background-color: hsl(215 21% 36%);  /* slate-600: #475569 */
+    border-color: hsl(215 20% 40%);      /* slate-500: #64748b */
   }
 
   .dark input[type="text"]:hover,
@@ -207,7 +207,7 @@
   .dark input[type="password"]:hover,
   .dark input[type="date"]:hover,
   .dark textarea:hover {
-    background-color: oklch(0.55 0.02 264);  /* slate-500: brighter on hover */
+    background-color: hsl(215 20% 40%);  /* slate-500: brighter on hover */
   }
 
   .dark input[type="text"]:focus,
@@ -215,8 +215,8 @@
   .dark input[type="password"]:focus,
   .dark input[type="date"]:focus,
   .dark textarea:focus {
-    background-color: oklch(0.55 0.02 264);  /* slate-500: clearly interactive */
-    border-color: oklch(0.71 0.02 261);      /* slate-400: border on focus */
+    background-color: hsl(215 20% 40%);  /* slate-500: clearly interactive */
+    border-color: hsl(215 16% 47%);      /* slate-400: border on focus */
   }
 
   /* ===== Table Fixes ===== */
