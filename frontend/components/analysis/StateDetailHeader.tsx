@@ -54,11 +54,11 @@ export function StateDetailHeader({
       console.log('Using nexusType for badge color:', nexusType);
       switch (nexusType) {
         case 'both':
-          return 'bg-purple-200 dark:bg-purple-900/50 text-purple-900 dark:text-purple-200 hover:bg-purple-200 dark:hover:bg-purple-900/50';
+          return 'bg-info/20 text-info-foreground border border-info/30 hover:bg-info/30';
         case 'physical':
-          return 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/40';
+          return 'bg-info/10 text-info-foreground border border-info/20 hover:bg-info/20';
         case 'economic':
-          return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30';
+          return 'bg-destructive/10 text-destructive-foreground border border-destructive/20 hover:bg-destructive/20';
         default:
           // Shouldn't reach here, but just in case
           console.warn('Unexpected nexusType:', nexusType);
@@ -69,13 +69,13 @@ export function StateDetailHeader({
     // Fallback to status-based colors
     switch (nexusStatus) {
       case 'has_nexus':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30';
+        return 'bg-destructive/10 text-destructive-foreground border border-destructive/20 hover:bg-destructive/20';
       case 'approaching':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-100 dark:hover:bg-yellow-900/30';
+        return 'bg-warning/10 text-warning-foreground border border-warning/20 hover:bg-warning/20';
       case 'none':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30';
+        return 'bg-success/10 text-success-foreground border border-success/20 hover:bg-success/20';
       default:
-        return 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900/30';
+        return 'bg-muted text-muted-foreground hover:bg-muted/80';
     }
   };
 
