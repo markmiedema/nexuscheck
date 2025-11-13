@@ -15,11 +15,13 @@ This phase has two major components:
    - Date format auto-detection
    - State name normalization
    - Sales channel mapping
+   - **Revenue stream tracking** (NEW)
    - Preview transformations
 
 2. **Exempt Sales Support** (Day 8)
    - `is_taxable` column support (boolean)
    - `exempt_amount` column support (dollar value)
+   - `revenue_stream` column (optional - for categorization)
    - Hybrid calculation logic
    - Gross vs. taxable distinction
    - UI updates
@@ -88,6 +90,19 @@ class ColumnDetector:
             'marketplace', 'platform', 'seller',
             'sale_channel', 'sales_source',
             'fulfillment_channel', 'order_channel'
+        ],
+        # NEW: Revenue stream (product/service categorization)
+        'revenue_stream': [
+            'revenue_stream', 'revenue stream',
+            'product_type', 'product type',
+            'product_category', 'product category',
+            'item_type', 'item type',
+            'item_category', 'category',
+            'product_line', 'product line',
+            'revenue_type', 'revenue type',
+            'goods_type', 'service_type',
+            'line_of_business', 'sku_category',
+            'business_line'
         ],
         # NEW: Exempt sales columns
         'is_taxable': [
@@ -715,12 +730,12 @@ def _calculate_state_nexus_multi_year(self, ...):
 **File:** `backend/templates/csv_template.csv` (UPDATE)
 
 ```csv
-transaction_date,customer_state,revenue_amount,sales_channel,is_taxable,exempt_amount
-01/15/2024,CA,1250.00,direct,Y,
-01/16/2024,NY,450.00,direct,N,
-01/17/2024,TX,2100.00,marketplace,Y,
-01/18/2024,FL,3000.00,direct,,500.00
-01/19/2024,GA,875.00,direct,,
+transaction_date,customer_state,revenue_amount,sales_channel,revenue_stream,is_taxable,exempt_amount
+01/15/2024,CA,1250.00,direct,physical_products,Y,
+01/16/2024,NY,450.00,direct,food_beverage,N,
+01/17/2024,TX,2100.00,marketplace,physical_products,Y,
+01/18/2024,FL,3000.00,direct,clothing,,500.00
+01/19/2024,GA,875.00,direct,digital_goods,,
 ```
 
 ---
@@ -738,6 +753,38 @@ Many businesses sell both taxable and non-taxable products/services. Nexus Check
 
 - **Using gross sales for nexus determination** (economic activity)
 - **Using taxable sales for liability calculation** (tax obligation)
+
+## Revenue Streams (Optional)
+
+The `revenue_stream` column helps you categorize your sales by product/service type. While optional, it provides valuable insights and can help with taxability categorization.
+
+### Common Revenue Streams
+
+The system recognizes and normalizes these common categories:
+
+- **physical_products** - General merchandise (typically taxable)
+- **food_beverage** - Food and beverage sales (often partially exempt)
+- **clothing** - Apparel and accessories (exempt in some states)
+- **digital_goods** - Software, downloads, streaming (increasingly taxable)
+- **services** - Professional/personal services (often exempt)
+- **manufacturing_equipment** - Industrial machinery (often exempt)
+- **resale** - Wholesale items for resale (exempt with certificate)
+- **medical** - Healthcare products/services (often exempt)
+
+### Example CSV with Revenue Streams
+
+```csv
+transaction_date,customer_state,revenue_amount,revenue_stream
+01/15/2024,CA,1250.00,physical_products
+01/16/2024,NY,450.00,food_beverage
+01/17/2024,TX,2100.00,digital_goods
+```
+
+The system will automatically normalize variants (e.g., "groceries" → "food_beverage", "software" → "digital_goods").
+
+**Note:** Revenue stream does NOT automatically determine taxability. You must still use `is_taxable` or `exempt_amount` columns to specify exempt sales. Revenue streams help with categorization and reporting.
+
+---
 
 ## How to Specify Exempt Sales
 
@@ -809,43 +856,46 @@ If you don't include either column, **all sales are treated as taxable** (defaul
 
 ## Examples
 
-### Example 1: Grocery Store
+### Example 1: Grocery Store with Revenue Streams
 
 ```csv
-transaction_date,customer_state,revenue_amount,is_taxable
-01/15/2024,CA,50.00,N        # Groceries (exempt)
-01/15/2024,CA,15.00,Y        # Soda (taxable)
-01/16/2024,CA,200.00,N       # Food items (exempt)
+transaction_date,customer_state,revenue_amount,revenue_stream,is_taxable
+01/15/2024,CA,50.00,food_beverage,N        # Groceries (exempt)
+01/15/2024,CA,15.00,food_beverage,Y        # Soda (taxable)
+01/16/2024,CA,200.00,food_beverage,N       # Food items (exempt)
 ```
 
 Result:
 - Gross sales: $265 (counts toward nexus)
 - Taxable sales: $15 (generates tax liability)
+- Revenue stream: All categorized as "food_beverage" for reporting
 
-### Example 2: Clothing with Partial Exemption
+### Example 2: Clothing with Partial Exemption (NY)
 
 ```csv
-transaction_date,customer_state,revenue_amount,exempt_amount
-01/15/2024,NY,150.00,110.00
+transaction_date,customer_state,revenue_amount,revenue_stream,exempt_amount
+01/15/2024,NY,150.00,clothing,110.00
 ```
 
 Result:
 - Gross: $150
-- Exempt: $110 (under NY threshold)
+- Exempt: $110 (under NY $110 clothing exemption threshold)
 - Taxable: $40
 - Tax liability calculated on $40
+- Revenue stream: "clothing" helps track which sales qualify for exemption
 
 ### Example 3: Wholesale with Resale Certificate
 
 ```csv
-transaction_date,customer_state,revenue_amount,is_taxable
-01/15/2024,TX,5000.00,N      # Resale certificate
-01/16/2024,TX,2000.00,Y      # Retail sale
+transaction_date,customer_state,revenue_amount,revenue_stream,is_taxable
+01/15/2024,TX,5000.00,resale,N      # Resale certificate
+01/16/2024,TX,2000.00,physical_products,Y      # Retail sale
 ```
 
 Result:
 - Gross: $7000 (both count toward nexus)
 - Taxable: $2000 (only retail generates liability)
+- Revenue streams: Separates wholesale ("resale") from retail ("physical_products")
 
 ## Important Notes
 

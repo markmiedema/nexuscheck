@@ -329,15 +329,22 @@ async def upload_transactions(
                 detail=f"Failed to parse file: {str(e)}"
             )
 
-        # Auto-detect column mappings
+        # Auto-detect column mappings (including optional columns like revenue_stream, is_taxable, exempt_amount)
         column_detector = ColumnDetector(list(df.columns))
         detection_result = column_detector.detect_mappings()
         sample_values = column_detector.get_sample_values(df, max_samples=5)
 
-        # Clean and prepare data (only if we have some mappings)
-        if detection_result['mappings']:
-            detected_cols = list(detection_result['mappings'].values())
-            df = df.dropna(subset=detected_cols)  # Remove rows with missing detected data
+        # Separate required and optional columns
+        required_columns = ['transaction_date', 'customer_state', 'revenue_amount', 'sales_channel']
+        optional_columns = ['revenue_stream', 'is_taxable', 'exempt_amount']
+
+        detected_required = {k: v for k, v in detection_result['mappings'].items() if k in required_columns}
+        detected_optional = {k: v for k, v in detection_result['mappings'].items() if k in optional_columns}
+
+        # Clean and prepare data (only if we have required mappings)
+        if detected_required:
+            detected_cols = list(detected_required.values())
+            df = df.dropna(subset=detected_cols)  # Remove rows with missing required data
 
         # AUTO-DETECT DATE RANGE (only if we detected a date column)
         detected_start = None
@@ -441,9 +448,13 @@ async def upload_transactions(
                 "mappings": detection_result['mappings'],
                 "confidence": detection_result['confidence'],
                 "samples": sample_values,
-                "summary": summary
+                "summary": summary,
+                # Highlight which columns are required vs optional
+                "required_detected": detected_required,
+                "optional_detected": detected_optional
             },
-            "all_required_detected": detection_result['all_required_detected'],
+            "all_required_detected": len(detected_required) == len(required_columns),
+            "optional_columns_found": len(detected_optional),
             "columns_detected": list(df.columns),
             # Keep date detection for compatibility
             "date_range_detected": {
@@ -460,6 +471,121 @@ async def upload_transactions(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process file: {str(e)}"
+        )
+
+
+@router.post("/{analysis_id}/preview-normalization")
+async def preview_normalization(
+    analysis_id: str,
+    request_body: dict,
+    user_id: str = Depends(require_auth)
+):
+    """
+    Preview normalization transformations before saving.
+
+    Shows users what the data will look like after normalization,
+    including validation errors/warnings and transformation list.
+
+    Body:
+        {
+            "column_mappings": {
+                "transaction_date": {"source_column": "date"},
+                "customer_state": {"source_column": "state"},
+                "revenue_amount": {"source_column": "amount"},
+                "sales_channel": {"source_column": "channel"},
+                "revenue_stream": {"source_column": "product_type"},  // optional
+                "is_taxable": {"source_column": "taxable"},  // optional
+                "exempt_amount": {"source_column": "exempt"}  // optional
+            }
+        }
+
+    Returns:
+        {
+            "preview_data": [sample rows after normalization],
+            "transformations": [list of transformations applied],
+            "validation": {errors, warnings, valid_rows, etc.},
+            "summary": {row counts, column counts, etc.}
+        }
+    """
+    supabase = get_supabase()
+
+    try:
+        # Verify analysis exists
+        analysis_result = supabase.table('analyses').select('*').eq('id', analysis_id).eq('user_id', user_id).execute()
+
+        if not analysis_result.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Analysis not found"
+            )
+
+        # Retrieve raw CSV from storage
+        storage_path = f"uploads/{user_id}/{analysis_id}/raw_data.csv"
+
+        try:
+            file_data = supabase.storage.from_('analysis-uploads').download(storage_path)
+            df = pd.read_csv(io.BytesIO(file_data))
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Raw data file not found. Please re-upload your CSV."
+            )
+
+        # Extract column_mappings from request body
+        column_mappings = request_body.get('column_mappings', {})
+
+        # Build simplified mapping dict for normalize_data method
+        mappings = {}
+        for field_name, config in column_mappings.items():
+            source_col = config.get('source_column')
+            if source_col:
+                mappings[field_name] = source_col
+
+        # Initialize column detector and apply normalization
+        detector = ColumnDetector(list(df.columns))
+
+        # Apply all normalizations
+        normalization_result = detector.normalize_data(df, mappings)
+        normalized_df = normalization_result['df']
+        transformations = normalization_result['transformations']
+        warnings_list = normalization_result['warnings']
+
+        # Validate normalized data
+        validation_result = detector.validate_normalized_data(normalized_df)
+
+        # Get preview sample (first 10 rows)
+        preview_rows = min(10, len(normalized_df))
+        preview_data = normalized_df.head(preview_rows).to_dict('records')
+
+        # Convert any datetime/Timestamp objects to strings for JSON
+        for row in preview_data:
+            for key, val in row.items():
+                if pd.isna(val):
+                    row[key] = None
+                elif isinstance(val, (pd.Timestamp, datetime)):
+                    row[key] = str(val)
+
+        return {
+            "preview_data": preview_data,
+            "transformations": transformations,
+            "validation": validation_result,
+            "warnings": warnings_list,
+            "summary": {
+                "total_rows": len(df),
+                "valid_rows": validation_result['valid_rows'],
+                "invalid_rows": len(df) - validation_result['valid_rows'],
+                "columns_mapped": len(mappings),
+                "preview_rows_shown": preview_rows
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error previewing normalization: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to preview normalization: {str(e)}"
         )
 
 
@@ -512,50 +638,69 @@ async def validate_and_save_mappings(
         # Extract column_mappings from request body
         column_mappings = request_body.get('column_mappings', {})
 
-        # Extract mapping configuration
-        transaction_date_config = column_mappings.get('transaction_date', {})
-        customer_state_config = column_mappings.get('customer_state', {})
-        revenue_amount_config = column_mappings.get('revenue_amount', {})
-        sales_channel_config = column_mappings.get('sales_channel', {})
+        # Build simplified mapping dict for normalize_data method
+        mappings = {}
+        for field_name, config in column_mappings.items():
+            source_col = config.get('source_column')
+            if source_col:
+                mappings[field_name] = source_col
 
         # Validate required mappings exist
-        if not transaction_date_config.get('source_column'):
-            raise HTTPException(status_code=400, detail="transaction_date mapping required")
-        if not customer_state_config.get('source_column'):
-            raise HTTPException(status_code=400, detail="customer_state mapping required")
-        if not revenue_amount_config.get('source_column'):
-            raise HTTPException(status_code=400, detail="revenue_amount mapping required")
-        if not sales_channel_config.get('source_column'):
-            raise HTTPException(status_code=400, detail="sales_channel mapping required")
+        required_fields = ['transaction_date', 'customer_state', 'revenue_amount', 'sales_channel']
+        for field in required_fields:
+            if field not in mappings:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"{field} mapping required"
+                )
 
-        # Apply column mappings and rename
-        mapped_df = pd.DataFrame({
-            'transaction_date': df[transaction_date_config['source_column']],
-            'customer_state': df[customer_state_config['source_column']],
-            'revenue_amount': df[revenue_amount_config['source_column']],
-            'sales_channel': df[sales_channel_config['source_column']],
-        })
+        # Initialize column detector and apply normalization
+        detector = ColumnDetector(list(df.columns))
 
-        # Clean data
-        mapped_df = mapped_df.dropna(subset=['transaction_date', 'customer_state', 'revenue_amount', 'sales_channel'])
+        # Apply all normalizations (dates, states, channels, revenue streams, exempt sales)
+        normalization_result = detector.normalize_data(df, mappings)
+        normalized_df = normalization_result['df']
 
-        if len(mapped_df) == 0:
-            raise HTTPException(status_code=400, detail="No valid transactions after applying mappings")
+        # Validate normalized data
+        validation_result = detector.validate_normalized_data(normalized_df)
 
-        # Convert dates
-        mapped_df['transaction_date'] = pd.to_datetime(mapped_df['transaction_date']).dt.strftime('%Y-%m-%d')
+        # If validation has errors, return them to user
+        if not validation_result['valid']:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": "Data validation failed",
+                    "errors": validation_result['errors'],
+                    "warnings": validation_result['warnings']
+                }
+            )
+
+        # Clean data - remove rows with null required fields
+        required_cols = ['transaction_date', 'customer_state', 'revenue_amount', 'sales_channel']
+        normalized_df = normalized_df.dropna(subset=required_cols)
+
+        if len(normalized_df) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="No valid transactions after normalization and validation"
+            )
 
         # Prepare transactions for insertion
         transactions = []
-        for _, row in mapped_df.iterrows():
+        for _, row in normalized_df.iterrows():
             transaction = {
                 "analysis_id": analysis_id,
                 "transaction_date": row['transaction_date'],
-                "customer_state": str(row['customer_state']).strip().upper()[:2],
+                "customer_state": str(row['customer_state']).strip().upper(),
                 "sales_amount": float(row['revenue_amount']),
                 "sales_channel": str(row['sales_channel']).strip().lower(),
                 "transaction_count": 1,
                 "tax_collected": None,
+                # New columns for Days 6-8
+                "revenue_stream": str(row['revenue_stream']) if 'revenue_stream' in row and pd.notna(row['revenue_stream']) else None,
+                "is_taxable": bool(row['is_taxable']) if 'is_taxable' in row and pd.notna(row['is_taxable']) else True,
+                "taxable_amount": float(row['taxable_amount']) if 'taxable_amount' in row and pd.notna(row['taxable_amount']) else float(row['revenue_amount']),
+                "exempt_amount": float(row['exempt_amount_calc']) if 'exempt_amount_calc' in row and pd.notna(row['exempt_amount_calc']) else 0.0,
             }
             transactions.append(transaction)
 
