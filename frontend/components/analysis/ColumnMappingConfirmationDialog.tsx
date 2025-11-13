@@ -57,10 +57,10 @@ export default function ColumnMappingConfirmationDialog({
         </DialogHeader>
 
         {/* Data Summary - Top Section */}
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg p-4 mb-4">
+        <div className="bg-success/10 border border-success/20 rounded-lg p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-            <h3 className="font-semibold text-green-900 dark:text-green-100">
+            <CheckCircle2 className="h-5 w-5 text-success-foreground" />
+            <h3 className="font-semibold text-success-foreground">
               Analysis Ready to Calculate
             </h3>
           </div>
@@ -104,7 +104,7 @@ export default function ColumnMappingConfirmationDialog({
                 key={key}
                 className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30"
               >
-                <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <CheckCircle2 className="h-5 w-5 text-success-foreground flex-shrink-0" />
 
                 <div className="flex-1 grid grid-cols-[120px_auto_1fr] gap-3 items-center">
                   <span className="text-sm font-medium">{label}</span>
