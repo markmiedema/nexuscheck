@@ -267,8 +267,8 @@ export default function MappingPage() {
           { label: 'Map Columns' },
         ]}
       >
-        <div className="bg-card rounded-lg shadow-sm border border-border p-8">
-            <h2 className="text-2xl font-bold text-card-foreground mb-2">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+            <h2 className="text-3xl font-bold text-card-foreground mb-2">
               Map Your Data Columns
             </h2>
             <p className="text-muted-foreground mb-8">
