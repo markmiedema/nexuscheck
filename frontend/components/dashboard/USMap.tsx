@@ -69,7 +69,7 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
         case 'economic':
           return 'hsl(0 60% 45%)' // Darker muted red - economic nexus only (professional tone)
         case 'both':
-          return 'hsl(280 50% 45%)' // Muted purple - both types (sophisticated, not bright)
+          return 'hsl(289 46% 45%)' // Blended purple - mathematical blend of blue and red
         default:
           return 'hsl(0 60% 45%)' // Default darker muted red for unknown type
       }

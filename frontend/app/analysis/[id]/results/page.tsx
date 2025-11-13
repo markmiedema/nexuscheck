@@ -267,7 +267,7 @@ export default function ResultsPage() {
                     <span className="text-muted-foreground">Economic Nexus</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(280 50% 45%)' }}></div>
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(289 46% 45%)' }}></div>
                     <span className="text-muted-foreground">Both Nexus Types</span>
                   </div>
                   <div className="flex items-center gap-2">
