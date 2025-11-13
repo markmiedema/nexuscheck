@@ -63,7 +63,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
   }
 
   return (
-    <Card className="border-l-4 border-l-info">
+    <Card className="border-l-4 border-l-info shadow-md">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>

@@ -175,7 +175,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
   }
 
   return (
-    <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+    <div className="bg-card rounded-lg shadow-md border border-border p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-semibold text-foreground">
@@ -235,50 +235,50 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-muted/50 sticky top-0 z-10">
-              <TableRow className="hover:bg-muted/70">
-                <TableHead className="border-b border-border">
+            <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
+              <TableRow className="hover:bg-muted/80">
+                <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('state')}
-                    className="flex items-center gap-2 font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-2 hover:text-foreground transition-colors"
                   >
                     State
                     {getSortIcon('state')}
                   </button>
                 </TableHead>
-                <TableHead className="border-b border-border">
+                <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('nexus_status')}
-                    className="flex items-center gap-2 font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-2 hover:text-foreground transition-colors"
                   >
                     Status
                     {getSortIcon('nexus_status')}
                   </button>
                 </TableHead>
-                <TableHead className="text-right border-b border-border">
+                <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('sales')}
-                    className="flex items-center gap-2 ml-auto font-medium text-card-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-2 ml-auto hover:text-foreground transition-colors"
                   >
                     Total Sales
                     {getSortIcon('sales')}
                   </button>
                 </TableHead>
-                <TableHead className="text-right border-b border-border">
-                  <span className="font-medium text-muted-foreground">
+                <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <span>
                     Threshold
                   </span>
                 </TableHead>
-                <TableHead className="text-right border-b border-border">
+                <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('liability')}
-                    className="flex items-center gap-2 ml-auto font-medium text-card-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-2 ml-auto hover:text-foreground transition-colors"
                   >
                     Est. Liability
                     {getSortIcon('liability')}
                   </button>
                 </TableHead>
-                <TableHead className="border-b border-border">Actions</TableHead>
+                <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -292,9 +292,9 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                 displayedStates.map((state) => (
                   <TableRow
                     key={state.state_code}
-                    className="hover:bg-muted/30 transition-colors border-b border-border last:border-0"
+                    className="border-b border-border hover:bg-muted/30 transition-colors last:border-0"
                   >
-                    <TableCell className={`${densityClasses[density]}`}>
+                    <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
                       <div className="font-medium text-card-foreground">
                         {state.state_name}
                       </div>
@@ -302,7 +302,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                         ({state.state_code})
                       </div>
                     </TableCell>
-                    <TableCell className={densityClasses[density]}>
+                    <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${
                           state.nexus_status === 'has_nexus'
@@ -330,7 +330,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className={`text-right ${densityClasses[density]}`}>
+                    <TableCell className={`px-4 text-sm text-right text-foreground ${densityClasses[density]}`}>
                       <div className="font-medium text-card-foreground">
                         ${state.total_sales.toLocaleString()}
                       </div>
@@ -338,7 +338,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                         Direct: ${(state.direct_sales / 1000).toFixed(0)}k | Mktp: ${(state.marketplace_sales / 1000).toFixed(0)}k
                       </div>
                     </TableCell>
-                    <TableCell className={`text-right ${densityClasses[density]}`}>
+                    <TableCell className={`px-4 text-sm text-right text-foreground ${densityClasses[density]}`}>
                       <div className="text-sm text-foreground">
                         ${state.threshold?.toLocaleString() || 'N/A'}
                       </div>
@@ -354,13 +354,13 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className={`text-right text-card-foreground font-medium ${densityClasses[density]}`}>
+                    <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
                       ${state.estimated_liability.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                       })}
                     </TableCell>
-                    <TableCell className={densityClasses[density]}>
+                    <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
                       <div className="flex gap-1">
                         <Button
                           variant="ghost"
