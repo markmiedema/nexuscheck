@@ -304,22 +304,56 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     </TableCell>
                     <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
                       <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${
-                          state.nexus_status === 'has_nexus'
-                            ? 'bg-destructive'
-                            : 'bg-success'
-                        }`} />
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border ${
-                          state.nexus_type === 'both'
-                            ? 'bg-info/10 text-info-foreground border-info/20'
-                            : state.nexus_type === 'physical'
-                            ? 'bg-info/5 text-info-foreground border-info/10'
-                            : state.nexus_type === 'economic'
-                            ? 'bg-destructive/10 text-destructive-foreground border-destructive/20'
-                            : state.nexus_status === 'approaching'
-                            ? 'bg-warning/10 text-warning-foreground border-warning/20'
-                            : 'bg-success/10 text-success-foreground border-success/20'
-                        }`}>
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            backgroundColor:
+                              state.nexus_type === 'both'
+                                ? 'hsl(289 46% 45%)'
+                                : state.nexus_type === 'physical'
+                                ? 'hsl(217 32.6% 45%)'
+                                : state.nexus_type === 'economic'
+                                ? 'hsl(0 60% 45%)'
+                                : state.nexus_status === 'approaching'
+                                ? 'hsl(38 92% 50%)'
+                                : 'hsl(142 71% 40%)'
+                          }}
+                        />
+                        <span
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border"
+                          style={{
+                            backgroundColor:
+                              state.nexus_type === 'both'
+                                ? 'hsl(289 46% 45% / 0.1)'
+                                : state.nexus_type === 'physical'
+                                ? 'hsl(217 32.6% 45% / 0.1)'
+                                : state.nexus_type === 'economic'
+                                ? 'hsl(0 60% 45% / 0.1)'
+                                : state.nexus_status === 'approaching'
+                                ? 'hsl(38 92% 50% / 0.1)'
+                                : 'hsl(142 71% 40% / 0.1)',
+                            color:
+                              state.nexus_type === 'both'
+                                ? 'hsl(289 46% 35%)'
+                                : state.nexus_type === 'physical'
+                                ? 'hsl(217 32.6% 35%)'
+                                : state.nexus_type === 'economic'
+                                ? 'hsl(0 60% 35%)'
+                                : state.nexus_status === 'approaching'
+                                ? 'hsl(38 92% 35%)'
+                                : 'hsl(142 71% 30%)',
+                            borderColor:
+                              state.nexus_type === 'both'
+                                ? 'hsl(289 46% 45% / 0.2)'
+                                : state.nexus_type === 'physical'
+                                ? 'hsl(217 32.6% 45% / 0.2)'
+                                : state.nexus_type === 'economic'
+                                ? 'hsl(0 60% 45% / 0.2)'
+                                : state.nexus_status === 'approaching'
+                                ? 'hsl(38 92% 50% / 0.2)'
+                                : 'hsl(142 71% 40% / 0.2)'
+                          }}
+                        >
                           {state.nexus_type === 'both'
                             ? 'Physical + Economic'
                             : state.nexus_type === 'physical'
