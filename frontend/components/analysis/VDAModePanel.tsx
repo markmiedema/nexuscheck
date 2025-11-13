@@ -68,7 +68,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5 text-info-foreground" />
+              <Calculator className="h-5 w-5" />
               VDA Mode - Voluntary Disclosure Agreement
             </CardTitle>
             <CardDescription className="mt-2">
