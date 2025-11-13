@@ -250,16 +250,25 @@ export default function ResultsPage() {
                     state_code: state.state_code,
                     state_name: state.state_name,
                     nexus_status: state.nexus_status === 'no_nexus' ? 'none' : state.nexus_status,
+                    nexus_type: state.nexus_type,
                     total_sales: state.total_sales,
                     estimated_liability: state.estimated_liability,
                   }))}
                   analysisId={analysisId}
                 />
                 {/* Legend */}
-                <div className="mt-4 flex justify-center gap-6 text-sm">
+                <div className="mt-4 flex flex-wrap justify-center gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(217.2 91.2% 59.8%)' }}></div>
+                    <span className="text-muted-foreground">Physical Nexus</span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-destructive"></div>
-                    <span className="text-muted-foreground">Has Nexus</span>
+                    <span className="text-muted-foreground">Economic Nexus</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(280 81.3% 60.4%)' }}></div>
+                    <span className="text-muted-foreground">Both Nexus Types</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-warning"></div>
