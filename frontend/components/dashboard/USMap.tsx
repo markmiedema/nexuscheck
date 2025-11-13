@@ -27,6 +27,7 @@ interface StateData {
   state_code: string
   state_name: string
   nexus_status: 'has_nexus' | 'approaching' | 'none'
+  nexus_type?: 'physical' | 'economic' | 'both' | 'none'
   total_sales: number
   estimated_liability?: number
 }
@@ -52,7 +53,7 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
     return STATE_NAME_TO_CODE[geoName] || null
   }
 
-  // Get color based on nexus status
+  // Get color based on nexus status and type
   const getStateColor = (geoName: string) => {
     const stateCode = getStateCode(geoName)
     if (!stateCode) return 'hsl(var(--muted))' // Muted for unknown states
@@ -60,9 +61,22 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
     const state = stateDataMap[stateCode]
     if (!state) return 'hsl(var(--muted))' // Muted for no data
 
+    // If has nexus, differentiate by type
+    if (state.nexus_status === 'has_nexus') {
+      switch (state.nexus_type) {
+        case 'physical':
+          return 'hsl(217.2 91.2% 59.8%)' // Blue - physical nexus only (blue-500)
+        case 'economic':
+          return 'hsl(var(--destructive))' // Red - economic nexus only
+        case 'both':
+          return 'hsl(280 81.3% 60.4%)' // Purple - both physical and economic (purple-500)
+        default:
+          return 'hsl(var(--destructive))' // Default red for unknown type
+      }
+    }
+
+    // Other statuses
     switch (state.nexus_status) {
-      case 'has_nexus':
-        return 'hsl(var(--destructive))' // Red - has nexus
       case 'approaching':
         return 'hsl(var(--warning))' // Amber - approaching threshold
       case 'none':
@@ -94,15 +108,30 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
     const state = stateDataMap[stateCode]
     if (!state) return null
 
+    // Get nexus type label
+    const getNexusTypeLabel = () => {
+      if (state.nexus_status !== 'has_nexus') return null
+      switch (state.nexus_type) {
+        case 'physical':
+          return 'Physical Nexus'
+        case 'economic':
+          return 'Economic Nexus'
+        case 'both':
+          return 'Physical & Economic'
+        default:
+          return 'Has Nexus'
+      }
+    }
+
     return (
       <div className="bg-popover text-popover-foreground border border-border px-3 py-2 rounded shadow-lg text-sm">
         <div className="font-semibold">{state.state_name}</div>
         <div className="text-xs mt-1">
           Status:{' '}
           {state.nexus_status === 'has_nexus'
-            ? 'Has Nexus'
+            ? getNexusTypeLabel()
             : state.nexus_status === 'approaching'
-            ? 'Approaching'
+            ? 'Approaching Threshold'
             : 'No Nexus'}
         </div>
         <div className="text-xs">
