@@ -139,8 +139,8 @@ export function MonthlyTrendChart({
         </ResponsiveContainer>
 
         {nexusCrossedMonth && (
-          <div className="mt-4 rounded-md bg-yellow-50 border border-yellow-200 p-3">
-            <p className="text-sm text-yellow-800">
+          <div className="mt-4 rounded-md bg-warning/10 border border-warning/20 p-3">
+            <p className="text-sm text-warning-foreground">
               <span className="font-semibold">Nexus Threshold Crossed:</span>{' '}
               The threshold was exceeded in{' '}
               <span className="font-semibold">

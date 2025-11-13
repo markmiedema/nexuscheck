@@ -432,7 +432,7 @@ export default function ClientSetupPage() {
                   {...register('notes')}
                   id="notes"
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-400 focus:border-gray-400"
+                  className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
                   placeholder="Add any internal notes about this analysis..."
                 />
               </div>

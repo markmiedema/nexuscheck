@@ -101,7 +101,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
+                <h2 className="text-2xl font-bold text-destructive-foreground mb-2">Error</h2>
                 <p className="text-muted-foreground">
                   {error || 'Failed to load state details'}
                 </p>
