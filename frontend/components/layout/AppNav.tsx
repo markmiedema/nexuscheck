@@ -32,7 +32,7 @@ export default function AppNav() {
             onClick={handleHome}
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
-            <h1 className="text-xl font-bold text-gray-950 dark:text-gray-50">Nexus Check</h1>
+            <h1 className="text-xl font-bold text-foreground">Nexus Check</h1>
           </button>
 
           {/* User Menu */}
@@ -47,7 +47,7 @@ export default function AppNav() {
               <Home className="h-4 w-4 mr-2" />
               Analyses
             </Button>
-            <span className="text-sm text-gray-600 dark:text-gray-400 hidden sm:inline">
+            <span className="text-sm text-muted-foreground hidden sm:inline">
               {user?.email}
             </span>
             <ThemeToggle />

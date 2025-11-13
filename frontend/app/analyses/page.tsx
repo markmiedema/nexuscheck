@@ -40,8 +40,8 @@ import {
 const STATUS_CONFIG = {
   draft: { label: 'Draft', color: 'bg-muted text-muted-foreground border-border', icon: Clock },
   processing: { label: 'Processing', color: 'bg-primary/10 text-primary border-primary/20', icon: Loader2 },
-  complete: { label: 'Complete', color: 'bg-green-500/10 text-green-400 border-green-500/20', icon: CheckCircle },
-  error: { label: 'Error', color: 'bg-red-500/10 text-red-400 border-red-500/20', icon: AlertCircle },
+  complete: { label: 'Complete', color: 'bg-success/10 text-success-foreground border-success/20', icon: CheckCircle },
+  error: { label: 'Error', color: 'bg-destructive/10 text-destructive-foreground border-destructive/20', icon: AlertCircle },
 }
 
 type SortConfig = {
@@ -473,7 +473,7 @@ export default function AnalysesPage() {
                                 <button
                                   onClick={() => handleDelete(analysis.id, analysis.client_company_name)}
                                   disabled={deleteLoading === analysis.id}
-                                  className="p-2 text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
+                                  className="p-2 text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
                                   title="Delete"
                                 >
                                   {deleteLoading === analysis.id ? (
