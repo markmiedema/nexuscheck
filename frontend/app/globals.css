@@ -8,23 +8,23 @@
 
     /* Backgrounds */
     --background: oklch(0.98 0.00 248);           /* Slate-50: Soft background */
-    --foreground: oklch(0.21 0.04 266);           /* Slate-900: Rich text color */
+    --foreground: oklch(0.28 0.04 260);           /* Slate-800: Rich text color */
 
     /* Cards & Elevated Surfaces */
     --card: 0 0% 100%;                            /* Pure white for card elevation */
-    --card-foreground: oklch(0.21 0.04 266);      /* Slate-900 */
+    --card-foreground: oklch(0.28 0.04 260);      /* Slate-800 */
 
     /* Popovers & Dropdowns */
     --popover: 0 0% 100%;
-    --popover-foreground: oklch(0.21 0.04 266);   /* Slate-900 */
+    --popover-foreground: oklch(0.28 0.04 260);   /* Slate-800 */
 
     /* Primary Interactive (Neutral) */
-    --primary: oklch(0.21 0.04 266);              /* Slate-900: Neutral primary */
+    --primary: oklch(0.28 0.04 260);              /* Slate-800: Neutral primary */
     --primary-foreground: oklch(0.98 0.00 248);   /* Slate-50: Light text on dark */
 
     /* Secondary Interactive */
     --secondary: oklch(0.97 0.01 248);            /* Slate-100: Subtle secondary */
-    --secondary-foreground: oklch(0.21 0.04 266); /* Slate-900 */
+    --secondary-foreground: oklch(0.28 0.04 260); /* Slate-800 */
 
     /* Muted/Disabled */
     --muted: oklch(0.97 0.01 248);                /* Slate-100: Muted backgrounds */
@@ -32,7 +32,7 @@
 
     /* Accent (Hover States) */
     --accent: oklch(0.97 0.01 248);               /* Slate-100: Hover backgrounds */
-    --accent-foreground: oklch(0.21 0.04 266);    /* Slate-900 */
+    --accent-foreground: oklch(0.28 0.04 260);    /* Slate-800 */
 
     /* Destructive */
     --destructive: 0 84.2% 60.2%;                 /* Red for destructive actions */
@@ -49,7 +49,7 @@
 
     /* Warning State */
     --warning: oklch(0.70 0.12 95);               /* Amber for warnings (muted) */
-    --warning-foreground: oklch(0.21 0.04 266);   /* Slate-900: Dark text for contrast */
+    --warning-foreground: oklch(0.28 0.04 260);   /* Slate-800: Dark text for contrast */
 
     /* Info State */
     --info: oklch(0.60 0.10 255);                 /* Blue-slate for info (subtle) */
@@ -70,15 +70,15 @@
     /* ===== SEMANTIC TOKENS - Dark Mode (Medium-Dark) ===== */
 
     /* Backgrounds */
-    --background: oklch(0.45 0.04 257);           /* Slate-600: Medium charcoal */
+    --background: oklch(0.37 0.04 257);           /* Slate-700: Medium charcoal */
     --foreground: oklch(0.98 0.00 248);           /* Slate-50: Bright text */
 
     /* Cards & Elevated Surfaces */
-    --card: oklch(0.55 0.04 257);                 /* Slate-500: Lighter cards */
+    --card: oklch(0.45 0.04 257);                 /* Slate-600: Lighter cards */
     --card-foreground: oklch(0.98 0.00 248);      /* Slate-50 */
 
     /* Popovers & Dropdowns */
-    --popover: oklch(0.55 0.04 257);              /* Slate-500 */
+    --popover: oklch(0.45 0.04 257);              /* Slate-600 */
     --popover-foreground: oklch(0.98 0.00 248);   /* Slate-50 */
 
     /* Primary Interactive (Neutral) */
@@ -90,8 +90,8 @@
     --secondary-foreground: oklch(0.98 0.00 248); /* Slate-50 */
 
     /* Muted/Disabled */
-    --muted: oklch(0.45 0.04 257);                /* Slate-600: Muted backgrounds */
-    --muted-foreground: oklch(0.87 0.02 253);     /* Slate-300: Muted text */
+    --muted: oklch(0.55 0.04 257);                /* Slate-500: Muted backgrounds */
+    --muted-foreground: oklch(0.71 0.04 257);     /* Slate-400: Muted text */
 
     /* Accent (Hover States) */
     --accent: oklch(0.55 0.04 257);               /* Slate-500: Hover backgrounds */
@@ -102,8 +102,8 @@
     --destructive-foreground: oklch(0.98 0.00 248); /* Slate-50 */
 
     /* Borders & Inputs */
-    --border: oklch(0.45 0.04 257);               /* Slate-600: Borders */
-    --input: oklch(0.45 0.04 257);                /* Slate-600: Input borders */
+    --border: oklch(0.55 0.04 257);               /* Slate-500: Borders */
+    --input: oklch(0.55 0.04 257);                /* Slate-500: Input borders */
     --ring: oklch(0.71 0.04 257);                 /* Slate-400: Focus ring */
 
     /* Success State */
@@ -112,7 +112,7 @@
 
     /* Warning State */
     --warning: oklch(0.75 0.12 95);               /* Brighter amber for visibility */
-    --warning-foreground: oklch(0.21 0.04 266);   /* Slate-900: Dark text */
+    --warning-foreground: oklch(0.28 0.04 260);   /* Slate-800: Dark text */
 
     /* Info State */
     --info: oklch(0.65 0.12 255);                 /* Brighter blue-slate */
