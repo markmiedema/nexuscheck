@@ -255,24 +255,24 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     {getSortIcon('nexus_status')}
                   </button>
                 </TableHead>
-                <TableHead className="text-right border-b border-gray-200 dark:border-gray-700">
+                <TableHead className="text-right border-b border-border">
                   <button
                     onClick={() => handleSort('sales')}
-                    className="flex items-center gap-2 ml-auto font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                    className="flex items-center gap-2 ml-auto font-medium text-card-foreground hover:text-foreground transition-colors"
                   >
                     Total Sales
                     {getSortIcon('sales')}
                   </button>
                 </TableHead>
-                <TableHead className="text-right border-b border-gray-200 dark:border-gray-700">
+                <TableHead className="text-right border-b border-border">
                   <span className="font-medium text-muted-foreground">
                     Threshold
                   </span>
                 </TableHead>
-                <TableHead className="text-right border-b border-gray-200 dark:border-gray-700">
+                <TableHead className="text-right border-b border-border">
                   <button
                     onClick={() => handleSort('liability')}
-                    className="flex items-center gap-2 ml-auto font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                    className="flex items-center gap-2 ml-auto font-medium text-card-foreground hover:text-foreground transition-colors"
                   >
                     Est. Liability
                     {getSortIcon('liability')}
