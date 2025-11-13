@@ -245,10 +245,10 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     {getSortIcon('state')}
                   </button>
                 </TableHead>
-                <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('nexus_status')}
-                    className="flex items-center gap-2 hover:text-foreground transition-colors"
+                    className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
                   >
                     Status
                     {getSortIcon('nexus_status')}
@@ -277,7 +277,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     {getSortIcon('liability')}
                   </button>
                 </TableHead>
-                <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
+                <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -301,8 +301,8 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                         ({state.state_code})
                       </div>
                     </TableCell>
-                    <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
-                      <div className="flex items-center gap-2">
+                    <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
+                      <div className="flex items-center justify-center gap-2">
                         <div
                           className="w-2 h-2 rounded-full"
                           style={{
@@ -393,8 +393,8 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                         maximumFractionDigits: 2
                       })}
                     </TableCell>
-                    <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
-                      <div className="flex gap-1">
+                    <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
+                      <div className="flex gap-1 justify-center">
                         <button
                           onClick={() => window.location.href = `/analysis/${analysisId}/states/${state.state_code}`}
                           className="text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium inline-flex items-center gap-1 text-sm"
