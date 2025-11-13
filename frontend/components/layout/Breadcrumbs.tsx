@@ -24,17 +24,17 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
           return (
             <li key={index} className="flex items-center">
               {index > 0 && (
-                <ChevronRight className="h-4 w-4 text-gray-400 mx-2" aria-hidden="true" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground mx-2" aria-hidden="true" />
               )}
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-gray-50 transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {item.label}
                 </Link>
               ) : (
-                <span className={isLast ? 'font-semibold text-gray-950 dark:text-gray-50' : 'text-gray-600 dark:text-gray-400'}>
+                <span className={isLast ? 'font-semibold text-foreground' : 'text-muted-foreground'}>
                   {item.label}
                 </span>
               )}
