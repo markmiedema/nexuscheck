@@ -61,26 +61,26 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
     const state = stateDataMap[stateCode]
     if (!state) return 'hsl(var(--muted))' // Muted for no data
 
-    // If has nexus, differentiate by type
+    // If has nexus, differentiate by type (using professional, muted tones)
     if (state.nexus_status === 'has_nexus') {
       switch (state.nexus_type) {
         case 'physical':
-          return 'hsl(217.2 91.2% 59.8%)' // Blue - physical nexus only (blue-500)
+          return 'hsl(217 32.6% 45%)' // Muted blue-slate - physical nexus only (darker, professional)
         case 'economic':
-          return 'hsl(var(--destructive))' // Red - economic nexus only
+          return 'hsl(0 60% 45%)' // Darker muted red - economic nexus only (professional tone)
         case 'both':
-          return 'hsl(280 81.3% 60.4%)' // Purple - both physical and economic (purple-500)
+          return 'hsl(280 50% 45%)' // Muted purple - both types (sophisticated, not bright)
         default:
-          return 'hsl(var(--destructive))' // Default red for unknown type
+          return 'hsl(0 60% 45%)' // Default darker muted red for unknown type
       }
     }
 
     // Other statuses
     switch (state.nexus_status) {
       case 'approaching':
-        return 'hsl(var(--warning))' // Amber - approaching threshold
+        return 'hsl(38 92% 50%)' // Amber - approaching threshold (matches warning)
       case 'none':
-        return 'hsl(var(--success))' // Green - no nexus
+        return 'hsl(142 71% 40%)' // Darker muted green - no nexus (professional)
       default:
         return 'hsl(var(--muted))' // Muted gray
     }
