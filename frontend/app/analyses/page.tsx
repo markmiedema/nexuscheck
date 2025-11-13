@@ -40,7 +40,7 @@ import {
 const STATUS_CONFIG = {
   draft: { label: 'Draft', color: 'bg-muted text-muted-foreground border-border', icon: Clock },
   processing: { label: 'Processing', color: 'bg-primary/10 text-primary border-primary/20', icon: Loader2 },
-  complete: { label: 'Complete', color: 'bg-success/10 text-success-foreground border-success/20', icon: CheckCircle },
+  complete: { label: 'Complete', color: 'bg-success/10 text-success border-success/20', icon: CheckCircle },
   error: { label: 'Error', color: 'bg-destructive/10 text-destructive-foreground border-destructive/20', icon: AlertCircle },
 }
 
@@ -274,43 +274,43 @@ export default function AnalysesPage() {
         </div>
 
         {/* Quick Filter Tabs */}
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-1 mb-4 border-b border-border">
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
               activeTab === 'all'
-                ? 'bg-muted text-foreground border border-border shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
             }`}
           >
             All <span className="text-muted-foreground">({stats.total})</span>
           </button>
           <button
             onClick={() => setActiveTab('complete')}
-            className={`px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
               activeTab === 'complete'
-                ? 'bg-muted text-foreground border border-border shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
             }`}
           >
             Complete <span className="text-muted-foreground">({stats.complete})</span>
           </button>
           <button
             onClick={() => setActiveTab('draft')}
-            className={`px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
               activeTab === 'draft'
-                ? 'bg-muted text-foreground border border-border shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
             }`}
           >
             Draft <span className="text-muted-foreground">({stats.draft})</span>
           </button>
           <button
             onClick={() => setActiveTab('processing')}
-            className={`px-4 py-2.5 text-sm font-medium rounded-lg transition-all ${
+            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
               activeTab === 'processing'
-                ? 'bg-muted text-foreground border border-border shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
             }`}
           >
             Processing <span className="text-muted-foreground">({stats.processing})</span>

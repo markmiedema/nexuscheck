@@ -105,7 +105,7 @@ export default function SignupPage() {
             Already have an account?{' '}
             <Link
               href="/login"
-              className="font-medium text-foreground hover:text-foreground/80 underline"
+              className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors"
             >
               Sign in
             </Link>
@@ -133,7 +133,7 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
+                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                 placeholder="you@example.com"
               />
             </div>
@@ -150,7 +150,7 @@ export default function SignupPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
+                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
               <p className="mt-1 text-xs text-muted-foreground">
@@ -170,7 +170,7 @@ export default function SignupPage() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
+                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
             </div>

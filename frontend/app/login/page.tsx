@@ -47,7 +47,7 @@ export default function LoginPage() {
             Or{' '}
             <Link
               href="/signup"
-              className="font-medium text-foreground hover:text-foreground/80 underline"
+              className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors"
             >
               create a new account
             </Link>
@@ -75,7 +75,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
+                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                 placeholder="you@example.com"
               />
             </div>
@@ -92,7 +92,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring hover:border-ring/50 transition-colors duration-200"
+                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
             </div>

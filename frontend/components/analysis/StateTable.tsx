@@ -362,15 +362,13 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     </TableCell>
                     <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
                       <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <button
                           onClick={() => window.location.href = `/analysis/${analysisId}/states/${state.state_code}`}
-                          className="text-foreground hover:text-foreground hover:bg-muted transition-colors"
+                          className="text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium inline-flex items-center gap-1 text-sm"
                         >
-                          <Eye className="h-4 w-4 mr-1.5" />
+                          <Eye className="h-4 w-4" />
                           View Details
-                        </Button>
+                        </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
