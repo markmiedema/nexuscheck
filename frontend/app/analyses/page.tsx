@@ -216,7 +216,7 @@ export default function AnalysesPage() {
       <AppLayout maxWidth="7xl">
         {/* Welcome Message */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             {totalCount === 0 ? 'Welcome to Nexus Check' : 'Welcome back'}
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -228,48 +228,48 @@ export default function AnalysesPage() {
 
         {/* Summary Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-card border border-border rounded-lg p-5 hover:shadow-elevated transition-all shadow-card">
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Total Analyses
               </p>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </div>
-            <p className="text-3xl font-bold text-foreground">{stats.total}</p>
+            <p className="text-4xl font-bold text-foreground mt-2">{stats.total}</p>
           </div>
 
-          <div className="bg-card border border-border rounded-lg p-5 hover:shadow-elevated transition-all shadow-card">
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Total Liability
               </p>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </div>
-            <p className="text-3xl font-bold text-foreground">
+            <p className="text-4xl font-bold text-foreground mt-2">
               ${stats.totalLiability.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
 
-          <div className="bg-card border border-border rounded-lg p-5 hover:shadow-elevated transition-all shadow-card">
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Avg States/Analysis
               </p>
               <MapPin className="h-4 w-4 text-muted-foreground" />
             </div>
-            <p className="text-3xl font-bold text-foreground">
+            <p className="text-4xl font-bold text-foreground mt-2">
               {stats.avgStates.toFixed(1)}
             </p>
           </div>
 
-          <div className="bg-card border border-border rounded-lg p-5 hover:shadow-elevated transition-all shadow-card">
+          <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 This Month
               </p>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </div>
-            <p className="text-3xl font-bold text-foreground">{stats.thisMonth}</p>
+            <p className="text-4xl font-bold text-foreground mt-2">{stats.thisMonth}</p>
           </div>
         </div>
 
