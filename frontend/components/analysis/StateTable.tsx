@@ -178,7 +178,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     <div className="bg-card rounded-lg shadow-sm border border-border p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-card-foreground">
+        <h3 className="text-xl font-semibold text-foreground">
           State-by-State Results
         </h3>
         <div className="text-sm text-muted-foreground">

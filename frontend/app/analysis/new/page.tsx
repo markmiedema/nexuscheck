@@ -246,7 +246,7 @@ export default function ClientSetupPage() {
         ]}
       >
         <div className="bg-card rounded-lg shadow-sm border border-border p-8">
-          <h2 className="text-2xl font-bold text-card-foreground mb-6">
+          <h2 className="text-3xl font-bold text-card-foreground mb-6">
             New Nexus Analysis
           </h2>
 
@@ -259,7 +259,7 @@ export default function ClientSetupPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {/* Client Information */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-card-foreground border-b border-border pb-2">
+                <h3 className="text-xl font-semibold text-card-foreground border-b border-border pb-2">
                   Client Information
                 </h3>
 
@@ -283,7 +283,7 @@ export default function ClientSetupPage() {
 
               {/* Business Type */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-card-foreground border-b border-border pb-2">
+                <h3 className="text-xl font-semibold text-card-foreground border-b border-border pb-2">
                   Business Type <span className="text-destructive">*</span>
                 </h3>
 
@@ -338,7 +338,7 @@ export default function ClientSetupPage() {
 
               {/* Known State Registrations */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-card-foreground border-b border-border pb-2">
+                <h3 className="text-xl font-semibold text-card-foreground border-b border-border pb-2">
                   Known State Registrations <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
                 </h3>
 

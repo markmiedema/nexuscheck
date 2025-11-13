@@ -186,7 +186,7 @@ export default function ResultsPage() {
           {/* Header Section */}
           <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-card-foreground">
+              <h2 className="text-3xl font-bold text-card-foreground">
                 {calculationStatus === 'calculated' ? 'Analysis Complete ✓' : 'Data Processed - Ready to Calculate'}
               </h2>
               <span className="text-sm text-muted-foreground">
@@ -209,9 +209,9 @@ export default function ResultsPage() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* States with Nexus */}
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">States w/ Nexus</h3>
-              <div className="text-3xl font-bold text-card-foreground mb-1">
+            <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">States w/ Nexus</h3>
+              <div className="text-4xl font-bold text-foreground mt-2 mb-1">
                 {results ? results.summary.states_with_nexus : '—'}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -220,9 +220,9 @@ export default function ResultsPage() {
             </div>
 
             {/* Estimated Liability */}
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Est. Liability</h3>
-              <div className="text-3xl font-bold text-card-foreground mb-1">
+            <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">Est. Liability</h3>
+              <div className="text-4xl font-bold text-foreground mt-2 mb-1">
                 {results ? `$${(results.summary.total_estimated_liability || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -231,9 +231,9 @@ export default function ResultsPage() {
             </div>
 
             {/* Confidence */}
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Confidence</h3>
-              <div className="text-3xl font-bold text-card-foreground mb-1">
+            <div className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">Confidence</h3>
+              <div className="text-4xl font-bold text-foreground mt-2 mb-1">
                 High
               </div>
               <p className="text-xs text-muted-foreground">Based on data quality</p>
@@ -242,7 +242,7 @@ export default function ResultsPage() {
 
           {/* US Map */}
           <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-6">
-            <h3 className="text-lg font-semibold text-card-foreground mb-4">United States Nexus Map</h3>
+            <h3 className="text-xl font-semibold text-foreground mb-4">United States Nexus Map</h3>
             {calculationStatus === 'calculated' && stateResults.length > 0 ? (
               <>
                 <USMap
@@ -288,7 +288,7 @@ export default function ResultsPage() {
 
           {/* Quick Stats */}
           <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-6">
-            <h3 className="text-lg font-semibold text-card-foreground mb-4">Nexus Breakdown</h3>
+            <h3 className="text-xl font-semibold text-foreground mb-4">Nexus Breakdown</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h4 className="text-sm font-medium text-foreground mb-3">By Type:</h4>
