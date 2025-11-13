@@ -88,25 +88,25 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
         {!vdaEnabled ? (
           // Initial state - prompt to enable VDA
           <div className="space-y-4">
-            <div className="bg-info/10 border border-info/20 rounded-lg p-6">
+            <div className="bg-muted/50 border border-border rounded-lg p-6">
               <h3 className="font-semibold text-foreground mb-2">
                 What is VDA?
               </h3>
               <ul className="space-y-2 text-sm text-foreground">
                 <li className="flex items-start gap-2">
-                  <span className="text-info mt-0.5">✓</span>
+                  <span className="text-success mt-0.5">✓</span>
                   <span><strong>Reduced/Waived Penalties</strong> - Most states waive penalties entirely</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-info mt-0.5">✓</span>
+                  <span className="text-success mt-0.5">✓</span>
                   <span><strong>Limited Lookback</strong> - 3-4 years vs. unlimited audit period</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-info mt-0.5">✓</span>
+                  <span className="text-success mt-0.5">✓</span>
                   <span><strong>No Criminal Liability</strong> - Protection from fraud prosecution</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-info mt-0.5">✓</span>
+                  <span className="text-success mt-0.5">✓</span>
                   <span><strong>Reduced Interest</strong> - Some states offer interest reductions</span>
                 </li>
               </ul>
