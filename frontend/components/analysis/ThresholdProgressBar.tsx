@@ -41,26 +41,26 @@ export function ThresholdProgressBar({
   const getStatusColor = () => {
     switch (status) {
       case 'safe':
-        return 'bg-green-500';
+        return 'bg-success';
       case 'approaching':
-        return 'bg-yellow-500';
+        return 'bg-warning';
       case 'exceeded':
-        return 'bg-red-500';
+        return 'bg-destructive';
       default:
-        return 'bg-green-500';
+        return 'bg-success';
     }
   };
 
   const getStatusText = () => {
     switch (status) {
       case 'safe':
-        return 'text-green-700';
+        return 'text-success-foreground';
       case 'approaching':
-        return 'text-yellow-700';
+        return 'text-warning-foreground';
       case 'exceeded':
-        return 'text-red-700';
+        return 'text-destructive-foreground';
       default:
-        return 'text-green-700';
+        return 'text-success-foreground';
     }
   };
 
@@ -124,8 +124,8 @@ export function ThresholdProgressBar({
 
       {/* Status Message */}
       {status === 'approaching' && (
-        <div className="rounded-md bg-yellow-50 border border-yellow-200 p-3">
-          <p className="text-sm text-yellow-800">
+        <div className="rounded-md bg-warning/10 border border-warning/20 p-3">
+          <p className="text-sm text-warning-foreground">
             You are approaching the nexus threshold. With just{' '}
             <span className="font-semibold">{formatCurrency(remaining)}</span>{' '}
             more in sales, you will need to register and collect tax.
@@ -134,8 +134,8 @@ export function ThresholdProgressBar({
       )}
 
       {status === 'exceeded' && (
-        <div className="rounded-md bg-red-50 border border-red-200 p-3">
-          <p className="text-sm text-red-800">
+        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3">
+          <p className="text-sm text-destructive-foreground">
             {isStickyNexus ? (
               <>
                 Nexus continues from <span className="font-semibold">{firstNexusYear}</span>.

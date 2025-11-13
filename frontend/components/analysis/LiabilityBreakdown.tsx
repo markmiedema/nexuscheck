@@ -127,7 +127,7 @@ export function LiabilityBreakdown({
               <>
                 <div className="flex justify-between items-center py-2 border-b border-border">
                   <span className="text-muted-foreground">+ Penalties</span>
-                  <span className="font-mono font-semibold text-red-600 dark:text-red-400">
+                  <span className="font-mono font-semibold text-destructive-foreground">
                     {formatCurrency(penalties)}
                   </span>
                 </div>
@@ -155,7 +155,7 @@ export function LiabilityBreakdown({
           </div>
 
           {/* Disclaimer */}
-          <div className="text-xs text-muted-foreground italic mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded">
+          <div className="text-xs text-muted-foreground italic mt-4 p-3 bg-warning/10 border border-warning/20 rounded">
             <strong>Note:</strong> This is an estimated liability based on
             aggregate sales data. Actual liability may vary based on specific
             transaction details, exemptions, and local tax jurisdictions.

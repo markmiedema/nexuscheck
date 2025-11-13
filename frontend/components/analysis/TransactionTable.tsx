@@ -230,7 +230,7 @@ export default function TransactionTable({
           {/* Filters */}
           <div className="mb-4 flex gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search by Transaction ID..."
                 value={searchTerm}
@@ -293,7 +293,7 @@ export default function TransactionTable({
                         key={transaction.transaction_id}
                         className={
                           isThresholdCrossing
-                            ? 'bg-yellow-50 border-l-4 border-l-yellow-500'
+                            ? 'bg-warning/10 border-l-4 border-l-warning'
                             : ''
                         }
                       >
@@ -328,7 +328,7 @@ export default function TransactionTable({
 
           {/* Pagination */}
           <div className="mt-4 flex items-center justify-between">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               Showing {paginatedTransactions.length === 0 ? 0 : (currentPage - 1) * (itemsPerPage === -1 ? filteredAndSortedTransactions.length : itemsPerPage) + 1} to{' '}
               {itemsPerPage === -1
                 ? filteredAndSortedTransactions.length
@@ -338,7 +338,7 @@ export default function TransactionTable({
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Items per page:</span>
+                <span className="text-sm text-muted-foreground">Items per page:</span>
                 <div className="flex gap-1">
                   {[10, 25, 50].map((value) => (
                     <Button
@@ -370,7 +370,7 @@ export default function TransactionTable({
                   >
                     Previous
                   </Button>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground">
                     Page {currentPage} of {totalPages}
                   </span>
                   <Button
