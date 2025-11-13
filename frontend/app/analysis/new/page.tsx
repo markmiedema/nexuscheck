@@ -272,7 +272,7 @@ export default function ClientSetupPage() {
                     {...register('companyName')}
                     type="text"
                     id="companyName"
-                    className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-ring focus:border-ring"
+                    className="w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                     placeholder="Enter company name"
                   />
                   {errors.companyName && (
@@ -288,12 +288,12 @@ export default function ClientSetupPage() {
                 </h3>
 
                 <div className="space-y-3">
-                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer">
+                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
                     <input
                       {...register('businessType')}
                       type="radio"
                       value="product_sales"
-                      className="h-4 w-4 text-primary focus:ring-ring border-input"
+                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
                     />
                     <span className="ml-3">
                       <span className="block text-sm font-medium text-foreground">
@@ -302,12 +302,12 @@ export default function ClientSetupPage() {
                     </span>
                   </label>
 
-                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer">
+                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
                     <input
                       {...register('businessType')}
                       type="radio"
                       value="digital_products"
-                      className="h-4 w-4 text-primary focus:ring-ring border-input"
+                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
                     />
                     <span className="ml-3">
                       <span className="block text-sm font-medium text-foreground">
@@ -316,12 +316,12 @@ export default function ClientSetupPage() {
                     </span>
                   </label>
 
-                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer">
+                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
                     <input
                       {...register('businessType')}
                       type="radio"
                       value="mixed"
-                      className="h-4 w-4 text-primary focus:ring-ring border-input"
+                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
                     />
                     <span className="ml-3">
                       <span className="block text-sm font-medium text-foreground">
@@ -355,7 +355,7 @@ export default function ClientSetupPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveState(reg.id)}
-                          className="text-sm text-destructive hover:text-destructive/80"
+                          className="text-sm text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium"
                         >
                           Remove
                         </button>
@@ -368,7 +368,7 @@ export default function ClientSetupPage() {
                   <button
                     type="button"
                     onClick={() => setShowAddState(true)}
-                    className="text-sm text-primary hover:text-primary/80 font-medium"
+                    className="text-sm text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium inline-flex items-center gap-1"
                   >
                     + Add State
                   </button>
@@ -384,7 +384,7 @@ export default function ClientSetupPage() {
                           maxLength={2}
                           value={newState.stateCode}
                           onChange={(e) => setNewState({ ...newState, stateCode: e.target.value.toUpperCase() })}
-                          className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-ring focus:border-ring"
+                          className="w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                           placeholder="CA"
                         />
                       </div>
@@ -396,7 +396,7 @@ export default function ClientSetupPage() {
                           type="date"
                           value={newState.registrationDate}
                           onChange={(e) => setNewState({ ...newState, registrationDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-ring focus:border-ring"
+                          className="w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                         />
                       </div>
                     </div>
@@ -404,7 +404,7 @@ export default function ClientSetupPage() {
                       <button
                         type="button"
                         onClick={handleAddState}
-                        className="px-3 py-1.5 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90"
+                        className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg shadow-sm hover:shadow-md hover:bg-primary/90 transition-all active:scale-95"
                       >
                         Add
                       </button>
@@ -414,7 +414,7 @@ export default function ClientSetupPage() {
                           setShowAddState(false)
                           setNewState({ stateCode: '', registrationDate: '' })
                         }}
-                        className="px-3 py-1.5 bg-secondary text-secondary-foreground text-sm rounded-md hover:bg-secondary/90"
+                        className="px-4 py-2 bg-secondary text-secondary-foreground text-sm rounded-lg border border-border hover:bg-secondary/80 transition-colors"
                       >
                         Cancel
                       </button>
@@ -432,7 +432,7 @@ export default function ClientSetupPage() {
                   {...register('notes')}
                   id="notes"
                   rows={4}
-                  className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
+                  className="w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
                   placeholder="Add any internal notes about this analysis..."
                 />
               </div>
