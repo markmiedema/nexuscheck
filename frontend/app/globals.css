@@ -72,49 +72,49 @@
   }
 
   .dark {
-    /* ===== SEMANTIC TOKENS - Dark Mode (Sophisticated Layering) ===== */
-    /* Visual hierarchy: slate-800 (bg) → slate-700 (card) → slate-600 (input) → slate-500 (hover) */
-    /* Using HSL for guaranteed browser rendering */
+    /* ===== SEMANTIC TOKENS - Dark Mode (FINAL CONFIGURATION) ===== */
+    /* Using EXACT converted HSL values for Tailwind slate colors */
+    /* Visual hierarchy: slate-900 (17.5%) → slate-700 (26.7%) → slate-600 (34.5%) → slate-500 (46.9%) */
 
-    /* Background Layer - slate-800 (DARKEST ALLOWED) */
-    --background: 222 47% 11%;                    /* Slate-800: #1e293b */
-    --foreground: 210 40% 98%;                    /* Slate-50: #f8fafc */
+    /* Background Layer - slate-900 (DARKEST) */
+    --background: 217.2 32.6% 17.5%;              /* Slate-900 */
+    --foreground: 210 40% 98%;                    /* Slate-50 */
 
-    /* Surface/Card Layer - slate-700 */
-    --card: 215 25% 27%;                          /* Slate-700: #334155 */
+    /* Surface/Card Layer - slate-700 (+9.2% lightness from bg) */
+    --card: 215.3 25% 26.7%;                      /* Slate-700 */
     --card-foreground: 210 40% 98%;               /* Slate-50 */
 
     /* Popovers & Dropdowns */
-    --popover: 215 25% 27%;                       /* Slate-700 */
+    --popover: 215.3 25% 26.7%;                   /* Slate-700 */
     --popover-foreground: 210 40% 98%;            /* Slate-50 */
 
     /* Primary Interactive - High Contrast CTA */
     --primary: 210 40% 98%;                       /* Slate-50: Brightest */
-    --primary-foreground: 222 47% 11%;            /* Slate-800: Dark text */
+    --primary-foreground: 217.2 32.6% 17.5%;      /* Slate-900: Dark text */
 
     /* Secondary Interactive */
-    --secondary: 215 20% 40%;                     /* Slate-500: #64748b */
+    --secondary: 215.4 16.3% 46.9%;               /* Slate-500 */
     --secondary-foreground: 210 40% 98%;          /* Slate-50 */
 
     /* Muted/Disabled States */
-    --muted: 215 20% 40%;                         /* Slate-500 */
-    --muted-foreground: 215 16% 47%;              /* Slate-400: #94a3b8 */
+    --muted: 215.4 16.3% 46.9%;                   /* Slate-500 */
+    --muted-foreground: 215 20.2% 65.1%;          /* Slate-400 */
 
     /* Accent (Hover States) */
-    --accent: 215 20% 40%;                        /* Slate-500 */
+    --accent: 215.4 16.3% 46.9%;                  /* Slate-500 */
     --accent-foreground: 210 40% 98%;             /* Slate-50 */
 
     /* Destructive */
     --destructive: 0 62.8% 50%;                   /* Red */
     --destructive-foreground: 210 40% 98%;        /* Slate-50 */
 
-    /* Input Layer - slate-600 (lighter than cards) */
-    --input: 215 21% 36%;                         /* Slate-600: #475569 */
-    --input-border: 215 20% 40%;                  /* Slate-500 */
+    /* Input Layer - slate-600 (+7.8% lightness from cards) */
+    --input: 215.3 19.3% 34.5%;                   /* Slate-600 */
+    --input-border: 215.4 16.3% 46.9%;            /* Slate-500 */
 
-    /* Borders */
-    --border: 215 20% 40%;                        /* Slate-500 */
-    --ring: 215 16% 47%;                          /* Slate-400 */
+    /* Borders - slate-500 */
+    --border: 215.4 16.3% 46.9%;                  /* Slate-500 */
+    --ring: 215 20.2% 65.1%;                      /* Slate-400 */
 
     /* Success State */
     --success: oklch(0.65 0.15 155);              /* Brighter green for dark backgrounds */
