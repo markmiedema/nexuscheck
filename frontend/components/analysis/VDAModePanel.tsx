@@ -45,8 +45,8 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
       <Card>
         <CardContent className="py-6">
           <div className="flex items-center justify-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-            <p className="ml-4 text-gray-600 dark:text-gray-400">Loading VDA status...</p>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="ml-4 text-muted-foreground">Loading VDA status...</p>
           </div>
         </CardContent>
       </Card>
@@ -63,12 +63,12 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
   }
 
   return (
-    <Card className="border-l-4 border-l-purple-500">
+    <Card className="border-l-4 border-l-info">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5 text-purple-600" />
+              <Calculator className="h-5 w-5 text-info-foreground" />
               VDA Mode - Voluntary Disclosure Agreement
             </CardTitle>
             <CardDescription className="mt-2">
@@ -77,7 +77,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
             </CardDescription>
           </div>
           {vdaEnabled && (
-            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
+            <Badge variant="outline" className="bg-info/10 text-info-foreground border-info/20">
               Active
             </Badge>
           )}
@@ -88,25 +88,25 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
         {!vdaEnabled ? (
           // Initial state - prompt to enable VDA
           <div className="space-y-4">
-            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-6">
-              <h3 className="font-semibold text-purple-900 dark:text-purple-200 mb-2">
+            <div className="bg-info/10 border border-info/20 rounded-lg p-6">
+              <h3 className="font-semibold text-info-foreground mb-2">
                 What is VDA?
               </h3>
-              <ul className="space-y-2 text-sm text-purple-800 dark:text-purple-300">
+              <ul className="space-y-2 text-sm text-info-foreground">
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-0.5">✓</span>
+                  <span className="text-info-foreground mt-0.5">✓</span>
                   <span><strong>Reduced/Waived Penalties</strong> - Most states waive penalties entirely</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-0.5">✓</span>
+                  <span className="text-info-foreground mt-0.5">✓</span>
                   <span><strong>Limited Lookback</strong> - 3-4 years vs. unlimited audit period</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-0.5">✓</span>
+                  <span className="text-info-foreground mt-0.5">✓</span>
                   <span><strong>No Criminal Liability</strong> - Protection from fraud prosecution</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-600 mt-0.5">✓</span>
+                  <span className="text-info-foreground mt-0.5">✓</span>
                   <span><strong>Reduced Interest</strong> - Some states offer interest reductions</span>
                 </li>
               </ul>
@@ -114,7 +114,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
 
             <Button
               onClick={() => setVdaScopeOpen(true)}
-              className="w-full bg-purple-600 hover:bg-purple-700"
+              className="w-full bg-info hover:opacity-90"
             >
               <Calculator className="mr-2 h-4 w-4" />
               Enable VDA Mode
@@ -126,32 +126,32 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
             {/* Savings Summary */}
             {vdaResults && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                  <div className="text-sm font-medium text-red-600 dark:text-red-400 mb-1">
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                  <div className="text-sm font-medium text-destructive-foreground mb-1">
                     Before VDA
                   </div>
-                  <div className="text-2xl font-bold text-red-900 dark:text-red-200">
+                  <div className="text-2xl font-bold text-destructive-foreground">
                     {formatCurrency(vdaResults.before_vda)}
                   </div>
                 </div>
 
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                  <div className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">
+                <div className="bg-success/10 border border-success/20 rounded-lg p-4">
+                  <div className="text-sm font-medium text-success-foreground mb-1">
                     With VDA
                   </div>
-                  <div className="text-2xl font-bold text-green-900 dark:text-green-200">
+                  <div className="text-2xl font-bold text-success-foreground">
                     {formatCurrency(vdaResults.with_vda)}
                   </div>
                 </div>
 
-                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
-                  <div className="text-sm font-medium text-purple-600 dark:text-purple-400 mb-1">
+                <div className="bg-info/10 border border-info/20 rounded-lg p-4">
+                  <div className="text-sm font-medium text-info-foreground mb-1">
                     Total Savings
                   </div>
-                  <div className="text-2xl font-bold text-purple-900 dark:text-purple-200">
+                  <div className="text-2xl font-bold text-info-foreground">
                     {formatCurrency(vdaResults.total_savings)}
                   </div>
-                  <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                  <div className="text-xs text-info-foreground mt-1">
                     {vdaResults.savings_percentage.toFixed(1)}% reduction
                   </div>
                 </div>
@@ -160,8 +160,8 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
 
             {/* Pie Chart - Exposure Breakdown */}
             {vdaResults && pieData && pieData.length > 0 && (
-              <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              <div className="bg-muted/50 border border-border rounded-lg p-6">
+                <h3 className="font-semibold text-card-foreground mb-4">
                   Liability Breakdown (With VDA)
                 </h3>
                 <ResponsiveContainer width="100%" height={300}>
@@ -223,60 +223,60 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
 
             {/* Top States Breakdown */}
             {vdaResults && vdaResults.state_breakdown.length > 0 && (
-              <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              <div className="bg-muted/50 border border-border rounded-lg p-6">
+                <h3 className="font-semibold text-card-foreground mb-4">
                   Top States by Savings
                 </h3>
                 <div className="space-y-2">
                   {vdaResults.state_breakdown.slice(0, 5).map((state) => (
                     <div
                       key={state.state_code}
-                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                      className="border border-border rounded-lg p-4 hover:bg-card transition-colors"
                     >
                       <button
                         onClick={() => toggleTopKey(state.state_code)}
                         className="w-full flex items-center justify-between text-left"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="font-semibold text-gray-900 dark:text-gray-100">
+                          <span className="font-semibold text-card-foreground">
                             {state.state_name}
                           </span>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                          <span className="text-sm text-muted-foreground">
                             ({state.state_code})
                           </span>
                         </div>
                         <div className="flex items-center gap-4">
-                          <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                          <span className="text-lg font-bold text-info-foreground">
                             {formatCurrency(state.savings)}
                           </span>
                           {openTopKey === state.state_code ? (
-                            <ChevronUp className="h-4 w-4 text-gray-400" />
+                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
                           ) : (
-                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
                           )}
                         </div>
                       </button>
 
                       {openTopKey === state.state_code && (
-                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2 text-sm">
+                        <div className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-gray-400">Before VDA:</span>
+                            <span className="text-muted-foreground">Before VDA:</span>
                             <span className="font-medium">{formatCurrency(state.before_vda)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-gray-400">With VDA:</span>
+                            <span className="text-muted-foreground">With VDA:</span>
                             <span className="font-medium">{formatCurrency(state.with_vda)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-gray-400">Penalties Waived:</span>
-                            <span className="font-medium text-green-600 dark:text-green-400">
+                            <span className="text-muted-foreground">Penalties Waived:</span>
+                            <span className="font-medium text-success-foreground">
                               {formatCurrency(state.penalty_waived)}
                             </span>
                           </div>
                           {state.interest_waived > 0 && (
                             <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">Interest Waived:</span>
-                              <span className="font-medium text-green-600 dark:text-green-400">
+                              <span className="text-muted-foreground">Interest Waived:</span>
+                              <span className="font-medium text-success-foreground">
                                 {formatCurrency(state.interest_waived)}
                               </span>
                             </div>
@@ -313,12 +313,12 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
         {/* State Selector Modal/Panel */}
         {vdaScopeOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <div className="bg-card rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="p-6 border-b border-border">
+                <h3 className="text-lg font-semibold text-card-foreground">
                   Select States for VDA
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Choose which states to include in voluntary disclosure
                 </p>
               </div>
@@ -343,7 +343,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                   </Button>
                 </div>
 
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   {selectedStates.length} state{selectedStates.length !== 1 ? 's' : ''} selected
                 </div>
 
@@ -352,7 +352,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                   {statesWithNexus.map((state) => (
                     <div
                       key={state.state_code}
-                      className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer"
+                      className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-accent cursor-pointer"
                       onClick={() => toggleState(state.state_code)}
                     >
                       <Checkbox
@@ -361,10 +361,10 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                        <div className="font-medium text-card-foreground">
                           {state.state_name} ({state.state_code})
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                        <div className="text-sm text-muted-foreground">
                           Liability: {formatCurrency(state.estimated_liability)}
                         </div>
                       </div>
@@ -373,7 +373,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                 </div>
               </div>
 
-              <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+              <div className="p-6 border-t border-border flex gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setVdaScopeOpen(false)}
@@ -387,7 +387,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                     setVdaScopeOpen(false)
                   }}
                   disabled={calculating || selectedStates.length === 0}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  className="flex-1 bg-info hover:opacity-90"
                 >
                   {calculating ? (
                     <>
