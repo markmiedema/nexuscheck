@@ -320,38 +320,38 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                           }}
                         />
                         <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border"
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border dark:border-opacity-40"
                           style={{
                             backgroundColor:
                               state.nexus_type === 'both'
-                                ? 'hsl(289 46% 45% / 0.1)'
+                                ? 'hsl(289 46% 45% / 0.15)'
                                 : state.nexus_type === 'physical'
-                                ? 'hsl(217 32.6% 45% / 0.1)'
+                                ? 'hsl(217 32.6% 45% / 0.15)'
                                 : state.nexus_type === 'economic'
-                                ? 'hsl(0 60% 45% / 0.1)'
+                                ? 'hsl(0 60% 45% / 0.15)'
                                 : state.nexus_status === 'approaching'
-                                ? 'hsl(38 92% 50% / 0.1)'
-                                : 'hsl(142 71% 40% / 0.1)',
+                                ? 'hsl(38 92% 50% / 0.15)'
+                                : 'hsl(142 71% 40% / 0.15)',
                             color:
                               state.nexus_type === 'both'
-                                ? 'hsl(289 46% 35%)'
+                                ? 'hsl(289 46% 70%)'
                                 : state.nexus_type === 'physical'
-                                ? 'hsl(217 32.6% 35%)'
+                                ? 'hsl(217 32.6% 70%)'
                                 : state.nexus_type === 'economic'
-                                ? 'hsl(0 60% 35%)'
+                                ? 'hsl(0 60% 70%)'
                                 : state.nexus_status === 'approaching'
-                                ? 'hsl(38 92% 35%)'
-                                : 'hsl(142 71% 30%)',
+                                ? 'hsl(38 92% 65%)'
+                                : 'hsl(142 71% 65%)',
                             borderColor:
                               state.nexus_type === 'both'
-                                ? 'hsl(289 46% 45% / 0.2)'
+                                ? 'hsl(289 46% 45% / 0.3)'
                                 : state.nexus_type === 'physical'
-                                ? 'hsl(217 32.6% 45% / 0.2)'
+                                ? 'hsl(217 32.6% 45% / 0.3)'
                                 : state.nexus_type === 'economic'
-                                ? 'hsl(0 60% 45% / 0.2)'
+                                ? 'hsl(0 60% 45% / 0.3)'
                                 : state.nexus_status === 'approaching'
-                                ? 'hsl(38 92% 50% / 0.2)'
-                                : 'hsl(142 71% 40% / 0.2)'
+                                ? 'hsl(38 92% 50% / 0.3)'
+                                : 'hsl(142 71% 40% / 0.3)'
                           }}
                         >
                           {state.nexus_type === 'both'
