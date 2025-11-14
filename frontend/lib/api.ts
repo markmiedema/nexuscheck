@@ -24,14 +24,23 @@ export interface YearData {
   obligation_start_date?: string // V2: Date when tax obligation begins
   first_nexus_year?: number // V2: Year when nexus was first established (for sticky nexus)
   summary: {
-    total_sales: number
+    total_sales: number  // Gross sales (backward compat)
+    gross_sales: number  // Explicit gross sales
     transaction_count: number
     direct_sales: number
     marketplace_sales: number
-    taxable_sales: number
-    exposure_sales: number
+    taxable_sales: number  // All taxable sales for year
+    exposure_sales: number  // Taxable sales during obligation
+    exempt_sales: number   // Exempt sales (informational)
     estimated_liability: number
     base_tax: number
+    interest?: number
+    penalties?: number
+    // Metadata
+    interest_rate?: number
+    interest_method?: string
+    days_outstanding?: number
+    penalty_rate?: number
   }
   threshold_info: {
     revenue_threshold: number | null
