@@ -7,6 +7,8 @@ interface SummaryCardsProps {
   transactionCount: number;
   directSales: number;
   marketplaceSales: number;
+  taxableSales?: number;
+  exemptSales?: number;
 }
 
 export function SummaryCards({
@@ -14,6 +16,8 @@ export function SummaryCards({
   transactionCount,
   directSales,
   marketplaceSales,
+  taxableSales,
+  exemptSales,
 }: SummaryCardsProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -26,24 +30,24 @@ export function SummaryCards({
 
   const cards = [
     {
-      label: 'Total Sales',
+      label: 'Gross Sales',
       value: formatCurrency(totalSales),
-      description: 'All sales in this state',
+      description: 'Total revenue (for nexus)',
+    },
+    {
+      label: 'Taxable Sales',
+      value: formatCurrency(taxableSales ?? totalSales),
+      description: 'Subject to tax (for liability)',
+    },
+    {
+      label: 'Exempt Sales',
+      value: formatCurrency(exemptSales ?? 0),
+      description: 'Tax-exempt portion',
     },
     {
       label: 'Transactions',
       value: transactionCount.toLocaleString(),
       description: 'Number of transactions',
-    },
-    {
-      label: 'Direct Sales',
-      value: formatCurrency(directSales),
-      description: 'Sales channel: direct',
-    },
-    {
-      label: 'Marketplace Sales',
-      value: formatCurrency(marketplaceSales),
-      description: 'Sales channel: marketplace',
     },
   ];
 

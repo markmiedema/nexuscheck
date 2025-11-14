@@ -274,6 +274,16 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
               ? data.year_data.reduce((sum, yr) => sum + yr.summary.marketplace_sales, 0)
               : yearData?.summary.marketplace_sales || 0
           }
+          taxableSales={
+            isAllYearsView
+              ? data.year_data.reduce((sum, yr) => sum + (yr.summary.taxable_sales || 0), 0)
+              : yearData?.summary.taxable_sales || 0
+          }
+          exemptSales={
+            isAllYearsView
+              ? data.year_data.reduce((sum, yr) => sum + (yr.summary.exempt_sales || 0), 0)
+              : yearData?.summary.exempt_sales || 0
+          }
         />
       )}
 
