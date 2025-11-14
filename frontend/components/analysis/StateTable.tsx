@@ -51,6 +51,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { SkeletonTable } from '@/components/ui/skeleton-table'
 
 interface StateTableProps {
   analysisId: string
@@ -176,14 +177,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">Loading state results...</p>
-        </div>
-      </div>
-    )
+    return <SkeletonTable rows={10} columns={9} />
   }
 
   if (error) {

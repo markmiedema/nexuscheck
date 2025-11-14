@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SkeletonTable } from '@/components/ui/skeleton-table'
 import { TabsCustom } from '@/components/ui/tabs-custom'
 import {
   Eye,
@@ -221,13 +222,7 @@ export default function AnalysesPage() {
     const filteredData = getFilteredAnalyses(statusFilter)
 
     if (loading) {
-      return (
-        <div className="p-6 space-y-2">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-16 w-full" />
-          ))}
-        </div>
-      )
+      return <SkeletonTable rows={8} columns={7} />
     }
 
     if (filteredData.length === 0) {
