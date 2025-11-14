@@ -367,22 +367,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                       ) : '-'}
                     </TableCell>
                     <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
-                      <div className="flex items-center justify-center gap-2">
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{
-                            backgroundColor:
-                              state.nexus_type === 'both'
-                                ? 'hsl(289 46% 45%)'
-                                : state.nexus_type === 'physical'
-                                ? 'hsl(217 32.6% 45%)'
-                                : state.nexus_type === 'economic'
-                                ? 'hsl(0 60% 45%)'
-                                : state.nexus_status === 'approaching'
-                                ? 'hsl(38 92% 50%)'
-                                : 'hsl(142 71% 40%)'
-                          }}
-                        />
+                      <div className="flex items-center justify-center">
                         <span
                           className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border"
                           style={{
