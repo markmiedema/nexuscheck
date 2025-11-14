@@ -1417,6 +1417,8 @@ async def get_state_results(
             total_liability_all_years = sum(float(r.get('estimated_liability', 0)) for r in year_results)
             direct_sales_all_years = sum(float(r.get('direct_sales', 0)) for r in year_results)
             marketplace_sales_all_years = sum(float(r.get('marketplace_sales', 0)) for r in year_results)
+            exempt_sales_all_years = sum(float(r.get('exempt_sales', 0)) for r in year_results)
+            taxable_sales_all_years = sum(float(r.get('taxable_sales', 0)) for r in year_results)
 
             # Use the most recent year's data for threshold and nexus status
             latest_year_result = year_results_sorted[-1]
@@ -1467,6 +1469,8 @@ async def get_state_results(
                 'nexus_status': nexus_status,
                 'nexus_type': nexus_type,
                 'total_sales': total_sales_all_years,
+                'exempt_sales': exempt_sales_all_years,
+                'taxable_sales': taxable_sales_all_years,
                 'direct_sales': direct_sales_all_years,
                 'marketplace_sales': marketplace_sales_all_years,
                 'threshold': float(threshold),
