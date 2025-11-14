@@ -1,5 +1,6 @@
 """Service for auto-detecting column mappings from CSV headers"""
 from typing import Dict, List, Optional
+from datetime import datetime
 
 # State name to code mapping for normalization
 STATE_NAME_MAPPING = {
@@ -23,6 +24,17 @@ STATE_NAME_MAPPING = {
     'd.c.': 'DC', 'wash': 'WA', 'calif': 'CA', 'mass': 'MA', 'penn': 'PA',
     'conn': 'CT', 'miss': 'MS', 'tenn': 'TN', 'wash.': 'WA', 'calif.': 'CA'
 }
+
+# Date formats to try (in order of preference)
+DATE_FORMATS = [
+    '%Y-%m-%d',      # 2024-01-15 (ISO, preferred)
+    '%m/%d/%Y',      # 01/15/2024 (US common)
+    '%d/%m/%Y',      # 15/01/2024 (EU common)
+    '%Y/%m/%d',      # 2024/01/15
+    '%m-%d-%Y',      # 01-15-2024
+    '%d-%m-%Y',      # 15-01-2024
+    '%b %d, %Y',     # Jan 15, 2024
+]
 
 
 class ColumnDetector:
@@ -354,58 +366,38 @@ class ColumnDetector:
         return value.strip().upper()
 
     @staticmethod
-    def normalize_date(value: Optional[str]) -> Optional[str]:
+    def normalize_date(value) -> str:
         """
-        Normalize dates to YYYY-MM-DD format.
+        Normalize date value to YYYY-MM-DD format.
 
-        Tries multiple common formats:
-        - MM/DD/YYYY, MM-DD-YYYY
-        - YYYY-MM-DD, YYYY/MM/DD
-        - DD/MM/YYYY
-        - MM/DD/YY
-        - YYYYMMDD
-
-        Args:
-            value: Raw date string from CSV
-
-        Returns:
-            Date string in YYYY-MM-DD format or None if parsing fails
+        Tries multiple date formats in order.
+        Returns ISO format (YYYY-MM-DD) or raises ValueError.
         """
         import pandas as pd
-        from datetime import datetime
 
-        if not value or str(value).strip() == '':
-            return None
+        if pd.isna(value):
+            raise ValueError("Date value is NaN")
 
-        val_str = str(value).strip()
+        # Already a datetime object?
+        if isinstance(value, (datetime, pd.Timestamp)):
+            return value.strftime('%Y-%m-%d')
 
-        # Common date formats to try (in order of likelihood)
-        formats = [
-            '%m/%d/%Y',      # 01/15/2024 (US common)
-            '%Y-%m-%d',      # 2024-01-15 (ISO standard)
-            '%m-%d-%Y',      # 01-15-2024
-            '%Y/%m/%d',      # 2024/01/15
-            '%d/%m/%Y',      # 15/01/2024 (European)
-            '%m/%d/%y',      # 01/15/24
-            '%Y%m%d',        # 20240115
-            '%m.%d.%Y',      # 01.15.2024
-            '%d-%m-%Y',      # 15-01-2024
-            '%d.%m.%Y',      # 15.01.2024
-        ]
+        # String - try parsing with multiple formats
+        if isinstance(value, str):
+            value = value.strip()
 
-        for fmt in formats:
-            try:
-                parsed_date = datetime.strptime(val_str, fmt)
-                return parsed_date.strftime('%Y-%m-%d')
-            except ValueError:
-                continue
+            # Try each format
+            for fmt in DATE_FORMATS:
+                try:
+                    parsed = datetime.strptime(value, fmt)
+                    return parsed.strftime('%Y-%m-%d')
+                except ValueError:
+                    continue
 
-        # If all fail, try pandas auto-detection as last resort
-        try:
-            parsed_date = pd.to_datetime(val_str, errors='raise')
-            return parsed_date.strftime('%Y-%m-%d')
-        except:
-            return None  # Could not parse
+            # No format worked
+            raise ValueError(f"Could not parse date: {value}")
+
+        raise ValueError(f"Unexpected date type: {type(value)}")
 
     @staticmethod
     def normalize_sales_channel(value: Optional[str]) -> str:
@@ -536,19 +528,31 @@ class ColumnDetector:
         reverse_mapping = {v: k for k, v in mappings.items()}
         df = df.rename(columns=reverse_mapping)
 
-        # 1. Normalize dates
-        if 'transaction_date' in df.columns:
-            original_count = df['transaction_date'].notna().sum()
-            df['transaction_date'] = df['transaction_date'].apply(self.normalize_date)
-            normalized_count = df['transaction_date'].notna().sum()
+        # Track validation errors
+        validation_errors = []
 
-            if normalized_count < original_count:
+        # 1. Normalize dates with error tracking
+        if 'transaction_date' in df.columns:
+            date_col = 'transaction_date'
+            for idx, value in enumerate(df[date_col]):
+                try:
+                    df.at[idx, date_col] = self.normalize_date(value)
+                except ValueError as e:
+                    validation_errors.append(f"Row {idx + 2}: {str(e)}")
+                    df.at[idx, date_col] = None
+
+            # If too many errors, raise exception
+            if len(validation_errors) > len(df) * 0.1:  # More than 10% invalid
+                raise ValueError(f"Too many date parsing errors:\n" + "\n".join(validation_errors[:10]))
+
+            transformations.append('Normalized dates to YYYY-MM-DD format')
+
+            if len(validation_errors) > 0:
                 warnings.append({
                     'field': 'transaction_date',
-                    'message': f'{original_count - normalized_count} dates could not be parsed and were set to null',
-                    'count': original_count - normalized_count
+                    'message': f'{len(validation_errors)} dates could not be parsed and were set to null',
+                    'count': len(validation_errors)
                 })
-            transformations.append('Normalized dates to YYYY-MM-DD format')
 
         # 2. Normalize state codes
         if 'customer_state' in df.columns:
