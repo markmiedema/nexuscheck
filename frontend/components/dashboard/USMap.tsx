@@ -190,30 +190,6 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
         </Geographies>
       </ComposableMap>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 mt-4 justify-center">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(289 46% 45%)' }} />
-          <span className="text-sm text-foreground">Physical + Economic</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(217 32.6% 45%)' }} />
-          <span className="text-sm text-foreground">Physical Only</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(0 60% 45%)' }} />
-          <span className="text-sm text-foreground">Economic Only</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(38 92% 50%)' }} />
-          <span className="text-sm text-foreground">Approaching</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(142 71% 40%)' }} />
-          <span className="text-sm text-foreground">No Nexus</span>
-        </div>
-      </div>
-
       {/* Tooltip */}
       {hoveredState && (
         <div
