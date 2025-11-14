@@ -339,16 +339,37 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
         />
       )}
 
-      {/* Transaction Table - only show for individual years */}
-      {!isAllYearsView && data.has_transactions && yearData && yearData.transactions.length > 0 && (
-        <TransactionTable
-          transactions={yearData.transactions}
-          threshold={yearData.threshold_info.revenue_threshold || undefined}
-          initiallyExpanded={false}
-          stateCode={data.state_code}
-          year={yearData.year}
-        />
-      )}
+      {/* Transaction Table - show for both individual years and All Years */}
+      {data.has_transactions && (() => {
+        if (isAllYearsView) {
+          // Aggregate all transactions from all years
+          const allTransactions = data.year_data.flatMap(yr => yr.transactions || [])
+          if (allTransactions.length === 0) return null
+
+          return (
+            <TransactionTable
+              transactions={allTransactions}
+              threshold={undefined} // No threshold for aggregate view
+              initiallyExpanded={false}
+              stateCode={data.state_code}
+              year={undefined} // Show "All Years" in filename
+            />
+          )
+        } else {
+          // Individual year view
+          if (!yearData || yearData.transactions.length === 0) return null
+
+          return (
+            <TransactionTable
+              transactions={yearData.transactions}
+              threshold={yearData.threshold_info.revenue_threshold || undefined}
+              initiallyExpanded={false}
+              stateCode={data.state_code}
+              year={yearData.year}
+            />
+          )
+        }
+      })()}
 
       {/* All Years Summary - show year breakdown when in aggregate view */}
       {isAllYearsView && data.has_transactions && (

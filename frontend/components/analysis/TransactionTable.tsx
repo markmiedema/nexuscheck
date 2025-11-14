@@ -42,7 +42,7 @@ interface TransactionTableProps {
   threshold?: number
   initiallyExpanded?: boolean
   stateCode?: string
-  year?: number
+  year?: number // undefined = "All Years"
 }
 
 type SortField = 'date' | 'amount'
@@ -53,7 +53,7 @@ export default function TransactionTable({
   threshold,
   initiallyExpanded = false,
   stateCode = 'STATE',
-  year = new Date().getFullYear(),
+  year, // Can be undefined for "All Years"
 }: TransactionTableProps) {
   // State management
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded)
@@ -160,8 +160,9 @@ export default function TransactionTable({
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
+    const filename = year ? `${stateCode}_${year}_transactions.csv` : `${stateCode}_all_years_transactions.csv`
     link.setAttribute('href', url)
-    link.setAttribute('download', `${stateCode}_${year}_transactions.csv`)
+    link.setAttribute('download', filename)
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
@@ -274,7 +275,7 @@ export default function TransactionTable({
                       {getSortIcon('amount')}
                     </div>
                   </TableHead>
-                  <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Channel</TableHead>
+                  <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">Channel</TableHead>
                   <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">Running Total</TableHead>
                 </TableRow>
               </TableHeader>
@@ -304,7 +305,7 @@ export default function TransactionTable({
                         <TableCell className="px-4 py-3 text-sm text-right font-medium text-foreground">
                           {formatCurrency(transaction.sales_amount)}
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-sm text-foreground">
+                        <TableCell className="px-4 py-3 text-sm text-center text-foreground">
                           <span
                             className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
                               transaction.sales_channel === 'direct'

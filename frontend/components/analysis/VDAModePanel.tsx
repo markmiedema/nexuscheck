@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { AlertCircle, ChevronDown, ChevronUp, Calculator, X } from 'lucide-react'
 import { useVDAMode, StateResult } from '@/hooks/useVDAMode'
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { AccordionCustom } from '@/components/ui/accordion-custom'
 
 interface VDAModePanelProps {
@@ -153,69 +152,6 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                   <div className="text-xs text-muted-foreground mt-1">
                     {vdaResults.savings_percentage.toFixed(1)}% reduction
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* Pie Chart - Exposure Breakdown */}
-            {vdaResults && pieData && pieData.length > 0 && (
-              <div className="bg-muted/50 border border-border rounded-lg p-6">
-                <h3 className="font-semibold text-card-foreground mb-4">
-                  Liability Breakdown (With VDA)
-                </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percentage }) => `${name}: ${percentage.toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      onMouseEnter={(data) => setHover(data)}
-                      onMouseLeave={() => setHover(null)}
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: number) => formatCurrency(value)}
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '0.375rem'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-
-                {/* Interactive Legend */}
-                <div className="flex gap-4 justify-center mt-4">
-                  {['Base Tax', 'Interest', 'Penalties'].map(key => {
-                    const isHidden = isLegendKeyHidden(key)
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => toggleLegendKey(key)}
-                        className={`flex items-center gap-2 text-sm transition-opacity ${
-                          isHidden ? 'opacity-50 line-through' : 'opacity-100'
-                        }`}
-                      >
-                        <div
-                          className="w-4 h-4 rounded"
-                          style={{
-                            backgroundColor:
-                              key === 'Base Tax' ? 'hsl(217 32.6% 45%)' :
-                              key === 'Interest' ? 'hsl(38 92% 50%)' : 'hsl(0 60% 45%)'
-                          }}
-                        />
-                        <span>{key}</span>
-                      </button>
-                    )
-                  })}
                 </div>
               </div>
             )}
