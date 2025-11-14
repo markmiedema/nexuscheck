@@ -2,11 +2,3 @@ transaction_date,customer_state,revenue_amount,sales_channel
 2024-01-01,CA,100.00,direct
 2024-01-02,NY,200.00,marketplace
 2024-01-03,TX,150.00,direct
-
-# Optional columns (add if needed):
-# - is_taxable: Y/N flag for taxable vs exempt transactions
-# - exempt_amount: Dollar amount of exempt portion (for partial exemptions)
-# - revenue_stream: Product category or business line (e.g., Software, Groceries, Clothing)
-#
-# For industries with tax exemptions (grocery, clothing, manufacturing),
-# download the "sales_data_with_exemptions_template.csv" template.
