@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface LiabilityBreakdownProps {
-  taxableSales: number;
+  taxableSales: number; // This is actually exposure_sales - sales during obligation period
   taxRate: number; // Combined rate as percentage (e.g., 8.25)
   estimatedLiability: number;
   baseTax?: number; // Base tax amount (from Phase 2)
@@ -19,7 +19,7 @@ interface LiabilityBreakdownProps {
 }
 
 export function LiabilityBreakdown({
-  taxableSales,
+  taxableSales, // Actually exposure_sales - keeping prop name for backward compatibility
   taxRate,
   estimatedLiability,
   baseTax,

@@ -42,6 +42,7 @@ import {
 import {
   getNexusStatusLabel,
 } from '@/app/analysis/[id]/states/helpers'
+import { StateQuickViewModal } from './StateQuickViewModal'
 
 interface StateTableProps {
   analysisId: string
@@ -69,6 +70,10 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
   const [nexusFilter, setNexusFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [density, setDensity] = useState<Density>('comfortable')
+
+  // Quick view modal state
+  const [quickViewOpen, setQuickViewOpen] = useState(false)
+  const [selectedState, setSelectedState] = useState<{ code: string; name: string } | null>(null)
 
   // Fetch states
   useEffect(() => {
@@ -288,7 +293,11 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                 displayedStates.map((state) => (
                   <TableRow
                     key={state.state_code}
-                    className="border-b border-border hover:bg-muted/30 transition-colors last:border-0"
+                    className="border-b border-border hover:bg-muted/30 transition-colors last:border-0 cursor-pointer"
+                    onClick={() => {
+                      setSelectedState({ code: state.state_code, name: state.state_name })
+                      setQuickViewOpen(true)
+                    }}
                   >
                     <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
                       <div className="font-medium text-card-foreground">
@@ -428,7 +437,10 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
                       <div className="flex gap-1 justify-center">
                         <button
-                          onClick={() => window.location.href = `/analysis/${analysisId}/states/${state.state_code}`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            window.location.href = `/analysis/${analysisId}/states/${state.state_code}`
+                          }}
                           className="text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium inline-flex items-center gap-1 text-sm"
                         >
                           View Details
@@ -439,6 +451,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                               variant="ghost"
                               size="sm"
                               className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors px-2"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
@@ -487,6 +500,17 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
           Generate Report (Coming Soon)
         </Button>
       </div>
+
+      {/* Quick View Modal */}
+      {selectedState && (
+        <StateQuickViewModal
+          open={quickViewOpen}
+          onOpenChange={setQuickViewOpen}
+          analysisId={analysisId}
+          stateCode={selectedState.code}
+          stateName={selectedState.name}
+        />
+      )}
     </div>
   )
 }
