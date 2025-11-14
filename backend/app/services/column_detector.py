@@ -34,6 +34,7 @@ DATE_FORMATS = [
     '%m-%d-%Y',      # 01-15-2024
     '%d-%m-%Y',      # 15-01-2024
     '%b %d, %Y',     # Jan 15, 2024
+    '%b %d %Y',      # Feb 15 2024 (no comma)
 ]
 
 # Sales channel normalization mapping
