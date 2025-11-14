@@ -50,12 +50,11 @@ BEGIN
     FROM sales_transactions
     WHERE exempt_amount IS NULL;
 
-    -- Check for constraint violations
+    -- Check for constraint violations (allowing negative values for returns/refunds)
     SELECT COUNT(*) INTO invalid_count
     FROM sales_transactions
-    WHERE taxable_amount < 0
-       OR exempt_amount < 0
-       OR (taxable_amount + exempt_amount) > (sales_amount + 0.01);
+    WHERE exempt_amount < 0  -- Exempt amount should never be negative
+       OR ABS(taxable_amount + exempt_amount) > ABS(sales_amount) + 0.01;  -- Use ABS to handle negatives
 
     -- Report findings
     IF null_taxable_count > 0 THEN
@@ -70,10 +69,12 @@ BEGIN
         RAISE EXCEPTION 'Found % rows that violate constraint rules', invalid_count;
     END IF;
 
-    RAISE NOTICE 'Data validation passed. All rows have valid values.';
+    RAISE NOTICE 'Data validation passed. All rows have valid values (including negative returns/refunds).';
 END $$;
 
 -- Step 4: Add check constraint (only if doesn't exist)
+-- Allow negative values for returns/refunds, but ensure exempt_amount >= 0
+-- and that the absolute sum doesn't exceed absolute sales_amount
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -83,11 +84,10 @@ BEGIN
         ALTER TABLE sales_transactions
         ADD CONSTRAINT sales_transactions_amounts_valid
         CHECK (
-            taxable_amount >= 0 AND
             exempt_amount >= 0 AND
-            (taxable_amount + exempt_amount) <= (sales_amount + 0.01)
+            ABS(taxable_amount + exempt_amount) <= ABS(sales_amount) + 0.01
         );
-        RAISE NOTICE 'Constraint sales_transactions_amounts_valid added successfully';
+        RAISE NOTICE 'Constraint sales_transactions_amounts_valid added successfully (allows negative returns)';
     ELSE
         RAISE NOTICE 'Constraint sales_transactions_amounts_valid already exists';
     END IF;
