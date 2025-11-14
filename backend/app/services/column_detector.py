@@ -36,6 +36,35 @@ DATE_FORMATS = [
     '%b %d, %Y',     # Jan 15, 2024
 ]
 
+# Sales channel normalization mapping
+CHANNEL_MAPPING = {
+    # Marketplace variants
+    'marketplace': 'marketplace',
+    'market place': 'marketplace',
+    'market': 'marketplace',
+    'amazon': 'marketplace',
+    'ebay': 'marketplace',
+    'etsy': 'marketplace',
+    'shopify': 'marketplace',
+    'walmart': 'marketplace',
+    'platform': 'marketplace',
+    'third party': 'marketplace',
+    'third-party': 'marketplace',
+    '3rd party': 'marketplace',
+
+    # Direct variants
+    'direct': 'direct',
+    'website': 'direct',
+    'web': 'direct',
+    'online': 'direct',
+    'own site': 'direct',
+    'company site': 'direct',
+    'retail': 'direct',
+    'store': 'direct',
+    'in-store': 'direct',
+    'instore': 'direct',
+}
+
 
 class ColumnDetector:
     """
@@ -400,53 +429,20 @@ class ColumnDetector:
         raise ValueError(f"Unexpected date type: {type(value)}")
 
     @staticmethod
-    def normalize_sales_channel(value: Optional[str]) -> str:
+    def normalize_channel(value: str) -> str:
         """
-        Normalize sales channel values to standard categories.
+        Normalize sales channel to 'direct' or 'marketplace'.
 
-        Maps variants to:
-        - "marketplace" - Amazon, eBay, Walmart, Etsy, etc.
-        - "direct" - Own website, retail, direct sales
-
-        Args:
-            value: Raw sales channel value from CSV
-
-        Returns:
-            Normalized channel ("marketplace" or "direct")
+        Defaults to 'direct' if not recognized.
         """
-        if not value or str(value).strip() == '':
-            return 'direct'  # Default to direct
-
-        val_lower = str(value).lower().strip()
-
-        # Marketplace indicators
-        marketplace_variants = [
-            'amazon', 'ebay', 'walmart', 'etsy', 'shopify marketplace',
-            'marketplace', 'third-party', '3rd party', 'third party',
-            'fba', 'fulfillment by amazon', 'seller central',
-            'walmart marketplace', 'ebay marketplace', 'amazon fba',
-            'target marketplace', 'wayfair', 'newegg',
-            'mcf', 'multi-channel fulfillment', 'fbm'
-        ]
-
-        # Direct sale indicators
-        direct_variants = [
-            'direct', 'website', 'web', 'online', 'store', 'retail',
-            'own site', 'ecommerce', 'e-commerce', 'shopify',
-            'woocommerce', 'magento', 'bigcommerce',
-            'pos', 'point of sale', 'in-store', 'brick and mortar'
-        ]
-
-        # Check for marketplace match
-        if any(variant in val_lower for variant in marketplace_variants):
-            return 'marketplace'
-
-        # Check for direct match
-        if any(variant in val_lower for variant in direct_variants):
+        if not value or not isinstance(value, str):
             return 'direct'
 
-        # Default to direct if no match
-        return 'direct'
+        # Trim and lowercase for matching
+        cleaned = value.strip().lower()
+
+        # Look up in mapping
+        return CHANNEL_MAPPING.get(cleaned, 'direct')
 
     @staticmethod
     def calculate_taxable_amount(
@@ -559,10 +555,13 @@ class ColumnDetector:
             df['customer_state'] = df['customer_state'].apply(self.normalize_state_code)
             transformations.append('Normalized state names to 2-letter codes')
 
-        # 3. Normalize sales channel
+        # 3. Normalize sales channel values
         if 'sales_channel' in df.columns:
-            df['sales_channel'] = df['sales_channel'].apply(self.normalize_sales_channel)
+            df['sales_channel'] = df['sales_channel'].apply(self.normalize_channel)
             transformations.append('Normalized sales channels to "marketplace" or "direct"')
+        else:
+            # Default to 'direct' if column not present
+            df['sales_channel'] = 'direct'
 
         # 4. Normalize revenue streams
         if 'revenue_stream' in df.columns:
