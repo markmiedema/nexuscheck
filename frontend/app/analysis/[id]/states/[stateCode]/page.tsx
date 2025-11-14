@@ -15,6 +15,7 @@ import { ComplianceSection } from '@/components/analysis/ComplianceSection';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Info } from 'lucide-react';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 interface StateDetailPageProps {
   params: {
@@ -211,7 +212,8 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
         ]}
         breadcrumbsRightContent={getAnalysisPeriod()}
       >
-        <div className="space-y-6">
+        <ErrorBoundary>
+          <div className="space-y-6">
           {/* Header Section - only show if has transactions */}
       {data.has_transactions && (yearData || isAllYearsView) && (
         <StateDetailHeader
@@ -528,7 +530,8 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
         }}
         complianceInfo={data.compliance_info}
       />
-        </div>
+          </div>
+        </ErrorBoundary>
       </AppLayout>
     </ProtectedRoute>
   );

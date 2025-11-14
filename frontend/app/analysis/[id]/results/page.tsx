@@ -10,6 +10,7 @@ import USMap from '@/components/dashboard/USMap'
 import StateTable from '@/components/analysis/StateTable'
 import { PhysicalNexusManager } from '@/components/analysis/PhysicalNexusManager'
 import { VDAModePanel } from '@/components/analysis/VDAModePanel'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 interface AnalysisSummary {
   company_name: string
@@ -183,6 +184,7 @@ export default function ResultsPage() {
           { label: 'Analysis Results' },
         ]}
       >
+        <ErrorBoundary>
           {/* Header Section */}
           <div className="bg-card rounded-lg shadow-md border border-border p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -401,6 +403,7 @@ export default function ResultsPage() {
               <StateTable analysisId={analysisId} embedded={true} refreshTrigger={refreshTrigger} />
             </div>
           )}
+        </ErrorBoundary>
       </AppLayout>
     </ProtectedRoute>
   )
