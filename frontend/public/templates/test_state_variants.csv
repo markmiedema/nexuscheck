@@ -1,0 +1,9 @@
+transaction_date,customer_state,revenue_amount,sales_channel
+2024-01-01,California,125000,direct
+2024-01-02,calif,125000,direct
+2024-01-03,Calif.,125000,direct
+2024-02-01,New York,125000,direct
+2024-02-02,NY,125000,direct
+2024-03-01,District of Columbia,125000,direct
+2024-03-02,D.C.,125000,direct
+2024-03-03,DC,125000,direct

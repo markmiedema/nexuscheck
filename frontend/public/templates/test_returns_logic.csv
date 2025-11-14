@@ -1,0 +1,4 @@
+transaction_date,customer_state,revenue_amount,sales_channel
+2024-01-01,CA,150000,direct
+2024-02-01,CA,-10000,direct
+2024-03-01,CA,-5000,marketplace

@@ -1,0 +1,4 @@
+transaction_date,customer_state,revenue_amount,sales_channel,is_taxable,exempt_amount
+2024-01-01,CA,80000,direct,Y,0
+2024-02-01,CA,25000,direct,N,25000
+2024-03-01,CA,50000,marketplace,Y,0
