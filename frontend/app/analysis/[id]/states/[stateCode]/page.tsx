@@ -276,12 +276,12 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
           }
           taxableSales={
             isAllYearsView
-              ? data.year_data.reduce((sum, yr) => sum + (yr.summary.taxable_sales || 0), 0)
+              ? data.taxable_sales || 0
               : yearData?.summary.taxable_sales || 0
           }
           exemptSales={
             isAllYearsView
-              ? data.year_data.reduce((sum, yr) => sum + (yr.summary.exempt_sales || 0), 0)
+              ? data.exempt_sales || 0
               : yearData?.summary.exempt_sales || 0
           }
         />
@@ -294,11 +294,11 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
           : yearData?.summary.total_sales || 0
 
         const taxableSales = isAllYearsView
-          ? data.year_data.reduce((sum, yr) => sum + (yr.summary.taxable_sales || 0), 0)
+          ? data.taxable_sales || 0
           : yearData?.summary.taxable_sales || 0
 
         const exemptSales = isAllYearsView
-          ? data.year_data.reduce((sum, yr) => sum + (yr.summary.exempt_sales || 0), 0)
+          ? data.exempt_sales || 0
           : yearData?.summary.exempt_sales || 0
 
         // Only show if there are exempt sales
