@@ -44,6 +44,7 @@ import {
   getNexusStatusLabel,
 } from '@/app/analysis/[id]/states/helpers'
 import { StateQuickViewModal } from './StateQuickViewModal'
+import { StateTableSection } from './StateTableSection'
 import { Badge } from '@/components/ui/badge'
 import {
   Tooltip,
@@ -147,7 +148,12 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
   }, [analysisId, refreshTrigger])
 
   // Combined filtering and sorting logic
-  const displayedStates = useMemo(() => {
+  const displayedStates = useMemo<{
+    hasNexus: StateResult[]
+    approaching: StateResult[]
+    salesNoNexus: StateResult[]
+    noSales: StateResult[]
+  }>(() => {
     let filtered = [...states]
 
     // Apply nexus filter
@@ -196,7 +202,8 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       return sortConfig.direction === 'asc' ? comparison : -comparison
     })
 
-    return filtered
+    // Return grouped states instead of flat array
+    return groupStatesByPriority(filtered)
   }, [states, sortConfig, nexusFilter, exemptFilter, searchQuery])
 
   const handleSort = (column: SortConfig['column']) => {
@@ -220,6 +227,205 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     comfortable: 'py-3',
     spacious: 'py-4'
   }
+
+  // Helper component to render table rows for a section
+  const StateTableRows = ({ states }: { states: StateResult[] }) => (
+    <>
+      {states.map((state) => (
+        <TableRow
+          key={state.state_code}
+          className="hover:bg-muted/50 cursor-pointer transition-colors"
+          onClick={() => {
+            setSelectedState({ code: state.state_code, name: state.state_name })
+            setQuickViewOpen(true)
+          }}
+        >
+          {/* State Name */}
+          <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
+            <div className="font-medium text-foreground">
+              {state.state_name}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              ({state.state_code})
+            </div>
+          </TableCell>
+
+          {/* Gross Sales */}
+          <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
+            {formatCurrency(state.total_sales || 0)}
+          </TableCell>
+
+          {/* Taxable Sales */}
+          <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
+            {formatCurrency(state.taxable_sales || 0)}
+          </TableCell>
+
+          {/* Exempt */}
+          <TableCell className="px-4 py-2 text-sm text-right">
+            {state.exempt_sales > 0 ? (
+              <div>
+                <div className="font-medium text-foreground">{formatCurrency(state.exempt_sales)}</div>
+                <div className="text-xs text-muted-foreground">
+                  ({((state.exempt_sales / state.total_sales) * 100).toFixed(0)}%)
+                </div>
+              </div>
+            ) : (
+              <span className="text-muted-foreground">-</span>
+            )}
+          </TableCell>
+
+          {/* Threshold % - WITH DARK MODE SUPPORT */}
+          <TableCell className="px-4 py-2 text-sm text-right">
+            {state.threshold_percent !== undefined && state.threshold_percent !== null ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center justify-end gap-2">
+                      <div
+                        className="w-2 h-2 rounded-full transition-colors"
+                        style={{
+                          '--dot-color-light':
+                            state.threshold_percent >= 100
+                              ? 'hsl(0 84% 60%)'
+                              : state.threshold_percent >= 80
+                              ? 'hsl(38 92% 50%)'
+                              : 'hsl(142 71% 45%)',
+                          '--dot-color-dark':
+                            state.threshold_percent >= 100
+                              ? 'hsl(0 84% 65%)'
+                              : state.threshold_percent >= 80
+                              ? 'hsl(38 92% 60%)'
+                              : 'hsl(142 71% 55%)',
+                          backgroundColor: 'var(--dot-color-light)'
+                        } as React.CSSProperties & Record<string, string>}
+                      />
+                      <span className="font-medium text-foreground">
+                        {state.threshold_percent.toFixed(0)}%
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>
+                      {state.state_name}: ${state.total_sales.toLocaleString()} of $
+                      {state.threshold?.toLocaleString() || 'N/A'} threshold (
+                      {state.threshold_percent.toFixed(0)}%)
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <span className="text-muted-foreground">-</span>
+            )}
+          </TableCell>
+
+          {/* Status Badge */}
+          <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
+            <div className="flex items-center justify-center">
+              <span
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border"
+                style={{
+                  '--badge-bg-light':
+                    state.nexus_type === 'both'
+                      ? 'hsl(289 46% 45% / 0.1)'
+                      : state.nexus_type === 'physical'
+                      ? 'hsl(217 32.6% 45% / 0.1)'
+                      : state.nexus_type === 'economic'
+                      ? 'hsl(0 60% 45% / 0.1)'
+                      : state.nexus_status === 'approaching'
+                      ? 'hsl(38 92% 50% / 0.1)'
+                      : 'hsl(142 71% 40% / 0.1)',
+                  '--badge-color-light':
+                    state.nexus_type === 'both'
+                      ? 'hsl(289 46% 35%)'
+                      : state.nexus_type === 'physical'
+                      ? 'hsl(217 32.6% 35%)'
+                      : state.nexus_type === 'economic'
+                      ? 'hsl(0 60% 40%)'
+                      : state.nexus_status === 'approaching'
+                      ? 'hsl(38 92% 40%)'
+                      : 'hsl(142 71% 30%)',
+                  '--badge-border-light':
+                    state.nexus_type === 'both'
+                      ? 'hsl(289 46% 45% / 0.3)'
+                      : state.nexus_type === 'physical'
+                      ? 'hsl(217 32.6% 45% / 0.3)'
+                      : state.nexus_type === 'economic'
+                      ? 'hsl(0 60% 45% / 0.3)'
+                      : state.nexus_status === 'approaching'
+                      ? 'hsl(38 92% 50% / 0.3)'
+                      : 'hsl(142 71% 40% / 0.3)',
+                  '--badge-bg-dark':
+                    state.nexus_type === 'both'
+                      ? 'hsl(289 46% 45% / 0.15)'
+                      : state.nexus_type === 'physical'
+                      ? 'hsl(217 32.6% 45% / 0.15)'
+                      : state.nexus_type === 'economic'
+                      ? 'hsl(0 60% 45% / 0.15)'
+                      : state.nexus_status === 'approaching'
+                      ? 'hsl(38 92% 50% / 0.15)'
+                      : 'hsl(142 71% 40% / 0.15)',
+                  '--badge-color-dark':
+                    state.nexus_type === 'both'
+                      ? 'hsl(289 46% 75%)'
+                      : state.nexus_type === 'physical'
+                      ? 'hsl(217 32.6% 75%)'
+                      : state.nexus_type === 'economic'
+                      ? 'hsl(0 60% 75%)'
+                      : state.nexus_status === 'approaching'
+                      ? 'hsl(38 92% 70%)'
+                      : 'hsl(142 71% 70%)',
+                  '--badge-border-dark':
+                    state.nexus_type === 'both'
+                      ? 'hsl(289 46% 45% / 0.4)'
+                      : state.nexus_type === 'physical'
+                      ? 'hsl(217 32.6% 45% / 0.4)'
+                      : state.nexus_type === 'economic'
+                      ? 'hsl(0 60% 45% / 0.4)'
+                      : state.nexus_status === 'approaching'
+                      ? 'hsl(38 92% 50% / 0.4)'
+                      : 'hsl(142 71% 40% / 0.4)',
+                  backgroundColor: 'var(--badge-bg-light)',
+                  color: 'var(--badge-color-light)',
+                  borderColor: 'var(--badge-border-light)',
+                } as React.CSSProperties & Record<string, string>}
+              >
+                {state.nexus_type === 'both'
+                  ? 'Physical + Economic'
+                  : state.nexus_type === 'physical'
+                  ? 'Physical Nexus'
+                  : state.nexus_type === 'economic'
+                  ? 'Economic Nexus'
+                  : getNexusStatusLabel(state.nexus_status)}
+              </span>
+            </div>
+          </TableCell>
+
+          {/* Est. Liability */}
+          <TableCell className={`px-4 text-sm text-center text-card-foreground font-medium ${densityClasses[density]}`}>
+            ${state.estimated_liability.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })}
+          </TableCell>
+
+          {/* Actions */}
+          <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
+            <div className="flex gap-1 justify-center">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  window.location.href = `/analysis/${analysisId}/states/${state.state_code}`
+                }}
+                className="text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium inline-flex items-center gap-1 text-sm"
+              >
+                View Details
+              </button>
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  )
 
   if (loading) {
     return <SkeletonTable rows={10} columns={9} />
@@ -298,9 +504,15 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-muted/50 border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* Accordion Sections */}
+      <div className="space-y-4">
+        {/* Section 1: Has Nexus */}
+        <StateTableSection
+          title="Has Nexus"
+          count={displayedStates.hasNexus.length}
+          states={displayedStates.hasNexus}
+          defaultExpanded={true}
+        >
           <Table>
             <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
               <TableRow className="hover:bg-muted/80">
@@ -383,256 +595,310 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayedStates.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
-                    No states found matching your filters
-                  </TableCell>
-                </TableRow>
-              ) : (
-                displayedStates.map((state) => (
-                  <TableRow
-                    key={state.state_code}
-                    className="border-b border-border hover:bg-muted/30 transition-colors last:border-0 cursor-pointer"
-                    onClick={() => {
-                      setSelectedState({ code: state.state_code, name: state.state_name })
-                      setQuickViewOpen(true)
-                    }}
-                  >
-                    <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
-                      <div className="font-medium text-card-foreground">
-                        {state.state_name}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        ({state.state_code})
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
-                      {formatCurrency(state.total_sales || 0)}
-                    </TableCell>
-                    <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
-                      {formatCurrency(state.taxable_sales || 0)}
-                    </TableCell>
-                    <TableCell className="px-4 py-2 text-sm text-right">
-                      {state.exempt_sales > 0 ? (
-                        <div>
-                          <div className="font-medium text-foreground">{formatCurrency(state.exempt_sales)}</div>
-                          <div className="text-xs text-muted-foreground">
-                            ({((state.exempt_sales / state.total_sales) * 100).toFixed(0)}%)
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-4 py-2 text-sm text-right">
-                      {state.threshold_percent !== undefined && state.threshold_percent !== null ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center justify-end gap-2">
-                                <div
-                                  className="w-2 h-2 rounded-full transition-colors"
-                                  style={{
-                                    // CSS custom properties for dark mode support
-                                    '--dot-color-light':
-                                      state.threshold_percent >= 100
-                                        ? 'hsl(0 84% 60%)'      // Red
-                                        : state.threshold_percent >= 80
-                                        ? 'hsl(38 92% 50%)'     // Yellow/Orange
-                                        : 'hsl(142 71% 45%)',   // Green
-                                    '--dot-color-dark':
-                                      state.threshold_percent >= 100
-                                        ? 'hsl(0 84% 65%)'      // Brighter red for dark mode
-                                        : state.threshold_percent >= 80
-                                        ? 'hsl(38 92% 60%)'     // Brighter yellow for dark mode
-                                        : 'hsl(142 71% 55%)',   // Brighter green for dark mode
-                                    backgroundColor: 'var(--dot-color-light)'
-                                  } as React.CSSProperties & Record<string, string>}
-                                />
-                                <span className="font-medium text-foreground">
-                                  {state.threshold_percent.toFixed(0)}%
-                                </span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs">
-                              <p>
-                                {state.state_name}: ${state.total_sales.toLocaleString()} of $
-                                {state.threshold?.toLocaleString() || 'N/A'} threshold (
-                                {state.threshold_percent.toFixed(0)}%)
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
-                      <div className="flex items-center justify-center">
-                        <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border"
-                          style={{
-                            // Light mode colors (optimized)
-                            '--badge-bg-light':
-                              state.nexus_type === 'both'
-                                ? 'hsl(289 46% 45% / 0.1)'
-                                : state.nexus_type === 'physical'
-                                ? 'hsl(217 32.6% 45% / 0.1)'
-                                : state.nexus_type === 'economic'
-                                ? 'hsl(0 60% 45% / 0.1)'
-                                : state.nexus_status === 'approaching'
-                                ? 'hsl(38 92% 50% / 0.1)'
-                                : 'hsl(142 71% 40% / 0.1)',
-                            '--badge-color-light':
-                              state.nexus_type === 'both'
-                                ? 'hsl(289 46% 35%)'
-                                : state.nexus_type === 'physical'
-                                ? 'hsl(217 32.6% 35%)'
-                                : state.nexus_type === 'economic'
-                                ? 'hsl(0 60% 40%)'
-                                : state.nexus_status === 'approaching'
-                                ? 'hsl(38 92% 40%)'
-                                : 'hsl(142 71% 30%)',
-                            '--badge-border-light':
-                              state.nexus_type === 'both'
-                                ? 'hsl(289 46% 45% / 0.2)'
-                                : state.nexus_type === 'physical'
-                                ? 'hsl(217 32.6% 45% / 0.2)'
-                                : state.nexus_type === 'economic'
-                                ? 'hsl(0 60% 45% / 0.2)'
-                                : state.nexus_status === 'approaching'
-                                ? 'hsl(38 92% 50% / 0.2)'
-                                : 'hsl(142 71% 40% / 0.2)',
-                            // Dark mode colors (optimized)
-                            '--badge-bg-dark':
-                              state.nexus_type === 'both'
-                                ? 'hsl(289 46% 45% / 0.15)'
-                                : state.nexus_type === 'physical'
-                                ? 'hsl(217 32.6% 45% / 0.15)'
-                                : state.nexus_type === 'economic'
-                                ? 'hsl(0 60% 45% / 0.15)'
-                                : state.nexus_status === 'approaching'
-                                ? 'hsl(38 92% 50% / 0.15)'
-                                : 'hsl(142 71% 40% / 0.15)',
-                            '--badge-color-dark':
-                              state.nexus_type === 'both'
-                                ? 'hsl(289 46% 70%)'
-                                : state.nexus_type === 'physical'
-                                ? 'hsl(217 32.6% 70%)'
-                                : state.nexus_type === 'economic'
-                                ? 'hsl(0 60% 70%)'
-                                : state.nexus_status === 'approaching'
-                                ? 'hsl(38 92% 65%)'
-                                : 'hsl(142 71% 65%)',
-                            '--badge-border-dark':
-                              state.nexus_type === 'both'
-                                ? 'hsl(289 46% 45% / 0.3)'
-                                : state.nexus_type === 'physical'
-                                ? 'hsl(217 32.6% 45% / 0.3)'
-                                : state.nexus_type === 'economic'
-                                ? 'hsl(0 60% 45% / 0.3)'
-                                : state.nexus_status === 'approaching'
-                                ? 'hsl(38 92% 50% / 0.3)'
-                                : 'hsl(142 71% 40% / 0.3)',
-                            backgroundColor: 'var(--badge-bg-light)',
-                            color: 'var(--badge-color-light)',
-                            borderColor: 'var(--badge-border-light)',
-                          } as React.CSSProperties & Record<string, string>}
-                        >
-                          {state.nexus_type === 'both'
-                            ? 'Physical + Economic'
-                            : state.nexus_type === 'physical'
-                            ? 'Physical Nexus'
-                            : state.nexus_type === 'economic'
-                            ? 'Economic Nexus'
-                            : getNexusStatusLabel(state.nexus_status)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className={`px-4 text-sm text-center text-card-foreground font-medium ${densityClasses[density]}`}>
-                      ${state.estimated_liability.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}
-                    </TableCell>
-                    <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
-                      <div className="flex gap-1 justify-center">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            window.location.href = `/analysis/${analysisId}/states/${state.state_code}`
-                          }}
-                          className="text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium inline-flex items-center gap-1 text-sm"
-                        >
-                          View Details
-                        </button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors px-2"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuLabel className="text-xs text-muted-foreground">
-                              Coming Soon
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem disabled>
-                              <FileText className="h-4 w-4 mr-2" />
-                              Export State Data
-                            </DropdownMenuItem>
-                            <DropdownMenuItem disabled>
-                              <Tag className="h-4 w-4 mr-2" />
-                              Add Notes/Tags
-                            </DropdownMenuItem>
-                            <DropdownMenuItem disabled>
-                              <TrendingUp className="h-4 w-4 mr-2" />
-                              Compare with Previous
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              <StateTableRows states={displayedStates.hasNexus} />
             </TableBody>
           </Table>
-        </div>
+        </StateTableSection>
+
+        {/* Section 2: Approaching Threshold */}
+        <StateTableSection
+          title="Approaching Threshold"
+          count={displayedStates.approaching.length}
+          states={displayedStates.approaching}
+          defaultExpanded={true}
+        >
+          <Table>
+            <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
+              <TableRow className="hover:bg-muted/80">
+                <TableHead className="w-48 px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('state')}
+                    className="flex items-center gap-2 hover:text-foreground transition-colors"
+                  >
+                    State
+                    {getSortIcon('state')}
+                  </button>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Gross Sales
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Total revenue (used for nexus determination)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Taxable Sales
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Sales subject to tax (used for liability)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  Exempt
+                </TableHead>
+                <TableHead className="w-28 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Threshold %
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Percentage of threshold reached</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('nexus_status')}
+                    className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
+                  >
+                    Status
+                    {getSortIcon('nexus_status')}
+                  </button>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('liability')}
+                    className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
+                  >
+                    Est. Liability
+                    {getSortIcon('liability')}
+                  </button>
+                </TableHead>
+                <TableHead className="w-24 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <StateTableRows states={displayedStates.approaching} />
+            </TableBody>
+          </Table>
+        </StateTableSection>
+
+        {/* Section 3: Sales, but No Nexus */}
+        <StateTableSection
+          title="Sales, but No Nexus"
+          count={displayedStates.salesNoNexus.length}
+          states={displayedStates.salesNoNexus}
+          defaultExpanded={true}
+        >
+          <Table>
+            <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
+              <TableRow className="hover:bg-muted/80">
+                <TableHead className="w-48 px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('state')}
+                    className="flex items-center gap-2 hover:text-foreground transition-colors"
+                  >
+                    State
+                    {getSortIcon('state')}
+                  </button>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Gross Sales
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Total revenue (used for nexus determination)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Taxable Sales
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Sales subject to tax (used for liability)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  Exempt
+                </TableHead>
+                <TableHead className="w-28 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Threshold %
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Percentage of threshold reached</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('nexus_status')}
+                    className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
+                  >
+                    Status
+                    {getSortIcon('nexus_status')}
+                  </button>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('liability')}
+                    className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
+                  >
+                    Est. Liability
+                    {getSortIcon('liability')}
+                  </button>
+                </TableHead>
+                <TableHead className="w-24 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <StateTableRows states={displayedStates.salesNoNexus} />
+            </TableBody>
+          </Table>
+        </StateTableSection>
+
+        {/* Section 4: No Sales */}
+        <StateTableSection
+          title="No Sales"
+          count={displayedStates.noSales.length}
+          states={displayedStates.noSales}
+          defaultExpanded={false}
+        >
+          <Table>
+            <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
+              <TableRow className="hover:bg-muted/80">
+                <TableHead className="w-48 px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('state')}
+                    className="flex items-center gap-2 hover:text-foreground transition-colors"
+                  >
+                    State
+                    {getSortIcon('state')}
+                  </button>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Gross Sales
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Total revenue (used for nexus determination)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Taxable Sales
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Sales subject to tax (used for liability)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  Exempt
+                </TableHead>
+                <TableHead className="w-28 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Threshold %
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Percentage of threshold reached</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('nexus_status')}
+                    className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
+                  >
+                    Status
+                    {getSortIcon('nexus_status')}
+                  </button>
+                </TableHead>
+                <TableHead className="w-32 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('liability')}
+                    className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
+                  >
+                    Est. Liability
+                    {getSortIcon('liability')}
+                  </button>
+                </TableHead>
+                <TableHead className="w-24 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <StateTableRows states={displayedStates.noSales} />
+            </TableBody>
+          </Table>
+        </StateTableSection>
       </div>
 
       {/* Footer */}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
         <p className="text-sm text-muted-foreground">
-          Showing <span className="font-medium text-foreground">{displayedStates.length}</span> of{' '}
+          Showing <span className="font-medium text-foreground">{displayedStates.hasNexus.length + displayedStates.approaching.length + displayedStates.salesNoNexus.length + displayedStates.noSales.length}</span> of{' '}
           <span className="font-medium text-foreground">{states.length}</span> states
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-border text-foreground hover:bg-muted"
-          disabled
-        >
-          Generate Report (Coming Soon)
-        </Button>
       </div>
 
       {/* Quick View Modal */}
-      {selectedState && (
-        <StateQuickViewModal
-          open={quickViewOpen}
-          onOpenChange={setQuickViewOpen}
-          analysisId={analysisId}
-          stateCode={selectedState.code}
-          stateName={selectedState.name}
-        />
-      )}
+      <StateQuickViewModal
+        open={quickViewOpen}
+        onOpenChange={setQuickViewOpen}
+        analysisId={analysisId}
+        stateCode={selectedState?.code || ''}
+        stateName={selectedState?.name || ''}
+      />
     </div>
   )
 }
