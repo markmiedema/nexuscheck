@@ -266,6 +266,12 @@
     border-color: var(--badge-border-dark) !important;
   }
 
+  /* ===== Threshold Dot Dark Mode Support ===== */
+  /* Switch threshold status dot colors in dark mode */
+  .dark div[style*="--dot-color-light"] {
+    background-color: var(--dot-color-dark) !important;
+  }
+
   /* ===== Banner Dark Mode Support ===== */
   /* Switch banner background and border in dark mode */
   .dark div[style*="--banner-bg-light"] {

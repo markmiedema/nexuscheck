@@ -346,6 +346,21 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                 <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
                   Exempt
                 </TableHead>
+                <TableHead className="w-28 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Threshold %
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Percentage of threshold reached</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
                 <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('nexus_status')}
@@ -370,7 +385,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
             <TableBody>
               {displayedStates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                     No states found matching your filters
                   </TableCell>
                 </TableRow>
@@ -406,6 +421,49 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                             ({((state.exempt_sales / state.total_sales) * 100).toFixed(0)}%)
                           </div>
                         </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 text-sm text-right">
+                      {state.threshold_percent !== undefined && state.threshold_percent !== null ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center justify-end gap-2">
+                                <div
+                                  className="w-2 h-2 rounded-full transition-colors"
+                                  style={{
+                                    // CSS custom properties for dark mode support
+                                    '--dot-color-light':
+                                      state.threshold_percent >= 100
+                                        ? 'hsl(0 84% 60%)'      // Red
+                                        : state.threshold_percent >= 80
+                                        ? 'hsl(38 92% 50%)'     // Yellow/Orange
+                                        : 'hsl(142 71% 45%)',   // Green
+                                    '--dot-color-dark':
+                                      state.threshold_percent >= 100
+                                        ? 'hsl(0 84% 65%)'      // Brighter red for dark mode
+                                        : state.threshold_percent >= 80
+                                        ? 'hsl(38 92% 60%)'     // Brighter yellow for dark mode
+                                        : 'hsl(142 71% 55%)',   // Brighter green for dark mode
+                                    backgroundColor: 'var(--dot-color-light)'
+                                  } as React.CSSProperties & Record<string, string>}
+                                />
+                                <span className="font-medium text-foreground">
+                                  {state.threshold_percent.toFixed(0)}%
+                                </span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p>
+                                {state.state_name}: ${state.total_sales.toLocaleString()} of $
+                                {state.threshold?.toLocaleString() || 'N/A'} threshold (
+                                {state.threshold_percent.toFixed(0)}%)
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
