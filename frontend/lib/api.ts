@@ -60,6 +60,9 @@ export interface YearData {
     transaction_id: string
     transaction_date: string
     sales_amount: number
+    taxable_amount: number
+    exempt_amount: number
+    is_taxable: boolean
     sales_channel: string
     running_total: number
   }[]

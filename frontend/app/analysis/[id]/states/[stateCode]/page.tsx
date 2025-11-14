@@ -440,7 +440,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
             <TransactionTable
               transactions={allTransactions}
               threshold={undefined} // No threshold for aggregate view
-              initiallyExpanded={false}
+              initiallyExpanded={true}
               stateCode={data.state_code}
               year={undefined} // Show "All Years" in filename
             />
@@ -453,7 +453,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
             <TransactionTable
               transactions={yearData.transactions}
               threshold={yearData.threshold_info.revenue_threshold || undefined}
-              initiallyExpanded={false}
+              initiallyExpanded={true}
               stateCode={data.state_code}
               year={yearData.year}
             />

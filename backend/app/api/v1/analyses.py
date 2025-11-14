@@ -1548,7 +1548,7 @@ async def get_state_detail(
 
         # Get all transactions for transaction list display
         transactions_result = supabase.table('sales_transactions').select(
-            'transaction_id, transaction_date, sales_amount, sales_channel'
+            'transaction_id, transaction_date, sales_amount, sales_channel, taxable_amount, exempt_amount, is_taxable'
         ).eq('analysis_id', analysis_id).eq(
             'customer_state', state_code
         ).order('transaction_date').execute()
@@ -1659,6 +1659,9 @@ async def get_state_detail(
                     'transaction_id': tx['transaction_id'],
                     'transaction_date': tx['transaction_date'],
                     'sales_amount': tx['sales_amount'],
+                    'taxable_amount': tx.get('taxable_amount', 0),
+                    'exempt_amount': tx.get('exempt_amount', 0),
+                    'is_taxable': tx.get('is_taxable', True),
                     'sales_channel': tx['sales_channel'],
                     'year': year,
                     'month': tx_date.to_period('M').strftime('%Y-%m'),

@@ -704,14 +704,17 @@ class NexusCalculatorV2:
             is_taxable = txn.get('is_taxable', True)
 
             if exempt_amount > 0:
-                # Priority 1: Use explicit exempt_amount
-                taxable_amount = max(0, amount - exempt_amount)
+                # Priority 1: Use explicit exempt_amount (can be positive or negative for returns)
+                taxable_amount = amount - exempt_amount
+            elif exempt_amount < 0:
+                # Handle negative exempt amounts (exempt returns)
+                taxable_amount = amount - exempt_amount
             elif not is_taxable:
                 # Priority 2: is_taxable=False means full amount is exempt
                 taxable_amount = 0
                 exempt_amount = amount
             else:
-                # Priority 3: Default - full amount is taxable
+                # Priority 3: Default - full amount is taxable (including negative returns)
                 taxable_amount = amount
                 exempt_amount = 0
 

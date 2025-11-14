@@ -473,9 +473,18 @@ class ColumnDetector:
         if exempt_amount is not None:
             try:
                 exempt = float(exempt_amount)
-                # Cap exempt at revenue (can't exempt more than sold)
-                exempt = min(exempt, revenue)
-                exempt = max(exempt, 0)  # Can't be negative
+
+                # Handle positive sales vs negative returns differently
+                if revenue >= 0:
+                    # Positive sale: cap exempt at revenue (can't exempt more than sold)
+                    exempt = min(exempt, revenue)
+                    exempt = max(exempt, 0)  # Can't be negative for positive sales
+                else:
+                    # Negative return: exempt should also be negative (or zero)
+                    # For returns, exempt should be between revenue (most negative) and 0
+                    exempt = max(exempt, revenue)  # Can't be more negative than the return
+                    exempt = min(exempt, 0)  # Can't be positive for returns
+
                 taxable = revenue - exempt
                 return (taxable, taxable > 0, exempt)
             except (ValueError, TypeError):

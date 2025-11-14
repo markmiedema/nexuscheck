@@ -33,6 +33,9 @@ interface Transaction {
   transaction_id: string
   transaction_date: string
   sales_amount: number
+  taxable_amount: number
+  exempt_amount: number
+  is_taxable: boolean
   sales_channel: 'direct' | 'marketplace'
   running_total: number
 }
@@ -146,11 +149,13 @@ export default function TransactionTable({
 
   // CSV export functionality
   const handleExportCSV = () => {
-    const headers = ['Date', 'Transaction ID', 'Amount', 'Channel', 'Running Total']
+    const headers = ['Date', 'Transaction ID', 'Gross Sales', 'Taxable', 'Exempt', 'Channel', 'Running Total']
     const rows = filteredAndSortedTransactions.map((t) => [
       t.transaction_date,
       t.transaction_id,
       t.sales_amount.toFixed(2),
+      t.taxable_amount.toFixed(2),
+      t.exempt_amount.toFixed(2),
       t.sales_channel,
       t.running_total.toFixed(2),
     ])
@@ -271,10 +276,12 @@ export default function TransactionTable({
                     onClick={() => handleSort('amount')}
                   >
                     <div className="flex items-center justify-end">
-                      Amount
+                      Gross Sales
                       {getSortIcon('amount')}
                     </div>
                   </TableHead>
+                  <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">Taxable Sales</TableHead>
+                  <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">Exempt</TableHead>
                   <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">Channel</TableHead>
                   <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">Running Total</TableHead>
                 </TableRow>
@@ -282,7 +289,7 @@ export default function TransactionTable({
               <TableBody>
                 {paginatedTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       No transactions found.
                     </TableCell>
                   </TableRow>
@@ -304,6 +311,12 @@ export default function TransactionTable({
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-right font-medium text-foreground">
                           {formatCurrency(transaction.sales_amount)}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-sm text-right text-foreground">
+                          {transaction.taxable_amount !== 0 ? formatCurrency(transaction.taxable_amount) : <span className="text-muted-foreground">-</span>}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-sm text-right text-foreground">
+                          {transaction.exempt_amount !== 0 ? formatCurrency(transaction.exempt_amount) : <span className="text-muted-foreground">-</span>}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-center text-foreground">
                           <span

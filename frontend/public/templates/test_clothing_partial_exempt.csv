@@ -2,7 +2,7 @@ transaction_date,customer_state,revenue_amount,sales_channel,is_taxable,exempt_a
 2024-01-05,CA,125000,direct,Y,45000,Clothing
 2024-01-20,CA,98000,direct,Y,35000,Apparel
 2024-02-10,CA,110000,marketplace,Y,40000,Fashion
-2024-02-25,CA,-3500,direct,Y,1200,Clothing
+2024-02-25,CA,-3500,direct,Y,-1200,Clothing
 2024-03-08,NY,155000,direct,Y,0,Luxury_Apparel
 2024-03-22,NY,87000,direct,Y,87000,Basic_Clothing
 2024-04-15,NY,132000,direct,Y,52000,Mixed_Apparel

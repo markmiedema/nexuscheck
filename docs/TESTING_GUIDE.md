@@ -162,10 +162,10 @@ Feb 15, 2024,TX,110000,direct
 - ✅ If CA rate is 8.98%, base tax ≈ $16,164 (not $26,491)
 
 **State Detail Page (NY):**
-- ✅ Gross: ~$387K
-- ✅ Exempt: ~$53K (groceries + return)
-- ✅ Taxable: ~$334K
-- ✅ Return properly reduced totals
+- ✅ Gross: $387K ($150K + $45K + $200K - $8K return)
+- ✅ Exempt: $45K (Food only - row 7)
+- ✅ Taxable: $342K ($150K SaaS + $200K Services - $8K Services return)
+- ✅ Return properly reduced gross AND taxable sales
 
 **Pass/Fail:** ________
 
