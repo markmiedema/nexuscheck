@@ -311,7 +311,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                     setVdaScopeOpen(false)
                   }}
                   disabled={calculating || selectedStates.length === 0}
-                  className="flex-1 bg-info hover:opacity-90"
+                  className="flex-1 bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500"
                 >
                   {calculating ? (
                     <>
