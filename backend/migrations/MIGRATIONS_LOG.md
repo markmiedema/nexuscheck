@@ -271,6 +271,24 @@ WHERE conname = 'unique_analysis_state_year';
 
 ---
 
+## Migration 018: Add Exempt Sales Support (2025-01-14)
+
+### Purpose
+Add columns to track taxable vs exempt sales for industries with tax exemptions.
+
+### Changes
+- Added `is_taxable`, `taxable_amount`, `exempt_amount` to `sales_transactions`
+- Added `gross_sales`, `exempt_sales` to `state_results`
+- Added validation constraint: taxable + exempt <= sales_amount
+- Backfilled existing data
+
+### Impact
+- Enables accurate liability calculation for industries with exemptions
+- Supports hybrid approach: boolean flag OR dollar amounts
+- Backward compatible (defaults assume all sales taxable)
+
+---
+
 **Last Updated:** 2025-11-11
 **Maintained By:** Development team
 **Update Frequency:** After each new migration is applied
