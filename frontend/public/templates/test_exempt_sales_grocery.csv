@@ -1,0 +1,11 @@
+transaction_date,customer_state,revenue_amount,sales_channel,is_taxable,exempt_amount,revenue_stream
+2024-01-15,CA,150000,direct,N,150000,Groceries
+2024-02-10,CA,125000,direct,N,125000,Groceries
+2024-03-05,CA,110000,marketplace,N,110000,Groceries
+2024-04-12,NY,200000,direct,N,200000,Groceries
+2024-05-08,NY,180000,direct,N,180000,Groceries
+2024-06-20,TX,95000,direct,N,95000,Groceries
+2024-07-15,TX,105000,direct,N,105000,Groceries
+2024-08-22,FL,130000,marketplace,N,130000,Groceries
+2024-09-10,FL,145000,direct,N,145000,Groceries
+2024-10-05,WA,88000,direct,N,88000,Groceries
