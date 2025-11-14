@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { TabsCustom } from '@/components/ui/tabs-custom'
 import {
   Eye,
   Trash2,
@@ -182,13 +183,13 @@ export default function AnalysesPage() {
     }
   }, [analyses, totalCount])
 
-  // Filter and sort analyses
-  const displayedAnalyses = useMemo(() => {
+  // Filter and sort analyses - now takes optional status filter
+  const getFilteredAnalyses = (statusFilter?: string) => {
     let filtered = [...analyses]
 
     // Apply tab filter
-    if (activeTab !== 'all') {
-      filtered = filtered.filter(a => a.status === activeTab)
+    if (statusFilter && statusFilter !== 'all') {
+      filtered = filtered.filter(a => a.status === statusFilter)
     }
 
     // Apply sorting
@@ -209,7 +210,185 @@ export default function AnalysesPage() {
     }
 
     return filtered
+  }
+
+  const displayedAnalyses = useMemo(() => {
+    return getFilteredAnalyses(activeTab)
   }, [analyses, sortConfig, activeTab])
+
+  // Render table content for a given status filter
+  const renderTableContent = (statusFilter: string) => {
+    const filteredData = getFilteredAnalyses(statusFilter)
+
+    if (loading) {
+      return (
+        <div className="p-6 space-y-2">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      )
+    }
+
+    if (filteredData.length === 0) {
+      return (
+        <div className="text-center py-12 px-6">
+          <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-2 text-sm font-semibold text-foreground">No analyses found</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {searchTerm
+              ? 'No analyses match your search.'
+              : statusFilter === 'all'
+              ? 'Get started by creating your first analysis.'
+              : `No ${statusFilter} analyses found.`}
+          </p>
+          {!searchTerm && statusFilter === 'all' && (
+            <Button className="mt-4" onClick={() => router.push('/analysis/new')}>
+              <FileText className="mr-2 h-4 w-4" />
+              Create Analysis
+            </Button>
+          )}
+        </div>
+      )
+    }
+
+    return (
+      <div className="bg-muted/50 border border-border rounded-lg overflow-hidden mb-4">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
+              <TableRow className="hover:bg-muted/80">
+                <TableHead className="px-4 py-2 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('client_company_name')}
+                    className="flex items-center cursor-pointer hover:bg-accent transition-colors"
+                  >
+                    Client
+                    {getSortIcon('client_company_name')}
+                  </button>
+                </TableHead>
+                <TableHead className="px-4 py-2 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Period</TableHead>
+                <TableHead className="px-4 py-2 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Status</TableHead>
+                <TableHead className="px-4 py-2 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('states_with_nexus')}
+                    className="flex items-center justify-center cursor-pointer hover:bg-accent transition-colors mx-auto"
+                  >
+                    States with Nexus
+                    {getSortIcon('states_with_nexus')}
+                  </button>
+                </TableHead>
+                <TableHead className="px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('total_liability')}
+                    className="flex items-center justify-end cursor-pointer hover:bg-accent transition-colors ml-auto"
+                  >
+                    Est. Liability
+                    {getSortIcon('total_liability')}
+                  </button>
+                </TableHead>
+                <TableHead className="px-4 py-2 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('created_at')}
+                    className="flex items-center cursor-pointer hover:bg-accent transition-colors"
+                  >
+                    Created
+                    {getSortIcon('created_at')}
+                  </button>
+                </TableHead>
+                <TableHead className="px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredData.map((analysis) => {
+                const statusConfig = STATUS_CONFIG[analysis.status]
+                const StatusIcon = statusConfig.icon
+                const isNew = isNewAnalysis(analysis.created_at)
+
+                return (
+                  <TableRow key={analysis.id} className="group hover:bg-muted/50 transition-colors border-b border-border last:border-0">
+                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground">{analysis.client_company_name}</span>
+                        {isNew && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                            New
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-2 whitespace-nowrap text-sm text-muted-foreground">
+                      {formatDate(analysis.analysis_period_start)} — {formatDate(analysis.analysis_period_end)}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${statusConfig.color}`}>
+                        <StatusIcon className={`mr-1.5 h-3 w-3 ${analysis.status === 'processing' ? 'animate-spin' : ''}`} />
+                        {statusConfig.label}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-4 py-2 whitespace-nowrap text-center">
+                      {analysis.states_with_nexus !== null ? (
+                        <span className="text-sm font-semibold text-foreground">{analysis.states_with_nexus}</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Not calculated</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 whitespace-nowrap text-right">
+                      {formatCurrency(analysis.total_liability) ? (
+                        <span className="text-sm font-semibold text-foreground">{formatCurrency(analysis.total_liability)}</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Not calculated</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 whitespace-nowrap text-sm text-muted-foreground">
+                      {formatDate(analysis.created_at)}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleView(analysis.id)}
+                          className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                          title="View details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(analysis.id, analysis.client_company_name)}
+                          disabled={deleteLoading === analysis.id}
+                          className="p-2 text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
+                          title="Delete"
+                        >
+                          {deleteLoading === analysis.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Footer */}
+        <div className="px-4 py-3 border-t border-border bg-muted/50">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              Showing <span className="font-medium text-foreground">{filteredData.length}</span> of <span className="font-medium text-foreground">{totalCount}</span> analyses
+              {statusFilter !== 'all' && (
+                <span className="ml-2 text-muted-foreground">
+                  (filtered by {statusFilter})
+                </span>
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <ProtectedRoute>
@@ -273,50 +452,6 @@ export default function AnalysesPage() {
           </div>
         </div>
 
-        {/* Quick Filter Tabs */}
-        <div className="flex items-center gap-1 mb-4 border-b border-border">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
-              activeTab === 'all'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
-            }`}
-          >
-            All <span className="text-muted-foreground">({stats.total})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('complete')}
-            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
-              activeTab === 'complete'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
-            }`}
-          >
-            Complete <span className="text-muted-foreground">({stats.complete})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('draft')}
-            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
-              activeTab === 'draft'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
-            }`}
-          >
-            Draft <span className="text-muted-foreground">({stats.draft})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('processing')}
-            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
-              activeTab === 'processing'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
-            }`}
-          >
-            Processing <span className="text-muted-foreground">({stats.processing})</span>
-          </button>
-        </div>
-
         <div className="bg-card border border-border rounded-lg overflow-hidden shadow-card">
           <div className="p-6 border-b border-border">
             <div className="flex items-center justify-between mb-4">
@@ -348,166 +483,40 @@ export default function AnalysesPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            {loading ? (
-              <div className="p-6 space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
-            ) : analyses.length === 0 ? (
-              <div className="text-center py-12 px-6">
-                <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-2 text-sm font-semibold text-foreground">No analyses found</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {searchTerm
-                    ? 'No analyses match your search.'
-                    : 'Get started by creating your first analysis.'}
-                </p>
-                {!searchTerm && (
-                  <Button className="mt-4" onClick={() => router.push('/analysis/new')}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Create Analysis
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <>
-                    <Table className="w-full select-none">
-                      <TableHeader className="bg-muted border-b">
-                        <TableRow>
-                          <TableHead className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
-                            <button
-                              onClick={() => handleSort('client_company_name')}
-                              className="flex items-center cursor-pointer hover:bg-accent transition-colors"
-                            >
-                              Client
-                              {getSortIcon('client_company_name')}
-                            </button>
-                          </TableHead>
-                          <TableHead className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Period</TableHead>
-                          <TableHead className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Status</TableHead>
-                          <TableHead className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider">
-                            <button
-                              onClick={() => handleSort('states_with_nexus')}
-                              className="flex items-center justify-center cursor-pointer hover:bg-accent transition-colors mx-auto"
-                            >
-                              States with Nexus
-                              {getSortIcon('states_with_nexus')}
-                            </button>
-                          </TableHead>
-                          <TableHead className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">
-                            <button
-                              onClick={() => handleSort('total_liability')}
-                              className="flex items-center justify-end cursor-pointer hover:bg-accent transition-colors ml-auto"
-                            >
-                              Est. Liability
-                              {getSortIcon('total_liability')}
-                            </button>
-                          </TableHead>
-                          <TableHead className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
-                            <button
-                              onClick={() => handleSort('created_at')}
-                              className="flex items-center cursor-pointer hover:bg-accent transition-colors"
-                            >
-                              Created
-                              {getSortIcon('created_at')}
-                            </button>
-                          </TableHead>
-                          <TableHead className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                    <TableBody className="divide-y divide-border">
-                      {displayedAnalyses.map((analysis) => {
-                        const statusConfig = STATUS_CONFIG[analysis.status]
-                        const StatusIcon = statusConfig.icon
-                        const isNew = isNewAnalysis(analysis.created_at)
-
-                        return (
-                          <TableRow key={analysis.id} className="group hover:bg-accent/50 transition-colors [&[data-state=selected]]:bg-transparent">
-                            <TableCell className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-foreground">{analysis.client_company_name}</span>
-                                {isNew && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-                                    New
-                                  </span>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                              {formatDate(analysis.analysis_period_start)} — {formatDate(analysis.analysis_period_end)}
-                            </TableCell>
-                            <TableCell className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${statusConfig.color}`}>
-                                <StatusIcon className={`mr-1.5 h-3 w-3 ${analysis.status === 'processing' ? 'animate-spin' : ''}`} />
-                                {statusConfig.label}
-                              </span>
-                            </TableCell>
-                            <TableCell className="px-6 py-4 whitespace-nowrap text-center">
-                              {analysis.states_with_nexus !== null ? (
-                                <span className="text-sm font-semibold text-foreground">{analysis.states_with_nexus}</span>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">Not calculated</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="px-6 py-4 whitespace-nowrap text-right">
-                              {formatCurrency(analysis.total_liability) ? (
-                                <span className="text-sm font-semibold text-foreground">{formatCurrency(analysis.total_liability)}</span>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">Not calculated</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                              {formatDate(analysis.created_at)}
-                            </TableCell>
-                            <TableCell className="px-6 py-4 whitespace-nowrap text-right">
-                              <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button
-                                  onClick={() => handleView(analysis.id)}
-                                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
-                                  title="View details"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(analysis.id, analysis.client_company_name)}
-                                  disabled={deleteLoading === analysis.id}
-                                  className="p-2 text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
-                                  title="Delete"
-                                >
-                                  {deleteLoading === analysis.id ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <Trash2 className="h-4 w-4" />
-                                  )}
-                                </button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-              </>
-            )}
+          {/* Tabs */}
+          <div className="px-6 pt-4">
+            <TabsCustom
+              items={[
+                {
+                  id: 'all',
+                  label: 'All',
+                  badge: <span className="text-muted-foreground">({stats.total})</span>,
+                  content: renderTableContent('all')
+                },
+                {
+                  id: 'complete',
+                  label: 'Complete',
+                  badge: <span className="text-muted-foreground">({stats.complete})</span>,
+                  content: renderTableContent('complete')
+                },
+                {
+                  id: 'draft',
+                  label: 'Draft',
+                  badge: <span className="text-muted-foreground">({stats.draft})</span>,
+                  content: renderTableContent('draft')
+                },
+                {
+                  id: 'processing',
+                  label: 'Processing',
+                  badge: <span className="text-muted-foreground">({stats.processing})</span>,
+                  content: renderTableContent('processing')
+                }
+              ]}
+              defaultTab="all"
+              variant="underline"
+              onTabChange={(tabId) => setActiveTab(tabId)}
+            />
           </div>
-
-          {/* Footer */}
-          {!loading && analyses.length > 0 && (
-            <div className="px-6 py-4 border-t border-border bg-muted/50">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Showing <span className="font-medium text-foreground">{displayedAnalyses.length}</span> of <span className="font-medium text-foreground">{totalCount}</span> analyses
-                  {activeTab !== 'all' && (
-                    <span className="ml-2 text-muted-foreground">
-                      (filtered by {activeTab})
-                    </span>
-                  )}
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </AppLayout>
     </ProtectedRoute>

@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { AlertCircle, ChevronDown, ChevronUp, Calculator, X } from 'lucide-react'
 import { useVDAMode, StateResult } from '@/hooks/useVDAMode'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
+import { AccordionCustom } from '@/components/ui/accordion-custom'
 
 interface VDAModePanelProps {
   analysisId: string
@@ -35,9 +36,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
     toggleLegendKey,
     isLegendKeyHidden,
     hover,
-    setHover,
-    openTopKey,
-    toggleTopKey
+    setHover
   } = useVDAMode(analysisId, stateResults)
 
   if (loading) {
@@ -126,32 +125,32 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
             {/* Savings Summary */}
             {vdaResults && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                  <div className="text-sm font-medium text-destructive-foreground mb-1">
+                <div className="bg-muted/50 border border-border rounded-lg p-4">
+                  <div className="text-sm font-medium text-muted-foreground mb-1">
                     Before VDA
                   </div>
-                  <div className="text-2xl font-bold text-destructive-foreground">
+                  <div className="text-2xl font-bold text-foreground">
                     {formatCurrency(vdaResults.before_vda)}
                   </div>
                 </div>
 
-                <div className="bg-success/10 border border-success/20 rounded-lg p-4">
-                  <div className="text-sm font-medium text-success-foreground mb-1">
+                <div className="bg-muted/50 border border-border rounded-lg p-4">
+                  <div className="text-sm font-medium text-muted-foreground mb-1">
                     With VDA
                   </div>
-                  <div className="text-2xl font-bold text-success-foreground">
+                  <div className="text-2xl font-bold text-foreground">
                     {formatCurrency(vdaResults.with_vda)}
                   </div>
                 </div>
 
-                <div className="bg-info/10 border border-info/20 rounded-lg p-4">
-                  <div className="text-sm font-medium text-info-foreground mb-1">
+                <div className="bg-muted/50 border border-border rounded-lg p-4">
+                  <div className="text-sm font-medium text-muted-foreground mb-1">
                     Total Savings
                   </div>
-                  <div className="text-2xl font-bold text-info-foreground">
+                  <div className="text-2xl font-bold text-foreground">
                     {formatCurrency(vdaResults.total_savings)}
                   </div>
-                  <div className="text-xs text-info-foreground mt-1">
+                  <div className="text-xs text-muted-foreground mt-1">
                     {vdaResults.savings_percentage.toFixed(1)}% reduction
                   </div>
                 </div>
@@ -209,8 +208,8 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                           className="w-4 h-4 rounded"
                           style={{
                             backgroundColor:
-                              key === 'Base Tax' ? '#3b82f6' :
-                              key === 'Interest' ? '#f59e0b' : '#ef4444'
+                              key === 'Base Tax' ? 'hsl(217 32.6% 45%)' :
+                              key === 'Interest' ? 'hsl(38 92% 50%)' : 'hsl(0 60% 45%)'
                           }}
                         />
                         <span>{key}</span>
@@ -227,17 +226,12 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                 <h3 className="font-semibold text-card-foreground mb-4">
                   Top States by Savings
                 </h3>
-                <div className="space-y-2">
-                  {vdaResults.state_breakdown.slice(0, 5).map((state) => (
-                    <div
-                      key={state.state_code}
-                      className="border border-border rounded-lg p-4 hover:bg-card transition-colors"
-                    >
-                      <button
-                        onClick={() => toggleTopKey(state.state_code)}
-                        className="w-full flex items-center justify-between text-left"
-                      >
-                        <div className="flex items-center gap-3">
+                <AccordionCustom
+                  items={vdaResults.state_breakdown.slice(0, 5).map((state) => ({
+                    id: state.state_code,
+                    title: (
+                      <div className="flex items-center justify-between w-full pr-8">
+                        <div className="flex items-center gap-1">
                           <span className="font-semibold text-card-foreground">
                             {state.state_name}
                           </span>
@@ -245,47 +239,41 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                             ({state.state_code})
                           </span>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className="text-lg font-bold text-info-foreground">
-                            {formatCurrency(state.savings)}
-                          </span>
-                          {openTopKey === state.state_code ? (
-                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          )}
+                        <span className="text-lg font-bold text-foreground ml-4">
+                          {formatCurrency(state.savings)}
+                        </span>
+                      </div>
+                    ) as any,
+                    content: (
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Before VDA:</span>
+                          <span className="font-medium text-foreground">{formatCurrency(state.before_vda)}</span>
                         </div>
-                      </button>
-
-                      {openTopKey === state.state_code && (
-                        <div className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">With VDA:</span>
+                          <span className="font-medium text-foreground">{formatCurrency(state.with_vda)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Penalties Waived:</span>
+                          <span className="font-medium text-foreground">
+                            {formatCurrency(state.penalty_waived)}
+                          </span>
+                        </div>
+                        {state.interest_waived > 0 && (
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Before VDA:</span>
-                            <span className="font-medium">{formatCurrency(state.before_vda)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">With VDA:</span>
-                            <span className="font-medium">{formatCurrency(state.with_vda)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Penalties Waived:</span>
-                            <span className="font-medium text-success-foreground">
-                              {formatCurrency(state.penalty_waived)}
+                            <span className="text-muted-foreground">Interest Waived:</span>
+                            <span className="font-medium text-foreground">
+                              {formatCurrency(state.interest_waived)}
                             </span>
                           </div>
-                          {state.interest_waived > 0 && (
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Interest Waived:</span>
-                              <span className="font-medium text-success-foreground">
-                                {formatCurrency(state.interest_waived)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                        )}
+                      </div>
+                    )
+                  }))}
+                  allowMultiple={false}
+                  variant="bordered"
+                />
               </div>
             )}
 
@@ -299,7 +287,7 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                 Change States
               </Button>
               <Button
-                variant="destructive"
+                variant="outline"
                 onClick={disableVDA}
                 className="flex-1"
               >

@@ -202,21 +202,21 @@ export function useVDAMode(analysisId: string, stateResults: StateResult[]) {
       {
         name: 'Base Tax',
         value: vdaResults.state_breakdown.reduce((sum, s) => sum + s.base_tax, 0),
-        color: '#3b82f6',  // blue
+        color: 'hsl(217 32.6% 45%)',  // Muted slate blue
         percentage: 0
       },
       {
         name: 'Interest',
         value: vdaResults.state_breakdown.reduce((sum, s) => sum + s.interest, 0) -
                vdaResults.state_breakdown.reduce((sum, s) => sum + s.interest_waived, 0),
-        color: '#f59e0b',  // amber
+        color: 'hsl(38 92% 50%)',  // Muted amber
         percentage: 0
       },
       {
         name: 'Penalties',
         value: vdaResults.state_breakdown.reduce((sum, s) => sum + s.penalties, 0) -
                vdaResults.state_breakdown.reduce((sum, s) => sum + s.penalty_waived, 0),
-        color: '#ef4444',  // red
+        color: 'hsl(0 60% 45%)',  // Muted red (matching your map)
         percentage: 0
       }
     ]
