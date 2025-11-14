@@ -89,12 +89,13 @@ export function MonthlyTrendChart({
   };
 
   return (
-    <Card>
+    <Card className="border-border bg-card shadow-md">
       <CardHeader>
         <CardTitle>Monthly Sales Trend</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={350}>
+        <div className="bg-muted/50 rounded-lg border border-border p-6">
+          <ResponsiveContainer width="100%" height={350}>
           <LineChart
             data={chartData}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
@@ -137,6 +138,7 @@ export function MonthlyTrendChart({
             />
           </LineChart>
         </ResponsiveContainer>
+        </div>
 
         {nexusCrossedMonth && (
           <div className="mt-4 rounded-md bg-warning/10 border border-warning/20 p-3">

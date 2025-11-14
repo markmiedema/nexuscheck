@@ -58,7 +58,7 @@ export function LiabilityBreakdown({
       <CardContent>
         <div className="space-y-4">
           {/* Liability Amount - Prominent Display */}
-          <div className="text-center py-4 bg-muted/50 rounded-md border border-border">
+          <div className="text-center py-4 bg-muted/50 rounded-lg border border-border p-6">
             <p className="text-sm text-muted-foreground mb-1">
               Estimated Liability
             </p>
@@ -68,7 +68,7 @@ export function LiabilityBreakdown({
           </div>
 
           {/* Calculation Breakdown */}
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2 text-sm bg-muted/50 rounded-lg border border-border p-6">
             <div className="font-semibold text-foreground mb-3">
               Liability Breakdown:
             </div>
@@ -96,7 +96,7 @@ export function LiabilityBreakdown({
               <>
                 <div className="flex justify-between items-center py-2 border-b border-border">
                   <span className="text-muted-foreground">+ Interest</span>
-                  <span className="font-mono font-semibold text-orange-600 dark:text-orange-400">
+                  <span className="font-mono font-semibold text-foreground">
                     {formatCurrency(interest)}
                   </span>
                 </div>
@@ -127,7 +127,7 @@ export function LiabilityBreakdown({
               <>
                 <div className="flex justify-between items-center py-2 border-b border-border">
                   <span className="text-muted-foreground">+ Penalties</span>
-                  <span className="font-mono font-semibold text-destructive-foreground">
+                  <span className="font-mono font-semibold text-foreground dark:text-destructive-foreground">
                     {formatCurrency(penalties)}
                   </span>
                 </div>
@@ -155,7 +155,7 @@ export function LiabilityBreakdown({
           </div>
 
           {/* Disclaimer */}
-          <div className="text-xs text-muted-foreground italic mt-4 p-3 bg-warning/10 border border-warning/20 rounded">
+          <div className="text-xs text-muted-foreground mt-4 p-3 bg-muted/50 border border-border rounded">
             <strong>Note:</strong> This is an estimated liability based on
             aggregate sales data. Actual liability may vary based on specific
             transaction details, exemptions, and local tax jurisdictions.

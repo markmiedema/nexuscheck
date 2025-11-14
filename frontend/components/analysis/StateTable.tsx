@@ -180,9 +180,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
         <h3 className="text-xl font-semibold text-foreground">
           State-by-State Results
         </h3>
-        <div className="text-sm text-muted-foreground">
-          {displayedStates.length} of {states.length} states
-        </div>
       </div>
 
       {/* Toolbar */}
@@ -231,7 +228,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       </div>
 
       {/* Table */}
-      <div className="border border-border rounded-lg overflow-hidden">
+      <div className="bg-muted/50 border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
@@ -319,9 +316,41 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                           }}
                         />
                         <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border dark:border-opacity-40"
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border"
                           style={{
-                            backgroundColor:
+                            // Light mode colors (optimized)
+                            '--badge-bg-light':
+                              state.nexus_type === 'both'
+                                ? 'hsl(289 46% 45% / 0.1)'
+                                : state.nexus_type === 'physical'
+                                ? 'hsl(217 32.6% 45% / 0.1)'
+                                : state.nexus_type === 'economic'
+                                ? 'hsl(0 60% 45% / 0.1)'
+                                : state.nexus_status === 'approaching'
+                                ? 'hsl(38 92% 50% / 0.1)'
+                                : 'hsl(142 71% 40% / 0.1)',
+                            '--badge-color-light':
+                              state.nexus_type === 'both'
+                                ? 'hsl(289 46% 35%)'
+                                : state.nexus_type === 'physical'
+                                ? 'hsl(217 32.6% 35%)'
+                                : state.nexus_type === 'economic'
+                                ? 'hsl(0 60% 40%)'
+                                : state.nexus_status === 'approaching'
+                                ? 'hsl(38 92% 40%)'
+                                : 'hsl(142 71% 30%)',
+                            '--badge-border-light':
+                              state.nexus_type === 'both'
+                                ? 'hsl(289 46% 45% / 0.2)'
+                                : state.nexus_type === 'physical'
+                                ? 'hsl(217 32.6% 45% / 0.2)'
+                                : state.nexus_type === 'economic'
+                                ? 'hsl(0 60% 45% / 0.2)'
+                                : state.nexus_status === 'approaching'
+                                ? 'hsl(38 92% 50% / 0.2)'
+                                : 'hsl(142 71% 40% / 0.2)',
+                            // Dark mode colors (optimized)
+                            '--badge-bg-dark':
                               state.nexus_type === 'both'
                                 ? 'hsl(289 46% 45% / 0.15)'
                                 : state.nexus_type === 'physical'
@@ -331,7 +360,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                                 : state.nexus_status === 'approaching'
                                 ? 'hsl(38 92% 50% / 0.15)'
                                 : 'hsl(142 71% 40% / 0.15)',
-                            color:
+                            '--badge-color-dark':
                               state.nexus_type === 'both'
                                 ? 'hsl(289 46% 70%)'
                                 : state.nexus_type === 'physical'
@@ -341,7 +370,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                                 : state.nexus_status === 'approaching'
                                 ? 'hsl(38 92% 65%)'
                                 : 'hsl(142 71% 65%)',
-                            borderColor:
+                            '--badge-border-dark':
                               state.nexus_type === 'both'
                                 ? 'hsl(289 46% 45% / 0.3)'
                                 : state.nexus_type === 'physical'
@@ -350,8 +379,11 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                                 ? 'hsl(0 60% 45% / 0.3)'
                                 : state.nexus_status === 'approaching'
                                 ? 'hsl(38 92% 50% / 0.3)'
-                                : 'hsl(142 71% 40% / 0.3)'
-                          }}
+                                : 'hsl(142 71% 40% / 0.3)',
+                            backgroundColor: 'var(--badge-bg-light)',
+                            color: 'var(--badge-color-light)',
+                            borderColor: 'var(--badge-border-light)',
+                          } as React.CSSProperties & Record<string, string>}
                         >
                           {state.nexus_type === 'both'
                             ? 'Physical + Economic'

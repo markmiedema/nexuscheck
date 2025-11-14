@@ -1,8 +1,4 @@
 'use client';
-
-import { ChevronLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -43,40 +39,69 @@ export function StateDetailHeader({
   analysisId,
   analysisPeriod,
 }: StateDetailHeaderProps) {
-  const router = useRouter();
-
   // Debug logging
   console.log('StateDetailHeader props:', { stateName, nexusStatus, nexusType });
 
-  const getBadgeClassName = () => {
+  const getBadgeStyles = () => {
+    let baseColor = '';
+
     // Use nexusType if available and state has nexus (exclude 'none')
     if (nexusStatus === 'has_nexus' && nexusType && nexusType !== 'none') {
       console.log('Using nexusType for badge color:', nexusType);
       switch (nexusType) {
         case 'both':
-          return 'bg-info/20 text-info-foreground border border-info/30 hover:bg-info/30';
+          baseColor = '289 46% 45%'; // Purple
+          break;
         case 'physical':
-          return 'bg-info/10 text-info-foreground border border-info/20 hover:bg-info/20';
+          baseColor = '217 32.6% 45%'; // Blue
+          break;
         case 'economic':
-          return 'bg-destructive/10 text-destructive-foreground border border-destructive/20 hover:bg-destructive/20';
-        default:
-          // Shouldn't reach here, but just in case
-          console.warn('Unexpected nexusType:', nexusType);
+          baseColor = '0 60% 45%'; // Red
+          break;
+      }
+    } else {
+      // Fallback to status-based colors
+      switch (nexusStatus) {
+        case 'has_nexus':
+          baseColor = '0 60% 45%'; // Red (economic)
+          break;
+        case 'approaching':
+          baseColor = '38 92% 50%'; // Amber
+          break;
+        case 'none':
+          baseColor = '142 71% 40%'; // Green
           break;
       }
     }
 
-    // Fallback to status-based colors
-    switch (nexusStatus) {
-      case 'has_nexus':
-        return 'bg-destructive/10 text-destructive-foreground border border-destructive/20 hover:bg-destructive/20';
-      case 'approaching':
-        return 'bg-warning/10 text-warning-foreground border border-warning/20 hover:bg-warning/20';
-      case 'none':
-        return 'bg-success/10 text-success-foreground border border-success/20 hover:bg-success/20';
-      default:
-        return 'bg-muted text-muted-foreground hover:bg-muted/80';
-    }
+    // Return light and dark mode CSS variables
+    return {
+      '--badge-bg-light': `hsl(${baseColor} / 0.1)`,
+      '--badge-color-light': baseColor.startsWith('289')
+        ? 'hsl(289 46% 35%)'
+        : baseColor.startsWith('217')
+        ? 'hsl(217 32.6% 35%)'
+        : baseColor.startsWith('0')
+        ? 'hsl(0 60% 40%)'
+        : baseColor.startsWith('38')
+        ? 'hsl(38 92% 40%)'
+        : 'hsl(142 71% 30%)',
+      '--badge-border-light': `hsl(${baseColor} / 0.2)`,
+      '--badge-bg-dark': `hsl(${baseColor} / 0.15)`,
+      '--badge-color-dark': baseColor.startsWith('289')
+        ? 'hsl(289 46% 70%)'
+        : baseColor.startsWith('217')
+        ? 'hsl(217 32.6% 70%)'
+        : baseColor.startsWith('0')
+        ? 'hsl(0 60% 70%)'
+        : baseColor.startsWith('38')
+        ? 'hsl(38 92% 65%)'
+        : 'hsl(142 71% 65%)',
+      '--badge-border-dark': `hsl(${baseColor} / 0.3)`,
+      backgroundColor: 'var(--badge-bg-light)',
+      color: 'var(--badge-color-light)',
+      borderColor: 'var(--badge-border-light)',
+    } as React.CSSProperties & Record<string, string>;
   };
 
   const getNexusBadgeText = () => {
@@ -127,70 +152,45 @@ export function StateDetailHeader({
 
   return (
     <div className="space-y-4 border-b pb-6">
-      {/* State Header with Badge and Back Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold">{stateName}</h1>
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getBadgeClassName()}`}>
-            {getNexusBadgeText()}
-          </span>
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => router.push(`/analysis/${analysisId}/results`)}
+      {/* State Header with Badge */}
+      <div className="flex items-center gap-3">
+        <h1 className="text-3xl font-bold">{stateName}</h1>
+        <span
+          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border"
+          style={getBadgeStyles()}
         >
-          <ChevronLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-      </div>
-
-      {/* Quick Stats Bar */}
-      <div className="flex items-center gap-6 text-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Total Sales:</span>
-          <span className="font-semibold">{formatCurrency(totalSales)}</span>
-        </div>
-        <div className="h-4 w-px bg-border" />
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Transactions:</span>
-          <span className="font-semibold">{transactionCount}</span>
-        </div>
+          {getNexusBadgeText()}
+        </span>
       </div>
 
       {/* Year Selector */}
       {yearsAvailable.length > 0 && (
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <label htmlFor="year-select" className="text-sm font-medium">
-              Year:
-            </label>
-            <Select
-              value={selectedYear.toString()}
-              onValueChange={(value) =>
-                value === 'all' ? onYearChange('all') : onYearChange(parseInt(value))
-              }
-            >
-              <SelectTrigger id="year-select" className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {yearsAvailable.length > 1 && (
-                  <SelectItem value="all">
-                    All Years ({yearsAvailable[0]}-{yearsAvailable[yearsAvailable.length - 1]})
-                  </SelectItem>
-                )}
-                {yearsAvailable.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            Analysis Period: {formatDate(analysisPeriod.start_date)} -{' '}
-            {formatDate(analysisPeriod.end_date)}
-          </div>
+        <div className="flex items-center gap-3">
+          <label htmlFor="year-select" className="text-sm font-medium">
+            Year:
+          </label>
+          <Select
+            value={selectedYear.toString()}
+            onValueChange={(value) =>
+              value === 'all' ? onYearChange('all') : onYearChange(parseInt(value))
+            }
+          >
+            <SelectTrigger id="year-select" className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {yearsAvailable.length > 1 && (
+                <SelectItem value="all">
+                  All Years ({yearsAvailable[0]}-{yearsAvailable[yearsAvailable.length - 1]})
+                </SelectItem>
+              )}
+              {yearsAvailable.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
     </div>

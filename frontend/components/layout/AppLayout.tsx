@@ -8,6 +8,7 @@ interface AppLayoutProps {
   children: ReactNode
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '5xl' | '7xl' | 'full'
   breadcrumbs?: BreadcrumbItem[]
+  breadcrumbsRightContent?: ReactNode
 }
 
 const maxWidthClasses = {
@@ -22,12 +23,12 @@ const maxWidthClasses = {
   full: 'max-w-full',
 }
 
-export default function AppLayout({ children, maxWidth = '7xl', breadcrumbs }: AppLayoutProps) {
+export default function AppLayout({ children, maxWidth = '7xl', breadcrumbs, breadcrumbsRightContent }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
-      <main className={`${maxWidthClasses[maxWidth]} mx-auto px-4 sm:px-6 lg:px-8 py-8`}>
-        {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
+      <main className={`${maxWidthClasses[maxWidth]} mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8`}>
+        {breadcrumbs && <Breadcrumbs items={breadcrumbs} rightContent={breadcrumbsRightContent} />}
         {children}
       </main>
     </div>

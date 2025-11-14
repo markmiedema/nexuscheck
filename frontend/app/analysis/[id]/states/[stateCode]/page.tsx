@@ -167,6 +167,29 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
   // Get current year for zero-sales states
   const currentYear = yearData?.year || new Date().getFullYear();
 
+  // Format date for breadcrumb display
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  // Calculate analysis period for breadcrumb
+  const getAnalysisPeriod = () => {
+    if (!data) return null;
+
+    const startDate = isAllYearsView
+      ? `${Math.min(...data.analysis_period.years_available)}-01-01`
+      : `${selectedYear}-01-01`;
+    const endDate = isAllYearsView
+      ? `${Math.max(...data.analysis_period.years_available)}-12-31`
+      : `${selectedYear}-12-31`;
+
+    return `Analysis Period: ${formatDate(startDate)} - ${formatDate(endDate)}`;
+  };
+
   return (
     <ProtectedRoute>
       <AppLayout
@@ -176,6 +199,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
           { label: 'Analysis Results', href: `/analysis/${params.id}/results` },
           { label: `${params.stateCode.toUpperCase()} - ${data.state_name}` },
         ]}
+        breadcrumbsRightContent={getAnalysisPeriod()}
       >
         <div className="space-y-6">
           {/* Header Section - only show if has transactions */}
@@ -323,16 +347,16 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
 
       {/* All Years Summary - show year breakdown when in aggregate view */}
       {isAllYearsView && data.has_transactions && (
-        <Card>
+        <Card className="border-border bg-card shadow-md">
           <CardHeader>
             <CardTitle>Year-by-Year Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-4 bg-muted/50 rounded-lg border border-border p-6">
               {data.year_data.map((yearItem) => (
                 <div
                   key={yearItem.year}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer"
+                  className="flex items-center justify-between p-4 bg-background dark:bg-card border rounded-lg hover:bg-accent cursor-pointer transition-colors"
                   onClick={() => setSelectedYear(yearItem.year)}
                 >
                   <div>

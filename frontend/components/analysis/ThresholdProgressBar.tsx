@@ -1,6 +1,7 @@
 'use client';
 
 import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface ThresholdProgressBarProps {
@@ -45,7 +46,20 @@ export function ThresholdProgressBar({
       case 'approaching':
         return 'bg-warning';
       case 'exceeded':
-        return 'bg-destructive';
+        return 'hsl(0 60% 45%)'; // Match map component red
+      default:
+        return 'bg-success';
+    }
+  };
+
+  const getStatusBgColor = () => {
+    switch (status) {
+      case 'safe':
+        return 'bg-success';
+      case 'approaching':
+        return 'bg-warning';
+      case 'exceeded':
+        return ''; // Will use inline style
       default:
         return 'bg-success';
     }
@@ -58,51 +72,64 @@ export function ThresholdProgressBar({
       case 'approaching':
         return 'text-warning-foreground';
       case 'exceeded':
-        return 'text-destructive-foreground';
+        return ''; // Will use inline style
       default:
         return 'text-success-foreground';
     }
   };
 
+  const getStatusTextColor = () => {
+    return status === 'exceeded' ? 'hsl(0 60% 35%)' : undefined;
+  };
+
   return (
-    <div className="space-y-4 rounded-lg border p-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Threshold Status</h3>
+    <Card className="border-border bg-card shadow-md">
+      <CardHeader>
+        <CardTitle className="text-lg">Threshold Status</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="bg-muted/50 rounded-lg border border-border p-6">
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Threshold:</span>
+                <span className="font-medium">{formatCurrency(threshold)}</span>
+              </div>
 
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Threshold:</span>
-            <span className="font-medium">{formatCurrency(threshold)}</span>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Your Sales:</span>
+                <span className="font-medium">
+                  {formatCurrency(currentSales)}{' '}
+                  <span
+                    className={cn('text-xs', getStatusText())}
+                    style={{ color: getStatusTextColor() }}
+                  >
+                    ({percentage.toFixed(1)}% of threshold)
+                  </span>
+                </span>
+              </div>
+
+              {status === 'exceeded' ? (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Amount over threshold:</span>
+                  <span
+                    className="font-medium"
+                    style={{ color: getStatusTextColor() }}
+                  >
+                    {formatCurrency(overage)}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Amount until nexus:</span>
+                  <span className="font-medium">{formatCurrency(remaining)}</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Your Sales:</span>
-            <span className="font-medium">
-              {formatCurrency(currentSales)}{' '}
-              <span className={cn('text-xs', getStatusText())}>
-                ({percentage.toFixed(1)}% of threshold)
-              </span>
-            </span>
-          </div>
-
-          {status === 'exceeded' ? (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Amount over threshold:</span>
-              <span className={cn('font-medium', getStatusText())}>
-                {formatCurrency(overage)}
-              </span>
-            </div>
-          ) : (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Amount until nexus:</span>
-              <span className="font-medium">{formatCurrency(remaining)}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="space-y-2">
+          {/* Progress Bar */}
+          <div className="space-y-2">
         <div className="relative">
           <Progress
             value={percentage}
@@ -111,9 +138,12 @@ export function ThresholdProgressBar({
           <div
             className={cn(
               'absolute inset-0 h-3 rounded-full transition-all',
-              getStatusColor()
+              status !== 'exceeded' && getStatusBgColor()
             )}
-            style={{ width: `${Math.min(percentage, 100)}%` }}
+            style={{
+              width: `${Math.min(percentage, 100)}%`,
+              backgroundColor: status === 'exceeded' ? getStatusColor() : undefined
+            }}
           />
         </div>
         <div className="flex justify-between text-xs text-muted-foreground">
@@ -134,8 +164,16 @@ export function ThresholdProgressBar({
       )}
 
       {status === 'exceeded' && (
-        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3">
-          <p className="text-sm text-destructive-foreground">
+        <div
+          className="rounded-md p-3"
+          style={{
+            backgroundColor: 'hsl(0 60% 45% / 0.1)',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'hsl(0 60% 45% / 0.2)'
+          }}
+        >
+          <p className="text-sm" style={{ color: 'hsl(0 60% 35%)' }}>
             {isStickyNexus ? (
               <>
                 Nexus continues from <span className="font-semibold">{firstNexusYear}</span>.
@@ -151,6 +189,8 @@ export function ThresholdProgressBar({
           </p>
         </div>
       )}
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

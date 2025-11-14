@@ -259,24 +259,24 @@ export default function ResultsPage() {
                 {/* Legend */}
                 <div className="mt-4 flex flex-wrap justify-center gap-4 text-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(217 32.6% 45%)' }}></div>
-                    <span className="text-muted-foreground">Physical Nexus</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(0 60% 45%)' }}></div>
-                    <span className="text-muted-foreground">Economic Nexus</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(289 46% 45%)' }}></div>
-                    <span className="text-muted-foreground">Both Nexus Types</span>
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(142 71% 40%)' }}></div>
+                    <span className="text-muted-foreground">No Nexus</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(38 92% 50%)' }}></div>
                     <span className="text-muted-foreground">Approaching</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(142 71% 40%)' }}></div>
-                    <span className="text-muted-foreground">No Nexus</span>
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(0 60% 45%)' }}></div>
+                    <span className="text-muted-foreground">Economic Nexus</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(217 32.6% 45%)' }}></div>
+                    <span className="text-muted-foreground">Physical Nexus</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(289 46% 45%)' }}></div>
+                    <span className="text-muted-foreground">Both Nexus Types</span>
                   </div>
                 </div>
               </>

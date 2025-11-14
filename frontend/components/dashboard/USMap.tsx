@@ -148,7 +148,7 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
   }
 
   return (
-    <div className="relative rounded-lg border border-border shadow-md bg-card p-4">
+    <div className="relative rounded-lg border border-border bg-muted/50 p-4">
       <ComposableMap projection="geoAlbersUsa" className="w-full h-auto">
         <Geographies geography={geoUrl}>
           {({ geographies }) =>

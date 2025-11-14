@@ -81,7 +81,7 @@ export function ComplianceSection({
   // Variant 1: Has Nexus (Red Status)
   if (nexusStatus === 'has_nexus') {
     return (
-      <Card>
+      <Card className="border-border bg-card shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5" />
@@ -89,40 +89,11 @@ export function ComplianceSection({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Status Banner */}
-          <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
-            <h3 className="font-semibold text-destructive-foreground mb-2 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              Action Required - Nexus Established
-            </h3>
-            <div className="space-y-1 text-sm text-destructive-foreground">
-              {nexusFirstEstablishedYear && (
-                <>
-                  <p>
-                    <strong>Nexus first established:</strong> {nexusFirstEstablishedYear}
-                  </p>
-                  {nexusFirstEstablishedYear < currentYear && (
-                    <p>
-                      <strong>Current year status:</strong> Active (continuing from{' '}
-                      {nexusFirstEstablishedYear})
-                    </p>
-                  )}
-                </>
-              )}
-              <div className="mt-3 p-3 bg-destructive/20 rounded border border-destructive/30">
-                <p className="font-medium">
-                  Important: Once nexus is established, it typically persists until you
-                  formally close your state account.
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Required Actions Checklist */}
           <div>
             <h3 className="font-semibold text-lg mb-3">Required Actions</h3>
-            <div className="space-y-3">
-              <div className="flex gap-3 p-3 border rounded-md">
+            <div className="space-y-3 bg-muted/50 rounded-lg border border-border p-6">
+              <div className="flex gap-3 p-3 bg-background dark:bg-card border rounded-md">
                 <input
                   type="checkbox"
                   className="mt-1 h-4 w-4"
@@ -147,7 +118,7 @@ export function ComplianceSection({
                 </div>
               </div>
 
-              <div className="flex gap-3 p-3 border rounded-md">
+              <div className="flex gap-3 p-3 bg-background dark:bg-card border rounded-md">
                 <input
                   type="checkbox"
                   className="mt-1 h-4 w-4"
@@ -162,7 +133,7 @@ export function ComplianceSection({
                 </div>
               </div>
 
-              <div className="flex gap-3 p-3 border rounded-md">
+              <div className="flex gap-3 p-3 bg-background dark:bg-card border rounded-md">
                 <input
                   type="checkbox"
                   className="mt-1 h-4 w-4"
@@ -195,7 +166,11 @@ export function ComplianceSection({
           {/* State Tax Information */}
           <div>
             <h3 className="font-semibold text-lg mb-3">State Tax Information</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="space-y-3 text-sm bg-muted/50 rounded-lg border border-border p-6">
+              <div>
+                <span className="text-muted-foreground">Economic Nexus Threshold:</span>
+                <span className="ml-2 font-medium">{formatThreshold()}</span>
+              </div>
               <div>
                 <span className="text-muted-foreground">State Tax Rate:</span>
                 <span className="ml-2 font-medium">
@@ -222,12 +197,8 @@ export function ComplianceSection({
                   {formatCurrency(complianceInfo.registration_info.registration_fee)}
                 </span>
               </div>
-              <div className="col-span-2">
-                <span className="text-muted-foreground">Economic Nexus Threshold:</span>
-                <span className="ml-2 font-medium">{formatThreshold()}</span>
-              </div>
               {complianceInfo.registration_info.filing_frequencies.length > 0 && (
-                <div className="col-span-2">
+                <div>
                   <span className="text-muted-foreground">Filing Frequencies:</span>
                   <span className="ml-2 font-medium">
                     {complianceInfo.registration_info.filing_frequencies.join(', ')}
@@ -240,27 +211,93 @@ export function ComplianceSection({
           {/* Helpful Resources */}
           <div>
             <h3 className="font-semibold text-lg mb-3">Helpful Resources</h3>
-            <div className="space-y-2 text-sm">
-              {complianceInfo.registration_info.dor_website && (
+            <div className="space-y-3 text-sm bg-muted/50 rounded-lg border border-border p-6">
+              {/* Official Department Links */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Official Department</p>
                 <a
-                  href={complianceInfo.registration_info.dor_website}
+                  href={complianceInfo.registration_info.dor_website || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-foreground hover:underline"
+                  className="block text-foreground hover:underline ml-2"
                 >
-                  → {stateName} Department of Revenue
+                  → {stateName} Department of Revenue Website
                 </a>
-              )}
-              {complianceInfo.registration_info.registration_url && (
+                <p className="text-muted-foreground ml-2 mt-1">
+                  → Phone: (555) 123-4567 [Placeholder]
+                </p>
+                <p className="text-muted-foreground ml-2">
+                  → Email: taxhelp@{stateName.toLowerCase().replace(/\s+/g, '')}.gov [Placeholder]
+                </p>
+              </div>
+
+              {/* Registration */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Registration</p>
                 <a
-                  href={complianceInfo.registration_info.registration_url}
+                  href={complianceInfo.registration_info.registration_url || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-foreground hover:underline"
+                  className="block text-foreground hover:underline ml-2"
                 >
-                  → Sales Tax Registration Portal
+                  → Online Registration Portal
                 </a>
-              )}
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Registration Instructions & Requirements
+                </a>
+              </div>
+
+              {/* VDA Information */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Voluntary Disclosure Agreement</p>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → {stateName} VDA Program Overview
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → VDA Application Process
+                </a>
+                <p className="text-muted-foreground ml-2 mt-1">
+                  → VDA Contact: vda@{stateName.toLowerCase().replace(/\s+/g, '')}.gov [Placeholder]
+                </p>
+              </div>
+
+              {/* Reference Materials */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Reference Materials</p>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Economic Nexus Statute & Regulations
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Tax Rate Lookup Tool
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Filing Requirements & Deadlines
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Supporting Case Law & Precedents
+                </a>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -271,7 +308,7 @@ export function ComplianceSection({
   // Variant 2: Approaching Nexus (Yellow Status)
   if (nexusStatus === 'approaching') {
     return (
-      <Card>
+      <Card className="border-border bg-card shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-warning-foreground" />
@@ -305,20 +342,26 @@ export function ComplianceSection({
           {/* Prepare for Nexus */}
           <div>
             <h3 className="font-semibold text-lg mb-3">Prepare for Nexus</h3>
-            <p className="text-sm text-muted-foreground mb-3">
-              When you cross the threshold, you'll need to:
-            </p>
-            <ol className="list-decimal list-inside space-y-2 text-sm">
-              <li>Register for {stateName} sales tax permit within 30 days</li>
-              <li>Begin collecting sales tax on {stateName} sales</li>
-              <li>File returns based on your sales volume</li>
-            </ol>
+            <div className="bg-muted/50 rounded-lg border border-border p-6">
+              <p className="text-sm text-muted-foreground mb-3">
+                When you cross the threshold, you'll need to:
+              </p>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li>Register for {stateName} sales tax permit within 30 days</li>
+                <li>Begin collecting sales tax on {stateName} sales</li>
+                <li>File returns based on your sales volume</li>
+              </ol>
+            </div>
           </div>
 
           {/* State Tax Information */}
           <div>
             <h3 className="font-semibold text-lg mb-3">State Tax Information</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="space-y-3 text-sm bg-muted/50 rounded-lg border border-border p-6">
+              <div>
+                <span className="text-muted-foreground">Economic Nexus Threshold:</span>
+                <span className="ml-2 font-medium">{formatThreshold()}</span>
+              </div>
               <div>
                 <span className="text-muted-foreground">State Tax Rate:</span>
                 <span className="ml-2 font-medium">
@@ -345,37 +388,99 @@ export function ComplianceSection({
                   {formatCurrency(complianceInfo.registration_info.registration_fee)}
                 </span>
               </div>
-              <div className="col-span-2">
-                <span className="text-muted-foreground">Economic Nexus Threshold:</span>
-                <span className="ml-2 font-medium">{formatThreshold()}</span>
-              </div>
             </div>
           </div>
 
           {/* Helpful Resources */}
           <div>
             <h3 className="font-semibold text-lg mb-3">Helpful Resources</h3>
-            <div className="space-y-2 text-sm">
-              {complianceInfo.registration_info.dor_website && (
+            <div className="space-y-3 text-sm bg-muted/50 rounded-lg border border-border p-6">
+              {/* Official Department Links */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Official Department</p>
                 <a
-                  href={complianceInfo.registration_info.dor_website}
+                  href={complianceInfo.registration_info.dor_website || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-foreground hover:underline"
+                  className="block text-foreground hover:underline ml-2"
                 >
-                  → {stateName} Department of Revenue
+                  → {stateName} Department of Revenue Website
                 </a>
-              )}
-              {complianceInfo.registration_info.registration_url && (
+                <p className="text-muted-foreground ml-2 mt-1">
+                  → Phone: (555) 123-4567 [Placeholder]
+                </p>
+                <p className="text-muted-foreground ml-2">
+                  → Email: taxhelp@{stateName.toLowerCase().replace(/\s+/g, '')}.gov [Placeholder]
+                </p>
+              </div>
+
+              {/* Registration */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Registration</p>
                 <a
-                  href={complianceInfo.registration_info.registration_url}
+                  href={complianceInfo.registration_info.registration_url || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-foreground hover:underline"
+                  className="block text-foreground hover:underline ml-2"
                 >
-                  → Sales Tax Registration Portal
+                  → Online Registration Portal
                 </a>
-              )}
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Registration Instructions & Requirements
+                </a>
+              </div>
+
+              {/* VDA Information */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Voluntary Disclosure Agreement</p>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → {stateName} VDA Program Overview
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → VDA Application Process
+                </a>
+                <p className="text-muted-foreground ml-2 mt-1">
+                  → VDA Contact: vda@{stateName.toLowerCase().replace(/\s+/g, '')}.gov [Placeholder]
+                </p>
+              </div>
+
+              {/* Reference Materials */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Reference Materials</p>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Economic Nexus Statute & Regulations
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Tax Rate Lookup Tool
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Filing Requirements & Deadlines
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Supporting Case Law & Precedents
+                </a>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -386,7 +491,7 @@ export function ComplianceSection({
   // Variant 3: No Nexus (Green Status - Below 90%)
   if (nexusStatus === 'none') {
     return (
-      <Card>
+      <Card className="border-border bg-card shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-success-foreground" />
@@ -395,12 +500,22 @@ export function ComplianceSection({
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Success Banner */}
-          <div className="rounded-md bg-success/10 border border-success/20 p-4">
-            <h3 className="font-semibold text-success-foreground mb-2 flex items-center gap-2">
+          <div
+            className="rounded-md p-4 border"
+            style={{
+              '--banner-bg-light': 'hsl(142 71% 40% / 0.1)',
+              '--banner-border-light': 'hsl(142 71% 40% / 0.2)',
+              '--banner-bg-dark': 'hsl(142 71% 40% / 0.15)',
+              '--banner-border-dark': 'hsl(142 71% 40% / 0.3)',
+              backgroundColor: 'var(--banner-bg-light)',
+              borderColor: 'var(--banner-border-light)',
+            } as React.CSSProperties & Record<string, string>}
+          >
+            <h3 className="font-semibold mb-2 flex items-center gap-2 text-foreground">
               <CheckCircle className="h-5 w-5" />
               No Nexus - No Action Required
             </h3>
-            <div className="space-y-1 text-sm text-success-foreground">
+            <div className="space-y-1 text-sm text-foreground">
               <p>
                 <strong>Your sales:</strong> {formatCurrency(summary.totalSales)} (
                 {thresholdInfo.percentage_of_threshold.toFixed(0)}% of threshold)
@@ -419,39 +534,32 @@ export function ComplianceSection({
           {/* State Tax Information */}
           <div>
             <h3 className="font-semibold text-lg mb-3">State Tax Information</h3>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-sm bg-muted/50 rounded-lg border border-border p-6">
               <div>
                 <span className="text-muted-foreground">Economic Nexus Threshold:</span>
                 <span className="ml-2 font-medium">{formatThreshold()}</span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-muted-foreground">State Tax Rate:</span>
-                  <span className="ml-2 font-medium">
-                    {formatPercentage(complianceInfo.tax_rates.state_rate)}
-                  </span>
-                </div>
-                {complianceInfo.tax_rates.avg_local_rate !== null ? (
-                  <div>
-                    <span className="text-muted-foreground">Average Local Rate:</span>
-                    <span className="ml-2 font-medium">
-                      {formatPercentage(complianceInfo.tax_rates.avg_local_rate)}
-                    </span>
-                  </div>
-                ) : (
-                  <div>
-                    <span className="text-muted-foreground">Local Tax:</span>
-                    <span className="ml-2 font-medium">None</span>
-                  </div>
-                )}
-                <div>
-                  <span className="text-muted-foreground">Combined Rate:</span>
-                  <span className="ml-2 font-medium">
-                    {formatPercentage(complianceInfo.tax_rates.combined_rate)}
-                  </span>
-                </div>
+              <div>
+                <span className="text-muted-foreground">State Tax Rate:</span>
+                <span className="ml-2 font-medium">
+                  {formatPercentage(complianceInfo.tax_rates.state_rate)}
+                </span>
               </div>
-              <div className="mt-4 p-3 bg-muted rounded border border-border">
+              {complianceInfo.tax_rates.avg_local_rate !== null && (
+                <div>
+                  <span className="text-muted-foreground">Average Local Rate:</span>
+                  <span className="ml-2 font-medium">
+                    {formatPercentage(complianceInfo.tax_rates.avg_local_rate)}
+                  </span>
+                </div>
+              )}
+              <div>
+                <span className="text-muted-foreground">Combined Rate:</span>
+                <span className="ml-2 font-medium">
+                  {formatPercentage(complianceInfo.tax_rates.combined_rate)}
+                </span>
+              </div>
+              <div className="mt-4 p-3 bg-card rounded border border-border">
                 <p className="text-foreground">
                   <strong>Note:</strong> If you reach the threshold, you'll need to register
                   within 30 days and begin collecting tax.
@@ -463,17 +571,48 @@ export function ComplianceSection({
           {/* Helpful Resources */}
           <div>
             <h3 className="font-semibold text-lg mb-3">Helpful Resources</h3>
-            <div className="space-y-2 text-sm">
-              {complianceInfo.registration_info.dor_website && (
+            <div className="space-y-3 text-sm bg-muted/50 rounded-lg border border-border p-6">
+              {/* Official Department Links */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Official Department</p>
                 <a
-                  href={complianceInfo.registration_info.dor_website}
+                  href={complianceInfo.registration_info.dor_website || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-foreground hover:underline"
+                  className="block text-foreground hover:underline ml-2"
                 >
-                  → {stateName} Department of Revenue
+                  → {stateName} Department of Revenue Website
                 </a>
-              )}
+                <p className="text-muted-foreground ml-2 mt-1">
+                  → Phone: (555) 123-4567 [Placeholder]
+                </p>
+                <p className="text-muted-foreground ml-2">
+                  → Email: taxhelp@{stateName.toLowerCase().replace(/\s+/g, '')}.gov [Placeholder]
+                </p>
+              </div>
+
+              {/* Reference Materials */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Reference Materials</p>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Economic Nexus Statute & Regulations
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Tax Rate Lookup Tool
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Filing Requirements & Deadlines
+                </a>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -484,7 +623,7 @@ export function ComplianceSection({
   // Variant 4: Zero Sales (Informational)
   if (nexusStatus === 'zero_sales') {
     return (
-      <Card>
+      <Card className="border-border bg-card shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Info className="h-5 w-5 text-muted-foreground" />
@@ -512,32 +651,30 @@ export function ComplianceSection({
           {/* State Tax Information */}
           <div>
             <h3 className="font-semibold text-lg mb-3">State Tax Information</h3>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-sm bg-muted/50 rounded-lg border border-border p-6">
               <div>
                 <span className="text-muted-foreground">Economic Nexus Threshold:</span>
                 <span className="ml-2 font-medium">{formatThreshold()}</span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-muted-foreground">State Tax Rate:</span>
+                <span className="ml-2 font-medium">
+                  {formatPercentage(complianceInfo.tax_rates.state_rate)}
+                </span>
+              </div>
+              {complianceInfo.tax_rates.avg_local_rate !== null && (
                 <div>
-                  <span className="text-muted-foreground">State Tax Rate:</span>
+                  <span className="text-muted-foreground">Average Local Rate:</span>
                   <span className="ml-2 font-medium">
-                    {formatPercentage(complianceInfo.tax_rates.state_rate)}
+                    {formatPercentage(complianceInfo.tax_rates.avg_local_rate)}
                   </span>
                 </div>
-                {complianceInfo.tax_rates.avg_local_rate !== null && (
-                  <div>
-                    <span className="text-muted-foreground">Average Local Rate:</span>
-                    <span className="ml-2 font-medium">
-                      {formatPercentage(complianceInfo.tax_rates.avg_local_rate)}
-                    </span>
-                  </div>
-                )}
-                <div>
-                  <span className="text-muted-foreground">Combined Rate:</span>
-                  <span className="ml-2 font-medium">
-                    {formatPercentage(complianceInfo.tax_rates.combined_rate)}
-                  </span>
-                </div>
+              )}
+              <div>
+                <span className="text-muted-foreground">Combined Rate:</span>
+                <span className="ml-2 font-medium">
+                  {formatPercentage(complianceInfo.tax_rates.combined_rate)}
+                </span>
               </div>
             </div>
           </div>
@@ -545,17 +682,48 @@ export function ComplianceSection({
           {/* Helpful Resources */}
           <div>
             <h3 className="font-semibold text-lg mb-3">Helpful Resources</h3>
-            <div className="space-y-2 text-sm">
-              {complianceInfo.registration_info.dor_website && (
+            <div className="space-y-3 text-sm bg-muted/50 rounded-lg border border-border p-6">
+              {/* Official Department Links */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Official Department</p>
                 <a
-                  href={complianceInfo.registration_info.dor_website}
+                  href={complianceInfo.registration_info.dor_website || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block text-foreground hover:underline"
+                  className="block text-foreground hover:underline ml-2"
                 >
-                  → {stateName} Department of Revenue
+                  → {stateName} Department of Revenue Website
                 </a>
-              )}
+                <p className="text-muted-foreground ml-2 mt-1">
+                  → Phone: (555) 123-4567 [Placeholder]
+                </p>
+                <p className="text-muted-foreground ml-2">
+                  → Email: taxhelp@{stateName.toLowerCase().replace(/\s+/g, '')}.gov [Placeholder]
+                </p>
+              </div>
+
+              {/* Reference Materials */}
+              <div>
+                <p className="font-medium text-foreground mb-1">Reference Materials</p>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Economic Nexus Statute & Regulations
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Tax Rate Lookup Tool
+                </a>
+                <a
+                  href="#"
+                  className="block text-foreground hover:underline ml-2"
+                >
+                  → Filing Requirements & Deadlines
+                </a>
+              </div>
             </div>
           </div>
         </CardContent>

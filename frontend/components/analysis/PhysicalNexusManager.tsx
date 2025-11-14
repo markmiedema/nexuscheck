@@ -121,68 +121,72 @@ export function PhysicalNexusManager({ analysisId, onRecalculated }: PhysicalNex
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>State</TableHead>
-                  <TableHead>Nexus Date</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead>Registration</TableHead>
-                  <TableHead>Permit Number</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {configs.map((config) => (
-                  <TableRow key={config.state_code}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{config.state_code}</Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatDate(config.nexus_date)}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {config.reason}
-                    </TableCell>
-                    <TableCell>
-                      {config.registration_date ? (
-                        <div className="flex flex-col">
-                          <span className="text-sm">{formatDate(config.registration_date)}</span>
-                          {config.permit_number && (
-                            <span className="text-xs text-muted-foreground">
-                              {config.permit_number}
-                            </span>
+            <div className="bg-muted/50 border border-border rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
+                    <TableRow className="hover:bg-muted/80">
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">State</TableHead>
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Nexus Date</TableHead>
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Reason</TableHead>
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Registration</TableHead>
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Permit Number</TableHead>
+                      <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {configs.map((config) => (
+                      <TableRow key={config.state_code} className="hover:bg-muted/50 transition-colors border-b border-border last:border-0">
+                        <TableCell className="px-4 py-4 font-medium">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{config.state_code}</Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-4">{formatDate(config.nexus_date)}</TableCell>
+                        <TableCell className="px-4 py-4 max-w-[200px] truncate">
+                          {config.reason}
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          {config.registration_date ? (
+                            <div className="flex flex-col">
+                              <span className="text-sm">{formatDate(config.registration_date)}</span>
+                              {config.permit_number && (
+                                <span className="text-xs text-muted-foreground">
+                                  {config.permit_number}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">Not registered</span>
                           )}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">Not registered</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {config.permit_number || <span className="text-muted-foreground">—</span>}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => editNexus(config.state_code)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteNexus(config.state_code)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          {config.permit_number || <span className="text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => editNexus(config.state_code)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteNexus(config.state_code)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

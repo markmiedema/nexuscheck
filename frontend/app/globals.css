@@ -172,24 +172,41 @@
     box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   }
 
-  /* Dark Mode Shadows - Stronger with subtle borders */
+  /* Dark Mode Shadows - Much stronger and more visible */
   .dark .shadow-soft {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.8),
+                0 1px 3px 0 rgb(0 0 0 / 0.6);
   }
 
   .dark .shadow-card {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4),
-                0 0 0 1px hsl(215 20.2% 65.1% / 0.05);  /* Subtle slate-400 border */
+    box-shadow: 0 6px 12px -2px rgb(0 0 0 / 0.9),
+                0 3px 7px -3px rgb(0 0 0 / 0.7),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05);  /* Subtle inner glow */
   }
 
   .dark .shadow-elevated {
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5),
-                0 0 0 1px hsl(215 20.2% 65.1% / 0.1);
+    box-shadow: 0 12px 20px -4px rgb(0 0 0 / 0.95),
+                0 6px 10px -5px rgb(0 0 0 / 0.8),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   }
 
   .dark .shadow-floating {
-    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.6),
-                0 0 0 1px hsl(215 20.2% 65.1% / 0.1);
+    box-shadow: 0 24px 38px -6px rgb(0 0 0 / 1),
+                0 12px 18px -8px rgb(0 0 0 / 0.9),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  /* Override Tailwind's default shadow-md in dark mode */
+  .dark .shadow-md {
+    box-shadow: 0 6px 12px -2px rgb(0 0 0 / 0.9),
+                0 3px 7px -3px rgb(0 0 0 / 0.7),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .dark .shadow-lg {
+    box-shadow: 0 12px 20px -4px rgb(0 0 0 / 0.95),
+                0 6px 10px -5px rgb(0 0 0 / 0.8),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
   }
 
   /* ===== Input Interactive States (Dark Mode) ===== */
@@ -224,5 +241,35 @@
   table, table * {
     cursor: default !important;
     caret-color: transparent !important;
+  }
+
+  /* ===== Sub-component Elevation ===== */
+  /* Add subtle shadows to muted sections to create depth */
+  .bg-muted,
+  .bg-muted\/50 {
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05),
+                0 1px 1px 0 rgb(0 0 0 / 0.03);
+  }
+
+  /* Stronger shadows in dark mode */
+  .dark .bg-muted,
+  .dark .bg-muted\/50 {
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.5),
+                0 1px 2px 0 rgb(0 0 0 / 0.4);
+  }
+
+  /* ===== Badge Dark Mode Support ===== */
+  /* Switch badge colors in dark mode */
+  .dark span[style*="--badge-bg-light"] {
+    background-color: var(--badge-bg-dark) !important;
+    color: var(--badge-color-dark) !important;
+    border-color: var(--badge-border-dark) !important;
+  }
+
+  /* ===== Banner Dark Mode Support ===== */
+  /* Switch banner background and border in dark mode */
+  .dark div[style*="--banner-bg-light"] {
+    background-color: var(--banner-bg-dark) !important;
+    border-color: var(--banner-border-dark) !important;
   }
 }
