@@ -1,6 +1,29 @@
 """Service for auto-detecting column mappings from CSV headers"""
 from typing import Dict, List, Optional
 
+# State name to code mapping for normalization
+STATE_NAME_MAPPING = {
+    # Full names
+    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR',
+    'california': 'CA', 'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE',
+    'florida': 'FL', 'georgia': 'GA', 'hawaii': 'HI', 'idaho': 'ID',
+    'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA', 'kansas': 'KS',
+    'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+    'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS',
+    'missouri': 'MO', 'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV',
+    'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY',
+    'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH', 'oklahoma': 'OK',
+    'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+    'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT',
+    'vermont': 'VT', 'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV',
+    'wisconsin': 'WI', 'wyoming': 'WY',
+    'district of columbia': 'DC', 'puerto rico': 'PR',
+
+    # Common abbreviations and variants
+    'd.c.': 'DC', 'wash': 'WA', 'calif': 'CA', 'mass': 'MA', 'penn': 'PA',
+    'conn': 'CT', 'miss': 'MS', 'tenn': 'TN', 'wash.': 'WA', 'calif.': 'CA'
+}
+
 
 class ColumnDetector:
     """
@@ -80,23 +103,6 @@ class ColumnDetector:
             'exempt_amt', 'tax_exempt_amount',
             'nontaxable_amount'
         ]
-    }
-
-    # State name to code mapping (all 50 states + DC)
-    STATE_NAME_TO_CODE = {
-        'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR',
-        'california': 'CA', 'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE',
-        'florida': 'FL', 'georgia': 'GA', 'hawaii': 'HI', 'idaho': 'ID',
-        'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA', 'kansas': 'KS',
-        'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
-        'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS',
-        'missouri': 'MO', 'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV',
-        'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY',
-        'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH', 'oklahoma': 'OK',
-        'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
-        'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT',
-        'vermont': 'VT', 'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV',
-        'wisconsin': 'WI', 'wyoming': 'WY', 'district of columbia': 'DC', 'd.c.': 'DC'
     }
 
     def __init__(self, columns: List[str]):
@@ -321,35 +327,31 @@ class ColumnDetector:
     @classmethod
     def normalize_state_code(cls, value: Optional[str]) -> Optional[str]:
         """
-        Normalize state names to 2-letter codes.
+        Normalize state value to 2-letter code.
 
         Handles:
-        - Full state names ("California" → "CA")
-        - Mixed case and whitespace
-        - Already-valid codes (just uppercase)
+        - Full state names (case-insensitive)
+        - Existing codes (pass through)
+        - Whitespace trimming
 
-        Args:
-            value: Raw state value from CSV
-
-        Returns:
-            2-letter state code or None if invalid
+        Returns uppercase 2-letter code or original value if not found.
         """
-        if not value or str(value).strip() == '':
-            return None
+        if not value or not isinstance(value, str):
+            return value
 
-        val_str = str(value).strip()
+        # Trim and lowercase for matching
+        cleaned = value.strip().lower()
 
-        # If already 2-letter code, uppercase and return
-        if len(val_str) == 2:
-            return val_str.upper()
+        # Already a 2-letter code?
+        if len(cleaned) == 2 and cleaned.isalpha():
+            return cleaned.upper()
 
-        # Try state name lookup (case-insensitive)
-        val_lower = val_str.lower()
-        if val_lower in cls.STATE_NAME_TO_CODE:
-            return cls.STATE_NAME_TO_CODE[val_lower]
+        # Look up in mapping
+        if cleaned in STATE_NAME_MAPPING:
+            return STATE_NAME_MAPPING[cleaned]
 
-        # Return uppercase of original (may be valid, may be error - validation will catch)
-        return val_str.upper()
+        # Return original if no match found
+        return value.strip().upper()
 
     @staticmethod
     def normalize_date(value: Optional[str]) -> Optional[str]:
@@ -614,7 +616,7 @@ class ColumnDetector:
         warnings = []
 
         # Valid US state codes
-        valid_states = set(self.STATE_NAME_TO_CODE.values())
+        valid_states = set(STATE_NAME_MAPPING.values())
 
         # 1. Validate state codes
         if 'customer_state' in df.columns:
