@@ -115,7 +115,7 @@ export function StateQuickViewModal({
     return null
   }
 
-  const generateDeterminationExplanation = (data: StateDetailResponse): {
+  const generateNexusSummaryFacts = (data: StateDetailResponse): {
     title: string
     bullets: string[]
   } => {
@@ -125,80 +125,55 @@ export function StateQuickViewModal({
     const marketplaceSales = data.year_data.reduce((sum, yr) => sum + yr.summary.marketplace_sales, 0)
     const taxableSales = data.taxable_sales || 0
     const exemptSales = data.exempt_sales || 0
-    const isMultiYear = data.year_data.length > 1
-
-    // Scenario 1: Has Nexus (straightforward)
-    if (hasNexus) {
-      const nexusDate = calculateEconomicNexusDate(data)
-      const threshold = data.year_data[0]?.threshold_info?.revenue_threshold || 0
-
-      // Check if it's all exempt (Pennsylvania scenario)
-      if (taxableSales === 0 && exemptSales > 0) {
-        return {
-          title: '✓ Has Nexus - But Zero Liability',
-          bullets: [
-            `Exceeded $${threshold.toLocaleString()} threshold with $${totalSales.toLocaleString()} in sales`,
-            'All sales are tax-exempt (groceries/manufacturing)',
-            `Taxable sales: $0 → Estimated liability: $0`,
-            'Note: Nexus obligation exists, but no tax due'
-          ]
-        }
-      }
-
-      // Standard nexus triggered
-      const allDirect = marketplaceSales === 0
-      return {
-        title: nexusDate
-          ? `✓ ${data.nexus_type === 'economic' ? 'Economic' : data.nexus_type === 'physical' ? 'Physical' : 'Both Physical + Economic'} Nexus Triggered - ${formatDate(nexusDate)}`
-          : '✓ Nexus Triggered',
-        bullets: [
-          `Exceeded $${threshold.toLocaleString()} threshold with $${totalSales.toLocaleString()} in sales`,
-          allDirect
-            ? `All sales are direct (marketplace: $0)`
-            : `Direct: $${directSales.toLocaleString()} | Marketplace: $${marketplaceSales.toLocaleString()}`
-        ]
-      }
-    }
-
-    // Scenario 2: No Nexus - Multi-year split (California)
-    if (isMultiYear && totalSales > 0) {
-      const years = data.year_data.map(yr => yr.year).sort()
-      const yearBreakdown = data.year_data.map(yr =>
-        `${yr.year}: $${yr.summary.total_sales.toLocaleString()} (below $${yr.threshold_info.revenue_threshold?.toLocaleString() || 'N/A'} threshold)`
-      )
-
-      return {
-        title: '✓ No Nexus - Sales Split Across Years',
-        bullets: [
-          `Total sales: $${totalSales.toLocaleString()} across ${years[0]}-${years[years.length - 1]}`,
-          ...yearBreakdown,
-          'Note: Each year evaluated independently'
-        ]
-      }
-    }
-
-    // Scenario 3: No Nexus - Marketplace exclusion (Texas)
-    if (marketplaceSales > directSales && directSales > 0) {
-      const threshold = data.year_data[0]?.threshold_info?.revenue_threshold || 0
-      return {
-        title: '✓ No Nexus - Marketplace Facilitator Exclusion',
-        bullets: [
-          `Total sales: $${totalSales.toLocaleString()}`,
-          `Marketplace sales: $${marketplaceSales.toLocaleString()} (excluded per ${data.state_code} rules)`,
-          `Direct sales: $${directSales.toLocaleString()} (below $${threshold.toLocaleString()} threshold)`
-        ]
-      }
-    }
-
-    // Scenario 4: No Nexus - Below threshold
+    const exposureSales = data.year_data.reduce((sum, yr) => sum + (yr.summary.exposure_sales || 0), 0)
     const threshold = data.year_data[0]?.threshold_info?.revenue_threshold || 0
+    const thresholdPercent = threshold > 0 ? ((totalSales / threshold) * 100).toFixed(0) : '0'
+
+    const facts: string[] = []
+
+    // Always show sales breakdown
+    facts.push(`Total Sales: $${totalSales.toLocaleString()} (${thresholdPercent}% of $${threshold.toLocaleString()} threshold)`)
+
+    if (directSales > 0 || marketplaceSales > 0) {
+      facts.push(`  • Direct: $${directSales.toLocaleString()} | Marketplace: $${marketplaceSales.toLocaleString()}`)
+    }
+
+    if (exemptSales > 0) {
+      facts.push(`  • Taxable: $${taxableSales.toLocaleString()} | Exempt: $${exemptSales.toLocaleString()}`)
+    }
+
+    // Show nexus determination
+    if (hasNexus) {
+      const nexusTypeLabel = data.nexus_type === 'both' ? 'Physical + Economic Nexus'
+        : data.nexus_type === 'physical' ? 'Physical Nexus'
+        : data.nexus_type === 'economic' ? 'Economic Nexus'
+        : 'Nexus Established'
+
+      facts.push(`Nexus: ${nexusTypeLabel}`)
+
+      // Show exposure sales if different from total
+      if (exposureSales > 0 && exposureSales !== totalSales) {
+        facts.push(`Exposure Sales: $${exposureSales.toLocaleString()} (sales during obligation period)`)
+      }
+
+      // Show liability
+      if (data.estimated_liability && data.estimated_liability > 0) {
+        facts.push(`Estimated Liability: $${data.estimated_liability.toLocaleString()}`)
+      } else if (taxableSales === 0 && exemptSales > 0) {
+        facts.push(`Liability: $0 (all sales are exempt)`)
+      }
+    } else {
+      facts.push(`Nexus: Not Established`)
+
+      if (threshold > 0 && totalSales < threshold) {
+        const shortfall = threshold - totalSales
+        facts.push(`  • Below threshold by $${shortfall.toLocaleString()}`)
+      }
+    }
+
     return {
-      title: '✓ No Nexus - Below Threshold',
-      bullets: [
-        `Total sales: $${totalSales.toLocaleString()}`,
-        `Threshold: $${threshold.toLocaleString()}`,
-        `Below threshold by $${(threshold - totalSales).toLocaleString()}`
-      ]
+      title: 'Nexus Summary',
+      bullets: facts
     }
   }
 
@@ -366,23 +341,19 @@ export function StateQuickViewModal({
               </div>
             )}
 
-            {/* Why This Determination - WITH DARK MODE SUPPORT */}
+            {/* Nexus Summary - WITH DARK MODE SUPPORT */}
             {data && (() => {
-              const explanation = generateDeterminationExplanation(data)
+              const summary = generateNexusSummaryFacts(data)
               return (
                 <div className="bg-accent/50 border border-border rounded-lg p-4">
                   <h4 className="font-semibold text-foreground mb-2">
-                    Why This Determination:
+                    {summary.title}
                   </h4>
                   <div className="bg-background border border-border rounded p-3">
-                    <div className="font-medium text-sm text-foreground mb-2">
-                      {explanation.title}
-                    </div>
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      {explanation.bullets.map((bullet, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <span className="text-foreground">•</span>
-                          <span>{bullet}</span>
+                    <ul className="space-y-1.5 text-sm text-foreground font-mono">
+                      {summary.bullets.map((bullet, idx) => (
+                        <li key={idx}>
+                          {bullet}
                         </li>
                       ))}
                     </ul>
