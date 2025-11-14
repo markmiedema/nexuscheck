@@ -57,10 +57,10 @@ export default function ColumnMappingConfirmationDialog({
         </DialogHeader>
 
         {/* Data Summary - Top Section */}
-        <div className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-4">
+        <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-lg p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
-            <CheckCircle2 className="h-5 w-5 text-slate-700 dark:text-slate-300" />
-            <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+            <CheckCircle2 className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+            <h3 className="font-semibold text-slate-900 dark:text-slate-200">
               Analysis Ready to Calculate
             </h3>
           </div>
@@ -68,16 +68,16 @@ export default function ColumnMappingConfirmationDialog({
           {dataSummary && (
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
-                <p className="text-muted-foreground">Transactions</p>
-                <p className="font-semibold text-lg">{dataSummary.total_rows.toLocaleString()}</p>
+                <p className="text-slate-600 dark:text-slate-400">Transactions</p>
+                <p className="font-semibold text-lg text-slate-900 dark:text-slate-100">{dataSummary.total_rows.toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">States</p>
-                <p className="font-semibold text-lg">{dataSummary.unique_states}</p>
+                <p className="text-slate-600 dark:text-slate-400">States</p>
+                <p className="font-semibold text-lg text-slate-900 dark:text-slate-100">{dataSummary.unique_states}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Period</p>
-                <p className="font-semibold text-sm leading-tight">
+                <p className="text-slate-600 dark:text-slate-400">Period</p>
+                <p className="font-semibold text-sm leading-tight text-slate-900 dark:text-slate-100">
                   {dataSummary.date_range.start}
                   <br />
                   {dataSummary.date_range.end}
@@ -102,15 +102,15 @@ export default function ColumnMappingConfirmationDialog({
             return (
               <div
                 key={key}
-                className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50"
+                className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/40"
               >
-                <CheckCircle2 className="h-5 w-5 text-slate-600 dark:text-slate-400 flex-shrink-0" />
+                <CheckCircle2 className="h-5 w-5 text-slate-500 dark:text-slate-500 flex-shrink-0" />
 
                 <div className="flex-1 grid grid-cols-[120px_auto_1fr] gap-3 items-center">
-                  <span className="text-sm font-medium">{label}</span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>
+                  <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-600" />
                   <div>
-                    <span className="text-sm font-semibold">{detectedColumn}</span>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-200">{detectedColumn}</span>
                     <div className="flex gap-1 mt-1 flex-wrap">
                       {samples.slice(0, 3).map((val, idx) => (
                         <Badge key={idx} variant="outline" className="text-xs">
