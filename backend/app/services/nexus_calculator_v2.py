@@ -442,7 +442,7 @@ class NexusCalculatorV2:
             window_start_date = datetime(current_month[0], current_month[1], 1) - relativedelta(months=11)
             window_start = (window_start_date.year, window_start_date.month)
 
-            # Sum sales in rolling window
+            # Sum sales in rolling window (use taxable_amount for nexus determination)
             rolling_total = 0
             rolling_count = 0
 
@@ -453,7 +453,8 @@ class NexusCalculatorV2:
 
                 if window_start_date <= check_date <= window_end:
                     month_txns = transactions_by_month[check_month]
-                    rolling_total += sum(float(t['sales_amount']) for t in month_txns)
+                    # Use taxable_amount for threshold calculation (only taxable sales count toward nexus)
+                    rolling_total += sum(float(t.get('taxable_amount', t['sales_amount'])) for t in month_txns)
                     rolling_count += len(month_txns)
 
             # Check if threshold is met
@@ -574,11 +575,14 @@ class NexusCalculatorV2:
         """
         Find exact transaction that crossed the threshold.
 
+        Uses taxable_amount (not total sales_amount) to determine threshold crossing,
+        as only taxable sales count toward economic nexus thresholds.
+
         Returns:
             - has_nexus: bool
             - nexus_date: datetime when crossed
             - threshold_transaction_id: ID of transaction that crossed
-            - running_total: total sales when crossed
+            - running_total: total taxable sales when crossed
         """
         # Sort transactions chronologically
         sorted_txns = sorted(
@@ -594,7 +598,8 @@ class NexusCalculatorV2:
         operator = threshold_config.get('threshold_operator', 'or')
 
         for txn in sorted_txns:
-            running_total += float(txn['sales_amount'])
+            # Use taxable_amount for threshold calculation (only taxable sales count toward nexus)
+            running_total += float(txn.get('taxable_amount', txn['sales_amount']))
             running_count += 1
 
             # Check thresholds
@@ -680,7 +685,8 @@ class NexusCalculatorV2:
         total_sales = 0
         direct_sales = 0
         marketplace_sales = 0
-        taxable_sales = 0
+        taxable_sales = 0  # All taxable sales for the year (used for nexus threshold tracking)
+        exposure_sales = 0  # Taxable sales during obligation period (used for liability calculation)
         transaction_count = 0
 
         logger.info(f"[MARKETPLACE DEBUG] State {state_code}, Year {year}, MF Rule: {mf_rule}")
@@ -690,36 +696,42 @@ class NexusCalculatorV2:
             txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
             txn_date = datetime.fromisoformat(txn_date_str)
             amount = float(txn['sales_amount'])
+            taxable_amount = float(txn.get('taxable_amount', amount))  # Use taxable_amount if available
             channel = txn.get('sales_channel', 'direct')
 
-            # Count all transactions and sales
+            # Count all transactions and total sales (gross revenue)
             total_sales += amount
             transaction_count += 1
 
+            # Track all taxable sales for the year (for threshold calculations)
+            taxable_sales += taxable_amount
+
+            # Split by channel
             if channel == 'direct':
                 direct_sales += amount
             else:
                 marketplace_sales += amount
 
-            # Determine if taxable
+            # Calculate exposure sales (taxable sales during obligation period)
             if txn_date >= obligation_start_date:
                 if channel == 'direct':
-                    taxable_sales += amount
+                    # Direct sales: always include taxable amount in exposure
+                    exposure_sales += taxable_amount
                 elif channel == 'marketplace':
                     # Marketplace sales: exclude from liability by default (MF collects tax)
                     # Only include if explicitly configured to NOT exclude
                     if mf_rule and mf_rule.get('exclude_from_liability') == False:
-                        logger.info(f"[MARKETPLACE DEBUG] Including marketplace sales ${amount} in taxable (exclude_from_liability=False)")
-                        taxable_sales += amount
+                        logger.info(f"[MARKETPLACE DEBUG] Including marketplace taxable sales ${taxable_amount} in exposure (exclude_from_liability=False)")
+                        exposure_sales += taxable_amount
                     else:
-                        logger.info(f"[MARKETPLACE DEBUG] Excluding marketplace sales ${amount} from taxable (mf_rule={mf_rule})")
+                        logger.info(f"[MARKETPLACE DEBUG] Excluding marketplace sales ${taxable_amount} from exposure (mf_rule={mf_rule})")
                     # else: exclude marketplace sales (default behavior)
 
-        # Calculate tax
+        # Calculate tax based on EXPOSURE sales (not all taxable sales)
         combined_rate = tax_rate_config.get('combined_rate', 0)
-        base_tax = taxable_sales * combined_rate
+        base_tax = exposure_sales * combined_rate
 
-        logger.info(f"[MARKETPLACE DEBUG] Final: total_sales=${total_sales}, direct=${direct_sales}, marketplace=${marketplace_sales}, taxable=${taxable_sales}, base_tax=${base_tax}")
+        logger.info(f"[MARKETPLACE DEBUG] Final: total_sales=${total_sales}, direct=${direct_sales}, marketplace=${marketplace_sales}, taxable_sales=${taxable_sales}, exposure_sales=${exposure_sales}, base_tax=${base_tax}")
 
         # Phase 2: Calculate interest and penalties
         interest = 0
@@ -730,13 +742,38 @@ class NexusCalculatorV2:
         penalty_rate = 0
 
         if base_tax > 0 and state_code and year:
-            # Calculate to end of the year being analyzed
-            calculation_date = datetime(year, 12, 31)
+            # Calculate interest to today (when analysis is being run)
+            calculation_date = datetime.now()
+
+            # Find the first exposure transaction date after obligation started
+            # Interest should accrue from when the first taxable sale occurred (that creates liability)
+            # You can't owe interest on sales that haven't happened yet
+            first_exposure_transaction_date = None
+            for txn in transactions:
+                txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
+                txn_date = datetime.fromisoformat(txn_date_str)
+                if txn_date >= obligation_start_date:
+                    taxable_amount = float(txn.get('taxable_amount', txn['sales_amount']))
+                    channel = txn.get('sales_channel', 'direct')
+
+                    # Only count transactions that contribute to exposure sales
+                    include_in_exposure = False
+                    if channel == 'direct' and taxable_amount > 0:
+                        include_in_exposure = True
+                    elif channel == 'marketplace' and mf_rule and mf_rule.get('exclude_from_liability') == False and taxable_amount > 0:
+                        include_in_exposure = True
+
+                    if include_in_exposure:
+                        if first_exposure_transaction_date is None or txn_date < first_exposure_transaction_date:
+                            first_exposure_transaction_date = txn_date
+
+            # Use first transaction date if found, otherwise fall back to obligation_start_date
+            interest_start_date = first_exposure_transaction_date if first_exposure_transaction_date else obligation_start_date
 
             try:
                 interest_result = self.interest_calculator.calculate_interest_and_penalties(
                     base_tax=base_tax,
-                    obligation_start_date=obligation_start_date,
+                    obligation_start_date=interest_start_date,
                     calculation_date=calculation_date,
                     state_code=state_code,
                     interest_penalty_config=interest_penalty_config
@@ -765,7 +802,8 @@ class NexusCalculatorV2:
             'total_sales': total_sales,
             'direct_sales': direct_sales,
             'marketplace_sales': marketplace_sales,
-            'taxable_sales': taxable_sales,
+            'taxable_sales': taxable_sales,  # All taxable sales for the year (for threshold tracking)
+            'exposure_sales': exposure_sales,  # Taxable sales during obligation period (for liability)
             'transaction_count': transaction_count,
             'estimated_liability': round(estimated_liability, 2),
             'base_tax': round(base_tax, 2),
@@ -809,6 +847,7 @@ class NexusCalculatorV2:
             'direct_sales': direct_sales,
             'marketplace_sales': marketplace_sales,
             'taxable_sales': 0,
+            'exposure_sales': 0,  # No nexus = no exposure
             'transaction_count': transaction_count,
             'estimated_liability': 0,
             'base_tax': 0,
@@ -841,6 +880,7 @@ class NexusCalculatorV2:
             'direct_sales': 0,
             'marketplace_sales': 0,
             'taxable_sales': 0,
+            'exposure_sales': 0,
             'transaction_count': 0,
             'estimated_liability': 0,
             'base_tax': 0,
@@ -1031,6 +1071,7 @@ class NexusCalculatorV2:
                     'direct_sales': result['direct_sales'],
                     'marketplace_sales': result['marketplace_sales'],
                     'taxable_sales': result.get('taxable_sales', result['total_sales']),
+                    'exposure_sales': result.get('exposure_sales', result.get('taxable_sales', result['total_sales'])),
                     'transaction_count': result.get('transaction_count', 0),
                     'estimated_liability': result['estimated_liability'],
                     'base_tax': result['base_tax'],

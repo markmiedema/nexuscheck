@@ -1693,6 +1693,7 @@ async def get_state_detail(
                     'direct_sales': float(year_result.get('direct_sales', 0)),
                     'marketplace_sales': float(year_result.get('marketplace_sales', 0)),
                     'taxable_sales': float(year_result.get('taxable_sales', 0)),
+                    'exposure_sales': float(year_result.get('exposure_sales', 0)),
                     'estimated_liability': float(year_result.get('estimated_liability', 0)),
                     'base_tax': float(year_result.get('base_tax', 0)),
                     'interest': float(year_result.get('interest', 0)),

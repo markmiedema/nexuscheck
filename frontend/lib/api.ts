@@ -29,6 +29,7 @@ export interface YearData {
     direct_sales: number
     marketplace_sales: number
     taxable_sales: number
+    exposure_sales: number
     estimated_liability: number
     base_tax: number
   }

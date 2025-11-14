@@ -267,17 +267,22 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
 
       {/* Liability Breakdown - only show if has nexus */}
       {data.has_transactions && (isAllYearsView ? aggregateNexusStatus === 'has_nexus' : yearData?.nexus_status === 'has_nexus') && (() => {
-        // For "All Years" view, use the most recent year's calculation metadata
+        // For "All Years" view metadata:
+        // - Use earliest year for days_outstanding (interest accrues from first exposure sale)
+        // - Use latest year for interest_rate, interest_method, penalty_rate (current rates)
         const latestYear = isAllYearsView && data.year_data.length > 0
           ? data.year_data[data.year_data.length - 1]
+          : null;
+        const earliestYearWithNexus = isAllYearsView && data.year_data.length > 0
+          ? data.year_data.find(yr => yr.nexus_status === 'has_nexus')
           : null;
 
         return (
           <LiabilityBreakdown
             taxableSales={
               isAllYearsView
-                ? data.year_data.reduce((sum, yr) => sum + yr.summary.taxable_sales, 0)
-                : yearData?.summary.taxable_sales || 0
+                ? data.year_data.reduce((sum, yr) => sum + (yr.summary.exposure_sales || 0), 0)
+                : yearData?.summary.exposure_sales || 0
             }
             taxRate={data.compliance_info.tax_rates.combined_rate}
             estimatedLiability={
@@ -308,7 +313,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
             nexusStatus={isAllYearsView ? aggregateNexusStatus : yearData?.nexus_status || 'none'}
             interestRate={isAllYearsView ? latestYear?.summary.interest_rate : yearData?.summary.interest_rate}
             interestMethod={isAllYearsView ? latestYear?.summary.interest_method : yearData?.summary.interest_method}
-            daysOutstanding={isAllYearsView ? latestYear?.summary.days_outstanding : yearData?.summary.days_outstanding}
+            daysOutstanding={isAllYearsView ? earliestYearWithNexus?.summary.days_outstanding : yearData?.summary.days_outstanding}
             penaltyRate={isAllYearsView ? latestYear?.summary.penalty_rate : yearData?.summary.penalty_rate}
           />
         );
