@@ -358,11 +358,11 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     </TableCell>
                     <TableCell className="px-4 py-2 text-sm text-right text-muted-foreground">
                       {state.exempt_sales > 0 ? (
-                        <div className="flex items-center justify-end gap-2">
-                          {formatCurrency(state.exempt_sales)}
-                          <Badge variant="outline" className="text-xs">
-                            {((state.exempt_sales / state.total_sales) * 100).toFixed(1)}% exempt
-                          </Badge>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="font-medium text-foreground">{formatCurrency(state.exempt_sales)}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {((state.exempt_sales / state.total_sales) * 100).toFixed(1)}% of total
+                          </span>
                         </div>
                       ) : '-'}
                     </TableCell>
