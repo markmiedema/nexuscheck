@@ -23,19 +23,33 @@ ALTER TABLE sales_transactions
   ADD COLUMN IF NOT EXISTS taxable_amount DECIMAL(12,2),
   ADD COLUMN IF NOT EXISTS exempt_amount DECIMAL(12,2) DEFAULT 0;
 
+-- Backfill exempt_amount first (ensure it's 0 for all existing records)
+UPDATE sales_transactions
+SET exempt_amount = 0
+WHERE exempt_amount IS NULL;
+
 -- Backfill taxable_amount for existing records (assume all sales are taxable)
 UPDATE sales_transactions
 SET taxable_amount = sales_amount
 WHERE taxable_amount IS NULL;
 
 -- Add check constraint: taxable_amount + exempt_amount should not exceed sales_amount
-ALTER TABLE sales_transactions
-  ADD CONSTRAINT sales_transactions_amounts_valid
-  CHECK (
-    taxable_amount >= 0 AND
-    exempt_amount >= 0 AND
-    (taxable_amount + exempt_amount) <= (sales_amount + 0.01)  -- Allow 1 cent rounding
-  );
+-- Only add if constraint doesn't already exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'sales_transactions_amounts_valid'
+    ) THEN
+        ALTER TABLE sales_transactions
+        ADD CONSTRAINT sales_transactions_amounts_valid
+        CHECK (
+            taxable_amount >= 0 AND
+            exempt_amount >= 0 AND
+            (taxable_amount + exempt_amount) <= (sales_amount + 0.01)  -- Allow 1 cent rounding
+        );
+    END IF;
+END $$;
 
 -- Add columns to state_results table for reporting
 ALTER TABLE state_results
