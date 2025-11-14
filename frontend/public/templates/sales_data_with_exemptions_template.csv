@@ -1,0 +1,5 @@
+transaction_date,customer_state,revenue_amount,sales_channel,is_taxable,exempt_amount,revenue_stream
+2024-01-01,CA,100.00,direct,Y,0.00,Software
+2024-01-02,CA,50.00,marketplace,N,50.00,Groceries
+2024-01-03,NY,200.00,direct,Y,0.00,Clothing
+2024-01-04,TX,150.00,direct,Y,25.00,Mixed
