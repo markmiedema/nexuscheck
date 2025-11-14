@@ -8,6 +8,8 @@ export interface StateResult {
   nexus_status: 'has_nexus' | 'approaching' | 'no_nexus'
   nexus_type: 'physical' | 'economic' | 'both' | 'none'
   total_sales: number
+  exempt_sales: number
+  taxable_sales: number
   direct_sales: number
   marketplace_sales: number
   threshold: number
