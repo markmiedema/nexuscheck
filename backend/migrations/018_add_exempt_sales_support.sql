@@ -17,21 +17,60 @@
 -- - exempt_amount: Dollar amount of exempt portion
 -- ============================================================================
 
--- Add columns to sales_transactions table
-ALTER TABLE sales_transactions
-  ADD COLUMN IF NOT EXISTS is_taxable BOOLEAN DEFAULT TRUE,
-  ADD COLUMN IF NOT EXISTS taxable_amount DECIMAL(12,2),
-  ADD COLUMN IF NOT EXISTS exempt_amount DECIMAL(12,2) DEFAULT 0;
+-- Add columns to sales_transactions table (only if they don't exist)
+DO $$
+BEGIN
+    -- Add is_taxable column
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'sales_transactions' AND column_name = 'is_taxable'
+    ) THEN
+        ALTER TABLE sales_transactions ADD COLUMN is_taxable BOOLEAN DEFAULT TRUE;
+    END IF;
+
+    -- Add taxable_amount column
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'sales_transactions' AND column_name = 'taxable_amount'
+    ) THEN
+        ALTER TABLE sales_transactions ADD COLUMN taxable_amount DECIMAL(12,2);
+    END IF;
+
+    -- Add exempt_amount column
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'sales_transactions' AND column_name = 'exempt_amount'
+    ) THEN
+        ALTER TABLE sales_transactions ADD COLUMN exempt_amount DECIMAL(12,2) DEFAULT 0;
+    END IF;
+END $$;
 
 -- Backfill exempt_amount first (ensure it's 0 for all existing records)
 UPDATE sales_transactions
-SET exempt_amount = 0
-WHERE exempt_amount IS NULL;
+SET exempt_amount = COALESCE(exempt_amount, 0);
 
 -- Backfill taxable_amount for existing records (assume all sales are taxable)
 UPDATE sales_transactions
-SET taxable_amount = sales_amount
-WHERE taxable_amount IS NULL;
+SET taxable_amount = COALESCE(taxable_amount, sales_amount);
+
+-- Verify data before adding constraint (find problematic rows)
+DO $$
+DECLARE
+    invalid_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO invalid_count
+    FROM sales_transactions
+    WHERE taxable_amount < 0
+       OR exempt_amount < 0
+       OR (taxable_amount + exempt_amount) > (sales_amount + 0.01);
+
+    IF invalid_count > 0 THEN
+        RAISE NOTICE 'Found % rows that violate the constraint. Details:', invalid_count;
+        RAISE NOTICE 'Run this query to see problematic rows:';
+        RAISE NOTICE 'SELECT transaction_id, sales_amount, taxable_amount, exempt_amount, (taxable_amount + exempt_amount) as total FROM sales_transactions WHERE taxable_amount < 0 OR exempt_amount < 0 OR (taxable_amount + exempt_amount) > (sales_amount + 0.01);';
+        RAISE EXCEPTION 'Cannot add constraint: % rows violate the constraint', invalid_count;
+    END IF;
+END $$;
 
 -- Add check constraint: taxable_amount + exempt_amount should not exceed sales_amount
 -- Only add if constraint doesn't already exist
