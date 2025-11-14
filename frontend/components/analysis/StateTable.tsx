@@ -355,20 +355,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     {getSortIcon('nexus_status')}
                   </button>
                 </TableHead>
-                <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-                  <button
-                    onClick={() => handleSort('sales')}
-                    className="flex items-center gap-2 ml-auto hover:text-foreground transition-colors"
-                  >
-                    Total Sales
-                    {getSortIcon('sales')}
-                  </button>
-                </TableHead>
-                <TableHead className="w-28 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-                  <span>
-                    Threshold
-                  </span>
-                </TableHead>
                 <TableHead className="w-32 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('liability')}
@@ -384,7 +370,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
             <TableBody>
               {displayedStates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                     No states found matching your filters
                   </TableCell>
                 </TableRow>
@@ -505,30 +491,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                             : getNexusStatusLabel(state.nexus_status)}
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell className={`px-4 text-sm text-right text-foreground ${densityClasses[density]}`}>
-                      <div className="font-medium text-card-foreground">
-                        ${state.total_sales.toLocaleString()}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Direct: ${(state.direct_sales / 1000).toFixed(0)}k | Mktp: ${(state.marketplace_sales / 1000).toFixed(0)}k
-                      </div>
-                    </TableCell>
-                    <TableCell className={`px-4 text-sm text-right text-foreground ${densityClasses[density]}`}>
-                      <div className="text-sm text-foreground">
-                        ${state.threshold?.toLocaleString() || 'N/A'}
-                      </div>
-                      {state.threshold_percent !== undefined && state.threshold_percent !== null && (
-                        <div className={`text-xs font-medium ${
-                          state.threshold_percent >= 100
-                            ? 'text-destructive'
-                            : state.threshold_percent >= 80
-                            ? 'text-warning'
-                            : 'text-success'
-                        }`}>
-                          {state.threshold_percent.toFixed(0)}%
-                        </div>
-                      )}
                     </TableCell>
                     <TableCell className={`px-4 text-sm text-center text-card-foreground font-medium ${densityClasses[density]}`}>
                       ${state.estimated_liability.toLocaleString('en-US', {
