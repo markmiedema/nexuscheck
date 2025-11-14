@@ -85,6 +85,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     direction: 'desc'
   })
   const [nexusFilter, setNexusFilter] = useState('all')
+  const [exemptFilter, setExemptFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [density, setDensity] = useState<Density>('comfortable')
 
@@ -117,6 +118,15 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     // Apply nexus filter
     if (nexusFilter !== 'all') {
       filtered = filtered.filter(state => state.nexus_status === nexusFilter)
+    }
+
+    // Apply exempt sales filter
+    if (exemptFilter !== 'all') {
+      if (exemptFilter === 'has_exempt') {
+        filtered = filtered.filter(state => state.exempt_sales > 0)
+      } else if (exemptFilter === 'no_exempt') {
+        filtered = filtered.filter(state => state.exempt_sales === 0)
+      }
     }
 
     // Apply search
@@ -152,7 +162,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     })
 
     return filtered
-  }, [states, sortConfig, nexusFilter, searchQuery])
+  }, [states, sortConfig, nexusFilter, exemptFilter, searchQuery])
 
   const handleSort = (column: SortConfig['column']) => {
     setSortConfig(prev => ({
@@ -221,6 +231,17 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
               <SelectItem value="has_nexus">Has Nexus</SelectItem>
               <SelectItem value="approaching">Approaching</SelectItem>
               <SelectItem value="no_nexus">No Nexus</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={exemptFilter} onValueChange={setExemptFilter}>
+            <SelectTrigger className="w-44 border-border">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sales Types</SelectItem>
+              <SelectItem value="has_exempt">Has Exempt Sales</SelectItem>
+              <SelectItem value="no_exempt">No Exempt Sales</SelectItem>
             </SelectContent>
           </Select>
 
