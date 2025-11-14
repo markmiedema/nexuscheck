@@ -74,6 +74,41 @@ const formatCurrency = (value: number): string => {
   })}`
 }
 
+// Helper function to group states by priority
+const groupStatesByPriority = (states: StateResult[]) => {
+  const hasNexus: StateResult[] = []
+  const approaching: StateResult[] = []
+  const salesNoNexus: StateResult[] = []
+  const noSales: StateResult[] = []
+
+  states.forEach(state => {
+    if (state.nexus_status === 'has_nexus') {
+      hasNexus.push(state)
+    } else if (state.nexus_status === 'approaching') {
+      approaching.push(state)
+    } else if (state.total_sales > 10000) {
+      // Sales > $10k but no nexus
+      salesNoNexus.push(state)
+    } else {
+      // No sales or very minimal sales
+      noSales.push(state)
+    }
+  })
+
+  // Sort each group
+  hasNexus.sort((a, b) => b.estimated_liability - a.estimated_liability)
+  approaching.sort((a, b) => b.threshold_percent - a.threshold_percent)
+  salesNoNexus.sort((a, b) => b.total_sales - a.total_sales)
+  noSales.sort((a, b) => a.state_name.localeCompare(b.state_name))
+
+  return {
+    hasNexus,
+    approaching,
+    salesNoNexus,
+    noSales
+  }
+}
+
 export default function StateTable({ analysisId, embedded = false, refreshTrigger }: StateTableProps) {
   const [states, setStates] = useState<StateResult[]>([])
   const [loading, setLoading] = useState(true)
