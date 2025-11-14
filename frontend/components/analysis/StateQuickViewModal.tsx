@@ -418,6 +418,28 @@ export function StateQuickViewModal({
                     {data.compliance_info.tax_rates.combined_rate.toFixed(2)}%
                   </div>
                 </div>
+                <div className="bg-muted/50 border border-border rounded-lg p-3">
+                  <div className="text-muted-foreground text-xs mb-1">Direct Sales</div>
+                  <div className="font-bold text-lg text-foreground">
+                    {formatCurrency(data.year_data.reduce((sum, yr) => sum + yr.summary.direct_sales, 0))}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {data.total_sales && data.total_sales > 0
+                      ? `${((data.year_data.reduce((sum, yr) => sum + yr.summary.direct_sales, 0) / data.total_sales) * 100).toFixed(0)}% of total`
+                      : '0% of total'}
+                  </div>
+                </div>
+                <div className="bg-muted/50 border border-border rounded-lg p-3">
+                  <div className="text-muted-foreground text-xs mb-1">Marketplace Sales</div>
+                  <div className="font-bold text-lg text-foreground">
+                    {formatCurrency(data.year_data.reduce((sum, yr) => sum + yr.summary.marketplace_sales, 0))}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {data.total_sales && data.total_sales > 0
+                      ? `${((data.year_data.reduce((sum, yr) => sum + yr.summary.marketplace_sales, 0) / data.total_sales) * 100).toFixed(0)}% of total`
+                      : '0% of total'}
+                  </div>
+                </div>
               </div>
             )}
 
