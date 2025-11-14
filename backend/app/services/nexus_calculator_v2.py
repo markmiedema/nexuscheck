@@ -685,6 +685,7 @@ class NexusCalculatorV2:
         total_sales = 0
         direct_sales = 0
         marketplace_sales = 0
+        exempt_sales = 0  # Exempt sales (not taxable)
         taxable_sales = 0  # All taxable sales for the year (used for nexus threshold tracking)
         exposure_sales = 0  # Taxable sales during obligation period (used for liability calculation)
         transaction_count = 0
@@ -696,12 +697,30 @@ class NexusCalculatorV2:
             txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
             txn_date = datetime.fromisoformat(txn_date_str)
             amount = float(txn['sales_amount'])
-            taxable_amount = float(txn.get('taxable_amount', amount))  # Use taxable_amount if available
             channel = txn.get('sales_channel', 'direct')
+
+            # Hybrid logic for exempt sales
+            exempt_amount = float(txn.get('exempt_amount', 0))
+            is_taxable = txn.get('is_taxable', True)
+
+            if exempt_amount > 0:
+                # Priority 1: Use explicit exempt_amount
+                taxable_amount = max(0, amount - exempt_amount)
+            elif not is_taxable:
+                # Priority 2: is_taxable=False means full amount is exempt
+                taxable_amount = 0
+                exempt_amount = amount
+            else:
+                # Priority 3: Default - full amount is taxable
+                taxable_amount = amount
+                exempt_amount = 0
 
             # Count all transactions and total sales (gross revenue)
             total_sales += amount
             transaction_count += 1
+
+            # Track exempt sales
+            exempt_sales += exempt_amount
 
             # Track all taxable sales for the year (for threshold calculations)
             taxable_sales += taxable_amount
@@ -799,7 +818,9 @@ class NexusCalculatorV2:
         estimated_liability = base_tax + interest + penalties
 
         return {
-            'total_sales': total_sales,
+            'gross_sales': total_sales,  # Explicit gross sales
+            'total_sales': total_sales,  # Backward compatibility
+            'exempt_sales': exempt_sales,  # Exempt sales informational
             'direct_sales': direct_sales,
             'marketplace_sales': marketplace_sales,
             'taxable_sales': taxable_sales,  # All taxable sales for the year (for threshold tracking)
@@ -836,6 +857,21 @@ class NexusCalculatorV2:
         )
         marketplace_sales = total_sales - direct_sales
 
+        # Calculate exempt sales using hybrid logic
+        exempt_sales = 0
+        for txn in transactions:
+            amount = float(txn['sales_amount'])
+            exempt_amount = float(txn.get('exempt_amount', 0))
+            is_taxable = txn.get('is_taxable', True)
+
+            if exempt_amount > 0:
+                # Priority 1: Use explicit exempt_amount
+                exempt_sales += exempt_amount
+            elif not is_taxable:
+                # Priority 2: is_taxable=False means full amount is exempt
+                exempt_sales += amount
+            # Priority 3: Default - no exempt amount (exempt_sales += 0)
+
         return {
             'state': state_code,
             'year': year,
@@ -843,10 +879,12 @@ class NexusCalculatorV2:
             'nexus_date': None,
             'obligation_start_date': None,
             'first_nexus_year': None,
-            'total_sales': total_sales,
+            'gross_sales': total_sales,  # Explicit gross sales
+            'total_sales': total_sales,  # Backward compatibility
+            'exempt_sales': exempt_sales,  # Exempt sales informational
             'direct_sales': direct_sales,
             'marketplace_sales': marketplace_sales,
-            'taxable_sales': 0,
+            'taxable_sales': 0,  # No nexus = no taxable sales counted
             'exposure_sales': 0,  # No nexus = no exposure
             'transaction_count': transaction_count,
             'estimated_liability': 0,
@@ -876,7 +914,9 @@ class NexusCalculatorV2:
             'nexus_date': None,
             'obligation_start_date': None,
             'first_nexus_year': None,
-            'total_sales': 0,
+            'gross_sales': 0,  # Explicit gross sales
+            'total_sales': 0,  # Backward compatibility
+            'exempt_sales': 0,  # Exempt sales informational
             'direct_sales': 0,
             'marketplace_sales': 0,
             'taxable_sales': 0,
@@ -1067,7 +1107,9 @@ class NexusCalculatorV2:
                     'nexus_date': result['nexus_date'],
                     'obligation_start_date': result['obligation_start_date'],
                     'first_nexus_year': result.get('first_nexus_year'),
+                    'gross_sales': result.get('gross_sales', result['total_sales']),
                     'total_sales': result['total_sales'],
+                    'exempt_sales': result.get('exempt_sales', 0),
                     'direct_sales': result['direct_sales'],
                     'marketplace_sales': result['marketplace_sales'],
                     'taxable_sales': result.get('taxable_sales', result['total_sales']),
