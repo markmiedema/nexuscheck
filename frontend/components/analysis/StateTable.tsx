@@ -38,11 +38,19 @@ import {
   FileText,
   Tag,
   TrendingUp,
+  Info,
 } from 'lucide-react'
 import {
   getNexusStatusLabel,
 } from '@/app/analysis/[id]/states/helpers'
 import { StateQuickViewModal } from './StateQuickViewModal'
+import { Badge } from '@/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface StateTableProps {
   analysisId: string
@@ -56,6 +64,14 @@ type SortConfig = {
 }
 
 type Density = 'compact' | 'comfortable' | 'spacious'
+
+// Helper function to format currency
+const formatCurrency = (value: number): string => {
+  return `$${value.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  })}`
+}
 
 export default function StateTable({ analysisId, embedded = false, refreshTrigger }: StateTableProps) {
   const [states, setStates] = useState<StateResult[]>([])
@@ -247,6 +263,39 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     {getSortIcon('state')}
                   </button>
                 </TableHead>
+                <TableHead className="px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Gross Sales
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Total revenue (used for nexus determination)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-end gap-1">
+                    Taxable Sales
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Sales subject to tax (used for liability)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                  Exempt
+                </TableHead>
                 <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('nexus_status')}
@@ -285,7 +334,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
             <TableBody>
               {displayedStates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                     No states found matching your filters
                   </TableCell>
                 </TableRow>
@@ -306,6 +355,22 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                       <div className="text-xs text-muted-foreground">
                         ({state.state_code})
                       </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
+                      {formatCurrency(state.total_sales || 0)}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
+                      {formatCurrency(state.taxable_sales || 0)}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 text-sm text-right text-muted-foreground">
+                      {state.exempt_sales > 0 ? (
+                        <div className="flex items-center justify-end gap-2">
+                          {formatCurrency(state.exempt_sales)}
+                          <Badge variant="outline" className="text-xs">
+                            {((state.exempt_sales / state.total_sales) * 100).toFixed(1)}% exempt
+                          </Badge>
+                        </div>
+                      ) : '-'}
                     </TableCell>
                     <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
                       <div className="flex items-center justify-center gap-2">
