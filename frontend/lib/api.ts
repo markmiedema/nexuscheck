@@ -12,6 +12,8 @@ export interface StateDetailResponse {
   compliance_info: ComplianceInfo
   // Aggregate totals across all years (for "All Years" view)
   total_sales?: number
+  taxable_sales?: number
+  exempt_sales?: number
   estimated_liability?: number
   nexus_type?: string
   first_nexus_year?: number
