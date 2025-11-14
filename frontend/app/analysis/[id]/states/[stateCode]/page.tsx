@@ -14,6 +14,7 @@ import TransactionTable from '@/components/analysis/TransactionTable';
 import { ComplianceSection } from '@/components/analysis/ComplianceSection';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Info } from 'lucide-react';
 
 interface StateDetailPageProps {
   params: {
@@ -176,6 +177,15 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
     });
   };
 
+  // Format currency helper
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
   // Calculate analysis period for breadcrumb
   const getAnalysisPeriod = () => {
     if (!data) return null;
@@ -264,6 +274,74 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
           }
         />
       )}
+
+      {/* Sales Breakdown - Show if has exempt sales */}
+      {data.has_transactions && (() => {
+        const grossSales = isAllYearsView
+          ? data.year_data.reduce((sum, yr) => sum + (yr.summary.total_sales || 0), 0)
+          : yearData?.summary.total_sales || 0
+
+        const taxableSales = isAllYearsView
+          ? data.year_data.reduce((sum, yr) => sum + (yr.summary.taxable_sales || 0), 0)
+          : yearData?.summary.taxable_sales || 0
+
+        const exemptSales = isAllYearsView
+          ? data.year_data.reduce((sum, yr) => sum + (yr.summary.exempt_sales || 0), 0)
+          : yearData?.summary.exempt_sales || 0
+
+        // Only show if there are exempt sales
+        if (exemptSales === 0) return null
+
+        return (
+          <Card className="border-border bg-card shadow-md">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Info className="h-5 w-5" />
+                Sales Breakdown
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Visual equation */}
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="flex-1 bg-muted/50 border border-border rounded p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Gross Sales</div>
+                    <div className="text-lg font-bold text-foreground">
+                      {formatCurrency(grossSales)}
+                    </div>
+                  </div>
+                  <div className="text-muted-foreground">−</div>
+                  <div className="flex-1 bg-muted/50 border border-border rounded p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Exempt Sales</div>
+                    <div className="text-lg font-bold text-foreground">
+                      {formatCurrency(exemptSales)}
+                    </div>
+                  </div>
+                  <div className="text-muted-foreground">=</div>
+                  <div className="flex-1 bg-primary/10 border border-primary/30 rounded p-3">
+                    <div className="text-xs text-primary mb-1">Taxable Sales</div>
+                    <div className="text-lg font-bold text-primary">
+                      {formatCurrency(taxableSales)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Explanation */}
+                <div className="bg-info/10 border border-info/20 rounded-lg p-4 text-sm">
+                  <p className="text-foreground">
+                    <strong>Why the distinction matters:</strong>
+                  </p>
+                  <ul className="mt-2 space-y-1 text-muted-foreground">
+                    <li>• <strong>Gross sales</strong> are used to determine if economic nexus thresholds are crossed</li>
+                    <li>• <strong>Taxable sales</strong> are used to calculate your actual tax liability</li>
+                    <li>• <strong>Exempt sales</strong> include items not subject to tax (groceries, clothing, manufacturing inputs, etc.)</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       {/* Liability Breakdown - only show if has nexus */}
       {data.has_transactions && (isAllYearsView ? aggregateNexusStatus === 'has_nexus' : yearData?.nexus_status === 'has_nexus') && (() => {
