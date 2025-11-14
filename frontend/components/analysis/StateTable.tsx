@@ -248,7 +248,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
           <Table>
             <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
               <TableRow className="hover:bg-muted/80">
-                <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+                <TableHead className="w-48 px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('state')}
                     className="flex items-center gap-2 hover:text-foreground transition-colors"
@@ -257,7 +257,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     {getSortIcon('state')}
                   </button>
                 </TableHead>
-                <TableHead className="px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
                   <div className="flex items-center justify-end gap-1">
                     Gross Sales
                     <TooltipProvider>
@@ -272,7 +272,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     </TooltipProvider>
                   </div>
                 </TableHead>
-                <TableHead className="px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
                   <div className="flex items-center justify-end gap-1">
                     Taxable Sales
                     <TooltipProvider>
@@ -287,10 +287,10 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     </TooltipProvider>
                   </div>
                 </TableHead>
-                <TableHead className="px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
                   Exempt
                 </TableHead>
-                <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+                <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('nexus_status')}
                     className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
@@ -299,7 +299,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     {getSortIcon('nexus_status')}
                   </button>
                 </TableHead>
-                <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('sales')}
                     className="flex items-center gap-2 ml-auto hover:text-foreground transition-colors"
@@ -308,12 +308,12 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     {getSortIcon('sales')}
                   </button>
                 </TableHead>
-                <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+                <TableHead className="w-28 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
                   <span>
                     Threshold
                   </span>
                 </TableHead>
-                <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+                <TableHead className="w-32 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
                   <button
                     onClick={() => handleSort('liability')}
                     className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
@@ -322,7 +322,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                     {getSortIcon('liability')}
                   </button>
                 </TableHead>
-                <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
+                <TableHead className="w-24 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
