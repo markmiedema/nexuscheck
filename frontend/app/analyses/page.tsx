@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs } from '@/components/ui/tabs-custom'
 import {
   Eye,
   Trash2,
@@ -274,48 +275,17 @@ export default function AnalysesPage() {
         </div>
 
         {/* Quick Filter Tabs */}
-        <div className="flex items-center gap-1 mb-4 border-b border-border">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
-              activeTab === 'all'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
-            }`}
-          >
-            All <span className="text-muted-foreground">({stats.total})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('complete')}
-            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
-              activeTab === 'complete'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
-            }`}
-          >
-            Complete <span className="text-muted-foreground">({stats.complete})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('draft')}
-            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
-              activeTab === 'draft'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
-            }`}
-          >
-            Draft <span className="text-muted-foreground">({stats.draft})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('processing')}
-            className={`px-4 py-2 text-sm font-semibold transition-all -mb-px ${
-              activeTab === 'processing'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-t'
-            }`}
-          >
-            Processing <span className="text-muted-foreground">({stats.processing})</span>
-          </button>
-        </div>
+        <Tabs
+          tabs={[
+            { id: 'all', label: 'All', count: stats.total, icon: FileText },
+            { id: 'complete', label: 'Complete', count: stats.complete, icon: CheckCircle },
+            { id: 'draft', label: 'Draft', count: stats.draft, icon: Clock },
+            { id: 'processing', label: 'Processing', count: stats.processing, icon: Loader2 }
+          ]}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          className="mb-4"
+        />
 
         <div className="bg-card border border-border rounded-lg overflow-hidden shadow-card">
           <div className="p-6 border-b border-border">

@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { AlertCircle, ChevronDown, ChevronUp, Calculator, X } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Accordion } from '@/components/ui/accordion-custom'
+import { AlertCircle, Calculator, X } from 'lucide-react'
 import { useVDAMode, StateResult } from '@/hooks/useVDAMode'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 
@@ -227,16 +229,12 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                 <h3 className="font-semibold text-card-foreground mb-4">
                   Top States by Savings
                 </h3>
-                <div className="space-y-2">
-                  {vdaResults.state_breakdown.slice(0, 5).map((state) => (
-                    <div
-                      key={state.state_code}
-                      className="border border-border rounded-lg p-4 hover:bg-card transition-colors"
-                    >
-                      <button
-                        onClick={() => toggleTopKey(state.state_code)}
-                        className="w-full flex items-center justify-between text-left"
-                      >
+                <Accordion
+                  items={vdaResults.state_breakdown.slice(0, 5).map((state) => ({
+                    id: state.state_code,
+                    variant: 'default' as const,
+                    trigger: (
+                      <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-3">
                           <span className="font-semibold text-card-foreground">
                             {state.state_name}
@@ -245,47 +243,41 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
                             ({state.state_code})
                           </span>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className="text-lg font-bold text-info-foreground">
-                            {formatCurrency(state.savings)}
-                          </span>
-                          {openTopKey === state.state_code ? (
-                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          )}
+                        <span className="text-lg font-bold text-info-foreground mr-4">
+                          {formatCurrency(state.savings)}
+                        </span>
+                      </div>
+                    ),
+                    content: (
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Before VDA:</span>
+                          <span className="font-medium">{formatCurrency(state.before_vda)}</span>
                         </div>
-                      </button>
-
-                      {openTopKey === state.state_code && (
-                        <div className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">With VDA:</span>
+                          <span className="font-medium">{formatCurrency(state.with_vda)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Penalties Waived:</span>
+                          <span className="font-medium text-success-foreground">
+                            {formatCurrency(state.penalty_waived)}
+                          </span>
+                        </div>
+                        {state.interest_waived > 0 && (
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Before VDA:</span>
-                            <span className="font-medium">{formatCurrency(state.before_vda)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">With VDA:</span>
-                            <span className="font-medium">{formatCurrency(state.with_vda)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Penalties Waived:</span>
+                            <span className="text-muted-foreground">Interest Waived:</span>
                             <span className="font-medium text-success-foreground">
-                              {formatCurrency(state.penalty_waived)}
+                              {formatCurrency(state.interest_waived)}
                             </span>
                           </div>
-                          {state.interest_waived > 0 && (
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Interest Waived:</span>
-                              <span className="font-medium text-success-foreground">
-                                {formatCurrency(state.interest_waived)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                        )}
+                      </div>
+                    )
+                  }))}
+                  type="single"
+                  defaultOpen={[]}
+                />
               </div>
             )}
 
@@ -311,100 +303,96 @@ export function VDAModePanel({ analysisId, stateResults }: VDAModePanelProps) {
         )}
 
         {/* State Selector Modal/Panel */}
-        {vdaScopeOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-              <div className="p-6 border-b border-border">
-                <h3 className="text-lg font-semibold text-card-foreground">
-                  Select States for VDA
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Choose which states to include in voluntary disclosure
-                </p>
+        <Dialog open={vdaScopeOpen} onOpenChange={setVdaScopeOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle>Select States for VDA</DialogTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Choose which states to include in voluntary disclosure
+              </p>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto space-y-4 py-4">
+              {/* Quick Select Buttons */}
+              <div className="flex gap-2 flex-wrap">
+                <Button variant="outline" size="sm" onClick={selectAll}>
+                  Select All
+                </Button>
+                <Button variant="outline" size="sm" onClick={selectNone}>
+                  Clear All
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => selectTopN(3)}>
+                  Top 3
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => selectTopN(5)}>
+                  Top 5
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => selectTopN(10)}>
+                  Top 10
+                </Button>
               </div>
 
-              <div className="p-6 space-y-4">
-                {/* Quick Select Buttons */}
-                <div className="flex gap-2 flex-wrap">
-                  <Button variant="outline" size="sm" onClick={selectAll}>
-                    Select All
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={selectNone}>
-                    Clear All
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => selectTopN(3)}>
-                    Top 3
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => selectTopN(5)}>
-                    Top 5
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => selectTopN(10)}>
-                    Top 10
-                  </Button>
-                </div>
+              <div className="text-sm text-muted-foreground">
+                {selectedStates.length} state{selectedStates.length !== 1 ? 's' : ''} selected
+              </div>
 
-                <div className="text-sm text-muted-foreground">
-                  {selectedStates.length} state{selectedStates.length !== 1 ? 's' : ''} selected
-                </div>
-
-                {/* State List */}
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {statesWithNexus.map((state) => (
-                    <div
-                      key={state.state_code}
-                      className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-accent cursor-pointer"
-                      onClick={() => toggleState(state.state_code)}
-                    >
-                      <Checkbox
-                        checked={selectedStates.includes(state.state_code)}
-                        onCheckedChange={() => toggleState(state.state_code)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium text-card-foreground">
-                          {state.state_name} ({state.state_code})
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Liability: {formatCurrency(state.estimated_liability)}
-                        </div>
+              {/* State List */}
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {statesWithNexus.map((state) => (
+                  <div
+                    key={state.state_code}
+                    className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-accent cursor-pointer"
+                    onClick={() => toggleState(state.state_code)}
+                  >
+                    <Checkbox
+                      checked={selectedStates.includes(state.state_code)}
+                      onCheckedChange={() => toggleState(state.state_code)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-card-foreground">
+                        {state.state_name} ({state.state_code})
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Liability: {formatCurrency(state.estimated_liability)}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-6 border-t border-border flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setVdaScopeOpen(false)}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={async () => {
-                    await calculateVDA()
-                    setVdaScopeOpen(false)
-                  }}
-                  disabled={calculating || selectedStates.length === 0}
-                  className="flex-1 bg-info hover:opacity-90"
-                >
-                  {calculating ? (
-                    <>
-                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Calculating...
-                    </>
-                  ) : (
-                    <>
-                      <Calculator className="mr-2 h-4 w-4" />
-                      Calculate VDA
-                    </>
-                  )}
-                </Button>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        )}
+
+            <DialogFooter className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setVdaScopeOpen(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  await calculateVDA()
+                  setVdaScopeOpen(false)
+                }}
+                disabled={calculating || selectedStates.length === 0}
+                className="flex-1 bg-info hover:opacity-90"
+              >
+                {calculating ? (
+                  <>
+                    <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Calculating...
+                  </>
+                ) : (
+                  <>
+                    <Calculator className="mr-2 h-4 w-4" />
+                    Calculate VDA
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   )
