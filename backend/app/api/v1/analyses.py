@@ -1751,6 +1751,7 @@ async def get_state_detail(
                     'marketplace_sales': float(year_result.get('marketplace_sales', 0)),
                     'taxable_sales': float(year_result.get('taxable_sales', 0)),
                     'exposure_sales': float(year_result.get('exposure_sales', 0)),
+                    'exempt_sales': float(year_result.get('exempt_sales', 0)),
                     'estimated_liability': float(year_result.get('estimated_liability', 0)),
                     'base_tax': float(year_result.get('base_tax', 0)),
                     'interest': float(year_result.get('interest', 0)),
@@ -1863,31 +1864,28 @@ async def get_state_detail(
             for yr in year_data:
                 logger.info(f"  Year {yr['year']}: nexus_type={yr.get('nexus_type')}, nexus_status={yr.get('nexus_status')}")
 
-        return {
-            'state_code': state_code,
-            'state_name': state_name,
-            'analysis_id': analysis_id,
-            'has_transactions': True,
-            'analysis_period': {
-                'years_available': years_available
-            },
-            'year_data': year_data,
-            'compliance_info': compliance_info,
-            # Aggregate totals for "All Years" view
-            'total_sales': total_sales_all_years,
-            'taxable_sales': total_taxable_sales_all_years,
-            'exempt_sales': total_exempt_sales_all_years,
-            'direct_sales': total_direct_sales_all_years,
-            'marketplace_sales': total_marketplace_sales_all_years,
-            'exposure_sales': total_exposure_sales_all_years,
-            'transaction_count': total_transaction_count_all_years,
-            'estimated_liability': total_liability_all_years,
-            'base_tax': total_base_tax_all_years,
-            'interest': total_interest_all_years,
-            'penalties': total_penalties_all_years,
-            'nexus_type': aggregate_nexus_type,  # Use latest year's nexus type
-            'first_nexus_year': first_nexus_year
-        }
+        return StateDetailResponse(
+            state_code=state_code,
+            state_name=state_name,
+            analysis_id=analysis_id,
+            has_transactions=True,
+            analysis_period={'years_available': years_available},
+            year_data=year_data,
+            compliance_info=compliance_info,
+            total_sales=total_sales_all_years,
+            taxable_sales=total_taxable_sales_all_years,
+            exempt_sales=total_exempt_sales_all_years,
+            direct_sales=total_direct_sales_all_years,
+            marketplace_sales=total_marketplace_sales_all_years,
+            exposure_sales=total_exposure_sales_all_years,
+            transaction_count=total_transaction_count_all_years,
+            estimated_liability=total_liability_all_years,
+            base_tax=total_base_tax_all_years,
+            interest=total_interest_all_years,
+            penalties=total_penalties_all_years,
+            nexus_type=aggregate_nexus_type,
+            first_nexus_year=first_nexus_year
+        )
 
     except HTTPException:
         raise

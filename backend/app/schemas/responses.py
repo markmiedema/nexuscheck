@@ -130,33 +130,74 @@ class ThresholdInfo(BaseModel):
 
 
 class YearData(BaseModel):
-    """Year-by-year nexus data"""
+    """Simple year data for state results list (flattened structure)"""
     year: int
     nexus_type: Optional[str] = None
     nexus_date: Optional[str] = None
     obligation_start_date: Optional[str] = None
     first_nexus_year: Optional[int] = None
-    # Sales data (flattened from YearSummary)
+    # Sales data
     total_sales: float
     direct_sales: float
     marketplace_sales: float
     taxable_sales: float
     exposure_sales: float
     exempt_sales: float
-    # Liability data (flattened from YearSummary)
+    # Liability data
     estimated_liability: float
     base_tax: float
     interest: Optional[float] = None
     penalties: Optional[float] = None
-    # Optional fields (may not be included in year_data)
+    # Optional fields
     transaction_count: Optional[int] = None
     interest_rate: Optional[float] = None
     interest_method: Optional[str] = None
     days_outstanding: Optional[int] = None
     penalty_rate: Optional[float] = None
+
+
+class YearThresholdInfo(BaseModel):
+    """Threshold information for a specific year"""
     revenue_threshold: Optional[float] = None
     transaction_threshold: Optional[int] = None
     threshold_operator: Optional[str] = None
+    percentage_of_threshold: float
+    amount_until_nexus: float
+    amount_over_nexus: Optional[float] = None
+    approaching: bool
+
+
+class YearTransaction(BaseModel):
+    """Transaction details for year view"""
+    transaction_id: str
+    transaction_date: str
+    sales_amount: float
+    taxable_amount: float
+    exempt_amount: float
+    is_taxable: bool
+    sales_channel: str
+    running_total: float
+
+
+class MonthlySales(BaseModel):
+    """Monthly sales aggregation"""
+    month: str
+    sales: float
+    transaction_count: int
+
+
+class DetailedYearData(BaseModel):
+    """Detailed year data for state detail view (nested structure with summary)"""
+    year: int
+    nexus_status: str  # 'has_nexus' | 'approaching' | 'none'
+    nexus_type: Optional[str] = None
+    nexus_date: Optional[str] = None
+    obligation_start_date: Optional[str] = None
+    first_nexus_year: Optional[int] = None
+    summary: YearSummary
+    threshold_info: YearThresholdInfo
+    monthly_sales: List[MonthlySales]
+    transactions: List[YearTransaction]
 
 
 class StateResult(BaseModel):
@@ -235,7 +276,7 @@ class StateDetailResponse(BaseModel):
     analysis_id: str
     has_transactions: bool
     analysis_period: Dict[str, List[int]]  # {"years_available": [2023, 2024]}
-    year_data: List[YearData]
+    year_data: List[DetailedYearData]
     compliance_info: ComplianceInfo
     # Aggregate totals (always returned)
     total_sales: float
