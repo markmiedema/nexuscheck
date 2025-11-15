@@ -14,7 +14,14 @@ export interface StateDetailResponse {
   total_sales?: number
   taxable_sales?: number
   exempt_sales?: number
+  direct_sales?: number
+  marketplace_sales?: number
+  exposure_sales?: number
+  transaction_count?: number
   estimated_liability?: number
+  base_tax?: number
+  interest?: number
+  penalties?: number
   nexus_type?: string
   first_nexus_year?: number
 }
