@@ -12,6 +12,8 @@ from app.schemas.responses import (
     ResultsSummaryResponse,
     StateDetailResponse,
     UploadResponse,
+    AutoDetectedMappings,
+    DateRange,
     DeleteResponse,
     CalculationResponse,
     CreateAnalysisResponse,
@@ -77,12 +79,12 @@ async def list_analyses(
             .range(offset, offset + limit - 1)\
             .execute()
 
-        return {
-            "total_count": result.count,
-            "limit": limit,
-            "offset": offset,
-            "analyses": result.data
-        }
+        return AnalysesListResponse(
+            total_count=result.count,
+            limit=limit,
+            offset=offset,
+            analyses=result.data
+        )
 
     except Exception as e:
         logger.error(f"Error listing analyses: {str(e)}")
@@ -127,7 +129,7 @@ async def get_analysis(
         analysis['total_transactions'] = total_transactions
         analysis['unique_states'] = unique_states
 
-        return analysis
+        return AnalysisDetailResponse(**analysis)
 
     except HTTPException:
         raise
@@ -450,28 +452,26 @@ async def upload_transactions(
                     }
                 }
 
-        return {
-            "message": "File uploaded and analyzed successfully",
-            "analysis_id": analysis_id,
-            "auto_detected_mappings": {
-                "mappings": detection_result['mappings'],
-                "confidence": detection_result['confidence'],
-                "samples": sample_values,
-                "summary": summary,
-                # Highlight which columns are required vs optional
-                "required_detected": detected_required,
-                "optional_detected": detected_optional
-            },
-            "all_required_detected": len(detected_required) == len(required_columns),
-            "optional_columns_found": len(detected_optional),
-            "columns_detected": list(df.columns),
-            # Keep date detection for compatibility
-            "date_range_detected": {
-                "start": detected_start,
-                "end": detected_end,
-                "auto_populated": auto_populated
-            } if detected_start else None
-        }
+        return UploadResponse(
+            message="File uploaded and analyzed successfully",
+            analysis_id=analysis_id,
+            auto_detected_mappings=AutoDetectedMappings(
+                mappings=detection_result['mappings'],
+                confidence=detection_result['confidence'],
+                samples=sample_values,
+                summary=summary,
+                required_detected=detected_required,
+                optional_detected=detected_optional
+            ),
+            all_required_detected=len(detected_required) == len(required_columns),
+            optional_columns_found=len(detected_optional),
+            columns_detected=list(df.columns),
+            date_range_detected=DateRange(
+                start=detected_start,
+                end=detected_end,
+                auto_populated=auto_populated
+            ) if detected_start else None
+        )
 
     except HTTPException:
         raise
@@ -730,10 +730,10 @@ async def validate_and_save_mappings(
 
         logger.info(f"Saved {total_inserted} transactions for analysis {analysis_id}")
 
-        return {
-            "message": "Mappings validated and data saved successfully",
-            "transactions_saved": total_inserted
-        }
+        return ValidateAndSaveResponse(
+            message="Mappings validated and data saved successfully",
+            transactions_saved=total_inserted
+        )
 
     except HTTPException:
         raise
@@ -848,10 +848,10 @@ async def get_column_info(
                 except:
                     pass
 
-        return {
-            "columns": columns_info,
-            "summary": summary
-        }
+        return ColumnsResponse(
+            columns=columns_info,
+            summary=summary
+        )
 
     except HTTPException:
         raise
@@ -1026,15 +1026,16 @@ async def validate_data(
                 "updated_at": datetime.utcnow().isoformat()
             }).eq('id', analysis_id).execute()
 
-        return {
-            "validation_id": analysis_id,  # Using analysis_id as validation_id for simplicity
-            "status": validation_status,
-            "valid_rows": valid_rows,
-            "invalid_rows": invalid_rows,
-            "errors": errors[:50],  # Limit to first 50 errors
-            "warnings": warnings[:20],  # Limit to first 20 warnings
-            "ready_to_process": ready_to_process
-        }
+        # Convert errors to string messages for schema compatibility
+        error_messages = [f"Row {e['row']}, {e['column']}: {e['message']}" for e in errors[:50]]
+        warning_messages = [f"Row {w['row']}, {w['column']}: {w['message']}" for w in warnings[:20]]
+
+        return ValidationResponse(
+            message=f"Validation {validation_status}: {valid_rows} valid rows, {invalid_rows} invalid rows",
+            is_valid=ready_to_process,
+            errors=error_messages,
+            warnings=warning_messages
+        )
 
     except HTTPException:
         raise
@@ -1090,11 +1091,11 @@ async def calculate_nexus(
 
         logger.info(f"Nexus calculation completed for analysis {analysis_id}")
 
-        return {
-            "message": "Nexus calculation completed successfully",
-            "analysis_id": analysis_id,
-            "summary": result
-        }
+        return CalculationResponse(
+            message="Nexus calculation completed successfully",
+            analysis_id=analysis_id,
+            summary=result
+        )
 
     except HTTPException:
         raise
@@ -1328,14 +1329,14 @@ async def get_results_summary(
                 'threshold': latest_year.get('threshold', 0)
             })
 
-        return {
-            "analysis_id": analysis_id,
-            "company_name": analysis['client_company_name'],
-            "period_start": analysis['analysis_period_start'],
-            "period_end": analysis['analysis_period_end'],
-            "status": analysis['status'],
-            "completed_at": analysis['updated_at'],
-            "summary": {
+        return ResultsSummaryResponse(
+            analysis_id=analysis_id,
+            company_name=analysis['client_company_name'],
+            period_start=analysis['analysis_period_start'],
+            period_end=analysis['analysis_period_end'],
+            status=analysis['status'],
+            completed_at=analysis['updated_at'],
+            summary={
                 "total_states_analyzed": total_states_analyzed,
                 "states_with_nexus": states_with_nexus,
                 "states_approaching_threshold": states_approaching,
@@ -1345,15 +1346,15 @@ async def get_results_summary(
                 "confidence_level": "high",
                 "manual_review_required": 0
             },
-            "nexus_breakdown": {
+            nexus_breakdown={
                 "physical_nexus": physical_count,
                 "economic_nexus": economic_only_count,
                 "no_nexus": states_no_nexus,
                 "both": both_count
             },
-            "top_states_by_liability": top_states_formatted,
-            "approaching_threshold": approaching_states_list
-        }
+            top_states_by_liability=top_states_formatted,
+            approaching_threshold=approaching_states_list
+        )
 
     except HTTPException:
         raise
