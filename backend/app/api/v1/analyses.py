@@ -1602,7 +1602,7 @@ async def get_state_detail(
         # Debug: log what we got from state_results
         if state_year_results:
             for yr in state_year_results[:2]:  # Just log first 2
-                logger.info(f"[STATE DETAIL API] {state_code} year {yr.get('year')}: taxable_sales={yr.get('taxable_sales')}, exempt_sales={yr.get('exempt_sales')}, total_sales={yr.get('total_sales')}")
+                logger.debug(f"[STATE DETAIL API] {state_code} year {yr.get('year')}: taxable_sales={yr.get('taxable_sales')}, exempt_sales={yr.get('exempt_sales')}, total_sales={yr.get('total_sales')}")
 
         if not state_year_results:
             # State has no transactions - still need to return compliance info
@@ -1620,46 +1620,49 @@ async def get_state_detail(
                 'state_rate, avg_local_rate, combined_avg_rate'
             ).eq('state', state_code).execute()
 
-            compliance_info = {
-                'tax_rates': {
-                    'state_rate': 0,
-                    'avg_local_rate': 0,
-                    'combined_rate': 0,
-                    'max_local_rate': 0.0
-                },
-                'threshold_info': {},
-                'registration_info': {
-                    'registration_fee': 0,
-                    'filing_frequencies': ['Monthly', 'Quarterly', 'Annual'],
-                    'registration_url': registration_url,
-                    'dor_website': state_tax_website,
-                    'registration_required': False
-                },
-                'filing_frequency': 'Monthly',
-                'filing_method': 'Online',
-                'sstm_member': False
-            }
-
+            # Build compliance info using Pydantic models (consistent with main path)
             if tax_rate_result.data:
-                # Rates are stored as decimals (0.0825 for 8.25%)
-                # Convert to percentages for display by multiplying by 100
                 state_rate = float(tax_rate_result.data[0]['state_rate']) * 100
                 avg_local_rate = float(tax_rate_result.data[0].get('avg_local_rate', 0)) * 100
                 combined_rate = float(tax_rate_result.data[0].get('combined_avg_rate', 0)) * 100
 
-                compliance_info['tax_rates'] = {
-                    'state_rate': round(state_rate, 2),
-                    'avg_local_rate': round(avg_local_rate, 2),
-                    'combined_rate': round(combined_rate, 2),
-                    'max_local_rate': 0.0
-                }
+                tax_rates = TaxRates(
+                    state_rate=round(state_rate, 2),
+                    avg_local_rate=round(avg_local_rate, 2),
+                    combined_rate=round(combined_rate, 2),
+                    max_local_rate=0.0  # TODO: Research where to source max_local_rate data
+                )
+            else:
+                tax_rates = TaxRates(
+                    state_rate=0.0,
+                    avg_local_rate=0.0,
+                    combined_rate=0.0,
+                    max_local_rate=0.0  # TODO: Research where to source max_local_rate data
+                )
 
-            if threshold_info:
-                compliance_info['threshold_info'] = {
-                    'revenue_threshold': threshold_info.get('revenue_threshold'),
-                    'transaction_threshold': threshold_info.get('transaction_threshold'),
-                    'threshold_operator': threshold_info.get('threshold_operator')
-                }
+            # Build threshold info (use actual data if available)
+            threshold_info_model = ThresholdInfo(
+                revenue_threshold=threshold_info.get('revenue_threshold') if threshold_info else None,
+                transaction_threshold=threshold_info.get('transaction_threshold') if threshold_info else None,
+                threshold_operator=threshold_info.get('threshold_operator') if threshold_info else None
+            )
+
+            registration_info = RegistrationInfo(
+                registration_required=False,
+                registration_fee=0,
+                filing_frequencies=['Monthly', 'Quarterly', 'Annual'],
+                registration_url=registration_url,
+                dor_website=state_tax_website
+            )
+
+            compliance_info = ComplianceInfo(
+                tax_rates=tax_rates,
+                threshold_info=threshold_info_model,
+                registration_info=registration_info,
+                filing_frequency='Monthly',
+                filing_method='Online',
+                sstm_member=False
+            )
 
             return StateDetailResponse(
                 state_code=state_code,
