@@ -170,13 +170,15 @@ class StateResultsResponse(BaseModel):
 class ResultsSummaryResponse(BaseModel):
     """Response for GET /analyses/{id}/results/summary"""
     analysis_id: str
-    total_states: int
-    states_with_nexus: int
-    states_approaching: int
-    total_liability: float
-    highest_liability_state: Optional[str] = None
-    total_sales: float
-    total_transactions: int
+    company_name: str
+    period_start: Optional[str] = None
+    period_end: Optional[str] = None
+    status: str
+    completed_at: str
+    summary: Dict[str, Any]  # total_states_analyzed, states_with_nexus, states_approaching_threshold, etc.
+    nexus_breakdown: Dict[str, int]  # physical_nexus, economic_nexus, no_nexus, both
+    top_states_by_liability: List[Dict[str, Any]]
+    approaching_threshold: List[Dict[str, Any]]
 
 
 # ============================================================================
