@@ -1,3 +1,5 @@
+import type { YearData } from '../lib/api'
+
 /**
  * State result from backend API
  * Represents nexus determination, revenue, and liability for one state
@@ -17,6 +19,7 @@ export interface StateResult {
   estimated_liability: number
   confidence_level: 'high' | 'medium' | 'low'
   registration_status: 'registered' | 'not_registered' | null
+  year_data: YearData[]  // ← Fixed: Backend returns this but was missing from type
 }
 
 /**

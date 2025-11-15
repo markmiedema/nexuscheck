@@ -1,5 +1,32 @@
 import apiClient from './api/client'
 
+// Upload/Validation Response Types
+
+export interface UploadResponse {
+  message: string
+  analysis_id: string
+  auto_detected_mappings: {
+    mappings: Record<string, string>
+    confidence: Record<string, number>
+    samples: Record<string, any[]>
+    summary: {
+      total_columns: number
+      required_detected: number
+      optional_detected: number
+    }
+    required_detected: Record<string, boolean>
+    optional_detected: Record<string, boolean>
+  }
+  all_required_detected: boolean
+  optional_columns_found: number
+  columns_detected: string[]
+  date_range_detected: {
+    start: string
+    end: string
+    auto_populated: boolean
+  } | null
+}
+
 export interface StateDetailResponse {
   state_code: string
   state_name: string
@@ -11,19 +38,20 @@ export interface StateDetailResponse {
   year_data: YearData[]
   compliance_info: ComplianceInfo
   // Aggregate totals across all years (for "All Years" view)
-  total_sales?: number
-  taxable_sales?: number
-  exempt_sales?: number
-  direct_sales?: number
-  marketplace_sales?: number
-  exposure_sales?: number
-  transaction_count?: number
-  estimated_liability?: number
-  base_tax?: number
-  interest?: number
-  penalties?: number
-  nexus_type?: string
-  first_nexus_year?: number
+  // All fields below are always returned by backend (not optional)
+  total_sales: number
+  taxable_sales: number
+  exempt_sales: number
+  direct_sales: number
+  marketplace_sales: number
+  exposure_sales: number
+  transaction_count: number
+  estimated_liability: number
+  base_tax: number
+  interest: number
+  penalties: number
+  nexus_type: string
+  first_nexus_year: number | null  // Null if no nexus established
 }
 
 export interface YearData {
@@ -33,8 +61,7 @@ export interface YearData {
   obligation_start_date?: string // V2: Date when tax obligation begins
   first_nexus_year?: number // V2: Year when nexus was first established (for sticky nexus)
   summary: {
-    total_sales: number  // Gross sales (backward compat)
-    gross_sales: number  // Explicit gross sales
+    total_sales: number  // Gross sales
     transaction_count: number
     direct_sales: number
     marketplace_sales: number
@@ -43,9 +70,9 @@ export interface YearData {
     exempt_sales: number   // Exempt sales (informational)
     estimated_liability: number
     base_tax: number
-    interest?: number
-    penalties?: number
-    // Metadata
+    interest: number       // ← Fixed: Always returned (0 if none), not optional
+    penalties: number      // ← Fixed: Always returned (0 if none), not optional
+    // Metadata (correctly optional - can be null)
     interest_rate?: number
     interest_method?: string
     days_outstanding?: number

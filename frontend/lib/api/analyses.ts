@@ -6,8 +6,8 @@ export interface Analysis {
   client_company_name: string
   industry?: string
   business_type: string
-  analysis_period_start: string
-  analysis_period_end: string
+  analysis_period_start: string | null  // ← Fixed: Can be null (VDA mode)
+  analysis_period_end: string | null    // ← Fixed: Can be null (VDA mode)
   status: 'draft' | 'processing' | 'complete' | 'error'
   total_liability?: number
   states_with_nexus?: number
