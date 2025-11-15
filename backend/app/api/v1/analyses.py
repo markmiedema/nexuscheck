@@ -1586,20 +1586,6 @@ async def get_state_detail(
         transactions = transactions_result.data
         state_year_results = state_results_query.data
 
-        # Get pre-aggregated totals from database view (required - no fallback)
-        aggregates_result = supabase.table('state_results_aggregated').select(
-            '*'
-        ).eq('analysis_id', analysis_id).eq(
-            'state_code', state_code
-        ).execute()
-
-        if not aggregates_result.data:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to get aggregated data for {state_code}. Database view returned no results."
-            )
-
-
         # Debug: log what we got from state_results
         if state_year_results:
             for yr in state_year_results[:2]:  # Just log first 2
@@ -1667,6 +1653,19 @@ async def get_state_detail(
                 "year_data": [],
                 "compliance_info": compliance_info
             }
+
+        # Get pre-aggregated totals from database view (required - no fallback)
+        aggregates_result = supabase.table('state_results_aggregated').select(
+            '*'
+        ).eq('analysis_id', analysis_id).eq(
+            'state_code', state_code
+        ).execute()
+
+        if not aggregates_result.data:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to get aggregated data for {state_code}. Database view returned no results."
+            )
 
         # Use V2 calculated results from state_results table
         # Get threshold and tax rate info for compliance section
