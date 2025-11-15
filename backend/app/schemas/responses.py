@@ -284,8 +284,7 @@ class CalculationResponse(BaseModel):
     """Response for POST /analyses/{id}/calculate"""
     message: str
     analysis_id: str
-    status: AnalysisStatus
-    states_calculated: int
+    summary: Dict[str, Any]  # Contains: total_states_analyzed, states_with_nexus, total_estimated_liability, status
 
 
 class CreateAnalysisResponse(BaseModel):
