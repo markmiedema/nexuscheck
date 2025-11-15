@@ -1556,6 +1556,11 @@ async def get_state_detail(
         transactions = transactions_result.data
         state_year_results = state_results_query.data
 
+        # Debug: log what we got from state_results
+        if state_year_results:
+            for yr in state_year_results[:2]:  # Just log first 2
+                logger.info(f"[STATE DETAIL API] {state_code} year {yr.get('year')}: taxable_sales={yr.get('taxable_sales')}, exempt_sales={yr.get('exempt_sales')}, total_sales={yr.get('total_sales')}")
+
         if not state_year_results:
             # State has no transactions - still need to return compliance info
             # Get threshold information
@@ -1757,6 +1762,8 @@ async def get_state_detail(
 
         # Calculate aggregate totals across all years
         total_sales_all_years = sum(yr['summary']['total_sales'] for yr in year_data)
+        total_taxable_sales_all_years = sum(yr['summary']['taxable_sales'] for yr in year_data)
+        total_exempt_sales_all_years = total_sales_all_years - total_taxable_sales_all_years
         total_liability_all_years = sum(yr['summary']['estimated_liability'] for yr in year_data)
 
         # Determine if nexus exists in any year
@@ -1806,6 +1813,8 @@ async def get_state_detail(
             'compliance_info': compliance_info,
             # Aggregate totals for "All Years" view
             'total_sales': total_sales_all_years,
+            'taxable_sales': total_taxable_sales_all_years,
+            'exempt_sales': total_exempt_sales_all_years,
             'estimated_liability': total_liability_all_years,
             'nexus_type': aggregate_nexus_type,  # Use latest year's nexus type
             'first_nexus_year': first_nexus_year
