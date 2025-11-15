@@ -242,9 +242,9 @@ class AutoDetectedMappings(BaseModel):
     mappings: Dict[str, str]
     confidence: Dict[str, float]
     samples: Dict[str, List[Any]]
-    summary: Dict[str, int]
-    required_detected: Dict[str, bool]
-    optional_detected: Dict[str, bool]
+    summary: Optional[Dict[str, Any]] = None  # Can be None if not all required detected
+    required_detected: Dict[str, str]  # Maps field name to detected column name
+    optional_detected: Dict[str, str]  # Maps field name to detected column name
 
 
 class DateRange(BaseModel):
