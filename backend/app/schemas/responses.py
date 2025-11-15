@@ -132,13 +132,32 @@ class ThresholdInfo(BaseModel):
 class YearData(BaseModel):
     """Year-by-year nexus data"""
     year: int
-    nexus_status: NexusStatus
+    nexus_type: Optional[str] = None
     nexus_date: Optional[str] = None
     obligation_start_date: Optional[str] = None
     first_nexus_year: Optional[int] = None
-    summary: YearSummary
-    threshold_info: ThresholdInfo
-    nexus_type: Optional[NexusType] = None
+    # Sales data (flattened from YearSummary)
+    total_sales: float
+    transaction_count: int
+    direct_sales: float
+    marketplace_sales: float
+    taxable_sales: float
+    exposure_sales: float
+    exempt_sales: float
+    # Liability data (flattened from YearSummary)
+    estimated_liability: float
+    base_tax: float
+    interest: Optional[float] = None
+    penalties: Optional[float] = None
+    # Metadata (flattened from YearSummary)
+    interest_rate: Optional[float] = None
+    interest_method: Optional[str] = None
+    days_outstanding: Optional[int] = None
+    penalty_rate: Optional[float] = None
+    # Threshold info (flattened from ThresholdInfo)
+    revenue_threshold: Optional[float] = None
+    transaction_threshold: Optional[int] = None
+    threshold_operator: Optional[str] = None
 
 
 class StateResult(BaseModel):
