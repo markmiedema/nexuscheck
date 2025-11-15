@@ -1581,7 +1581,7 @@ async def get_state_detail(
             'transaction_id, transaction_date, sales_amount, sales_channel, taxable_amount, exempt_amount, is_taxable'
         ).eq('analysis_id', analysis_id).eq(
             'customer_state', state_code
-        ).order('transaction_date').execute()
+        ).is_not('transaction_id', 'null').order('transaction_date').execute()
 
         transactions = transactions_result.data
         state_year_results = state_results_query.data
@@ -1611,15 +1611,20 @@ async def get_state_detail(
                 'tax_rates': {
                     'state_rate': 0,
                     'avg_local_rate': 0,
-                    'combined_rate': 0
+                    'combined_rate': 0,
+                    'max_local_rate': 0.0
                 },
                 'threshold_info': {},
                 'registration_info': {
                     'registration_fee': 0,
                     'filing_frequencies': ['Monthly', 'Quarterly', 'Annual'],
                     'registration_url': registration_url,
-                    'dor_website': state_tax_website
-                }
+                    'dor_website': state_tax_website,
+                    'registration_required': False
+                },
+                'filing_frequency': 'Monthly',
+                'filing_method': 'Online',
+                'sstm_member': False
             }
 
             if tax_rate_result.data:
@@ -1632,7 +1637,8 @@ async def get_state_detail(
                 compliance_info['tax_rates'] = {
                     'state_rate': round(state_rate, 2),
                     'avg_local_rate': round(avg_local_rate, 2),
-                    'combined_rate': round(combined_rate, 2)
+                    'combined_rate': round(combined_rate, 2),
+                    'max_local_rate': 0.0
                 }
 
             if threshold_info:
@@ -1773,15 +1779,20 @@ async def get_state_detail(
             'tax_rates': {
                 'state_rate': 0,
                 'avg_local_rate': 0,
-                'combined_rate': 0
+                'combined_rate': 0,
+                'max_local_rate': 0.0
             },
             'threshold_info': {},
             'registration_info': {
                 'registration_fee': 0,
                 'filing_frequencies': ['Monthly', 'Quarterly', 'Annual'],
                 'registration_url': registration_url,
-                'dor_website': state_tax_website
-            }
+                'dor_website': state_tax_website,
+                'registration_required': False
+            },
+            'filing_frequency': 'Monthly',
+            'filing_method': 'Online',
+            'sstm_member': False
         }
 
         if tax_rate_result.data:
@@ -1794,7 +1805,8 @@ async def get_state_detail(
             compliance_info['tax_rates'] = {
                 'state_rate': round(state_rate, 2),
                 'avg_local_rate': round(avg_local_rate, 2),
-                'combined_rate': round(combined_rate, 2)
+                'combined_rate': round(combined_rate, 2),
+                'max_local_rate': 0.0
             }
 
         if threshold_info:
