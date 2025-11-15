@@ -21,6 +21,16 @@ from app.schemas.responses import (
     ValidationResponse,
     NormalizationPreviewResponse,
     ValidateAndSaveResponse,
+    # Nested models for type-safe construction
+    DetailedYearData,
+    YearSummary,
+    YearThresholdInfo,
+    YearTransaction,
+    MonthlySales,
+    ComplianceInfo,
+    TaxRates,
+    ThresholdInfo,
+    RegistrationInfo,
 )
 from app.services.nexus_calculator_v2 import NexusCalculatorV2
 from app.services.column_detector import ColumnDetector
@@ -1587,7 +1597,7 @@ async def get_state_detail(
         state_year_results = state_results_query.data
 
         # Debug logging
-        logger.info(f"[STATE DETAIL] {state_code}: Total transactions: {len(transactions)}")
+        logger.debug(f"[STATE DETAIL] {state_code}: Total transactions: {len(transactions)}")
 
         # Debug: log what we got from state_results
         if state_year_results:
@@ -1717,7 +1727,7 @@ async def get_state_detail(
                 tx for tx in transactions
                 if pd.to_datetime(tx['transaction_date']).year == year
             ]
-            logger.info(f"[STATE DETAIL] {state_code} year {year}: {len(year_transactions)} transactions")
+            logger.debug(f"[STATE DETAIL] {state_code} year {year}: {len(year_transactions)} transactions")
 
             # Build transactions list with running total
             running_total = 0
@@ -1763,80 +1773,107 @@ async def get_state_detail(
                 'approaching': year_result.get('approaching_threshold', False)
             }
 
-            year_data.append({
-                'year': year,
-                'nexus_status': nexus_status,
-                'nexus_type': nexus_type,
-                'nexus_date': year_result.get('nexus_date'),
-                'obligation_start_date': year_result.get('obligation_start_date'),
-                'first_nexus_year': year_result.get('first_nexus_year'),
-                'summary': {
-                    'total_sales': total_sales,
-                    'transaction_count': len(year_transactions),
-                    'direct_sales': float(year_result.get('direct_sales', 0)),
-                    'marketplace_sales': float(year_result.get('marketplace_sales', 0)),
-                    'taxable_sales': float(year_result.get('taxable_sales', 0)),
-                    'exposure_sales': float(year_result.get('exposure_sales', 0)),
-                    'exempt_sales': float(year_result.get('exempt_sales', 0)),
-                    'estimated_liability': float(year_result.get('estimated_liability', 0)),
-                    'base_tax': float(year_result.get('base_tax', 0)),
-                    'interest': float(year_result.get('interest', 0)),
-                    'penalties': float(year_result.get('penalties', 0)),
-                    # Calculation metadata for transparency
-                    'interest_rate': float(year_result.get('interest_rate', 0)) * 100 if year_result.get('interest_rate') else None,  # Convert to percentage
-                    'interest_method': year_result.get('interest_method'),
-                    'days_outstanding': year_result.get('days_outstanding'),
-                    'penalty_rate': float(year_result.get('penalty_rate', 0)) * 100 if year_result.get('penalty_rate') else None  # Convert to percentage
-                },
-                'threshold_info': threshold_data,
-                'monthly_sales': monthly_sales,
-                'transactions': transactions_list
-            })
+            # Build Pydantic models for type safety
+            year_summary = YearSummary(
+                total_sales=total_sales,
+                transaction_count=len(year_transactions),
+                direct_sales=float(year_result.get('direct_sales', 0)),
+                marketplace_sales=float(year_result.get('marketplace_sales', 0)),
+                taxable_sales=float(year_result.get('taxable_sales', 0)),
+                exposure_sales=float(year_result.get('exposure_sales', 0)),
+                exempt_sales=float(year_result.get('exempt_sales', 0)),
+                estimated_liability=float(year_result.get('estimated_liability', 0)),
+                base_tax=float(year_result.get('base_tax', 0)),
+                interest=float(year_result.get('interest', 0)),
+                penalties=float(year_result.get('penalties', 0)),
+                # Calculation metadata for transparency
+                interest_rate=float(year_result.get('interest_rate', 0)) * 100 if year_result.get('interest_rate') else None,  # Convert to percentage
+                interest_method=year_result.get('interest_method'),
+                days_outstanding=year_result.get('days_outstanding'),
+                penalty_rate=float(year_result.get('penalty_rate', 0)) * 100 if year_result.get('penalty_rate') else None  # Convert to percentage
+            )
 
-        # Build compliance info
-        compliance_info = {
-            'tax_rates': {
-                'state_rate': 0,
-                'avg_local_rate': 0,
-                'combined_rate': 0,
-                'max_local_rate': 0.0
-            },
-            'threshold_info': {},
-            'registration_info': {
-                'registration_fee': 0,
-                'filing_frequencies': ['Monthly', 'Quarterly', 'Annual'],
-                'registration_url': registration_url,
-                'dor_website': state_tax_website,
-                'registration_required': False
-            },
-            'filing_frequency': 'Monthly',
-            'filing_method': 'Online',
-            'sstm_member': False
-        }
+            year_threshold_info = YearThresholdInfo(**threshold_data)
 
+            monthly_sales_models = [MonthlySales(**ms) for ms in monthly_sales]
+            transaction_models = [YearTransaction(**tx) for tx in transactions_list]
+
+            year_data.append(DetailedYearData(
+                year=year,
+                nexus_status=nexus_status,
+                nexus_type=nexus_type,
+                nexus_date=year_result.get('nexus_date'),
+                obligation_start_date=year_result.get('obligation_start_date'),
+                first_nexus_year=year_result.get('first_nexus_year'),
+                summary=year_summary,
+                threshold_info=year_threshold_info,
+                monthly_sales=monthly_sales_models,
+                transactions=transaction_models
+            ))
+
+        # Build compliance info using Pydantic models for type safety
+        # Tax rates - convert from decimals (0.0825) to percentages (8.25%)
         if tax_rate_result.data:
-            # Rates are stored as decimals (0.0825 for 8.25%)
-            # Convert to percentages for display by multiplying by 100
             state_rate = float(tax_rate_result.data[0]['state_rate']) * 100
             avg_local_rate = float(tax_rate_result.data[0].get('avg_local_rate', 0)) * 100
             combined_rate = float(tax_rate_result.data[0].get('combined_avg_rate', 0)) * 100
 
-            compliance_info['tax_rates'] = {
-                'state_rate': round(state_rate, 2),
-                'avg_local_rate': round(avg_local_rate, 2),
-                'combined_rate': round(combined_rate, 2),
-                'max_local_rate': 0.0
-            }
+            tax_rates = TaxRates(
+                state_rate=round(state_rate, 2),
+                avg_local_rate=round(avg_local_rate, 2),
+                combined_rate=round(combined_rate, 2),
+                max_local_rate=0.0  # TODO: Research where to source max_local_rate data
+            )
+        else:
+            tax_rates = TaxRates(
+                state_rate=0.0,
+                avg_local_rate=0.0,
+                combined_rate=0.0,
+                max_local_rate=0.0  # TODO: Research where to source max_local_rate data
+            )
 
-        if threshold_info:
-            compliance_info['threshold_info'] = {
-                'revenue_threshold': threshold_info.get('revenue_threshold'),
-                'transaction_threshold': threshold_info.get('transaction_threshold'),
-                'threshold_operator': threshold_info.get('threshold_operator')
-            }
+        # Threshold info
+        threshold_info_model = ThresholdInfo(
+            revenue_threshold=threshold_info.get('revenue_threshold') if threshold_info else None,
+            transaction_threshold=threshold_info.get('transaction_threshold') if threshold_info else None,
+            threshold_operator=threshold_info.get('threshold_operator') if threshold_info else None
+        )
+
+        # Registration info
+        registration_info = RegistrationInfo(
+            registration_required=False,  # TODO: Source from state registration requirements table
+            registration_fee=0,  # TODO: Source from state registration requirements table
+            filing_frequencies=['Monthly', 'Quarterly', 'Annual'],  # TODO: Source from state compliance table
+            registration_url=registration_url,
+            dor_website=state_tax_website
+        )
+
+        compliance_info = ComplianceInfo(
+            tax_rates=tax_rates,
+            threshold_info=threshold_info_model,
+            registration_info=registration_info,
+            filing_frequency='Monthly',  # TODO: Source from state compliance table
+            filing_method='Online',  # TODO: Source from state compliance table
+            sstm_member=False  # TODO: Source from state compliance table
+        )
 
         # Get aggregate totals from database view (database does all aggregation)
+        # Validate that view has all required columns
         agg = aggregates_result.data[0]
+        required_columns = [
+            'total_sales', 'taxable_sales', 'exempt_sales', 'direct_sales',
+            'marketplace_sales', 'exposure_sales', 'transaction_count',
+            'estimated_liability', 'base_tax', 'interest', 'penalties',
+            'nexus_type', 'first_nexus_year'
+        ]
+        missing_columns = [col for col in required_columns if col not in agg]
+        if missing_columns:
+            logger.error(f"Database view state_results_aggregated missing columns: {missing_columns}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Database view missing required columns: {', '.join(missing_columns)}. Please check migrations."
+            )
+
         total_sales_all_years = float(agg.get('total_sales') or 0)
         total_taxable_sales_all_years = float(agg.get('taxable_sales') or 0)
         total_exempt_sales_all_years = float(agg.get('exempt_sales') or 0)
@@ -1852,11 +1889,11 @@ async def get_state_detail(
         first_nexus_year = agg.get('first_nexus_year')
 
         # Debug logging to check nexus_type values
-        logger.info(f"State detail API response for {state_code}:")
-        logger.info(f"  Aggregate nexus_type: {aggregate_nexus_type}")
+        logger.debug(f"State detail API response for {state_code}:")
+        logger.debug(f"  Aggregate nexus_type: {aggregate_nexus_type}")
         if year_data:
             for yr in year_data:
-                logger.info(f"  Year {yr['year']}: nexus_type={yr.get('nexus_type')}, nexus_status={yr.get('nexus_status')}")
+                logger.debug(f"  Year {yr.year}: nexus_type={yr.nexus_type}, nexus_status={yr.nexus_status}")
 
         return StateDetailResponse(
             state_code=state_code,
