@@ -1513,11 +1513,11 @@ async def get_state_results(
                 'year_data': year_data  # New: per-year breakdown
             })
 
-        return {
-            'analysis_id': analysis_id,
-            'total_states': len(formatted_states),
-            'states': formatted_states
-        }
+        return StateResultsResponse(
+            analysis_id=analysis_id,
+            total_states=len(formatted_states),
+            states=formatted_states
+        )
 
     except HTTPException:
         raise
