@@ -14,6 +14,12 @@ from app.schemas.responses import (
     UploadResponse,
     DeleteResponse,
     CalculationResponse,
+    CreateAnalysisResponse,
+    UpdateAnalysisResponse,
+    ColumnsResponse,
+    ValidationResponse,
+    NormalizationPreviewResponse,
+    ValidateAndSaveResponse,
 )
 from app.services.nexus_calculator_v2 import NexusCalculatorV2
 from app.services.column_detector import ColumnDetector
@@ -134,7 +140,7 @@ async def get_analysis(
         )
 
 
-@router.post("", response_model=dict)
+@router.post("", response_model=CreateAnalysisResponse)
 async def create_analysis(
     analysis_data: AnalysisCreate,
     user_id: str = Depends(require_auth)
@@ -219,7 +225,7 @@ async def create_analysis(
         )
 
 
-@router.patch("/{analysis_id}")
+@router.patch("/{analysis_id}", response_model=UpdateAnalysisResponse)
 async def update_analysis(analysis_id: str, user_id: str = Depends(require_auth)):
     """Update analysis metadata"""
     # TODO: Implement
@@ -484,7 +490,7 @@ async def upload_transactions(
         )
 
 
-@router.post("/{analysis_id}/preview-normalization")
+@router.post("/{analysis_id}/preview-normalization", response_model=NormalizationPreviewResponse)
 async def preview_normalization(
     analysis_id: str,
     request_body: dict,
@@ -599,7 +605,7 @@ async def preview_normalization(
         )
 
 
-@router.post("/{analysis_id}/validate-and-save")
+@router.post("/{analysis_id}/validate-and-save", response_model=ValidateAndSaveResponse)
 async def validate_and_save_mappings(
     analysis_id: str,
     request_body: dict,
@@ -746,7 +752,7 @@ async def validate_and_save_mappings(
         )
 
 
-@router.get("/{analysis_id}/columns")
+@router.get("/{analysis_id}/columns", response_model=ColumnsResponse)
 async def get_column_info(
     analysis_id: str,
     user_id: str = Depends(require_auth)
@@ -864,7 +870,7 @@ async def get_column_info(
         )
 
 
-@router.post("/{analysis_id}/validate")
+@router.post("/{analysis_id}/validate", response_model=ValidationResponse)
 async def validate_data(
     analysis_id: str,
     request: dict,
@@ -1118,7 +1124,7 @@ async def calculate_nexus(
         )
 
 
-@router.post("/{analysis_id}/recalculate")
+@router.post("/{analysis_id}/recalculate", response_model=CalculationResponse)
 async def recalculate_analysis(
     analysis_id: str,
     user_id: str = Depends(require_auth)

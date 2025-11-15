@@ -286,3 +286,44 @@ class CalculationResponse(BaseModel):
     analysis_id: str
     status: AnalysisStatus
     states_calculated: int
+
+
+class CreateAnalysisResponse(BaseModel):
+    """Response for POST /analyses"""
+    id: str
+    status: str
+    message: str
+
+
+class UpdateAnalysisResponse(BaseModel):
+    """Response for PATCH /analyses/{id}"""
+    message: str
+
+
+class ColumnsResponse(BaseModel):
+    """Response for GET /analyses/{id}/columns"""
+    columns: List[Dict[str, Any]]  # List of {name, sample_values, data_type}
+    summary: Dict[str, Any]  # {total_rows, estimated_time, date_range?, unique_states?}
+
+
+class ValidationResponse(BaseModel):
+    """Response for POST /analyses/{id}/validate"""
+    message: str
+    is_valid: bool
+    errors: List[str]
+    warnings: List[str]
+
+
+class NormalizationPreviewResponse(BaseModel):
+    """Response for POST /analyses/{id}/preview-normalization"""
+    preview_data: List[Dict[str, Any]]
+    transformations: List[str]
+    validation: Dict[str, Any]
+    warnings: List[str]
+    summary: Dict[str, Any]
+
+
+class ValidateAndSaveResponse(BaseModel):
+    """Response for POST /analyses/{id}/validate-and-save"""
+    message: str
+    transactions_saved: int
