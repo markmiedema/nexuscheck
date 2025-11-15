@@ -109,6 +109,7 @@ export interface ComplianceInfo {
     state_rate: number
     avg_local_rate: number
     combined_rate: number
+    max_local_rate: number
   }
   threshold_info: {
     revenue_threshold: number | null
@@ -116,11 +117,17 @@ export interface ComplianceInfo {
     threshold_operator: string | null
   }
   registration_info: {
+    registration_required: boolean
     registration_fee: number
     filing_frequencies: string[]
     registration_url: string | null
     dor_website: string | null
+    registration_threshold?: string | null
+    estimated_timeline?: string | null
   }
+  filing_frequency: string
+  filing_method: string
+  sstm_member: boolean
 }
 
 export async function getStateDetail(

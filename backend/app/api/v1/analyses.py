@@ -267,11 +267,10 @@ async def delete_analysis(
                 detail=f"Analysis {analysis_id} not found or already deleted"
             )
 
-        return {
-            "message": "Analysis deleted successfully",
-            "id": analysis_id,
-            "deleted_at": result.data[0]['deleted_at']
-        }
+        return DeleteResponse(
+            message="Analysis deleted successfully",
+            deleted_id=analysis_id
+        )
 
     except Exception as e:
         if isinstance(e, HTTPException):
@@ -1581,10 +1580,14 @@ async def get_state_detail(
             'transaction_id, transaction_date, sales_amount, sales_channel, taxable_amount, exempt_amount, is_taxable'
         ).eq('analysis_id', analysis_id).eq(
             'customer_state', state_code
-        ).is_not('transaction_id', 'null').order('transaction_date').execute()
+        ).order('transaction_date').execute()
 
+        # Get all transactions (don't filter NULL transaction_ids - they're not required for display)
         transactions = transactions_result.data
         state_year_results = state_results_query.data
+
+        # Debug logging
+        logger.info(f"[STATE DETAIL] {state_code}: Total transactions: {len(transactions)}")
 
         # Debug: log what we got from state_results
         if state_year_results:
@@ -1648,17 +1651,29 @@ async def get_state_detail(
                     'threshold_operator': threshold_info.get('threshold_operator')
                 }
 
-            return {
-                "state_code": state_code,
-                "state_name": state_name,
-                "analysis_id": analysis_id,
-                "has_transactions": False,
-                "analysis_period": {
-                    "years_available": []
-                },
-                "year_data": [],
-                "compliance_info": compliance_info
-            }
+            return StateDetailResponse(
+                state_code=state_code,
+                state_name=state_name,
+                analysis_id=analysis_id,
+                has_transactions=False,
+                analysis_period={'years_available': []},
+                year_data=[],
+                compliance_info=compliance_info,
+                # All aggregate fields set to 0 for no-transactions case
+                total_sales=0.0,
+                taxable_sales=0.0,
+                exempt_sales=0.0,
+                direct_sales=0.0,
+                marketplace_sales=0.0,
+                exposure_sales=0.0,
+                transaction_count=0,
+                estimated_liability=0.0,
+                base_tax=0.0,
+                interest=0.0,
+                penalties=0.0,
+                nexus_type='none',
+                first_nexus_year=None
+            )
 
         # Get pre-aggregated totals from database view (required - no fallback)
         aggregates_result = supabase.table('state_results_aggregated').select(
@@ -1702,6 +1717,7 @@ async def get_state_detail(
                 tx for tx in transactions
                 if pd.to_datetime(tx['transaction_date']).year == year
             ]
+            logger.info(f"[STATE DETAIL] {state_code} year {year}: {len(year_transactions)} transactions")
 
             # Build transactions list with running total
             running_total = 0
@@ -1750,7 +1766,10 @@ async def get_state_detail(
             year_data.append({
                 'year': year,
                 'nexus_status': nexus_status,
-                'nexus_type': nexus_type,  # Include nexus type for color-coded badges
+                'nexus_type': nexus_type,
+                'nexus_date': year_result.get('nexus_date'),
+                'obligation_start_date': year_result.get('obligation_start_date'),
+                'first_nexus_year': year_result.get('first_nexus_year'),
                 'summary': {
                     'total_sales': total_sales,
                     'transaction_count': len(year_transactions),

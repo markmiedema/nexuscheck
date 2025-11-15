@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from app.core.auth import get_current_user
 from app.core.supabase import supabase
 from app.services.vda_calculator import VDACalculator
+from app.schemas import MessageResponse
 
 router = APIRouter()
 
@@ -136,7 +137,7 @@ async def calculate_vda_scenario(
     return VDAResponse(**results)
 
 
-@router.delete("/{analysis_id}/vda")
+@router.delete("/{analysis_id}/vda", response_model=MessageResponse)
 async def disable_vda(
     analysis_id: str,
     user_id: str = Depends(get_current_user)

@@ -93,6 +93,9 @@ class AnalysisDetailResponse(BaseModel):
     updated_at: str
     retention_policy: str
     auto_delete_at: Optional[str] = None
+    # Computed fields
+    total_transactions: int = 0
+    unique_states: int = 0
 
     class Config:
         from_attributes = True
@@ -169,7 +172,7 @@ class YearThresholdInfo(BaseModel):
 
 class YearTransaction(BaseModel):
     """Transaction details for year view"""
-    transaction_id: str
+    transaction_id: Optional[str] = None  # Can be NULL in database
     transaction_date: str
     sales_amount: float
     taxable_amount: float
@@ -255,6 +258,11 @@ class TaxRates(BaseModel):
 class RegistrationInfo(BaseModel):
     """State registration information"""
     registration_required: bool
+    registration_fee: int
+    filing_frequencies: List[str]
+    registration_url: Optional[str] = None
+    dor_website: Optional[str] = None
+    # Optional fields
     registration_threshold: Optional[str] = None
     estimated_timeline: Optional[str] = None
 
