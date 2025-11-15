@@ -121,11 +121,11 @@ export function StateQuickViewModal({
   } => {
     const hasNexus = data.nexus_type && data.nexus_type !== 'none'
     const totalSales = data.total_sales || 0
-    const directSales = data.year_data.reduce((sum, yr) => sum + yr.summary.direct_sales, 0)
-    const marketplaceSales = data.year_data.reduce((sum, yr) => sum + yr.summary.marketplace_sales, 0)
+    const directSales = data.direct_sales || 0  // ✅ Trust backend aggregate
+    const marketplaceSales = data.marketplace_sales || 0  // ✅ Trust backend aggregate
     const taxableSales = data.taxable_sales || 0
     const exemptSales = data.exempt_sales || 0
-    const exposureSales = data.year_data.reduce((sum, yr) => sum + (yr.summary.exposure_sales || 0), 0)
+    const exposureSales = data.exposure_sales || 0  // ✅ Trust backend aggregate
     const threshold = data.year_data[0]?.threshold_info?.revenue_threshold || 0
     const thresholdPercent = threshold > 0 ? ((totalSales / threshold) * 100).toFixed(0) : '0'
 
@@ -374,13 +374,13 @@ export function StateQuickViewModal({
                 <div className="bg-muted/50 border border-border rounded-lg p-3">
                   <div className="text-muted-foreground text-xs mb-1">Taxable Revenue</div>
                   <div className="font-bold text-lg text-foreground">
-                    {formatCurrency(data.year_data.reduce((sum, yr) => sum + (yr.summary.taxable_sales || 0), 0))}
+                    {formatCurrency(data.taxable_sales || 0)}
                   </div>
                 </div>
                 <div className="bg-muted/50 border border-border rounded-lg p-3">
                   <div className="text-muted-foreground text-xs mb-1">Total Transactions</div>
                   <div className="font-bold text-lg text-foreground">
-                    {data.year_data.reduce((sum, yr) => sum + yr.summary.transaction_count, 0).toLocaleString()}
+                    {(data.transaction_count || 0).toLocaleString()}
                   </div>
                 </div>
                 <div className="bg-muted/50 border border-border rounded-lg p-3">
@@ -392,22 +392,22 @@ export function StateQuickViewModal({
                 <div className="bg-muted/50 border border-border rounded-lg p-3">
                   <div className="text-muted-foreground text-xs mb-1">Direct Sales</div>
                   <div className="font-bold text-lg text-foreground">
-                    {formatCurrency(data.year_data.reduce((sum, yr) => sum + yr.summary.direct_sales, 0))}
+                    {formatCurrency(data.direct_sales || 0)}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
                     {data.total_sales && data.total_sales > 0
-                      ? `${((data.year_data.reduce((sum, yr) => sum + yr.summary.direct_sales, 0) / data.total_sales) * 100).toFixed(0)}% of total`
+                      ? `${(((data.direct_sales || 0) / data.total_sales) * 100).toFixed(0)}% of total`
                       : '0% of total'}
                   </div>
                 </div>
                 <div className="bg-muted/50 border border-border rounded-lg p-3">
                   <div className="text-muted-foreground text-xs mb-1">Marketplace Sales</div>
                   <div className="font-bold text-lg text-foreground">
-                    {formatCurrency(data.year_data.reduce((sum, yr) => sum + yr.summary.marketplace_sales, 0))}
+                    {formatCurrency(data.marketplace_sales || 0)}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
                     {data.total_sales && data.total_sales > 0
-                      ? `${((data.year_data.reduce((sum, yr) => sum + yr.summary.marketplace_sales, 0) / data.total_sales) * 100).toFixed(0)}% of total`
+                      ? `${(((data.marketplace_sales || 0) / data.total_sales) * 100).toFixed(0)}% of total`
                       : '0% of total'}
                   </div>
                 </div>
@@ -422,25 +422,25 @@ export function StateQuickViewModal({
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Exposure Sales</span>
                     <span className="font-medium text-foreground">
-                      {formatCurrency(data.year_data.reduce((sum, yr) => sum + (yr.summary.exposure_sales || 0), 0))}
+                      {formatCurrency(data.exposure_sales || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Uncollected Tax</span>
                     <span className="font-medium text-foreground">
-                      {formatCurrency(data.year_data.reduce((sum, yr) => sum + (yr.summary.base_tax || 0), 0))}
+                      {formatCurrency(data.base_tax || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Interest</span>
                     <span className="font-medium text-foreground">
-                      {formatCurrency(data.year_data.reduce((sum, yr) => sum + (yr.summary.interest || 0), 0))}
+                      {formatCurrency(data.interest || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Penalties</span>
                     <span className="font-medium text-foreground">
-                      {formatCurrency(data.year_data.reduce((sum, yr) => sum + (yr.summary.penalties || 0), 0))}
+                      {formatCurrency(data.penalties || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-border font-semibold">

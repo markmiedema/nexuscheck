@@ -232,7 +232,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
           }
           transactionCount={
             isAllYearsView
-              ? data.year_data.reduce((sum, yr) => sum + yr.summary.transaction_count, 0)
+              ? data.transaction_count || 0
               : yearData?.summary.transaction_count || 0
           }
           yearsAvailable={data.analysis_period.years_available}
@@ -261,17 +261,17 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
           }
           transactionCount={
             isAllYearsView
-              ? data.year_data.reduce((sum, yr) => sum + yr.summary.transaction_count, 0)
+              ? data.transaction_count || 0
               : yearData?.summary.transaction_count || 0
           }
           directSales={
             isAllYearsView
-              ? data.year_data.reduce((sum, yr) => sum + yr.summary.direct_sales, 0)
+              ? data.direct_sales || 0
               : yearData?.summary.direct_sales || 0
           }
           marketplaceSales={
             isAllYearsView
-              ? data.year_data.reduce((sum, yr) => sum + yr.summary.marketplace_sales, 0)
+              ? data.marketplace_sales || 0
               : yearData?.summary.marketplace_sales || 0
           }
           taxableSales={
@@ -290,7 +290,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
       {/* Sales Breakdown - Show if has exempt sales */}
       {data.has_transactions && (() => {
         const grossSales = isAllYearsView
-          ? data.year_data.reduce((sum, yr) => sum + (yr.summary.total_sales || 0), 0)
+          ? data.total_sales || 0
           : yearData?.summary.total_sales || 0
 
         const taxableSales = isAllYearsView
@@ -371,7 +371,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
           <LiabilityBreakdown
             taxableSales={
               isAllYearsView
-                ? data.year_data.reduce((sum, yr) => sum + (yr.summary.exposure_sales || 0), 0)
+                ? data.exposure_sales || 0
                 : yearData?.summary.exposure_sales || 0
             }
             taxRate={data.compliance_info.tax_rates.combined_rate}
@@ -382,22 +382,22 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
             }
             baseTax={
               isAllYearsView
-                ? data.year_data.reduce((sum, yr) => sum + (yr.summary.base_tax || 0), 0)
+                ? data.base_tax || 0
                 : yearData?.summary.base_tax
             }
             interest={
               isAllYearsView
-                ? data.year_data.reduce((sum, yr) => sum + (yr.summary.interest || 0), 0)
+                ? data.interest || 0
                 : yearData?.summary.interest
             }
             penalties={
               isAllYearsView
-                ? data.year_data.reduce((sum, yr) => sum + (yr.summary.penalties || 0), 0)
+                ? data.penalties || 0
                 : yearData?.summary.penalties
             }
             marketplaceSales={
               isAllYearsView
-                ? data.year_data.reduce((sum, yr) => sum + yr.summary.marketplace_sales, 0)
+                ? data.marketplace_sales || 0
                 : yearData?.summary.marketplace_sales || 0
             }
             nexusStatus={isAllYearsView ? aggregateNexusStatus : yearData?.nexus_status || 'none'}
@@ -526,7 +526,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
             ? data.total_sales || 0
             : yearData?.summary.total_sales || 0,
           transactionCount: isAllYearsView
-            ? data.year_data.reduce((sum, yr) => sum + yr.summary.transaction_count, 0)
+            ? data.transaction_count || 0
             : yearData?.summary.transaction_count || 0,
         }}
         thresholdInfo={{
