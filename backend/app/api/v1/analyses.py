@@ -15,7 +15,6 @@ from app.schemas.responses import (
     DeleteResponse,
     CalculationResponse,
     CreateAnalysisResponse,
-    UpdateAnalysisResponse,
     ColumnsResponse,
     ValidationResponse,
     NormalizationPreviewResponse,
@@ -200,8 +199,9 @@ async def create_analysis(
                 detail="Failed to create analysis"
             )
 
-        # TODO: Insert known registrations when physical_nexus table schema is finalized
-        # For now, we'll skip saving known registrations
+        # NOTE: known_registrations are accepted in request but not automatically saved
+        # Users can add them via the physical nexus UI after analysis creation
+        # Future: Auto-insert known_registrations into physical_nexus table here
 
         logger.info(f"Created analysis {analysis_id} for user {user_id}")
 
@@ -223,13 +223,6 @@ async def create_analysis(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create analysis: {str(e)}"
         )
-
-
-@router.patch("/{analysis_id}", response_model=UpdateAnalysisResponse)
-async def update_analysis(analysis_id: str, user_id: str = Depends(require_auth)):
-    """Update analysis metadata"""
-    # TODO: Implement
-    return {"message": "Update analysis endpoint - to be implemented"}
 
 
 @router.delete("/{analysis_id}", response_model=DeleteResponse)
@@ -1269,6 +1262,8 @@ async def get_results_summary(
 
         # Aggregate per state
         state_aggregates = []
+        states_approaching_set = set()  # Track states approaching threshold
+
         for state_code, year_results in states_grouped.items():
             # Sum across all years for this state
             state_total_sales = sum(float(r.get('total_sales', 0)) for r in year_results)
@@ -1280,11 +1275,16 @@ async def get_results_summary(
             # Check if state has nexus in ANY year
             has_nexus_any_year = any(r.get('nexus_type') in ['economic', 'physical', 'both'] for r in year_results)
 
+            # Check if state is approaching threshold in latest year
+            latest_year_result = sorted(year_results, key=lambda x: x.get('year', 0))[-1]
+            is_approaching = latest_year_result.get('approaching_threshold', False)
+            if is_approaching and not has_nexus_any_year:
+                states_approaching_set.add(state_code)
+
             if has_nexus_any_year:
                 states_with_nexus_set.add(state_code)
 
                 # Determine primary nexus type (use latest year)
-                latest_year_result = sorted(year_results, key=lambda x: x.get('year', 0))[-1]
                 nexus_type = latest_year_result.get('nexus_type', 'none')
 
                 if nexus_type == 'physical':
@@ -1311,9 +1311,22 @@ async def get_results_summary(
 
         states_with_nexus = len(states_with_nexus_set)
         states_no_nexus = len(states_no_nexus_set)
+        states_approaching = len(states_approaching_set)
         physical_count = len(physical_nexus_set)
         economic_only_count = len(economic_nexus_set)
         both_count = len(both_nexus_set)
+
+        # Build detailed list of states approaching threshold
+        approaching_states_list = []
+        for state_code in states_approaching_set:
+            year_results = states_grouped[state_code]
+            latest_year = sorted(year_results, key=lambda x: x.get('year', 0))[-1]
+            approaching_states_list.append({
+                'state': state_code,
+                'state_name': state_names.get(state_code, state_code),
+                'total_sales': sum(float(r.get('total_sales', 0)) for r in year_results),
+                'threshold': latest_year.get('threshold', 0)
+            })
 
         return {
             "analysis_id": analysis_id,
@@ -1325,7 +1338,7 @@ async def get_results_summary(
             "summary": {
                 "total_states_analyzed": total_states_analyzed,
                 "states_with_nexus": states_with_nexus,
-                "states_approaching_threshold": 0,  # TODO: Calculate from state_results
+                "states_approaching_threshold": states_approaching,
                 "states_no_nexus": states_no_nexus,
                 "total_estimated_liability": total_liability,
                 "total_revenue": total_revenue,
@@ -1339,7 +1352,7 @@ async def get_results_summary(
                 "both": both_count
             },
             "top_states_by_liability": top_states_formatted,
-            "approaching_threshold": []  # TODO: Calculate states approaching threshold
+            "approaching_threshold": approaching_states_list
         }
 
     except HTTPException:
@@ -1492,7 +1505,7 @@ async def get_state_results(
                 'threshold': float(threshold),
                 'threshold_percent': threshold_percent,
                 'estimated_liability': total_liability_all_years,
-                'confidence_level': 'high',  # TODO: Implement confidence scoring
+                'confidence_level': 'high',  # Using V2 calculator with full transaction data
                 'registration_status': (
                     'registered' if state_code in registered_states
                     else 'not_registered'

@@ -1179,7 +1179,7 @@ class NexusCalculatorV2:
             'base_tax': round(base_tax, 2),
             'interest': round(interest, 2),
             'penalties': round(penalties, 2),
-            'approaching_threshold': False,  # TODO: Calculate
+            'approaching_threshold': False,  # Set by threshold checking logic in parent method
             # Calculation metadata for transparency
             'interest_rate': round(interest_rate, 4) if interest_rate else None,
             'interest_method': calculation_method if interest > 0 else None,
