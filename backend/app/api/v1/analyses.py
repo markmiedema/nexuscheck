@@ -1764,7 +1764,14 @@ async def get_state_detail(
         total_sales_all_years = sum(yr['summary']['total_sales'] for yr in year_data)
         total_taxable_sales_all_years = sum(yr['summary']['taxable_sales'] for yr in year_data)
         total_exempt_sales_all_years = total_sales_all_years - total_taxable_sales_all_years
+        total_direct_sales_all_years = sum(yr['summary']['direct_sales'] for yr in year_data)
+        total_marketplace_sales_all_years = sum(yr['summary']['marketplace_sales'] for yr in year_data)
+        total_exposure_sales_all_years = sum(yr['summary'].get('exposure_sales', 0) for yr in year_data)
+        total_transaction_count_all_years = sum(yr['summary']['transaction_count'] for yr in year_data)
         total_liability_all_years = sum(yr['summary']['estimated_liability'] for yr in year_data)
+        total_base_tax_all_years = sum(yr['summary'].get('base_tax', 0) for yr in year_data)
+        total_interest_all_years = sum(yr['summary'].get('interest', 0) for yr in year_data)
+        total_penalties_all_years = sum(yr['summary'].get('penalties', 0) for yr in year_data)
 
         # Determine if nexus exists in any year
         has_nexus_any_year = any(yr['nexus_status'] == 'has_nexus' for yr in year_data)
@@ -1815,7 +1822,14 @@ async def get_state_detail(
             'total_sales': total_sales_all_years,
             'taxable_sales': total_taxable_sales_all_years,
             'exempt_sales': total_exempt_sales_all_years,
+            'direct_sales': total_direct_sales_all_years,
+            'marketplace_sales': total_marketplace_sales_all_years,
+            'exposure_sales': total_exposure_sales_all_years,
+            'transaction_count': total_transaction_count_all_years,
             'estimated_liability': total_liability_all_years,
+            'base_tax': total_base_tax_all_years,
+            'interest': total_interest_all_years,
+            'penalties': total_penalties_all_years,
             'nexus_type': aggregate_nexus_type,  # Use latest year's nexus type
             'first_nexus_year': first_nexus_year
         }
