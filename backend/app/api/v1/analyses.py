@@ -1586,11 +1586,17 @@ async def get_state_detail(
         state_year_results = state_results_query.data
 
         # Get pre-aggregated totals from database view (replaces Python loops)
-        aggregates_result = supabase.table('state_results_aggregated').select(
-            '*'
-        ).eq('analysis_id', analysis_id).eq(
-            'state_code', state_code
-        ).execute()
+        try:
+            aggregates_result = supabase.table('state_results_aggregated').select(
+                '*'
+            ).eq('analysis_id', analysis_id).eq(
+                'state_code', state_code
+            ).execute()
+        except Exception as e:
+            logger.warning(f"Could not query state_results_aggregated view: {e}. Falling back to Python aggregation.")
+            # Create empty result so fallback logic kicks in
+            aggregates_result = type('obj', (object,), {'data': []})()
+
 
         # Debug: log what we got from state_results
         if state_year_results:
