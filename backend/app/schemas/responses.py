@@ -240,7 +240,7 @@ class StateDetailResponse(BaseModel):
 class AutoDetectedMappings(BaseModel):
     """Auto-detected column mappings"""
     mappings: Dict[str, str]
-    confidence: Dict[str, float]
+    confidence: Dict[str, str]  # "high", "medium", "low" confidence levels
     samples: Dict[str, List[Any]]
     summary: Optional[Dict[str, Any]] = None  # Can be None if not all required detected
     required_detected: Dict[str, str]  # Maps field name to detected column name
