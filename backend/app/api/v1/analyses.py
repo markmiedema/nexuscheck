@@ -1586,17 +1586,18 @@ async def get_state_detail(
         transactions = transactions_result.data
         state_year_results = state_results_query.data
 
-        # Get pre-aggregated totals from database view (replaces Python loops)
-        try:
-            aggregates_result = supabase.table('state_results_aggregated').select(
-                '*'
-            ).eq('analysis_id', analysis_id).eq(
-                'state_code', state_code
-            ).execute()
-        except Exception as e:
-            logger.warning(f"Could not query state_results_aggregated view: {e}. Falling back to Python aggregation.")
-            # Create empty result so fallback logic kicks in
-            aggregates_result = type('obj', (object,), {'data': []})()
+        # Get pre-aggregated totals from database view (required - no fallback)
+        aggregates_result = supabase.table('state_results_aggregated').select(
+            '*'
+        ).eq('analysis_id', analysis_id).eq(
+            'state_code', state_code
+        ).execute()
+
+        if not aggregates_result.data:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to get aggregated data for {state_code}. Database view returned no results."
+            )
 
 
         # Debug: log what we got from state_results
@@ -1804,59 +1805,21 @@ async def get_state_detail(
                 'threshold_operator': threshold_info.get('threshold_operator')
             }
 
-        # Get aggregate totals from database view (eliminates Python loops)
-        if aggregates_result.data and len(aggregates_result.data) > 0:
-            agg = aggregates_result.data[0]
-            total_sales_all_years = float(agg.get('total_sales') or 0)
-            total_taxable_sales_all_years = float(agg.get('taxable_sales') or 0)
-            total_exempt_sales_all_years = float(agg.get('exempt_sales') or 0)
-            total_direct_sales_all_years = float(agg.get('direct_sales') or 0)
-            total_marketplace_sales_all_years = float(agg.get('marketplace_sales') or 0)
-            total_exposure_sales_all_years = float(agg.get('exposure_sales') or 0)
-            total_transaction_count_all_years = int(agg.get('transaction_count') or 0)
-            total_liability_all_years = float(agg.get('estimated_liability') or 0)
-            total_base_tax_all_years = float(agg.get('base_tax') or 0)
-            total_interest_all_years = float(agg.get('interest') or 0)
-            total_penalties_all_years = float(agg.get('penalties') or 0)
-            aggregate_nexus_type = agg.get('nexus_type', 'none')
-            first_nexus_year = agg.get('first_nexus_year')
-        else:
-            # Fallback if view query fails (shouldn't happen)
-            total_sales_all_years = sum(yr['summary']['total_sales'] for yr in year_data)
-            total_taxable_sales_all_years = sum(yr['summary']['taxable_sales'] for yr in year_data)
-            total_exempt_sales_all_years = total_sales_all_years - total_taxable_sales_all_years
-            total_direct_sales_all_years = sum(yr['summary']['direct_sales'] for yr in year_data)
-            total_marketplace_sales_all_years = sum(yr['summary']['marketplace_sales'] for yr in year_data)
-            total_exposure_sales_all_years = sum(yr['summary'].get('exposure_sales', 0) for yr in year_data)
-            total_transaction_count_all_years = sum(yr['summary']['transaction_count'] for yr in year_data)
-            total_liability_all_years = sum(yr['summary']['estimated_liability'] for yr in year_data)
-            total_base_tax_all_years = sum(yr['summary'].get('base_tax', 0) for yr in year_data)
-            total_interest_all_years = sum(yr['summary'].get('interest', 0) for yr in year_data)
-            total_penalties_all_years = sum(yr['summary'].get('penalties', 0) for yr in year_data)
-
-            # Determine aggregate nexus type by combining all years
-            has_nexus_any_year = any(yr['nexus_status'] == 'has_nexus' for yr in year_data)
-            aggregate_nexus_type = 'none'
-            if has_nexus_any_year and year_data:
-                has_physical = any(yr.get('nexus_type') in ['physical', 'both'] for yr in year_data)
-                has_economic = any(yr.get('nexus_type') in ['economic', 'both'] for yr in year_data)
-
-                if has_physical and has_economic:
-                    aggregate_nexus_type = 'both'
-                elif has_physical:
-                    aggregate_nexus_type = 'physical'
-                elif has_economic:
-                    aggregate_nexus_type = 'economic'
-
-            # Find first nexus year from V2 results
-            first_nexus_year = None
-            for yr in sorted(year_data, key=lambda x: x['year']):
-                if yr['nexus_status'] == 'has_nexus':
-                    # Check if this year has first_nexus_year set (from V2)
-                    first_year = state_year_results[year_data.index(yr)].get('first_nexus_year')
-                    if first_year:
-                        first_nexus_year = first_year
-                        break
+        # Get aggregate totals from database view (database does all aggregation)
+        agg = aggregates_result.data[0]
+        total_sales_all_years = float(agg.get('total_sales') or 0)
+        total_taxable_sales_all_years = float(agg.get('taxable_sales') or 0)
+        total_exempt_sales_all_years = float(agg.get('exempt_sales') or 0)
+        total_direct_sales_all_years = float(agg.get('direct_sales') or 0)
+        total_marketplace_sales_all_years = float(agg.get('marketplace_sales') or 0)
+        total_exposure_sales_all_years = float(agg.get('exposure_sales') or 0)
+        total_transaction_count_all_years = int(agg.get('transaction_count') or 0)
+        total_liability_all_years = float(agg.get('estimated_liability') or 0)
+        total_base_tax_all_years = float(agg.get('base_tax') or 0)
+        total_interest_all_years = float(agg.get('interest') or 0)
+        total_penalties_all_years = float(agg.get('penalties') or 0)
+        aggregate_nexus_type = agg.get('nexus_type', 'none')
+        first_nexus_year = agg.get('first_nexus_year')
 
         # Debug logging to check nexus_type values
         logger.info(f"State detail API response for {state_code}:")
