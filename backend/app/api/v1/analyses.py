@@ -5,6 +5,16 @@ from collections import defaultdict
 from app.core.auth import require_auth
 from app.core.supabase import get_supabase
 from app.schemas.analysis import AnalysisCreate
+from app.schemas.responses import (
+    AnalysesListResponse,
+    AnalysisDetailResponse,
+    StateResultsResponse,
+    ResultsSummaryResponse,
+    StateDetailResponse,
+    UploadResponse,
+    DeleteResponse,
+    CalculationResponse,
+)
 from app.services.nexus_calculator_v2 import NexusCalculatorV2
 from app.services.column_detector import ColumnDetector
 import logging
@@ -17,14 +27,14 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("")
+@router.get("", response_model=AnalysesListResponse)
 async def list_analyses(
     user_id: str = Depends(require_auth),
     limit: int = 50,
     offset: int = 0,
     search: Optional[str] = None,
     status_filter: Optional[str] = None
-) -> dict:
+):
     """
     List all analyses for the current user.
 
@@ -77,7 +87,7 @@ async def list_analyses(
         )
 
 
-@router.get("/{analysis_id}")
+@router.get("/{analysis_id}", response_model=AnalysisDetailResponse)
 async def get_analysis(
     analysis_id: str,
     user_id: str = Depends(require_auth)
@@ -216,11 +226,11 @@ async def update_analysis(analysis_id: str, user_id: str = Depends(require_auth)
     return {"message": "Update analysis endpoint - to be implemented"}
 
 
-@router.delete("/{analysis_id}")
+@router.delete("/{analysis_id}", response_model=DeleteResponse)
 async def delete_analysis(
     analysis_id: str,
     user_id: str = Depends(require_auth)
-) -> dict:
+):
     """
     Soft delete an analysis (sets deleted_at timestamp).
 
@@ -268,7 +278,7 @@ async def delete_analysis(
         raise HTTPException(status_code=500, detail=f"Failed to delete analysis: {str(e)}")
 
 
-@router.post("/{analysis_id}/upload")
+@router.post("/{analysis_id}/upload", response_model=UploadResponse)
 async def upload_transactions(
     analysis_id: str,
     file: UploadFile = File(...),
@@ -1037,7 +1047,7 @@ async def validate_data(
         )
 
 
-@router.post("/{analysis_id}/calculate")
+@router.post("/{analysis_id}/calculate", response_model=CalculationResponse)
 async def calculate_nexus(
     analysis_id: str,
     user_id: str = Depends(require_auth)
@@ -1193,7 +1203,7 @@ async def recalculate_analysis(
         )
 
 
-@router.get("/{analysis_id}/results/summary")
+@router.get("/{analysis_id}/results/summary", response_model=ResultsSummaryResponse)
 async def get_results_summary(
     analysis_id: str,
     user_id: str = Depends(require_auth)
@@ -1336,7 +1346,7 @@ async def get_results_summary(
         )
 
 
-@router.get("/{analysis_id}/results/states")
+@router.get("/{analysis_id}/results/states", response_model=StateResultsResponse)
 async def get_state_results(
     analysis_id: str,
     user_id: str = Depends(require_auth)
@@ -1500,7 +1510,7 @@ async def get_state_results(
         )
 
 
-@router.get("/{analysis_id}/states/{state_code}")
+@router.get("/{analysis_id}/states/{state_code}", response_model=StateDetailResponse)
 async def get_state_detail(
     analysis_id: str,
     state_code: str,
