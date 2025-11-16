@@ -11,6 +11,7 @@ import StateTable from '@/components/analysis/StateTable'
 import { PhysicalNexusManager } from '@/components/analysis/PhysicalNexusManager'
 import { VDAModePanel } from '@/components/analysis/VDAModePanel'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { StateResult } from '@/types/states'
 
 interface AnalysisSummary {
   company_name: string
@@ -44,17 +45,6 @@ interface CalculationResults {
     total_sales: number
     threshold: number
   }>
-}
-
-interface StateResult {
-  state_code: string
-  state_name: string
-  nexus_status: 'has_nexus' | 'approaching' | 'no_nexus'
-  total_sales: number
-  estimated_liability: number
-  base_tax: number
-  interest: number
-  penalties: number
 }
 
 export default function ResultsPage() {
