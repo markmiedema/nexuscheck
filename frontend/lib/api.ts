@@ -99,7 +99,7 @@ export interface YearData {
     taxable_amount: number
     exempt_amount: number
     is_taxable: boolean
-    sales_channel: string
+    sales_channel: 'direct' | 'marketplace'
     running_total: number
   }[]
 }
@@ -114,7 +114,7 @@ export interface ComplianceInfo {
   threshold_info: {
     revenue_threshold: number | null
     transaction_threshold: number | null
-    threshold_operator: string | null
+    threshold_operator: 'or' | 'and' | null
   }
   registration_info: {
     registration_required: boolean

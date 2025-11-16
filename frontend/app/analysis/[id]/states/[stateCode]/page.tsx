@@ -509,7 +509,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
         stateName={data.state_name}
         nexusFirstEstablishedYear={
           isAllYearsView
-            ? data.first_nexus_year
+            ? data.first_nexus_year ?? undefined
             : yearData?.first_nexus_year || yearData?.year
         }
         currentYear={

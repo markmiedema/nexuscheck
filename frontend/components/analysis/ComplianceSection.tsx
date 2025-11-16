@@ -29,7 +29,7 @@ interface ComplianceSectionProps {
     threshold_info: {
       revenue_threshold: number | null;
       transaction_threshold: number | null;
-      threshold_operator: 'or' | 'and';
+      threshold_operator: 'or' | 'and' | null;
     };
     registration_info: {
       registration_fee: number;
