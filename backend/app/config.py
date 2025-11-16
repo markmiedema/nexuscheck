@@ -18,6 +18,9 @@ class Settings(BaseSettings):
 
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:3000"
+    # Optional: Regex pattern for Vercel preview deployments
+    # Example: r"https://.*\.vercel\.app$" to allow all Vercel preview URLs
+    ALLOWED_ORIGIN_REGEX: str | None = None
 
     # File Upload
     MAX_FILE_SIZE_MB: int = 50
@@ -29,7 +32,18 @@ class Settings(BaseSettings):
     @property
     def allowed_origins_list(self) -> list[str]:
         """Parse comma-separated origins into list"""
-        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
+        origins = [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",") if origin.strip()]
+
+        # Validate HTTPS in production (except localhost)
+        if self.ENVIRONMENT == "production":
+            for origin in origins:
+                if not origin.startswith("https://") and not origin.startswith("http://localhost"):
+                    raise ValueError(
+                        f"Non-HTTPS origin '{origin}' not allowed in production. "
+                        "Use HTTPS or localhost only."
+                    )
+
+        return origins
 
     @property
     def max_file_size_bytes(self) -> int:

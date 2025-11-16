@@ -21,13 +21,22 @@ app = FastAPI(
 )
 
 # Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+cors_config = {
+    "allow_origins": settings.allowed_origins_list,
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+
+# Add regex pattern support for Vercel preview deployments if configured
+if settings.ALLOWED_ORIGIN_REGEX:
+    cors_config["allow_origin_regex"] = settings.ALLOWED_ORIGIN_REGEX
+    logger.info(f"CORS: Using origin regex pattern: {settings.ALLOWED_ORIGIN_REGEX}")
+
+app.add_middleware(CORSMiddleware, **cors_config)
+
+# Log CORS configuration for debugging
+logger.info(f"CORS: Allowed origins: {settings.allowed_origins_list}")
 
 # Health check endpoint
 @app.get("/health")

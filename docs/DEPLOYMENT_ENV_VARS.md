@@ -15,6 +15,7 @@ This guide shows you exactly which environment variables to set for each deploym
 | `ENVIRONMENT` | ❌ No | ✅ Recommended | Set to `production` |
 | `DEBUG` | ❌ No | ✅ Required | Set to `False` |
 | `ALLOWED_ORIGINS` | ❌ No | ✅ Required | Your Vercel domain |
+| `ALLOWED_ORIGIN_REGEX` | ❌ No | 🔵 Optional | Regex for Vercel previews |
 
 ---
 
@@ -116,11 +117,19 @@ Now that you have your Vercel URL, update Railway:
    ```bash
    ALLOWED_ORIGINS=https://[your-vercel-app].vercel.app
    ```
-3. If you want to support preview deployments too:
+3. **Option A: Support specific preview deployments:**
    ```bash
-   ALLOWED_ORIGINS=https://[your-app].vercel.app,https://[your-app]-[preview].vercel.app
+   ALLOWED_ORIGINS=https://[your-app].vercel.app,https://[your-app]-git-feature.vercel.app
    ```
-4. Railway will automatically redeploy with new settings
+
+4. **Option B: Support all Vercel preview deployments (using regex):**
+   ```bash
+   ALLOWED_ORIGINS=https://[your-app].vercel.app
+   ALLOWED_ORIGIN_REGEX=https://.*\.vercel\.app$
+   ```
+   ⚠️ **Note:** Regex patterns are convenient but less secure. Use explicit origins when possible.
+
+5. Railway will automatically redeploy with new settings
 
 ---
 
