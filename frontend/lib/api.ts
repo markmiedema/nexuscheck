@@ -50,7 +50,7 @@ export interface StateDetailResponse {
   base_tax: number
   interest: number
   penalties: number
-  nexus_type: string
+  nexus_type: 'physical' | 'economic' | 'both' | 'none'
   first_nexus_year: number | null  // Null if no nexus established
 }
 
