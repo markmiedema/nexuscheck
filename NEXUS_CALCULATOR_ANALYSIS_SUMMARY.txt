@@ -1,0 +1,179 @@
+================================================================================
+COMPREHENSIVE NEXUS CALCULATOR ANALYSIS REPORT - EXECUTIVE SUMMARY
+================================================================================
+Date: November 16, 2025
+Analysis Scope: Complete deep dive into all calculation logic
+Files Analyzed: nexus_calculator_v2.py, interest_calculator.py, vda_calculator.py, simple_interest_calculator.py
+
+================================================================================
+CRITICAL ISSUES (Must Fix Before Production)
+================================================================================
+
+[CRITICAL - Issue #1] Rolling 12-Month Field Name Mismatch
+  File: nexus_calculator_v2.py
+  Lines: 564 vs 379, 730, 1453
+  Impact: Will crash on rolling 12-month lookback (Illinois, Texas, Tennessee, Minnesota, Mississippi)
+  Problem: Uses 'state_code' field instead of 'state' - causes KeyError when saving
+  Fix: Change line 564 from 'state_code': state_code to 'state': state_code
+
+================================================================================
+HIGH SEVERITY ISSUES (Calculation Accuracy)
+================================================================================
+
+[HIGH - Issue #2] Exempt Sales Logic Bug
+  File: nexus_calculator_v2.py, Lines: 1052-1065
+  Problem: Redundant conditions with identical logic (exempt_amount > 0 and < 0)
+  Impact: Ambiguous handling of returns and negative amounts
+  Fix: Clarify and document which fields represent what
+
+[HIGH - Issue #3] Marketplace Sales Liability Logic
+  File: nexus_calculator_v2.py, Lines: 1091-1095
+  Problem: Requires explicit False to include marketplace sales; excessive per-transaction logging
+  Impact: Marketplace sales might be excluded incorrectly
+  Fix: Use more explicit logic, move logging outside transaction loop
+
+[HIGH - Issue #4] Quarterly Lookback Period Calculation
+  File: nexus_calculator_v2.py, Lines: 668-676
+  Problem: Uses ALL transactions instead of year-filtered transactions; lookback period logic unclear
+  Impact: Multi-year quarterly lookback produces incorrect results
+  Fix: Filter transactions by year first, clarify lookback logic
+
+================================================================================
+MEDIUM SEVERITY ISSUES (Edge Cases & Data Quality)
+================================================================================
+
+[MEDIUM - Issue #5] Interest Calculation Silent Failure
+  Lines: 1141-1165
+  Problem: Catches exceptions and continues with zero interest, masking errors
+  Impact: Failed calculations appear as $0, user won't know
+
+[MEDIUM - Issue #6] Duplicate Import
+  Lines: 18, 434
+  Problem: defaultdict imported twice
+  Impact: Minor code quality issue
+
+[MEDIUM - Issue #7] Rolling 12-Month Window Boundary
+  Lines: 462-474
+  Problem: Uses relativedelta(months=11) which might create off-by-one errors
+  Impact: Edge cases might be incorrect
+
+[MEDIUM - Issue #8] First Nexus Date Extraction
+  Lines: 492-509
+  Problem: Uses first transaction of month instead of exact crossing transaction
+  Impact: nexus_date might be before actual crossing date
+
+[MEDIUM - Issue #11] Calendar Year "Previous Calendar Year" Fallback
+  Lines: 289-325
+  Problem: Checks current year even when rule says "only check prior year"
+  Impact: Nexus detected incorrectly for Previous Calendar Year states
+
+[MEDIUM - Issue #12] Interest Penalty Config Table Mismatch
+  File: interest_calculator.py, Line: 292
+  Problem: Queries 'interest_penalty_rates_v2_compat' instead of 'interest_penalty_rates'
+  Impact: Configuration might be out of sync
+
+[MEDIUM - Issue #13] Threshold Based on Taxable vs Gross Sales
+  Lines: 477, 948
+  Problem: Uses taxable_amount instead of sales_amount for threshold
+  Impact: Nexus might be missed if exempt sales are large (WRONG FOR MOST STATES)
+
+================================================================================
+LOW SEVERITY ISSUES (Code Quality)
+================================================================================
+
+[LOW - Issue #14] Excessive Debug Logging
+  Lines: 1039, 1092, 1095, 1102
+  Problem: Logs for every transaction inside loop
+  Impact: Performance hit, unreadable logs (10K+ lines for 10K transactions)
+
+[LOW - Issue #15] Zero Sales Year Handling
+  Lines: 154-156, 1257
+  Problem: Always uses current year for zero-sales results
+  Impact: Misleading results display
+
+[LOW - Issue #16] Database Partial Insert Risk
+  Line: 1481+
+  Problem: No rollback if insert fails mid-batch
+  Impact: Database left in inconsistent state
+
+[LOW - Issue #17] Missing Threshold Config Validation
+  Lines: 75-83
+  Problem: Doesn't validate required fields in config
+  Impact: Silent failure if config incomplete
+
+================================================================================
+PERFORMANCE ISSUES
+================================================================================
+
+[PERF - P1] N+1 Database Queries
+  Line: 365
+  Problem: Calls _get_interest_penalty_config for each state (50+ queries)
+  Impact: 50+ unnecessary database round-trips
+
+[PERF - P2] Redundant Threshold Calculations
+  Lines: 289-325
+  Problem: Calculates threshold crossing twice for some states
+  Impact: Redundant sorting operations
+
+[PERF - P3] Linear Scan for First Exposure
+  Lines: 1120-1136
+  Problem: Scans transactions twice (once for liability, once for first date)
+  Impact: Double iteration through all transactions
+
+================================================================================
+RELIABILITY ASSESSMENT
+================================================================================
+
+Overall Score: 6/10 (Below Average)
+
+What Works Well:
+  ✓ Transaction grouping by year/month
+  ✓ Sticky nexus tracking
+  ✓ Obligation start date calculation
+  ✓ Interest/penalty calculation formulas
+  ✓ VDA scenario handling
+
+What Doesn't Work:
+  ✗ Rolling 12-month lookback (BROKEN - will crash)
+  ✗ Quarterly lookback (BROKEN - wrong periods)
+  ✗ Threshold basis (BROKEN - uses taxable not gross)
+  ✗ Marketplace logic (BROKEN - unclear inclusion rules)
+  ✗ Database consistency (RISKY - partial inserts possible)
+
+Risk by State Type:
+  🔴 CRITICAL: States with rolling 12-month lookback (IL, TX, TN, MN, MS)
+  🟠 HIGH: States with large exempt sales or marketplace sales
+  🟠 HIGH: States using quarterly lookback (NY, VT)
+  🟡 MEDIUM: States using "Previous Calendar Year" only
+  🟢 LOW: States with simple calendar year + physical nexus only
+
+================================================================================
+RECOMMENDATIONS FOR PRODUCTION
+================================================================================
+
+DO NOT DEPLOY without fixing:
+  1. ✅ Issue #1 (state_code field name) - CRITICAL, will crash
+  2. ✅ Issue #4 (quarterly lookback) - HIGH, wrong calculations
+  3. ✅ Issue #13 (threshold basis) - HIGH, fundamental error
+
+Should fix before deployment:
+  4. Issue #2 (exempt sales logic) - HIGH
+  5. Issue #3 (marketplace logic) - HIGH
+
+Should fix before using:
+  6. Issue #5 (silent failures) - Better error handling
+  7. Issue #12 (table mismatch) - Data consistency
+  8. Issue #11 (calendar year fallback) - Logic clarity
+  9. Performance issues (N+1 queries, logging)
+
+Testing Recommendations:
+  - Test rolling 12-month states thoroughly
+  - Test quarterly lookback states (NY, VT)
+  - Test states with large exempt sales
+  - Test marketplace facilitator scenarios
+  - Test multi-year analyses
+  - Test edge cases (zero sales, incomplete data)
+
+================================================================================
+END OF REPORT
+================================================================================
