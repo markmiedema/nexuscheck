@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Next.js build output (Vercel builds this)
+.next
+out
+
+# Environment files (use Vercel dashboard for env vars)
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (not needed in deployment)
+README.md
+docs/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
