@@ -11,7 +11,8 @@ import StateTable from '@/components/analysis/StateTable'
 import { PhysicalNexusManager } from '@/components/analysis/PhysicalNexusManager'
 import { VDAModePanel } from '@/components/analysis/VDAModePanel'
 import { ErrorBoundary } from '@/components/error-boundary'
-import { StateResult } from '@/types/states'
+import { StateResult as StateResultMap } from '@/types/states'
+import { StateResult as StateResultVDA } from '@/hooks/useVDAMode'
 
 interface AnalysisSummary {
   company_name: string
@@ -56,7 +57,7 @@ export default function ResultsPage() {
   const [calculating, setCalculating] = useState(false)
   const [summary, setSummary] = useState<AnalysisSummary | null>(null)
   const [results, setResults] = useState<CalculationResults | null>(null)
-  const [stateResults, setStateResults] = useState<StateResult[]>([])
+  const [stateResults, setStateResults] = useState<StateResultMap[]>([])
   const [calculationStatus, setCalculationStatus] = useState<'pending' | 'calculated' | 'error'>('pending')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
@@ -340,7 +341,15 @@ export default function ResultsPage() {
             <div className="mb-6">
               <VDAModePanel
                 analysisId={analysisId}
-                stateResults={stateResults}
+                stateResults={stateResults.map((state): StateResultVDA => ({
+                  state_code: state.state_code,
+                  state_name: state.state_name,
+                  estimated_liability: state.estimated_liability,
+                  base_tax: state.base_tax || 0,
+                  interest: state.interest || 0,
+                  penalties: state.penalties || 0,
+                  nexus_status: state.nexus_status
+                }))}
               />
             </div>
           )}
