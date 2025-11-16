@@ -345,9 +345,9 @@ export default function ResultsPage() {
                   state_code: state.state_code,
                   state_name: state.state_name,
                   estimated_liability: state.estimated_liability,
-                  base_tax: state.base_tax || 0,
-                  interest: state.interest || 0,
-                  penalties: state.penalties || 0,
+                  base_tax: 0,
+                  interest: 0,
+                  penalties: 0,
                   nexus_status: state.nexus_status
                 }))}
               />
