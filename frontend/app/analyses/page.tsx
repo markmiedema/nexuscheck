@@ -115,7 +115,8 @@ export default function AnalysesPage() {
     router.push(`/analysis/${analysisId}/results`)
   }
 
-  function formatDate(dateString: string): string {
+  function formatDate(dateString: string | null): string {
+    if (!dateString) return 'N/A'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
