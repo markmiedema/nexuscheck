@@ -220,11 +220,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
           stateName={data.state_name}
           stateCode={data.state_code}
           nexusStatus={nexusStatus === 'zero_sales' ? 'none' : nexusStatus}
-          nexusType={
-            isAllYearsView
-              ? data.nexus_type
-              : yearData?.nexus_type
-          }
+          nexusType={data.nexus_type}
           totalSales={
             isAllYearsView
               ? data.total_sales || 0
