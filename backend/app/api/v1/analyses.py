@@ -147,7 +147,7 @@ async def get_analysis(
         logger.error(f"Error getting analysis {analysis_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get analysis: {str(e)}"
+            detail="Failed to get analysis. Please try again or contact support."
         )
 
 
@@ -227,13 +227,13 @@ async def create_analysis(
         logger.error(f"Validation error creating analysis: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            detail="Invalid input data. Please check your analysis configuration."
         )
     except Exception as e:
         logger.error(f"Error creating analysis: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create analysis: {str(e)}"
+            detail="Failed to create analysis. Please try again or contact support."
         )
 
 
@@ -345,9 +345,10 @@ async def upload_transactions(
             else:  # xlsx or xls
                 df = pd.read_excel(io.BytesIO(content))
         except Exception as e:
+            logger.error(f"Failed to parse uploaded file: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Failed to parse file: {str(e)}"
+                detail="Failed to parse file. Please ensure it's a valid CSV file."
             )
 
         # Auto-detect column mappings (including optional columns like revenue_stream, is_taxable, exempt_amount)
@@ -439,7 +440,7 @@ async def upload_transactions(
             # This is now a critical error - we need the file in storage for the new workflow
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to store file in storage. Please ensure the 'analysis-uploads' bucket exists and is accessible: {str(e)}"
+                detail="Failed to store file. Please try again or contact support if the issue persists."
             )
 
         # Calculate data summary from raw DataFrame (only if all required detected)
@@ -489,7 +490,7 @@ async def upload_transactions(
         logger.error(f"Error uploading file for analysis {analysis_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to process file: {str(e)}"
+            detail="Failed to process file. Please ensure your file is formatted correctly and try again."
         )
 
 
@@ -604,7 +605,7 @@ async def preview_normalization(
         logger.error(f"Error previewing normalization: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to preview normalization: {str(e)}"
+            detail="Failed to preview data normalization. Please try again."
         )
 
 
@@ -751,7 +752,7 @@ async def validate_and_save_mappings(
         logger.error(f"Error validating and saving mappings: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to save transactions: {str(e)}"
+            detail="Failed to save transaction data. Please verify your data and try again."
         )
 
 
@@ -869,7 +870,7 @@ async def get_column_info(
         logger.error(f"Error getting column info for analysis {analysis_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get column information: {str(e)}"
+            detail="Failed to get column information. Please try again."
         )
 
 
@@ -1053,7 +1054,7 @@ async def validate_data(
         logger.error(f"Error validating data for analysis {analysis_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to validate data: {str(e)}"
+            detail="Failed to validate data. Please check your transaction data and try again."
         )
 
 
@@ -1209,7 +1210,7 @@ async def recalculate_analysis(
 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to recalculate analysis: {str(e)}"
+            detail="Failed to recalculate analysis. The analysis has been marked as failed. Please try again."
         )
 
 
@@ -1372,7 +1373,7 @@ async def get_results_summary(
         logger.error(f"Error getting results summary for analysis {analysis_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get results summary: {str(e)}"
+            detail="Failed to get results summary. Please try again."
         )
 
 
@@ -1536,7 +1537,7 @@ async def get_state_results(
         logger.error(f"Failed to fetch state results: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to fetch state results: {str(e)}"
+            detail="Failed to fetch state results. Please try again."
         )
 
 
@@ -1928,5 +1929,5 @@ async def get_state_detail(
         logger.error(f"Error fetching state detail: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to fetch state detail: {str(e)}"
+            detail="Failed to fetch state detail. Please try again."
         )
