@@ -668,10 +668,12 @@ class NexusCalculatorV2:
                     lookback_start = quarter_end - relativedelta(months=12) + timedelta(days=1)
 
                     # Get transactions in this 12-month period (preceding 4 quarters)
+                    # Filter to only relevant date range for better performance
                     period_transactions = []
                     for txn in transactions:
                         txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
                         txn_date = datetime.fromisoformat(txn_date_str)
+                        # Only include transactions within the 12-month lookback window
                         if lookback_start <= txn_date <= quarter_end:
                             period_transactions.append(txn)
 
