@@ -1,10 +1,13 @@
 """Physical Nexus API Endpoints"""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List
 import logging
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.core.auth import get_current_user
 from app.core.supabase import supabase
+from app.config import settings
 from app.schemas.physical_nexus import (
     PhysicalNexusCreate,
     PhysicalNexusUpdate,
@@ -15,10 +18,13 @@ from app.schemas.physical_nexus import (
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/{analysis_id}/physical-nexus", response_model=PhysicalNexusResponse, status_code=201)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def create_physical_nexus(
+    http_request: Request,
     analysis_id: str,
     request: PhysicalNexusCreate,
     user_id: str = Depends(get_current_user)
@@ -80,7 +86,9 @@ async def create_physical_nexus(
 
 
 @router.get("/{analysis_id}/physical-nexus", response_model=List[PhysicalNexusResponse])
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def list_physical_nexus(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(get_current_user)
 ):
@@ -111,7 +119,9 @@ async def list_physical_nexus(
 
 
 @router.patch("/{analysis_id}/physical-nexus/{state_code}", response_model=PhysicalNexusResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def update_physical_nexus(
+    http_request: Request,
     analysis_id: str,
     state_code: str,
     request: PhysicalNexusUpdate,
@@ -178,7 +188,9 @@ async def update_physical_nexus(
 
 
 @router.delete("/{analysis_id}/physical-nexus/{state_code}", status_code=204)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def delete_physical_nexus(
+    request: Request,
     analysis_id: str,
     state_code: str,
     user_id: str = Depends(get_current_user)
@@ -225,7 +237,9 @@ async def delete_physical_nexus(
 
 
 @router.post("/{analysis_id}/physical-nexus/import", response_model=PhysicalNexusImportResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def import_physical_nexus(
+    http_request: Request,
     analysis_id: str,
     request: PhysicalNexusImportRequest,
     user_id: str = Depends(get_current_user)
@@ -327,7 +341,9 @@ async def import_physical_nexus(
 
 
 @router.get("/{analysis_id}/physical-nexus/export")
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def export_physical_nexus(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(get_current_user)
 ):

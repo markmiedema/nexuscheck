@@ -145,7 +145,9 @@ async def calculate_vda_scenario(
 
 
 @router.delete("/{analysis_id}/vda", response_model=MessageResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def disable_vda(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(get_current_user)
 ):
@@ -177,7 +179,9 @@ async def disable_vda(
 
 
 @router.get("/{analysis_id}/vda/status", response_model=VDAStatusResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def get_vda_status(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(get_current_user)
 ):
