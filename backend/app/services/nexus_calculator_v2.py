@@ -473,8 +473,8 @@ class NexusCalculatorV2:
 
                 if window_start_date <= check_date <= window_end:
                     month_txns = transactions_by_month[check_month]
-                    # Use taxable_amount for threshold calculation (only taxable sales count toward nexus)
-                    rolling_total += sum(float(t.get('taxable_amount', t['sales_amount'])) for t in month_txns)
+                    # Use sales_amount (gross sales) for threshold calculation - most states use gross revenue
+                    rolling_total += sum(float(t['sales_amount']) for t in month_txns)
                     rolling_count += len(month_txns)
 
             # Check if threshold is met
@@ -921,14 +921,14 @@ class NexusCalculatorV2:
         """
         Find exact transaction that crossed the threshold.
 
-        Uses taxable_amount (not total sales_amount) to determine threshold crossing,
-        as only taxable sales count toward economic nexus thresholds.
+        Uses sales_amount (gross sales) to determine threshold crossing,
+        as most states use total gross revenue for economic nexus thresholds.
 
         Returns:
             - has_nexus: bool
             - nexus_date: datetime when crossed
             - threshold_transaction_id: ID of transaction that crossed
-            - running_total: total taxable sales when crossed
+            - running_total: total gross sales when crossed
         """
         # Sort transactions chronologically
         sorted_txns = sorted(
@@ -944,8 +944,8 @@ class NexusCalculatorV2:
         operator = threshold_config.get('threshold_operator', 'or')
 
         for txn in sorted_txns:
-            # Use taxable_amount for threshold calculation (only taxable sales count toward nexus)
-            running_total += float(txn.get('taxable_amount', txn['sales_amount']))
+            # Use sales_amount (gross sales) for threshold calculation - most states use gross revenue
+            running_total += float(txn['sales_amount'])
             running_count += 1
 
             # Check thresholds
