@@ -65,7 +65,6 @@ export function StateQuickViewModal({
           }
         } catch (err) {
           // Physical nexus config might not exist, that's okay
-          console.log('No physical nexus config found for state:', stateCode)
         }
       }
     } catch (err) {
