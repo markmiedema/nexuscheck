@@ -561,7 +561,7 @@ class NexusCalculatorV2:
                 )
 
                 result = {
-                    'state_code': state_code,
+                    'state': state_code,
                     'year': year,
                     'nexus_type': 'economic',
                     'nexus_date': nexus_date.date().isoformat() if nexus_date else None,
