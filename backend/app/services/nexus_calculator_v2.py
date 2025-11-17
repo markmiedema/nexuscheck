@@ -1161,8 +1161,14 @@ class NexusCalculatorV2:
                     f"Interest ${interest:,.2f}, Penalties ${penalties:,.2f}"
                 )
             except Exception as e:
-                logger.error(f"Error calculating interest/penalties for {state_code} {year}: {str(e)}")
-                # Continue with zero interest/penalties on error
+                logger.error(
+                    f"CRITICAL: Interest calculation failed for {state_code} {year}: {str(e)}. "
+                    f"Base tax: ${base_tax:,.2f}, Obligation date: {interest_start_date.date()}, "
+                    f"Calculation date: {calculation_date.date()}. "
+                    f"Interest and penalties will show as $0 - THIS IS INCORRECT!"
+                )
+                # Continue with zero interest/penalties but log prominently
+                # Note: Estimated liability will be understated by the missing interest/penalties
 
         estimated_liability = base_tax + interest + penalties
 
