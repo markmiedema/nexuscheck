@@ -1,6 +1,9 @@
 """FastAPI application entry point"""
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from app.config import settings
 import logging
 
@@ -12,6 +15,9 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIMIT_DEFAULT])
+
 # Create FastAPI app
 app = FastAPI(
     title="Nexus Check API",
@@ -19,6 +25,10 @@ app = FastAPI(
     description="API for automated sales tax nexus determination and liability estimation",
     debug=settings.DEBUG
 )
+
+# Add rate limiter to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configure CORS
 cors_config = {

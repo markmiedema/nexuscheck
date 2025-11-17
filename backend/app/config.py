@@ -31,6 +31,15 @@ class Settings(BaseSettings):
     # API
     API_V1_PREFIX: str = "/api/v1"
 
+    # Rate Limiting
+    # Default: 100 requests per minute per IP for general endpoints
+    # Stricter limits applied to specific endpoints (login, upload, calculate)
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_DEFAULT: str = "100/minute"  # General endpoints
+    RATE_LIMIT_AUTH: str = "5/minute"  # Login/signup endpoints
+    RATE_LIMIT_UPLOAD: str = "10/minute"  # File upload endpoints
+    RATE_LIMIT_CALCULATE: str = "20/minute"  # Calculation endpoints
+
     @property
     def allowed_origins_list(self) -> list[str]:
         """Parse comma-separated origins into list"""

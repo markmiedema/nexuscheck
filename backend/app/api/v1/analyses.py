@@ -1,9 +1,12 @@
 """Analysis endpoints"""
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
 from typing import Optional
 from collections import defaultdict
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from app.core.auth import require_auth
 from app.core.supabase import get_supabase
+from app.config import settings
 from app.schemas.analysis import AnalysisCreate
 from app.schemas.responses import (
     AnalysesListResponse,
@@ -42,6 +45,7 @@ import io
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.get("", response_model=AnalysesListResponse)
@@ -290,7 +294,9 @@ async def delete_analysis(
 
 
 @router.post("/{analysis_id}/upload", response_model=UploadResponse)
+@limiter.limit(settings.RATE_LIMIT_UPLOAD)
 async def upload_transactions(
+    request: Request,
     analysis_id: str,
     file: UploadFile = File(...),
     user_id: str = Depends(require_auth)
@@ -1059,7 +1065,9 @@ async def validate_data(
 
 
 @router.post("/{analysis_id}/calculate", response_model=CalculationResponse)
+@limiter.limit(settings.RATE_LIMIT_CALCULATE)
 async def calculate_nexus(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(require_auth)
 ):
@@ -1130,7 +1138,9 @@ async def calculate_nexus(
 
 
 @router.post("/{analysis_id}/recalculate", response_model=CalculationResponse)
+@limiter.limit(settings.RATE_LIMIT_CALCULATE)
 async def recalculate_analysis(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(require_auth)
 ):
