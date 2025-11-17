@@ -13,6 +13,7 @@ import { VDAModePanel } from '@/components/analysis/VDAModePanel'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { StateResult as StateResultMap } from '@/types/states'
 import { StateResult as StateResultVDA } from '@/hooks/useVDAMode'
+import { handleApiError, showError } from '@/lib/utils/errorHandler'
 
 // Lazy load USMap to reduce initial bundle size (saves ~200KB from react-simple-maps)
 const USMap = dynamic(() => import('@/components/dashboard/USMap'), {
@@ -70,6 +71,7 @@ export default function ResultsPage() {
   const [stateResults, setStateResults] = useState<StateResultMap[]>([])
   const [calculationStatus, setCalculationStatus] = useState<'pending' | 'calculated' | 'error'>('pending')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchAnalysisSummary()
@@ -78,8 +80,14 @@ export default function ResultsPage() {
   const fetchAnalysisSummary = async () => {
     try {
       setLoading(true)
+      setError(null)
       const response = await apiClient.get(`/api/v1/analyses/${analysisId}`)
       const data = response.data
+
+      // Validate response data
+      if (!data || !data.client_company_name) {
+        throw new Error('Invalid analysis data received')
+      }
 
       setSummary({
         company_name: data.client_company_name,
@@ -96,6 +104,10 @@ export default function ResultsPage() {
       }
     } catch (error: any) {
       console.error('Failed to fetch analysis summary:', error)
+      const errorMsg = handleApiError(error, {
+        userMessage: 'Failed to load analysis summary. Please try refreshing the page.'
+      })
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -115,6 +127,9 @@ export default function ResultsPage() {
       setCalculationStatus('calculated')
     } catch (error: any) {
       console.error('Failed to calculate nexus:', error)
+      handleApiError(error, {
+        userMessage: 'Failed to calculate nexus. Please try again or contact support if the problem persists.'
+      })
       setCalculationStatus('error')
     } finally {
       setCalculating(false)
@@ -129,21 +144,43 @@ export default function ResultsPage() {
         apiClient.get(`/api/v1/analyses/${analysisId}/results/states`)
       ])
 
+      // Validate response data
+      if (!summaryResponse.data || !stateResponse.data) {
+        throw new Error('Invalid results data received')
+      }
+
       setResults(summaryResponse.data)
       setStateResults(stateResponse.data.states || [])
       setCalculationStatus('calculated')
     } catch (error: any) {
       console.error('Failed to fetch results:', error)
-      // If results don't exist yet, keep status as pending
+      // Only show error if this wasn't a 404 (results don't exist yet)
+      if (error.response?.status !== 404) {
+        handleApiError(error, {
+          userMessage: 'Failed to load calculation results.'
+        })
+      }
+      // If results don't exist yet (404), keep status as pending
     }
   }
 
   const fetchStateResults = async () => {
     try {
       const response = await apiClient.get(`/api/v1/analyses/${analysisId}/results/states`)
+
+      if (!response.data) {
+        throw new Error('Invalid state results data received')
+      }
+
       setStateResults(response.data.states || [])
     } catch (error: any) {
       console.error('Failed to fetch state results:', error)
+      // Only show error if this wasn't a 404
+      if (error.response?.status !== 404) {
+        handleApiError(error, {
+          userMessage: 'Failed to refresh state results.'
+        })
+      }
     }
   }
 
@@ -172,6 +209,36 @@ export default function ResultsPage() {
             <div className="text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               <p className="mt-4 text-muted-foreground">Loading results...</p>
+            </div>
+          </div>
+        </AppLayout>
+      </ProtectedRoute>
+    )
+  }
+
+  // Error state - show error message if initial load failed
+  if (error && !summary) {
+    return (
+      <ProtectedRoute>
+        <AppLayout
+          maxWidth="7xl"
+          breadcrumbs={[
+            { label: 'Analyses', href: '/analyses' },
+            { label: 'Analysis Results' },
+          ]}
+        >
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-destructive-foreground mb-2">
+              Error Loading Analysis
+            </h3>
+            <p className="text-sm text-destructive-foreground mb-4">{error}</p>
+            <div className="flex gap-3">
+              <Button onClick={() => fetchAnalysisSummary()} variant="outline">
+                Try Again
+              </Button>
+              <Button onClick={() => router.push('/analyses')} variant="ghost">
+                Back to Analyses
+              </Button>
             </div>
           </div>
         </AppLayout>
