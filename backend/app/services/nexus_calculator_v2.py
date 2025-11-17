@@ -1088,11 +1088,9 @@ class NexusCalculatorV2:
                 elif channel == 'marketplace':
                     # Marketplace sales: exclude from liability by default (MF collects tax)
                     # Only include if explicitly configured to NOT exclude
-                    if mf_rule and mf_rule.get('exclude_from_liability') == False:
-                        logger.info(f"[MARKETPLACE DEBUG] Including marketplace taxable sales ${taxable_amount} in exposure (exclude_from_liability=False)")
+                    if mf_rule and mf_rule.get('exclude_from_liability', True) is False:
+                        # Explicitly set to False - include marketplace sales in exposure
                         exposure_sales += taxable_amount
-                    else:
-                        logger.info(f"[MARKETPLACE DEBUG] Excluding marketplace sales ${taxable_amount} from exposure (mf_rule={mf_rule})")
                     # else: exclude marketplace sales (default behavior)
 
         # Calculate tax based on EXPOSURE sales (not all taxable sales)
@@ -1128,8 +1126,10 @@ class NexusCalculatorV2:
                     include_in_exposure = False
                     if channel == 'direct' and taxable_amount > 0:
                         include_in_exposure = True
-                    elif channel == 'marketplace' and mf_rule and mf_rule.get('exclude_from_liability') == False and taxable_amount > 0:
-                        include_in_exposure = True
+                    elif channel == 'marketplace' and taxable_amount > 0:
+                        # Include marketplace sales only if explicitly configured to NOT exclude
+                        if mf_rule and mf_rule.get('exclude_from_liability', True) is False:
+                            include_in_exposure = True
 
                     if include_in_exposure:
                         if first_exposure_transaction_date is None or txn_date < first_exposure_transaction_date:
