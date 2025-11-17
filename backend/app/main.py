@@ -34,8 +34,8 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 cors_config = {
     "allow_origins": settings.allowed_origins_list,
     "allow_credentials": True,
-    "allow_methods": ["*"],
-    "allow_headers": ["*"],
+    "allow_methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization", "Accept", "X-Requested-With"],
 }
 
 # Add regex pattern support for Vercel preview deployments if configured

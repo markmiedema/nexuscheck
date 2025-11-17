@@ -59,7 +59,7 @@ async def get_current_user(
         logger.warning(f"Invalid token: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {str(e)}"
+            detail="Invalid or malformed token"
         )
     except Exception as e:
         logger.error(f"Unexpected error validating token: {str(e)}")

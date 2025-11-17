@@ -49,7 +49,9 @@ limiter = Limiter(key_func=get_remote_address)
 
 
 @router.get("", response_model=AnalysesListResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def list_analyses(
+    request: Request,
     user_id: str = Depends(require_auth),
     limit: int = 50,
     offset: int = 0,
@@ -109,7 +111,9 @@ async def list_analyses(
 
 
 @router.get("/{analysis_id}", response_model=AnalysisDetailResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def get_analysis(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(require_auth)
 ):
@@ -156,7 +160,9 @@ async def get_analysis(
 
 
 @router.post("", response_model=CreateAnalysisResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def create_analysis(
+    request: Request,
     analysis_data: AnalysisCreate,
     user_id: str = Depends(require_auth)
 ):
@@ -242,7 +248,9 @@ async def create_analysis(
 
 
 @router.delete("/{analysis_id}", response_model=DeleteResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def delete_analysis(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(require_auth)
 ):
@@ -502,7 +510,9 @@ async def upload_transactions(
 
 
 @router.post("/{analysis_id}/preview-normalization", response_model=NormalizationPreviewResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def preview_normalization(
+    request: Request,
     analysis_id: str,
     request_body: dict,
     user_id: str = Depends(require_auth)
@@ -617,7 +627,9 @@ async def preview_normalization(
 
 
 @router.post("/{analysis_id}/validate-and-save", response_model=ValidateAndSaveResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def validate_and_save_mappings(
+    request: Request,
     analysis_id: str,
     request_body: dict,
     user_id: str = Depends(require_auth)
@@ -764,7 +776,9 @@ async def validate_and_save_mappings(
 
 
 @router.get("/{analysis_id}/columns", response_model=ColumnsResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def get_column_info(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(require_auth)
 ):
@@ -882,9 +896,11 @@ async def get_column_info(
 
 
 @router.post("/{analysis_id}/validate", response_model=ValidationResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def validate_data(
+    request: Request,
     analysis_id: str,
-    request: dict,
+    request_body: dict,
     user_id: str = Depends(require_auth)
 ):
     """
@@ -1226,7 +1242,9 @@ async def recalculate_analysis(
 
 
 @router.get("/{analysis_id}/results/summary", response_model=ResultsSummaryResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def get_results_summary(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(require_auth)
 ):
@@ -1389,7 +1407,9 @@ async def get_results_summary(
 
 
 @router.get("/{analysis_id}/results/states", response_model=StateResultsResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def get_state_results(
+    request: Request,
     analysis_id: str,
     user_id: str = Depends(require_auth)
 ):
@@ -1553,7 +1573,9 @@ async def get_state_results(
 
 
 @router.get("/{analysis_id}/states/{state_code}", response_model=StateDetailResponse)
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def get_state_detail(
+    request: Request,
     analysis_id: str,
     state_code: str,
     user_id: str = Depends(require_auth)
