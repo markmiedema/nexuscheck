@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { FixedSizeList as List } from 'react-window'
+import type { ListChildComponentProps } from 'react-window'
 import {
   ChevronDown,
   ChevronUp,
@@ -304,7 +305,7 @@ export default function TransactionTable({
                         itemSize={53}
                         width="100%"
                       >
-                        {({ index, style }) => {
+                        {({ index, style }: ListChildComponentProps) => {
                           const transaction = paginatedTransactions[index]
                           const isThresholdCrossing = index === thresholdCrossingIndex
                           return (
