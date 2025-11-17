@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = "http://localhost:3000"
     # Optional: Regex pattern for Vercel preview deployments
     # Example: r"https://.*\.vercel\.app$" to allow all Vercel preview URLs
+    # WARNING: Be cautious with regex patterns when allow_credentials=True
+    # Overly permissive patterns can create CSRF vulnerabilities
     ALLOWED_ORIGIN_REGEX: str | None = None
 
     # File Upload
@@ -33,6 +35,13 @@ class Settings(BaseSettings):
     def allowed_origins_list(self) -> list[str]:
         """Parse comma-separated origins into list"""
         origins = [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",") if origin.strip()]
+
+        # Prevent wildcard origins (security: wildcards with credentials = CSRF vulnerability)
+        if "*" in origins:
+            raise ValueError(
+                "Wildcard origin '*' is not allowed when using credentials. "
+                "Specify explicit origins instead (e.g., https://yourapp.vercel.app)"
+            )
 
         # Validate HTTPS in production (except localhost)
         if self.ENVIRONMENT == "production":
