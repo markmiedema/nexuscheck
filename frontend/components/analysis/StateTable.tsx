@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import apiClient from '@/lib/api/client'
 import { StateResult } from '@/types/states'
 import {
@@ -206,21 +206,21 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     return groupStatesByPriority(filtered)
   }, [states, sortConfig, nexusFilter, exemptFilter, searchQuery])
 
-  const handleSort = (column: SortConfig['column']) => {
+  const handleSort = useCallback((column: SortConfig['column']) => {
     setSortConfig(prev => ({
       column,
       direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
     }))
-  }
+  }, [])
 
-  const getSortIcon = (column: SortConfig['column']) => {
+  const getSortIcon = useCallback((column: SortConfig['column']) => {
     if (sortConfig.column !== column) {
       return <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
     }
     return sortConfig.direction === 'asc'
       ? <ChevronUp className="h-4 w-4 text-foreground" />
       : <ChevronDown className="h-4 w-4 text-foreground" />
-  }
+  }, [sortConfig])
 
   const densityClasses = {
     compact: 'py-2',

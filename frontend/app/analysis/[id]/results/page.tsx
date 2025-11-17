@@ -2,17 +2,27 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
-import USMap from '@/components/dashboard/USMap'
 import StateTable from '@/components/analysis/StateTable'
 import { PhysicalNexusManager } from '@/components/analysis/PhysicalNexusManager'
 import { VDAModePanel } from '@/components/analysis/VDAModePanel'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { StateResult as StateResultMap } from '@/types/states'
 import { StateResult as StateResultVDA } from '@/hooks/useVDAMode'
+
+// Lazy load USMap to reduce initial bundle size (saves ~200KB from react-simple-maps)
+const USMap = dynamic(() => import('@/components/dashboard/USMap'), {
+  loading: () => (
+    <div className="bg-muted/30 rounded-md border border-dashed border-border p-12 text-center animate-pulse">
+      <div className="text-muted-foreground">Loading map...</div>
+    </div>
+  ),
+  ssr: false,
+})
 
 interface AnalysisSummary {
   company_name: string
@@ -113,12 +123,15 @@ export default function ResultsPage() {
 
   const fetchResults = async () => {
     try {
-      const response = await apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`)
-      setResults(response.data)
-      setCalculationStatus('calculated')
+      // Parallelize independent API calls to improve performance
+      const [summaryResponse, stateResponse] = await Promise.all([
+        apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`),
+        apiClient.get(`/api/v1/analyses/${analysisId}/results/states`)
+      ])
 
-      // Also fetch state results for the map
-      await fetchStateResults()
+      setResults(summaryResponse.data)
+      setStateResults(stateResponse.data.states || [])
+      setCalculationStatus('calculated')
     } catch (error: any) {
       console.error('Failed to fetch results:', error)
       // If results don't exist yet, keep status as pending

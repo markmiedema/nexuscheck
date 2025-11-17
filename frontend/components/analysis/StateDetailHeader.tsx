@@ -1,4 +1,5 @@
 'use client';
+import { memo } from 'react';
 import {
   Select,
   SelectContent,
@@ -25,7 +26,7 @@ interface StateDetailHeaderProps {
   };
 }
 
-export function StateDetailHeader({
+export const StateDetailHeader = memo(function StateDetailHeader({
   stateName,
   stateCode,
   nexusStatus,
@@ -195,4 +196,4 @@ export function StateDetailHeader({
       )}
     </div>
   );
-}
+});

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AppLayout from '@/components/layout/AppLayout';
 import { getStateDetail, StateDetailResponse, YearData } from '@/lib/api';
@@ -9,13 +10,22 @@ import { StateDetailHeader } from '@/components/analysis/StateDetailHeader';
 import { SummaryCards } from '@/components/analysis/SummaryCards';
 import { LiabilityBreakdown } from '@/components/analysis/LiabilityBreakdown';
 import { ThresholdProgressBar } from '@/components/analysis/ThresholdProgressBar';
-import { MonthlyTrendChart } from '@/components/analysis/MonthlyTrendChart';
 import TransactionTable from '@/components/analysis/TransactionTable';
 import { ComplianceSection } from '@/components/analysis/ComplianceSection';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Info } from 'lucide-react';
 import { ErrorBoundary } from '@/components/error-boundary';
+
+// Lazy load MonthlyTrendChart to reduce initial bundle size (saves ~250KB from recharts)
+const MonthlyTrendChart = dynamic(() => import('@/components/analysis/MonthlyTrendChart').then(mod => ({ default: mod.MonthlyTrendChart })), {
+  loading: () => (
+    <div className="h-64 bg-muted/30 rounded-md border border-dashed border-border flex items-center justify-center animate-pulse">
+      <div className="text-muted-foreground">Loading chart...</div>
+    </div>
+  ),
+  ssr: false,
+});
 
 interface StateDetailPageProps {
   params: {
