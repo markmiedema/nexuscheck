@@ -431,8 +431,9 @@ async def upload_transactions(
             try:
                 supabase.storage.from_('analysis-uploads').remove([storage_path])
                 logger.info(f"Removed existing file at {storage_path}")
-            except:
-                pass  # File doesn't exist, that's fine
+            except Exception as e:
+                # File doesn't exist or removal failed - not critical, continue
+                logger.debug(f"Could not remove existing file at {storage_path}: {str(e)}")
 
             # Upload new file
             upload_result = supabase.storage.from_('analysis-uploads').upload(
@@ -855,15 +856,15 @@ async def get_column_info(
                             "start": date_series.min().strftime('%Y-%m-%d'),
                             "end": date_series.max().strftime('%Y-%m-%d')
                         }
-                except:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Could not extract date range from column: {str(e)}")
 
             if 'customer_state' in detected['mappings']:
                 state_col = detected['mappings']['customer_state']
                 try:
                     summary["unique_states"] = df[state_col].nunique()
-                except:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Could not count unique states: {str(e)}")
 
         return ColumnsResponse(
             columns=columns_info,
@@ -1215,8 +1216,8 @@ async def recalculate_analysis(
                 "error_message": str(e),
                 "last_error_at": datetime.utcnow().isoformat()
             }).eq('id', analysis_id).execute()
-        except:
-            pass
+        except Exception as db_error:
+            logger.error(f"Failed to update analysis status to error in database: {str(db_error)}")
 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

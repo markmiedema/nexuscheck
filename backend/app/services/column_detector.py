@@ -667,8 +667,8 @@ class ColumnDetector:
                         'count': len(future_dates),
                         'severity': 'warning'
                     })
-            except:
-                pass
+            except Exception as e:
+                logger.debug(f"Could not validate transaction dates: {str(e)}")
 
         # 3. Validate amounts
         if 'revenue_amount' in df.columns:
