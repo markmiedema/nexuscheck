@@ -100,7 +100,7 @@ async def list_analyses(
         logger.error(f"Error listing analyses: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch analyses: {str(e)}"
+            detail="Failed to fetch analyses. Please try again or contact support."
         )
 
 
@@ -285,7 +285,8 @@ async def delete_analysis(
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
-        raise HTTPException(status_code=500, detail=f"Failed to delete analysis: {str(e)}")
+        logger.error(f"Error deleting analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete analysis. Please try again or contact support.")
 
 
 @router.post("/{analysis_id}/upload", response_model=UploadResponse)
@@ -1123,7 +1124,7 @@ async def calculate_nexus(
 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to calculate nexus: {str(e)}"
+            detail="Failed to calculate nexus. The analysis has been marked as failed. Please check your data and try again."
         )
 
 
