@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { isValidEmail, getPasswordStrengthMessage, isStrongPassword } from '@/lib/utils/validation'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -22,6 +23,13 @@ export default function SignupPage() {
     setError('')
     setLoading(true)
 
+    // Validate email format
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address')
+      setLoading(false)
+      return
+    }
+
     // Validate passwords match
     if (password !== confirmPassword) {
       setError('Passwords do not match')
@@ -30,8 +38,8 @@ export default function SignupPage() {
     }
 
     // Validate password strength
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long')
+    if (!isStrongPassword(password)) {
+      setError(getPasswordStrengthMessage(password))
       setLoading(false)
       return
     }
@@ -154,7 +162,7 @@ export default function SignupPage() {
                 placeholder="••••••••"
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                Must be at least 8 characters
+                Must be at least 8 characters with uppercase, lowercase, and number
               </p>
             </div>
 

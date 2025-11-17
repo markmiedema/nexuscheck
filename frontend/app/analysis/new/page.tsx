@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
+import { handleApiError, showSuccess, showError } from '@/lib/utils/errorHandler'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
 import { ErrorBoundary } from '@/components/error-boundary'
@@ -14,6 +14,7 @@ import apiClient from '@/lib/api/client'
 import { UploadCloud, CheckCircle2, FileText } from 'lucide-react'
 import ColumnMappingConfirmationDialog from '@/components/analysis/ColumnMappingConfirmationDialog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { isValidStateCode, isValidPastDate, isValidFileSize, formatFileSize } from '@/lib/utils/validation'
 
 // Validation schema
 const clientSetupSchema = z.object({
@@ -61,18 +62,39 @@ export default function ClientSetupPage() {
   })
 
   const handleAddState = () => {
-    if (newState.stateCode && newState.registrationDate) {
-      setStateRegistrations([
-        ...stateRegistrations,
-        {
-          id: Math.random().toString(36).substr(2, 9),
-          stateCode: newState.stateCode,
-          registrationDate: newState.registrationDate,
-        },
-      ])
-      setNewState({ stateCode: '', registrationDate: '' })
-      setShowAddState(false)
+    if (!newState.stateCode || !newState.registrationDate) {
+      showError('Both state code and registration date are required')
+      return
     }
+
+    // Validate state code
+    if (!isValidStateCode(newState.stateCode)) {
+      showError('Invalid state code. Please enter a valid 2-letter US state code')
+      return
+    }
+
+    // Validate registration date is not in the future
+    if (!isValidPastDate(newState.registrationDate)) {
+      showError('Registration date cannot be in the future')
+      return
+    }
+
+    // Check for duplicate state
+    if (stateRegistrations.some(s => s.stateCode === newState.stateCode)) {
+      showError(`State ${newState.stateCode} has already been added`)
+      return
+    }
+
+    setStateRegistrations([
+      ...stateRegistrations,
+      {
+        id: Math.random().toString(36).substr(2, 9),
+        stateCode: newState.stateCode,
+        registrationDate: newState.registrationDate,
+      },
+    ])
+    setNewState({ stateCode: '', registrationDate: '' })
+    setShowAddState(false)
   }
 
   const handleRemoveState = (id: string) => {
@@ -132,6 +154,18 @@ export default function ClientSetupPage() {
   const handleFileUpload = async (file: File) => {
     if (!analysisId) {
       setUploadError('Analysis ID not found. Please try again.')
+      return
+    }
+
+    // Validate file type
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setUploadError('Only CSV files are supported')
+      return
+    }
+
+    // Validate file size (50MB limit)
+    if (!isValidFileSize(file, 50)) {
+      setUploadError(`File size (${formatFileSize(file.size)}) exceeds 50MB limit`)
       return
     }
 

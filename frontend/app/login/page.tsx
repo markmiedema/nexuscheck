@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { isValidEmail } from '@/lib/utils/validation'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -20,6 +21,20 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
+
+    // Validate email format
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address')
+      setLoading(false)
+      return
+    }
+
+    // Basic password check
+    if (!password || password.length < 6) {
+      setError('Password is required')
+      setLoading(false)
+      return
+    }
 
     try {
       await login(email, password)
