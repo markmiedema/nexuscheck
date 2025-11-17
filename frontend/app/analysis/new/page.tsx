@@ -8,6 +8,7 @@ import * as z from 'zod'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
 import { UploadCloud, CheckCircle2, FileText } from 'lucide-react'
@@ -238,13 +239,14 @@ export default function ClientSetupPage() {
 
   return (
     <ProtectedRoute>
-      <AppLayout
-        maxWidth="4xl"
-        breadcrumbs={[
-          { label: 'Analyses', href: '/analyses' },
-          { label: 'New Analysis' },
-        ]}
-      >
+      <ErrorBoundary>
+        <AppLayout
+          maxWidth="4xl"
+          breadcrumbs={[
+            { label: 'Analyses', href: '/analyses' },
+            { label: 'New Analysis' },
+          ]}
+        >
         <div className="bg-card rounded-lg shadow-sm border border-border p-6">
           <h2 className="text-3xl font-bold text-card-foreground mb-6">
             New Nexus Analysis
@@ -552,6 +554,7 @@ export default function ClientSetupPage() {
           )}
           </div>
       </AppLayout>
+      </ErrorBoundary>
     </ProtectedRoute>
   )
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
+import { ErrorBoundary } from '@/components/error-boundary'
 import apiClient from '@/lib/api/client'
 import { StateResult, StateResultsResponse } from '@/types/states'
 import {
@@ -312,14 +313,15 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
   // Main render
   return (
     <ProtectedRoute>
-      <AppLayout
-        maxWidth="7xl"
-        breadcrumbs={[
-          { label: 'Analyses', href: '/analyses' },
-          { label: 'Analysis Results', href: `/analysis/${analysisId}/results` },
-          { label: 'State Table' },
-        ]}
-      >
+      <ErrorBoundary>
+        <AppLayout
+          maxWidth="7xl"
+          breadcrumbs={[
+            { label: 'Analyses', href: '/analyses' },
+            { label: 'Analysis Results', href: `/analysis/${analysisId}/results` },
+            { label: 'State Table' },
+          ]}
+        >
         <div className="mb-6">
         <h1 className="text-3xl font-bold text-card-foreground mb-2">
           State-by-State Results
@@ -650,6 +652,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
         </Button>
       </div>
       </AppLayout>
+      </ErrorBoundary>
     </ProtectedRoute>
   )
 }
