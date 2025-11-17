@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface SummaryCardsProps {
@@ -11,7 +12,7 @@ interface SummaryCardsProps {
   exemptSales?: number;
 }
 
-export function SummaryCards({
+export const SummaryCards = memo(function SummaryCards({
   totalSales,
   transactionCount,
   directSales,
@@ -68,4 +69,4 @@ export function SummaryCards({
       ))}
     </div>
   );
-}
+});

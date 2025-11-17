@@ -473,8 +473,8 @@ class NexusCalculatorV2:
 
                 if window_start_date <= check_date <= window_end:
                     month_txns = transactions_by_month[check_month]
-                    # Use taxable_amount for threshold calculation (only taxable sales count toward nexus)
-                    rolling_total += sum(float(t.get('taxable_amount', t['sales_amount'])) for t in month_txns)
+                    # Use sales_amount (gross sales) for threshold calculation - most states use gross revenue
+                    rolling_total += sum(float(t['sales_amount']) for t in month_txns)
                     rolling_count += len(month_txns)
 
             # Check if threshold is met
@@ -561,7 +561,7 @@ class NexusCalculatorV2:
                 )
 
                 result = {
-                    'state_code': state_code,
+                    'state': state_code,
                     'year': year,
                     'nexus_type': 'economic',
                     'nexus_date': nexus_date.date().isoformat() if nexus_date else None,
@@ -668,10 +668,12 @@ class NexusCalculatorV2:
                     lookback_start = quarter_end - relativedelta(months=12) + timedelta(days=1)
 
                     # Get transactions in this 12-month period (preceding 4 quarters)
+                    # Filter to only relevant date range for better performance
                     period_transactions = []
                     for txn in transactions:
                         txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
                         txn_date = datetime.fromisoformat(txn_date_str)
+                        # Only include transactions within the 12-month lookback window
                         if lookback_start <= txn_date <= quarter_end:
                             period_transactions.append(txn)
 
@@ -921,14 +923,14 @@ class NexusCalculatorV2:
         """
         Find exact transaction that crossed the threshold.
 
-        Uses taxable_amount (not total sales_amount) to determine threshold crossing,
-        as only taxable sales count toward economic nexus thresholds.
+        Uses sales_amount (gross sales) to determine threshold crossing,
+        as most states use total gross revenue for economic nexus thresholds.
 
         Returns:
             - has_nexus: bool
             - nexus_date: datetime when crossed
             - threshold_transaction_id: ID of transaction that crossed
-            - running_total: total taxable sales when crossed
+            - running_total: total gross sales when crossed
         """
         # Sort transactions chronologically
         sorted_txns = sorted(
@@ -944,8 +946,8 @@ class NexusCalculatorV2:
         operator = threshold_config.get('threshold_operator', 'or')
 
         for txn in sorted_txns:
-            # Use taxable_amount for threshold calculation (only taxable sales count toward nexus)
-            running_total += float(txn.get('taxable_amount', txn['sales_amount']))
+            # Use sales_amount (gross sales) for threshold calculation - most states use gross revenue
+            running_total += float(txn['sales_amount'])
             running_count += 1
 
             # Check thresholds
@@ -1049,18 +1051,16 @@ class NexusCalculatorV2:
             exempt_amount = float(txn.get('exempt_amount', 0))
             is_taxable = txn.get('is_taxable', True)
 
-            if exempt_amount > 0:
-                # Priority 1: Use explicit exempt_amount (can be positive or negative for returns)
-                taxable_amount = amount - exempt_amount
-            elif exempt_amount < 0:
-                # Handle negative exempt amounts (exempt returns)
+            if exempt_amount != 0:
+                # Priority 1: Use explicit exempt_amount (handles both positive and negative values)
+                # Positive: regular exempt sales; Negative: returns of exempt goods
                 taxable_amount = amount - exempt_amount
             elif not is_taxable:
                 # Priority 2: is_taxable=False means full amount is exempt
                 taxable_amount = 0
                 exempt_amount = amount
             else:
-                # Priority 3: Default - full amount is taxable (including negative returns)
+                # Priority 3: Default - full amount is taxable
                 taxable_amount = amount
                 exempt_amount = 0
 
@@ -1088,11 +1088,9 @@ class NexusCalculatorV2:
                 elif channel == 'marketplace':
                     # Marketplace sales: exclude from liability by default (MF collects tax)
                     # Only include if explicitly configured to NOT exclude
-                    if mf_rule and mf_rule.get('exclude_from_liability') == False:
-                        logger.info(f"[MARKETPLACE DEBUG] Including marketplace taxable sales ${taxable_amount} in exposure (exclude_from_liability=False)")
+                    if mf_rule and mf_rule.get('exclude_from_liability', True) is False:
+                        # Explicitly set to False - include marketplace sales in exposure
                         exposure_sales += taxable_amount
-                    else:
-                        logger.info(f"[MARKETPLACE DEBUG] Excluding marketplace sales ${taxable_amount} from exposure (mf_rule={mf_rule})")
                     # else: exclude marketplace sales (default behavior)
 
         # Calculate tax based on EXPOSURE sales (not all taxable sales)
@@ -1128,8 +1126,10 @@ class NexusCalculatorV2:
                     include_in_exposure = False
                     if channel == 'direct' and taxable_amount > 0:
                         include_in_exposure = True
-                    elif channel == 'marketplace' and mf_rule and mf_rule.get('exclude_from_liability') == False and taxable_amount > 0:
-                        include_in_exposure = True
+                    elif channel == 'marketplace' and taxable_amount > 0:
+                        # Include marketplace sales only if explicitly configured to NOT exclude
+                        if mf_rule and mf_rule.get('exclude_from_liability', True) is False:
+                            include_in_exposure = True
 
                     if include_in_exposure:
                         if first_exposure_transaction_date is None or txn_date < first_exposure_transaction_date:
@@ -1161,8 +1161,14 @@ class NexusCalculatorV2:
                     f"Interest ${interest:,.2f}, Penalties ${penalties:,.2f}"
                 )
             except Exception as e:
-                logger.error(f"Error calculating interest/penalties for {state_code} {year}: {str(e)}")
-                # Continue with zero interest/penalties on error
+                logger.error(
+                    f"CRITICAL: Interest calculation failed for {state_code} {year}: {str(e)}. "
+                    f"Base tax: ${base_tax:,.2f}, Obligation date: {interest_start_date.date()}, "
+                    f"Calculation date: {calculation_date.date()}. "
+                    f"Interest and penalties will show as $0 - THIS IS INCORRECT!"
+                )
+                # Continue with zero interest/penalties but log prominently
+                # Note: Estimated liability will be understated by the missing interest/penalties
 
         estimated_liability = base_tax + interest + penalties
 
@@ -1213,8 +1219,8 @@ class NexusCalculatorV2:
             exempt_amount = float(txn.get('exempt_amount', 0))
             is_taxable = txn.get('is_taxable', True)
 
-            if exempt_amount > 0:
-                # Priority 1: Use explicit exempt_amount
+            if exempt_amount != 0:
+                # Priority 1: Use explicit exempt_amount (handles both positive and negative)
                 exempt_sales += exempt_amount
             elif not is_taxable:
                 # Priority 2: is_taxable=False means full amount is exempt

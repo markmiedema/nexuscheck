@@ -3,16 +3,20 @@
 Endpoints for Voluntary Disclosure Agreement (VDA) scenario modeling.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List
 from pydantic import BaseModel
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.core.auth import get_current_user
 from app.core.supabase import supabase
 from app.services.vda_calculator import VDACalculator
 from app.schemas import MessageResponse
+from app.config import settings
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 class VDARequest(BaseModel):
@@ -58,7 +62,9 @@ class VDAStatusResponse(BaseModel):
 
 
 @router.post("/{analysis_id}/vda", response_model=VDAResponse)
+@limiter.limit(settings.RATE_LIMIT_CALCULATE)
 async def calculate_vda_scenario(
+    http_request: Request,
     analysis_id: str,
     request: VDARequest,
     user_id: str = Depends(get_current_user)
@@ -132,7 +138,8 @@ async def calculate_vda_scenario(
             request.selected_states
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"VDA calculation validation error: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid VDA configuration. Please check your selected states and try again.")
 
     return VDAResponse(**results)
 
@@ -236,5 +243,5 @@ async def get_vda_status(
         logger.error(f"Error getting VDA status for analysis {analysis_id}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to get VDA status: {str(e)}"
+            detail="Failed to get VDA status. Please try again."
         )

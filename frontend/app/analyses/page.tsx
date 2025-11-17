@@ -6,6 +6,7 @@ import { listAnalyses, deleteAnalysis, type Analysis } from '@/lib/api/analyses'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
+import { ErrorBoundary } from '@/components/error-boundary'
 import {
   Table,
   TableBody,
@@ -388,7 +389,8 @@ export default function AnalysesPage() {
 
   return (
     <ProtectedRoute>
-      <AppLayout maxWidth="7xl">
+      <ErrorBoundary>
+        <AppLayout maxWidth="7xl">
         {/* Welcome Message */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -515,6 +517,7 @@ export default function AnalysesPage() {
           </div>
         </div>
       </AppLayout>
+      </ErrorBoundary>
     </ProtectedRoute>
   )
 }

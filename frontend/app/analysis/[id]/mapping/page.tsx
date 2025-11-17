@@ -5,8 +5,10 @@ import { useParams, useRouter } from 'next/navigation'
 import { handleApiError, showSuccess, showError } from '@/lib/utils/errorHandler'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
+import { findDuplicates } from '@/lib/utils/validation'
 import {
   Card,
   CardContent,
@@ -147,6 +149,7 @@ export default function MappingPage() {
   }
 
   const validateMappings = (): boolean => {
+    // Check required fields
     if (!mappings.transaction_date) {
       showError('Transaction Date is required')
       return false
@@ -163,6 +166,23 @@ export default function MappingPage() {
       showError('Sales Channel is required')
       return false
     }
+
+    // Check for duplicate column mappings
+    const mappedColumns = [
+      mappings.transaction_date,
+      mappings.customer_state,
+      mappings.revenue_amount,
+      mappings.sales_channel,
+      mappings.product_type,
+      mappings.customer_type,
+    ].filter(Boolean) // Remove empty optional fields
+
+    const duplicates = findDuplicates(mappedColumns)
+    if (duplicates.length > 0) {
+      showError(`The following column(s) are mapped multiple times: ${duplicates.join(', ')}. Each column can only be mapped once.`)
+      return false
+    }
+
     return true
   }
 
@@ -258,15 +278,16 @@ export default function MappingPage() {
 
   return (
     <ProtectedRoute>
-      <AppLayout
-        maxWidth="4xl"
-        breadcrumbs={[
-          { label: 'Analyses', href: '/analyses' },
-          { label: 'New Analysis', href: '/analysis/new' },
-          { label: 'Upload Data', href: `/analysis/${analysisId}/upload` },
-          { label: 'Map Columns' },
-        ]}
-      >
+      <ErrorBoundary>
+        <AppLayout
+          maxWidth="4xl"
+          breadcrumbs={[
+            { label: 'Analyses', href: '/analyses' },
+            { label: 'New Analysis', href: '/analysis/new' },
+            { label: 'Upload Data', href: `/analysis/${analysisId}/upload` },
+            { label: 'Map Columns' },
+          ]}
+        >
         <div className="bg-card rounded-lg shadow-sm border border-border p-6">
             <h2 className="text-3xl font-bold text-card-foreground mb-2">
               Map Your Data Columns
@@ -714,6 +735,7 @@ export default function MappingPage() {
             </div>
           </div>
       </AppLayout>
+      </ErrorBoundary>
     </ProtectedRoute>
   )
 }

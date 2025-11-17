@@ -80,10 +80,8 @@ export function useVDAMode(analysisId: string, stateResults: StateResult[]) {
   // Calculate VDA scenario
   const calculateVDA = async (states?: string[]) => {
     const statesToUse = states || selectedStates
-    console.log('[VDA] calculateVDA called with:', { states, selectedStates, statesToUse })
 
     if (statesToUse.length === 0) {
-      console.log('[VDA] No states selected, showing error')
       toast({
         title: 'No States Selected',
         description: 'Please select at least one state for VDA',
@@ -93,12 +91,10 @@ export function useVDAMode(analysisId: string, stateResults: StateResult[]) {
     }
 
     try {
-      console.log('[VDA] Starting calculation...')
       setCalculating(true)
       const response = await apiClient.post(`/api/v1/analyses/${analysisId}/vda`, {
         selected_states: statesToUse
       })
-      console.log('[VDA] Response received:', response.data)
       setVdaResults(response.data)
       setVdaEnabled(true)
 
@@ -107,8 +103,7 @@ export function useVDAMode(analysisId: string, stateResults: StateResult[]) {
         description: `Total savings: $${response.data.total_savings.toLocaleString()}`
       })
     } catch (error: any) {
-      console.error('[VDA] Failed to calculate VDA:', error)
-      console.error('[VDA] Error response:', error.response)
+      console.error('Failed to calculate VDA:', error)
       toast({
         title: 'Error',
         description: error.response?.data?.detail || 'Failed to calculate VDA',
@@ -164,12 +159,10 @@ export function useVDAMode(analysisId: string, stateResults: StateResult[]) {
   }
 
   const toggleState = (stateCode: string) => {
-    console.log('[VDA] toggleState called with:', stateCode)
     setSelectedStates(prev => {
       const newSelection = prev.includes(stateCode)
         ? prev.filter(s => s !== stateCode)
         : [...prev, stateCode]
-      console.log('[VDA] New selected states:', newSelection)
       return newSelection
     })
   }

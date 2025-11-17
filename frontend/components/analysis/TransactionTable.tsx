@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
+import { FixedSizeList as List } from 'react-window'
+import type { ListChildComponentProps } from 'react-window'
 import {
   ChevronDown,
   ChevronUp,
@@ -293,7 +295,63 @@ export default function TransactionTable({
                       No transactions found.
                     </TableCell>
                   </TableRow>
+                ) : itemsPerPage === -1 && paginatedTransactions.length > 50 ? (
+                  // Virtual scrolling for "All" with 50+ transactions
+                  <TableRow>
+                    <TableCell colSpan={7} className="p-0">
+                      <List
+                        height={600}
+                        itemCount={paginatedTransactions.length}
+                        itemSize={53}
+                        width="100%"
+                      >
+                        {({ index, style }: ListChildComponentProps) => {
+                          const transaction = paginatedTransactions[index]
+                          const isThresholdCrossing = index === thresholdCrossingIndex
+                          return (
+                            <div
+                              style={style}
+                              className={
+                                isThresholdCrossing
+                                  ? 'bg-warning/10 border-l-4 border-l-warning border-b border-border hover:bg-warning/20 transition-colors flex items-center'
+                                  : 'border-b border-border hover:bg-muted/30 transition-colors flex items-center'
+                              }
+                            >
+                              <div className="px-4 py-3 text-sm text-foreground w-[12%]">{formatDate(transaction.transaction_date)}</div>
+                              <div className="px-4 py-3 text-sm text-foreground font-mono w-[18%]">
+                                {transaction.transaction_id}
+                              </div>
+                              <div className="px-4 py-3 text-sm text-right font-medium text-foreground w-[14%]">
+                                {formatCurrency(transaction.sales_amount)}
+                              </div>
+                              <div className="px-4 py-3 text-sm text-right text-foreground w-[14%]">
+                                {transaction.taxable_amount !== 0 ? formatCurrency(transaction.taxable_amount) : <span className="text-muted-foreground">-</span>}
+                              </div>
+                              <div className="px-4 py-3 text-sm text-right text-foreground w-[14%]">
+                                {transaction.exempt_amount !== 0 ? formatCurrency(transaction.exempt_amount) : <span className="text-muted-foreground">-</span>}
+                              </div>
+                              <div className="px-4 py-3 text-sm text-center text-foreground w-[14%]">
+                                <span
+                                  className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                    transaction.sales_channel === 'direct'
+                                      ? 'bg-muted text-foreground'
+                                      : 'bg-accent text-foreground'
+                                  }`}
+                                >
+                                  {transaction.sales_channel === 'direct' ? 'Direct' : 'Marketplace'}
+                                </span>
+                              </div>
+                              <div className="px-4 py-3 text-sm text-right font-semibold text-foreground w-[14%]">
+                                {formatCurrency(transaction.running_total)}
+                              </div>
+                            </div>
+                          )
+                        }}
+                      </List>
+                    </TableCell>
+                  </TableRow>
                 ) : (
+                  // Regular rendering for paginated views or small "All" lists
                   paginatedTransactions.map((transaction, index) => {
                     const isThresholdCrossing = index === thresholdCrossingIndex
                     return (

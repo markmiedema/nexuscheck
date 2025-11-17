@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 
@@ -38,7 +38,7 @@ interface USMapProps {
   onStateClick?: (stateCode: string) => void
 }
 
-export default function USMap({ stateData, analysisId, onStateClick }: USMapProps) {
+const USMap = memo(function USMap({ stateData, analysisId, onStateClick }: USMapProps) {
   const router = useRouter()
   const [hoveredState, setHoveredState] = useState<string | null>(null)
 
@@ -205,4 +205,6 @@ export default function USMap({ stateData, analysisId, onStateClick }: USMapProp
       )}
     </div>
   )
-}
+});
+
+export default USMap;

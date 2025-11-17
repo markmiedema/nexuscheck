@@ -1,4 +1,5 @@
 'use client';
+import { memo } from 'react';
 import {
   Select,
   SelectContent,
@@ -25,7 +26,7 @@ interface StateDetailHeaderProps {
   };
 }
 
-export function StateDetailHeader({
+export const StateDetailHeader = memo(function StateDetailHeader({
   stateName,
   stateCode,
   nexusStatus,
@@ -39,15 +40,11 @@ export function StateDetailHeader({
   analysisId,
   analysisPeriod,
 }: StateDetailHeaderProps) {
-  // Debug logging
-  console.log('StateDetailHeader props:', { stateName, nexusStatus, nexusType });
-
   const getBadgeStyles = () => {
     let baseColor = '';
 
     // Use nexusType if available and state has nexus (exclude 'none')
     if (nexusStatus === 'has_nexus' && nexusType && nexusType !== 'none') {
-      console.log('Using nexusType for badge color:', nexusType);
       switch (nexusType) {
         case 'both':
           baseColor = '289 46% 45%'; // Purple
@@ -195,4 +192,4 @@ export function StateDetailHeader({
       )}
     </div>
   );
-}
+});

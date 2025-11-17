@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface LiabilityBreakdownProps {
@@ -18,7 +19,7 @@ interface LiabilityBreakdownProps {
   penaltyRate?: number; // Penalty rate as percentage (e.g., 20)
 }
 
-export function LiabilityBreakdown({
+export const LiabilityBreakdown = memo(function LiabilityBreakdown({
   taxableSales, // Actually exposure_sales - keeping prop name for backward compatibility
   taxRate,
   estimatedLiability,
@@ -164,4 +165,4 @@ export function LiabilityBreakdown({
       </CardContent>
     </Card>
   );
-}
+});

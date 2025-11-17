@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -40,7 +41,7 @@ interface ComplianceSectionProps {
   };
 }
 
-export function ComplianceSection({
+export const ComplianceSection = memo(function ComplianceSection({
   nexusStatus,
   stateName,
   nexusFirstEstablishedYear,
@@ -732,4 +733,4 @@ export function ComplianceSection({
   }
 
   return null;
-}
+});
