@@ -180,7 +180,7 @@ export function PhysicalNexusForm({
                 </SelectContent>
               </Select>
               {editingState && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground dark:text-slate-300">
                   State cannot be changed. Delete and create new to change state.
                 </p>
               )}
@@ -201,7 +201,7 @@ export function PhysicalNexusForm({
                 }
                 required
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground dark:text-slate-300">
                 When did you establish physical presence?
               </p>
             </div>
@@ -218,7 +218,7 @@ export function PhysicalNexusForm({
                 placeholder="e.g., Office opened in Los Angeles"
                 required
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground dark:text-slate-300">
                 Brief description of physical presence
               </p>
             </div>
@@ -237,7 +237,7 @@ export function PhysicalNexusForm({
                   })
                 }
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground dark:text-slate-300">
                 When did you register with the state?
               </p>
             </div>
@@ -254,7 +254,7 @@ export function PhysicalNexusForm({
                 placeholder="e.g., CA-123456"
                 maxLength={50}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground dark:text-slate-300">
                 State tax permit or registration number
               </p>
             </div>
@@ -272,7 +272,7 @@ export function PhysicalNexusForm({
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 maxLength={500}
               />
-              <p className="text-xs text-muted-foreground text-right">
+              <p className="text-xs text-muted-foreground dark:text-slate-300 text-right">
                 {formState.notes?.length || 0} / 500
               </p>
             </div>

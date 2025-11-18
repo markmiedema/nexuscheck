@@ -230,9 +230,9 @@ export default function AnalysesPage() {
     if (filteredData.length === 0) {
       return (
         <div className="text-center py-12 px-6">
-          <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+          <FileText className="mx-auto h-12 w-12 text-muted-foreground dark:text-slate-400" />
           <h3 className="mt-2 text-sm font-semibold text-foreground">No analyses found</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground dark:text-slate-300">
             {searchTerm
               ? 'No analyses match your search.'
               : statusFilter === 'all'

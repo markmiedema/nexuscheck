@@ -500,7 +500,7 @@ export default function ClientSetupPage() {
 
           {/* File Upload Zone - Appears after analysis creation */}
           {showUploadZone && (
-            <Card className="mt-8 border-2 border-dashed">
+            <Card className="mt-8">
               <CardHeader>
                 <CardTitle className="text-xl">Upload Transaction Data</CardTitle>
                 <CardDescription>
