@@ -1,124 +1,181 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { isValidEmail } from '@/lib/utils/validation'
+import { Separator } from '@/components/ui/separator'
+import { Github } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
+
+// Define Validation Schema
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const login = useAuthStore((state) => state.login)
+  const [globalError, setGlobalError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  // Redirect path after login
+  const redirectTo = searchParams.get('redirectTo') || '/analyses'
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
 
-    // Validate email format
-    if (!isValidEmail(email)) {
-      setError('Please enter a valid email address')
-      setLoading(false)
-      return
-    }
-
-    // Basic password check
-    if (!password || password.length < 6) {
-      setError('Password is required')
-      setLoading(false)
-      return
-    }
-
+  const onSubmit = async (data: LoginFormValues) => {
+    setGlobalError('')
+    setIsLoading(true)
     try {
-      await login(email, password)
-      router.push('/analyses')
+      await login(data.email, data.password)
+      router.push(redirectTo)
     } catch (err: any) {
-      setError(err.message || 'Failed to login')
+      setGlobalError(err.message || 'Invalid email or password')
     } finally {
-      setLoading(false)
+      setIsLoading(false)
+    }
+  }
+
+  const handleSocialLogin = async (provider: 'github' | 'google') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (error) throw error
+    } catch (err: any) {
+      setGlobalError(err.message || `Failed to login with ${provider}`)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 px-4">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="max-w-md w-full space-y-8 bg-card p-6 rounded-2xl shadow-floating border-2 border-border">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground">Nexus Check</h1>
-          <h2 className="mt-6 text-2xl font-semibold text-foreground">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Or{' '}
-            <Link
-              href="/signup"
-              className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors"
-            >
-              create a new account
-            </Link>
+
+      <div className="max-w-md w-full space-y-6 bg-card p-8 rounded-xl shadow-lg border border-border backdrop-blur-sm">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Welcome back
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Enter your credentials to access your account
           </p>
         </div>
 
-        {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
-              <p className="text-sm text-destructive-foreground">{error}</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {globalError && (
+            <div className="p-3 rounded-md bg-destructive/15 text-destructive text-sm font-medium">
+              {globalError}
             </div>
           )}
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                placeholder="you@example.com"
-              />
-            </div>
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Email
+            </label>
+            <Input
+              id="email"
+              placeholder="name@example.com"
+              type="email"
+              autoCapitalize="none"
+              autoComplete="email"
+              autoCorrect="off"
+              disabled={isLoading}
+              {...register('email')}
+            />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
+          </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Password
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                placeholder="••••••••"
-              />
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-primary hover:underline underline-offset-4"
+              >
+                Forgot password?
+              </Link>
             </div>
+            <PasswordInput
+              id="password"
+              placeholder="••••••••"
+              autoComplete="current-password"
+              disabled={isLoading}
+              {...register('password')}
+            />
+            {errors.password && (
+              <p className="text-sm text-destructive">{errors.password.message}</p>
+            )}
           </div>
 
-          <div>
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? 'Signing in...' : 'Sign in'}
-            </Button>
-          </div>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Signing in...' : 'Sign in'}
+          </Button>
         </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <Separator className="w-full" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2">
+          <Button
+            variant="outline"
+            type="button"
+            disabled={isLoading}
+            onClick={() => handleSocialLogin('github')}
+          >
+            <Github className="mr-2 h-4 w-4" />
+            GitHub
+          </Button>
+          {/* Add Google button here similarly if configured in Supabase */}
+        </div>
+
+        <div className="text-center text-sm text-muted-foreground">
+          Don&apos;t have an account?{' '}
+          <Link
+            href="/signup"
+            className="font-medium text-primary hover:underline underline-offset-4"
+          >
+            Sign up
+          </Link>
+        </div>
       </div>
     </div>
   )
