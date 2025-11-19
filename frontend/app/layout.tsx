@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'sonner'
 import { ThemeProvider } from '@/components/theme-provider'
+import { cn } from '@/lib/utils'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,8 +18,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className="bg-background">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={cn(
+        inter.className,
+        "min-h-screen bg-background font-sans antialiased bg-dot-pattern"
+      )}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

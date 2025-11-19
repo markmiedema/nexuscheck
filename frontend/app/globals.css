@@ -278,4 +278,14 @@
     background-color: var(--banner-bg-dark) !important;
     border-color: var(--banner-border-dark) !important;
   }
+
+  /* ===== Background Patterns ===== */
+  .bg-dot-pattern {
+    /* Creates a 1px dot using the foreground color with 10% opacity */
+    background-image: radial-gradient(circle, hsl(var(--foreground) / 0.1) 1px, transparent 1px);
+    /* Spaces the dots 24px apart */
+    background-size: 24px 24px;
+    /* Ensures it covers the whole area */
+    background-attachment: fixed;
+  }
 }
