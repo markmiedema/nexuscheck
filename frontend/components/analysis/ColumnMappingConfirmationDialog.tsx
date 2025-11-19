@@ -59,7 +59,7 @@ export default function ColumnMappingConfirmationDialog({
         {/* Data Summary - Top Section */}
         <div className="bg-muted/50 border border-border rounded-lg p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
-            <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
+            <CheckCircle2 className="h-5 w-5 text-muted-foreground dark:text-slate-400" />
             <h3 className="font-semibold text-foreground">
               Analysis Ready to Calculate
             </h3>
@@ -68,15 +68,15 @@ export default function ColumnMappingConfirmationDialog({
           {dataSummary && (
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
-                <p className="text-muted-foreground">Transactions</p>
+                <p className="text-muted-foreground dark:text-slate-300">Transactions</p>
                 <p className="font-semibold text-lg text-foreground">{dataSummary.total_rows.toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">States</p>
+                <p className="text-muted-foreground dark:text-slate-300">States</p>
                 <p className="font-semibold text-lg text-foreground">{dataSummary.unique_states}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Period</p>
+                <p className="text-muted-foreground dark:text-slate-300">Period</p>
                 <p className="font-semibold text-sm leading-tight text-foreground">
                   {dataSummary.date_range.start}
                   <br />
@@ -104,11 +104,11 @@ export default function ColumnMappingConfirmationDialog({
                 key={key}
                 className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
               >
-                <CheckCircle2 className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <CheckCircle2 className="h-5 w-5 text-muted-foreground dark:text-slate-400 flex-shrink-0" />
 
                 <div className="flex-1 grid grid-cols-[120px_auto_1fr] gap-3 items-center">
-                  <span className="text-sm font-medium text-muted-foreground">{label}</span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground dark:text-slate-300">{label}</span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground dark:text-slate-400" />
                   <div>
                     <span className="text-sm font-semibold text-foreground">{detectedColumn}</span>
                     <div className="flex gap-1 mt-1 flex-wrap">
