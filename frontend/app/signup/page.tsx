@@ -3,94 +3,119 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { isValidEmail, getPasswordStrengthMessage, isStrongPassword } from '@/lib/utils/validation'
+import { Check, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+// Password validation regex
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/
+
+const signupSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().regex(passwordRegex, {
+    message: 'Password does not meet requirements',
+  }),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+})
+
+type SignupFormValues = z.infer<typeof signupSchema>
 
 export default function SignupPage() {
   const router = useRouter()
-
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [globalError, setGlobalError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  })
 
-    // Validate email format
-    if (!isValidEmail(email)) {
-      setError('Please enter a valid email address')
-      setLoading(false)
-      return
-    }
+  const password = watch('password')
 
-    // Validate passwords match
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      setLoading(false)
-      return
-    }
-
-    // Validate password strength
-    if (!isStrongPassword(password)) {
-      setError(getPasswordStrengthMessage(password))
-      setLoading(false)
-      return
-    }
-
+  const onSubmit = async (data: SignupFormValues) => {
+    setGlobalError('')
+    setIsLoading(true)
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
       })
 
       if (signUpError) throw signUpError
 
-      if (data.user) {
+      if (authData.user) {
         setSuccess(true)
-        // Redirect to login after 2 seconds
         setTimeout(() => {
           router.push('/login')
-        }, 2000)
+        }, 3000)
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to create account')
+      setGlobalError(err.message || 'Failed to create account')
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
+  }
+
+  // Helper to check password requirements for visual feedback
+  const RequirementsList = ({ pwd }: { pwd: string }) => {
+    const reqs = [
+      { re: /.{8,}/, label: "At least 8 characters" },
+      { re: /[A-Z]/, label: "One uppercase letter" },
+      { re: /[a-z]/, label: "One lowercase letter" },
+      { re: /[0-9]/, label: "One number" },
+    ]
+
+    return (
+      <div className="space-y-1.5 pt-1">
+        {reqs.map((r, idx) => {
+          const isMet = r.re.test(pwd || '')
+          return (
+            <div key={idx} className="flex items-center space-x-2 text-xs">
+              {isMet ? (
+                <Check className="h-3 w-3 text-green-500" />
+              ) : (
+                <X className="h-3 w-3 text-muted-foreground" />
+              )}
+              <span className={cn(isMet ? "text-green-600" : "text-muted-foreground")}>
+                {r.label}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    )
   }
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
-        <div className="max-w-md w-full space-y-8 bg-card p-6 rounded-2xl shadow-floating border-2 border-border text-center">
-          <div className="rounded-full bg-success/10 w-16 h-16 flex items-center justify-center mx-auto">
-            <svg
-              className="w-8 h-8 text-success-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 px-4">
+        <div className="max-w-md w-full space-y-6 bg-card p-8 rounded-xl shadow-lg border border-border backdrop-blur-sm text-center">
+          <div className="h-12 w-12 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-full flex items-center justify-center mx-auto">
+            <Check className="h-6 w-6" />
           </div>
-          <h2 className="text-2xl font-bold text-card-foreground">Account Created!</h2>
+          <h2 className="text-2xl font-bold text-foreground">Account Created</h2>
           <p className="text-muted-foreground">
-            Your account has been created successfully. Redirecting to login...
+            Your account has been successfully created. Redirecting you to login...
           </p>
         </div>
       </div>
@@ -98,98 +123,87 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 px-4">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="max-w-md w-full space-y-8 bg-card p-6 rounded-2xl shadow-floating border-2 border-border">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-card-foreground">Nexus Check</h1>
-          <h2 className="mt-6 text-2xl font-semibold text-card-foreground">
-            Create your account
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link
-              href="/login"
-              className="font-medium text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors"
-            >
-              Sign in
-            </Link>
+
+      <div className="max-w-md w-full space-y-6 bg-card p-8 rounded-xl shadow-lg border border-border backdrop-blur-sm">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Create an account
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Enter your email below to create your account
           </p>
         </div>
 
-        {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
-              <p className="text-sm text-destructive-foreground">{error}</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {globalError && (
+            <div className="p-3 rounded-md bg-destructive/15 text-destructive text-sm font-medium">
+              {globalError}
             </div>
           )}
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                placeholder="••••••••"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Must be at least 8 characters with uppercase, lowercase, and number
-              </p>
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">
-                Confirm password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                placeholder="••••••••"
-              />
-            </div>
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-medium leading-none">
+              Email
+            </label>
+            <Input
+              id="email"
+              placeholder="name@example.com"
+              type="email"
+              autoComplete="email"
+              {...register('email')}
+            />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
           </div>
 
-          <div>
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? 'Creating account...' : 'Create account'}
-            </Button>
+          <div className="space-y-2">
+            <label htmlFor="password" className="text-sm font-medium leading-none">
+              Password
+            </label>
+            <PasswordInput
+              id="password"
+              placeholder="••••••••"
+              autoComplete="new-password"
+              {...register('password')}
+            />
+            {/* Real-time password strength indicator */}
+            <RequirementsList pwd={password} />
           </div>
+
+          <div className="space-y-2">
+            <label htmlFor="confirmPassword" className="text-sm font-medium leading-none">
+              Confirm Password
+            </label>
+            <PasswordInput
+              id="confirmPassword"
+              placeholder="••••••••"
+              autoComplete="new-password"
+              {...register('confirmPassword')}
+            />
+            {errors.confirmPassword && (
+              <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+            )}
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Creating account...' : 'Create account'}
+          </Button>
         </form>
+
+        <div className="text-center text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Link
+            href="/login"
+            className="font-medium text-primary hover:underline underline-offset-4"
+          >
+            Sign in
+          </Link>
+        </div>
       </div>
     </div>
   )
