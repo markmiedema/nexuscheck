@@ -4,45 +4,45 @@
 
 @layer base {
   :root {
-    /* ===== SEMANTIC TOKENS - Light Mode ===== */
-    /* Hierarchy: slate-50 (page) → slate-100 (card) → slate-200 (input) → slate-300 (hover) → slate-800 (button) */
+    /* ===== THEME: WARM ALABASTER (Paper) ===== */
+    /* Warm, eye-friendly tones that mimic physical paper for long sessions */
 
-    /* Backgrounds - slate-50 (LIGHTEST) */
-    --background: 210 40% 98%;                    /* Slate-50: Page background */
-    --foreground: 215.3 19.3% 34.5%;              /* Slate-600: Body text */
+    /* Background: Subtle warm cream (Alabaster) - absorbs light instead of emitting it */
+    --background: 35 30% 98%;                     /* Warm cream/alabaster */
+    --foreground: 20 10% 20%;                     /* Soft warm charcoal */
 
-    /* Cards & Elevated Surfaces - slate-100 */
-    --card: 210 40% 96.1%;                        /* Slate-100: Cards/Components */
-    --card-foreground: 215.3 25% 26.7%;           /* Slate-700: Headings on cards */
+    /* Cards: Pure white to pop against the cream background */
+    --card: 0 0% 100%;                            /* Pure white */
+    --card-foreground: 20 10% 20%;                /* Warm charcoal */
 
-    /* Popovers & Dropdowns - slate-100 */
-    --popover: 210 40% 96.1%;                     /* Slate-100 */
-    --popover-foreground: 215.3 19.3% 34.5%;      /* Slate-600 */
+    /* Popovers & Dropdowns */
+    --popover: 0 0% 100%;                         /* Pure white */
+    --popover-foreground: 20 10% 20%;             /* Warm charcoal */
 
-    /* Primary Interactive - slate-800 (Button background) */
+    /* Primary Interactive - Keep brand identity */
     --primary: 217.2 32.6% 17.5%;                 /* Slate-800: Button background */
     --primary-foreground: 210 40% 98%;            /* Slate-50: Light text on dark */
 
-    /* Secondary Interactive */
-    --secondary: 214.3 31.8% 91.4%;               /* Slate-200: Input fields */
+    /* Secondary Interactive - Warm Beige */
+    --secondary: 35 20% 94%;                      /* Warm beige */
     --secondary-foreground: 217.2 32.6% 17.5%;    /* Slate-800 */
 
-    /* Muted/Disabled */
-    --muted: 214.3 31.8% 91.4%;                   /* Slate-200: Muted backgrounds */
-    --muted-foreground: 215 20.2% 65.1%;          /* Slate-400: Placeholder text */
+    /* Muted/Disabled - Warm Grays */
+    --muted: 30 15% 94%;                          /* Warm gray */
+    --muted-foreground: 25 5% 45%;                /* Warm muted text */
 
-    /* Accent (Hover States) - slate-300 */
-    --accent: 212.7 26.8% 83.9%;                  /* Slate-300: Input hover state */
+    /* Accent (Hover States) */
+    --accent: 35 20% 94%;                         /* Warm beige */
     --accent-foreground: 217.2 32.6% 17.5%;       /* Slate-800 */
 
     /* Destructive */
     --destructive: 0 84.2% 60.2%;                 /* Red for destructive actions */
     --destructive-foreground: 210 40% 98%;        /* Slate-50 */
 
-    /* Borders & Inputs - slate-200/slate-300 */
-    --border: 212.7 26.8% 83.9%;                  /* Slate-300: Borders */
-    --input: 214.3 31.8% 91.4%;                   /* Slate-200: Input fields (default) */
-    --ring: 215 20.2% 65.1%;                      /* Slate-400: Focus ring */
+    /* Borders & Inputs - Warm Taupe (critical for the "Soft" look) */
+    --border: 30 12% 88%;                         /* Warm taupe */
+    --input: 30 12% 88%;                          /* Warm taupe */
+    --ring: 217.2 32.6% 17.5%;                    /* Slate-800 */
 
     /* Success State */
     --success: 142.1 76.2% 36.3%;                 /* Green for success */
@@ -64,8 +64,8 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 
-    /* Shadow Color - Use Slate-300 for blue-grey glow in light mode */
-    --shadow-color: 212.7 26.8% 83.9%;            /* Slate-300 */
+    /* Shadow Color - Warm Taupe (The "Golden" Shadow) */
+    --shadow-color: 30 20% 82%;                   /* Warm taupe */
 
     /* Chart Colors */
     --chart-1: 220 70% 50%;
@@ -76,48 +76,45 @@
   }
 
   .dark {
-    /* ===== SEMANTIC TOKENS - Dark Mode ===== */
-    /* Hierarchy: slate-800 (page) → slate-700 (card) → slate-600 (input) → slate-500 (hover) → slate-50 (button) */
+    /* ===== THEME: WARM DARK (Espresso) ===== */
+    /* Warm dark tones that complement the light mode alabaster theme */
 
-    /* Background Layer - slate-800 (DARKEST ALLOWED) */
-    --background: 217.2 32.6% 17.5%;              /* Slate-800: Page background */
-    --foreground: 214.3 31.8% 91.4%;              /* Slate-200: Titles, headings */
+    /* Background: Deep warm grey (Espresso) */
+    --background: 20 10% 10%;                     /* Warm espresso */
+    --foreground: 35 10% 90%;                     /* Warm light grey */
 
-    /* Surface/Card Layer - slate-700 */
-    --card: 215.3 25% 26.7%;                      /* Slate-700: Cards/Components */
-    --card-foreground: 214.3 31.8% 91.4%;         /* Slate-200: Titles on cards */
+    /* Surface/Card Layer */
+    --card: 20 10% 12%;                           /* Slightly lighter espresso */
+    --card-foreground: 35 10% 90%;                /* Warm light grey */
 
-    /* Popovers & Dropdowns - slate-700 */
-    --popover: 215.3 25% 26.7%;                   /* Slate-700 */
-    --popover-foreground: 212.7 26.8% 83.9%;      /* Slate-300: Labels, links */
+    /* Popovers & Dropdowns */
+    --popover: 20 10% 12%;                        /* Slightly lighter espresso */
+    --popover-foreground: 35 10% 90%;             /* Warm light grey */
 
-    /* Primary Interactive - slate-50 (Button background) */
+    /* Primary Interactive */
     --primary: 210 40% 98%;                       /* Slate-50: Button background */
     --primary-foreground: 217.2 32.6% 17.5%;      /* Slate-800: Dark text on light */
 
     /* Secondary Interactive */
-    --secondary: 215.3 19.3% 34.5%;               /* Slate-600: Input fields */
+    --secondary: 20 10% 16%;                      /* Warm dark grey */
     --secondary-foreground: 210 40% 98%;          /* Slate-50 */
 
     /* Muted/Disabled States */
-    --muted: 215.3 19.3% 34.5%;                   /* Slate-600: Muted backgrounds */
-    --muted-foreground: 215 20.2% 65.1%;          /* Slate-400: Placeholder text */
+    --muted: 20 10% 16%;                          /* Warm dark grey */
+    --muted-foreground: 25 5% 60%;                /* Warm muted text */
 
-    /* Accent (Hover States) - slate-500 */
-    --accent: 215.4 16.3% 46.9%;                  /* Slate-500: Input hover state */
+    /* Accent (Hover States) */
+    --accent: 20 10% 16%;                         /* Warm dark grey */
     --accent-foreground: 210 40% 98%;             /* Slate-50 */
 
     /* Destructive */
     --destructive: 0 62.8% 50%;                   /* Red for destructive actions */
     --destructive-foreground: 210 40% 98%;        /* Slate-50 */
 
-    /* Input Layer - slate-600 */
-    --input: 215.3 19.3% 34.5%;                   /* Slate-600: Input fields (default) */
-    --input-border: 215 20.2% 65.1%;              /* Slate-400: Borders */
-
-    /* Borders - slate-400 */
-    --border: 215 20.2% 65.1%;                    /* Slate-400: Borders */
-    --ring: 215 20.2% 65.1%;                      /* Slate-400: Focus ring */
+    /* Borders */
+    --border: 20 10% 18%;                         /* Warm border */
+    --input: 20 10% 18%;                          /* Warm input */
+    --ring: 20 10% 18%;                           /* Warm focus ring */
 
     /* Success State */
     --success: 142.1 70.6% 45.3%;                 /* Brighter green for dark backgrounds */
@@ -161,25 +158,25 @@
 @layer utilities {
   /* ===== Shadow System for Depth Hierarchy ===== */
 
-  /* Light Mode Shadows - Using slate color for blue-grey glow */
+  /* Light Mode Shadows - Warm taupe shadows with softer opacity */
   .shadow-soft {
-    box-shadow: 0 2px 4px -1px hsl(var(--shadow-color) / 0.5),
-                0 1px 2px -1px hsl(var(--shadow-color) / 0.5);
+    box-shadow: 0 2px 4px -1px hsl(var(--shadow-color) / 0.4),
+                0 1px 2px -1px hsl(var(--shadow-color) / 0.3);
   }
 
   .shadow-card {
-    box-shadow: 0 10px 15px -3px hsl(var(--shadow-color) / 0.4),
-                0 4px 6px -4px hsl(var(--shadow-color) / 0.3);
+    box-shadow: 0 10px 15px -3px hsl(var(--shadow-color) / 0.3),
+                0 4px 6px -4px hsl(var(--shadow-color) / 0.2);
   }
 
   .shadow-elevated {
-    box-shadow: 0 12px 20px -4px hsl(var(--shadow-color) / 0.45),
-                0 6px 10px -5px hsl(var(--shadow-color) / 0.35);
+    box-shadow: 0 12px 20px -4px hsl(var(--shadow-color) / 0.35),
+                0 6px 10px -5px hsl(var(--shadow-color) / 0.25);
   }
 
   .shadow-floating {
-    box-shadow: 0 20px 25px -5px hsl(var(--shadow-color) / 0.5),
-                0 8px 10px -6px hsl(var(--shadow-color) / 0.3);
+    box-shadow: 0 20px 25px -5px hsl(var(--shadow-color) / 0.35),
+                0 8px 10px -6px hsl(var(--shadow-color) / 0.2);
   }
 
   /* Dark Mode Shadows - Much stronger and more visible */
@@ -308,7 +305,7 @@
     mask-image: radial-gradient(circle at center, black, transparent 80%);
   }
 
-  /* Light Mode: Subtle blue-slate atmospheric glow */
+  /* Light Mode: Golden Hour / Warm Ambient Glow */
   .bg-grainy::after {
     content: "";
     position: fixed;
@@ -316,20 +313,20 @@
     z-index: -2;
     background: radial-gradient(
       circle at 50% 0%,
-      hsl(210 40% 96.1% / 0.4) 0%,
-      transparent 70%
+      hsl(45 50% 70% / 0.12) 0%,
+      transparent 60%
     );
   }
 
   /* Dark Mode Adjustments */
   .dark .bg-grainy::before {
-    opacity: 0.3; /* Slightly more visible grain on dark */
+    opacity: 0.25; /* Slightly more visible grain on dark */
   }
 
   .dark .bg-grainy::after {
     background: radial-gradient(
       circle at 50% 0%,
-      hsl(var(--primary) / 0.08) 0%,
+      hsl(40 30% 20% / 0.3) 0%,
       transparent 70%
     );
   }
