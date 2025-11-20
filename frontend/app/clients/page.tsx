@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { listAnalyses, deleteAnalysis, type Analysis } from '@/lib/api/analyses'
+import { listClients, deleteClient, type Client } from '@/lib/api/clients'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
@@ -38,7 +38,11 @@ import {
   LayoutGrid,
   List as ListIcon,
   MoreHorizontal,
-  Building2
+  Building2,
+  Briefcase,
+  User,
+  Mail,
+  Users
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -47,16 +51,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-// --- CONFIGURATION ---
-const STATUS_CONFIG = {
-  draft: { label: 'Draft', color: 'bg-muted text-muted-foreground border-border', icon: Clock },
-  processing: { label: 'Processing', color: 'bg-blue-50 text-blue-700 border-blue-200', icon: Loader2 },
-  complete: { label: 'Complete', color: 'bg-green-50 text-green-700 border-green-200', icon: CheckCircle },
-  error: { label: 'Error', color: 'bg-red-50 text-red-700 border-red-200', icon: AlertCircle },
-}
-
 type SortConfig = {
-  column: 'client_company_name' | 'states_with_nexus' | 'total_liability' | 'created_at' | null
+  column: 'company_name' | 'industry' | 'created_at' | null
   direction: 'asc' | 'desc'
 }
 
@@ -65,13 +61,11 @@ type ViewMode = 'grid' | 'list'
 export default function ClientsPage() {
   const router = useRouter()
 
-  const [analyses, setAnalyses] = useState<Analysis[]>([])
-  const [totalCount, setTotalCount] = useState(0)
+  const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
-  const [activeTab, setActiveTab] = useState<string>('all')
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const [sortConfig, setSortConfig] = useState<SortConfig>({ column: 'created_at', direction: 'desc' })
 
@@ -81,15 +75,14 @@ export default function ClientsPage() {
   }, [searchTerm])
 
   useEffect(() => {
-    loadAnalyses()
+    loadClients()
   }, [debouncedSearchTerm])
 
-  async function loadAnalyses() {
+  async function loadClients() {
     try {
       setLoading(true)
-      const data = await listAnalyses({ limit: 50, offset: 0, search: debouncedSearchTerm || undefined })
-      setAnalyses(data.analyses)
-      setTotalCount(data.total_count)
+      const data = await listClients()
+      setClients(data)
     } catch (error) {
       handleApiError(error, { userMessage: 'Failed to load clients' })
     } finally {
@@ -97,15 +90,15 @@ export default function ClientsPage() {
     }
   }
 
-  async function handleDelete(analysisId: string, clientName: string, e?: React.MouseEvent) {
+  async function handleDelete(clientId: string, clientName: string, e?: React.MouseEvent) {
     e?.stopPropagation()
     if (!confirm(`Delete client "${clientName}"?`)) return
 
     try {
-      setDeleteLoading(analysisId)
-      await deleteAnalysis(analysisId)
+      setDeleteLoading(clientId)
+      await deleteClient(clientId)
       showSuccess(`Deleted client "${clientName}"`)
-      await loadAnalyses()
+      await loadClients()
     } catch (error) {
       handleApiError(error, { userMessage: 'Failed to delete client' })
     } finally {
@@ -113,32 +106,33 @@ export default function ClientsPage() {
     }
   }
 
-  function formatCurrency(amount?: number): string {
-    if (amount === undefined || amount === null) return '-'
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  }
-
   // Stats calculation
-  const stats = useMemo(() => ({
-    totalFiles: totalCount,
-    nexusFoundCount: analyses.filter(a => (a.states_with_nexus ?? 0) > 0).length,
-    highPriorityCount: analyses.filter(a => (a.total_liability ?? 0) > 5000).length,
-    inProgressCount: analyses.filter(a => ['draft', 'processing'].includes(a.status)).length
-  }), [analyses, totalCount])
+  const stats = useMemo(() => {
+    const filtered = clients.filter(c =>
+      c.company_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    )
+    return {
+      totalClients: clients.length,
+      filteredCount: filtered.length,
+      recentCount: clients.filter(c => {
+        const daysSince = (Date.now() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        return daysSince <= 30
+      }).length,
+      withContactCount: clients.filter(c => c.contact_email || c.contact_phone).length,
+    }
+  }, [clients, debouncedSearchTerm])
 
-  const displayedAnalyses = useMemo(() => {
-    let filtered = [...analyses]
-    if (activeTab !== 'all') filtered = filtered.filter(a => a.status === activeTab)
+  const displayedClients = useMemo(() => {
+    let filtered = clients.filter(c =>
+      c.company_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      c.industry?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      c.contact_name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    )
 
     if (sortConfig.column) {
       filtered.sort((a, b) => {
-        const aVal = a[sortConfig.column!] ?? 0
-        const bVal = b[sortConfig.column!] ?? 0
+        const aVal = a[sortConfig.column!] ?? ''
+        const bVal = b[sortConfig.column!] ?? ''
         if (typeof aVal === 'string' && typeof bVal === 'string') {
           return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
         }
@@ -147,22 +141,18 @@ export default function ClientsPage() {
       })
     }
     return filtered
-  }, [analyses, sortConfig, activeTab])
+  }, [clients, sortConfig, debouncedSearchTerm])
 
   // --- CLIENT CARD COMPONENT ---
-  const ClientCard = ({ analysis }: { analysis: Analysis }) => {
-    const status = STATUS_CONFIG[analysis.status]
-    const StatusIcon = status.icon
-    const isHighRisk = (analysis.total_liability ?? 0) > 5000
-
+  const ClientCard = ({ client }: { client: Client }) => {
     // Avatar Color Generator
-    const initial = analysis.client_company_name.charAt(0).toUpperCase()
+    const initial = client.company_name.charAt(0).toUpperCase()
     const colors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700']
-    const avatarColor = colors[analysis.client_company_name.length % colors.length]
+    const avatarColor = colors[client.company_name.length % colors.length]
 
     return (
       <div
-        onClick={() => router.push(`/clients/${analysis.id}`)}
+        onClick={() => router.push(`/clients/${client.id}`)}
         className="group relative flex flex-col bg-card hover:shadow-card border border-border/60 rounded-xl p-5 transition-all cursor-pointer hover:-translate-y-1"
       >
         <div className="flex justify-between items-start mb-4">
@@ -171,8 +161,8 @@ export default function ClientsPage() {
               {initial}
             </div>
             <div>
-              <h3 className="font-semibold text-foreground line-clamp-1">{analysis.client_company_name}</h3>
-              <span className="text-xs text-muted-foreground">{new Date(analysis.created_at).toLocaleDateString()}</span>
+              <h3 className="font-semibold text-foreground line-clamp-1">{client.company_name}</h3>
+              <span className="text-xs text-muted-foreground">{new Date(client.created_at).toLocaleDateString()}</span>
             </div>
           </div>
           <DropdownMenu>
@@ -182,44 +172,54 @@ export default function ClientsPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push(`/clients/${analysis.id}`)}>
-                <Eye className="mr-2 h-4 w-4" /> View Dossier
+              <DropdownMenuItem onClick={() => router.push(`/clients/${client.id}`)}>
+                <Eye className="mr-2 h-4 w-4" /> View Profile
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive" onClick={(e) => handleDelete(analysis.id, analysis.client_company_name, e as any)}>
+              <DropdownMenuItem className="text-destructive" onClick={(e) => handleDelete(client.id, client.company_name, e as any)}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-dashed border-border/60 my-2">
-          <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Nexus</p>
-            <div className="flex items-center gap-1.5 mt-1">
-              <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="font-semibold text-foreground">
-                {analysis.states_with_nexus ?? '-'} <span className="text-xs font-normal text-muted-foreground">States</span>
-              </span>
+        <div className="space-y-3 py-4 border-t border-b border-dashed border-border/60 my-2">
+          {client.industry && (
+            <div className="flex items-center gap-2 text-sm">
+              <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-muted-foreground">{client.industry}</span>
             </div>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Liability</p>
-            <div className="flex items-center gap-1.5 mt-1">
-              <AlertTriangle className={`h-3.5 w-3.5 ${isHighRisk ? 'text-orange-500' : 'text-muted-foreground'}`} />
-              <span className={`font-semibold ${isHighRisk ? 'text-orange-600' : 'text-foreground'}`}>
-                {formatCurrency(analysis.total_liability)}
-              </span>
+          )}
+          {client.contact_name && (
+            <div className="flex items-center gap-2 text-sm">
+              <User className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-muted-foreground">{client.contact_name}</span>
             </div>
-          </div>
+          )}
+          {client.contact_email && (
+            <div className="flex items-center gap-2 text-sm">
+              <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-muted-foreground truncate">{client.contact_email}</span>
+            </div>
+          )}
+          {!client.industry && !client.contact_name && !client.contact_email && (
+            <p className="text-xs text-muted-foreground italic">No additional details</p>
+          )}
         </div>
 
         <div className="mt-auto pt-2 flex items-center justify-between">
-          <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${status.color}`}>
-            <StatusIcon className={`mr-1.5 h-3 w-3 ${analysis.status === 'processing' ? 'animate-spin' : ''}`} />
-            {status.label}
-          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation()
+              router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)
+            }}
+          >
+            <Plus className="mr-1.5 h-3 w-3" />
+            New Analysis
+          </Button>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity text-xs font-medium text-primary flex items-center">
-            Open File &rarr;
+            View Profile &rarr;
           </div>
         </div>
       </div>
@@ -242,10 +242,10 @@ export default function ClientsPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
-              { label: 'Active Clients', value: stats.totalFiles, icon: Building2, color: 'text-blue-600' },
-              { label: 'Nexus Found', value: stats.nexusFoundCount, icon: MapPin, color: 'text-orange-600' },
-              { label: 'High Priority', value: stats.highPriorityCount, icon: AlertTriangle, color: 'text-red-600' },
-              { label: 'In Progress', value: stats.inProgressCount, icon: Loader2, color: 'text-purple-600' },
+              { label: 'Total Clients', value: stats.totalClients, icon: Building2, color: 'text-blue-600' },
+              { label: 'Added (30d)', value: stats.recentCount, icon: Clock, color: 'text-emerald-600' },
+              { label: 'With Contact', value: stats.withContactCount, icon: Users, color: 'text-purple-600' },
+              { label: 'Shown', value: stats.filteredCount, icon: Search, color: 'text-orange-600' },
             ].map((stat, i) => (
               <Card key={i} className="p-4 bg-card/50 backdrop-blur-sm border-border/60 shadow-sm flex items-center justify-between">
                 <div>
@@ -260,18 +260,6 @@ export default function ClientsPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-               <TabsCustom
-                items={[
-                  { id: 'all', label: 'All', content: null },
-                  { id: 'complete', label: 'Complete', content: null },
-                  { id: 'draft', label: 'Drafts', content: null },
-                ]}
-                defaultTab="all"
-                variant="pills"
-                onTabChange={setActiveTab}
-              />
-            </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <div className="relative flex-1 sm:w-64">
@@ -309,7 +297,7 @@ export default function ClientsPage() {
                 <Skeleton key={i} className="h-48 w-full rounded-xl" />
               ))}
             </div>
-          ) : displayedAnalyses.length === 0 ? (
+          ) : displayedClients.length === 0 ? (
              <div className="py-20 text-center border-2 border-dashed border-border/60 rounded-xl bg-muted/5">
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
                 <FolderOpen className="h-8 w-8 text-muted-foreground" />
@@ -326,8 +314,8 @@ export default function ClientsPage() {
             <>
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
-                  {displayedAnalyses.map((analysis) => (
-                    <ClientCard key={analysis.id} analysis={analysis} />
+                  {displayedClients.map((client) => (
+                    <ClientCard key={client.id} client={client} />
                   ))}
                 </div>
               ) : (
@@ -335,35 +323,29 @@ export default function ClientsPage() {
                   <Table>
                     <TableHeader className="bg-muted/30">
                       <TableRow>
-                        <TableHead className="w-[30%]">Client</TableHead>
-                        <TableHead className="w-[15%]">Status</TableHead>
-                        <TableHead className="w-[15%] text-center">Nexus</TableHead>
-                        <TableHead className="w-[20%] text-right">Liability</TableHead>
-                        <TableHead className="w-[15%]">Date</TableHead>
+                        <TableHead className="w-[30%]">Company</TableHead>
+                        <TableHead className="w-[20%]">Contact</TableHead>
+                        <TableHead className="w-[15%]">Industry</TableHead>
+                        <TableHead className="w-[20%]">Email</TableHead>
+                        <TableHead className="w-[10%]">Created</TableHead>
                         <TableHead className="w-[5%]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {displayedAnalyses.map((analysis) => {
-                        const status = STATUS_CONFIG[analysis.status]
-                        const StatusIcon = status.icon
+                      {displayedClients.map((client) => {
                         return (
                           <TableRow
-                            key={analysis.id}
+                            key={client.id}
                             className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => router.push(`/clients/${analysis.id}`)}
+                            onClick={() => router.push(`/clients/${client.id}`)}
                           >
-                            <TableCell className="font-medium">{analysis.client_company_name}</TableCell>
+                            <TableCell className="font-medium">{client.company_name}</TableCell>
+                            <TableCell className="text-muted-foreground">{client.contact_name || '-'}</TableCell>
+                            <TableCell className="text-muted-foreground">{client.industry || '-'}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm truncate max-w-[200px]">{client.contact_email || '-'}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{new Date(client.created_at).toLocaleDateString()}</TableCell>
                             <TableCell>
-                              <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${status.color}`}>
-                                <StatusIcon className="mr-1.5 h-3 w-3" /> {status.label}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center">{analysis.states_with_nexus ?? '-'}</TableCell>
-                            <TableCell className="text-right font-mono">{formatCurrency(analysis.total_liability)}</TableCell>
-                            <TableCell className="text-muted-foreground text-sm">{new Date(analysis.created_at).toLocaleDateString()}</TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" onClick={(e) => handleDelete(analysis.id, analysis.client_company_name, e as any)}>
+                              <Button variant="ghost" size="icon" onClick={(e) => handleDelete(client.id, client.company_name, e as any)}>
                                 <Trash2 className="h-4 w-4 text-muted-foreground" />
                               </Button>
                             </TableCell>
