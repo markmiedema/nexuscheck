@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -37,6 +37,12 @@ interface StateRegistration {
 
 export default function ClientSetupPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Get client info from URL params (when creating analysis for a specific client)
+  const clientId = searchParams.get('clientId')
+  const clientName = searchParams.get('clientName')
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [stateRegistrations, setStateRegistrations] = useState<StateRegistration[]>([])
@@ -59,6 +65,9 @@ export default function ClientSetupPage() {
     formState: { errors },
   } = useForm<ClientSetupForm>({
     resolver: zodResolver(clientSetupSchema),
+    defaultValues: {
+      companyName: clientName || '',
+    },
   })
 
   const handleAddState = () => {
@@ -116,6 +125,7 @@ export default function ClientSetupPage() {
           state_code: s.stateCode,
           registration_date: s.registrationDate,
         })),
+        client_id: clientId || null,  // Link to CRM client if provided
       })
 
       const newAnalysisId = response.data.id

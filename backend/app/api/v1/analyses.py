@@ -210,6 +210,7 @@ async def create_analysis(
             "business_type": analysis_data.business_type.value,
             "retention_policy": analysis_data.retention_period.value,
             "status": "draft",  # Initial status
+            "client_id": analysis_data.client_id,  # Link to CRM client
         }
 
         # Insert analysis into database

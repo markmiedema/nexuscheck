@@ -35,6 +35,7 @@ class AnalysisCreate(BaseModel):
     retention_period: RetentionPeriod = RetentionPeriod.DAYS_90
     known_registrations: List[KnownRegistration] = []
     notes: Optional[str] = None
+    client_id: Optional[str] = None  # Link to CRM client
 
     @validator('period_end')
     def validate_period_end(cls, v, values):
