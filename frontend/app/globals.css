@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    /* ===== LIGHT MODE: COOL PAPER (Slate/Gray Tints) ===== */
-    /* Reduces eye strain with cool platinum tones instead of harsh white */
+    /* ===== LIGHT MODE: HIGH CONTRAST COOL PAPER ===== */
+    /* Reduces eye strain with cool platinum tones and improved contrast */
 
     /* Background: Soft "Platinum" (Cool Off-White) */
     /* Reduces eye strain by tinting white with a tiny bit of blue-gray */
@@ -26,25 +26,29 @@
     --primary: 217.2 32.6% 17.5%;                 /* Slate-800 */
     --primary-foreground: 210 40% 98%;            /* Slate-50 */
 
-    /* Secondary: Cool Silver */
-    --secondary: 210 20% 96%;                     /* Cool silver */
+    /* Secondary: Button Grey - Darkened significantly for contrast */
+    /* Was: 210 20% 96% (almost invisible) */
+    /* Now: 214 30% 85% (Slate 300 - clearly visible) */
+    --secondary: 214 30% 85%;                     /* Slate-300 button grey */
     --secondary-foreground: 222 47% 11%;          /* Deep slate */
 
-    /* Muted: Cool Gray */
-    --muted: 210 20% 96%;                         /* Cool gray */
+    /* Muted: Matching the button grey */
+    --muted: 214 30% 85%;                         /* Slate-300 grey */
     --muted-foreground: 215 16% 47%;              /* Medium slate */
 
     /* Accent (Hover States) */
-    --accent: 210 20% 96%;                        /* Cool silver */
+    --accent: 214 30% 85%;                        /* Slate-300 grey */
     --accent-foreground: 222 47% 11%;             /* Deep slate */
 
     /* Destructive */
     --destructive: 0 84.2% 60.2%;                 /* Red for destructive actions */
     --destructive-foreground: 210 40% 98%;        /* Slate-50 */
 
-    /* Borders: Slate-Blue tinted Gray (The "Cool" border) */
-    --border: 214 20% 88%;                        /* Cool slate border */
-    --input: 214 20% 88%;                         /* Cool slate input */
+    /* Borders: Darkened to frame inputs and outline buttons */
+    /* Was: 214 20% 88% (too faint) */
+    /* Now: 214 25% 80% (darker grey for better framing) */
+    --border: 214 25% 80%;                        /* Darker slate border */
+    --input: 214 25% 80%;                         /* Darker slate input */
     --ring: 217.2 32.6% 17.5%;                    /* Slate-800 */
 
     /* Success State */
