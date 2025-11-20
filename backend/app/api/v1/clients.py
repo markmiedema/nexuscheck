@@ -108,23 +108,31 @@ async def update_client(
         logger.error(f"Error updating client: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to update client")
 
-@router.delete("/{client_id}")
+@router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_client(
     client_id: str,
     user_id: str = Depends(require_auth)
 ):
     supabase = get_supabase()
     try:
-        result = supabase.table('clients')\
+        # First verify the client exists and belongs to the user
+        existing = supabase.table('clients')\
+            .select('id')\
+            .eq('id', client_id)\
+            .eq('user_id', user_id)\
+            .execute()
+
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+
+        # Now delete it
+        supabase.table('clients')\
             .delete()\
             .eq('id', client_id)\
             .eq('user_id', user_id)\
             .execute()
 
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Client not found")
-
-        return {"message": "Client deleted successfully"}
+        return None  # 204 No Content
     except HTTPException:
         raise
     except Exception as e:
