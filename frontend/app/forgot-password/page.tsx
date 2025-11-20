@@ -54,7 +54,7 @@ export default function ForgotPasswordPage() {
         <ThemeToggle />
       </div>
 
-      <Card className="max-w-md w-full p-8 space-y-6 shadow-floating border-border/50 backdrop-blur-sm bg-card/95">
+      <Card className="max-w-md w-full p-8 space-y-6 shadow-floating">
         {!isSubmitted ? (
           <>
             <div className="text-center space-y-2">
@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
           </>
         ) : (
           <div className="text-center space-y-6">
-            <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
+            <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center mx-auto">
               <Mail className="h-6 w-6" />
             </div>
             <div className="space-y-2">

@@ -64,6 +64,9 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 
+    /* Shadow Color - Use Slate-300 for blue-grey glow in light mode */
+    --shadow-color: 212.7 26.8% 83.9%;            /* Slate-300 */
+
     /* Chart Colors */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -133,6 +136,9 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
 
+    /* Shadow Color - Dark mode needs black for visibility */
+    --shadow-color: 0 0% 0%;                      /* Black */
+
     /* Chart Colors */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -155,21 +161,25 @@
 @layer utilities {
   /* ===== Shadow System for Depth Hierarchy ===== */
 
-  /* Light Mode Shadows */
+  /* Light Mode Shadows - Using slate color for blue-grey glow */
   .shadow-soft {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    box-shadow: 0 2px 4px -1px hsl(var(--shadow-color) / 0.5),
+                0 1px 2px -1px hsl(var(--shadow-color) / 0.5);
   }
 
   .shadow-card {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    box-shadow: 0 10px 15px -3px hsl(var(--shadow-color) / 0.4),
+                0 4px 6px -4px hsl(var(--shadow-color) / 0.3);
   }
 
   .shadow-elevated {
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    box-shadow: 0 12px 20px -4px hsl(var(--shadow-color) / 0.45),
+                0 6px 10px -5px hsl(var(--shadow-color) / 0.35);
   }
 
   .shadow-floating {
-    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    box-shadow: 0 20px 25px -5px hsl(var(--shadow-color) / 0.5),
+                0 8px 10px -6px hsl(var(--shadow-color) / 0.3);
   }
 
   /* Dark Mode Shadows - Much stronger and more visible */
@@ -298,7 +308,7 @@
     mask-image: radial-gradient(circle at center, black, transparent 80%);
   }
 
-  /* Light Mode: Subtle warm spotlight */
+  /* Light Mode: Subtle blue-slate atmospheric glow */
   .bg-grainy::after {
     content: "";
     position: fixed;
@@ -306,8 +316,8 @@
     z-index: -2;
     background: radial-gradient(
       circle at 50% 0%,
-      hsl(var(--primary) / 0.03) 0%,
-      transparent 60%
+      hsl(210 40% 96.1% / 0.4) 0%,
+      transparent 70%
     );
   }
 
