@@ -251,14 +251,14 @@ export default function AnalysesPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    {analysis.states_with_nexus !== null ? (
-                      <Badge variant="outline" className={analysis.states_with_nexus > 0 ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' : ''}>
+                    {analysis.states_with_nexus !== undefined && analysis.states_with_nexus !== null ? (
+                      <Badge variant="outline" className={(analysis.states_with_nexus ?? 0) > 0 ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' : ''}>
                         {analysis.states_with_nexus} States
                       </Badge>
                     ) : '-'}
                   </TableCell>
                   <TableCell className="text-right font-mono text-sm">
-                    {analysis.total_liability !== null ? (
+                    {analysis.total_liability !== undefined && analysis.total_liability !== null ? (
                       <span className={isHighRisk ? 'text-destructive font-medium' : 'text-muted-foreground'}>
                         {formatCurrency(analysis.total_liability)}
                       </span>
