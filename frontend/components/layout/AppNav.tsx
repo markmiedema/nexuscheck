@@ -22,7 +22,7 @@ export default function AppNav() {
 
   // Navigation Items Configuration
   const navItems = [
-    { label: 'Clients', href: '/analyses', icon: Users }, // Renamed "Analyses" -> "Clients"
+    { label: 'Clients', href: '/clients', icon: Users },
   ]
 
   return (
@@ -31,7 +31,7 @@ export default function AppNav() {
         <div className="flex justify-between items-center h-16">
           {/* Logo - Links to Dashboard */}
           <button
-            onClick={() => router.push('/analyses')}
+            onClick={() => router.push('/clients')}
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
             <h1 className="text-xl font-bold text-foreground">Nexus Check</h1>
