@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -11,7 +11,7 @@ import AppLayout from '@/components/layout/AppLayout'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
-import { UploadCloud, CheckCircle2, FileText } from 'lucide-react'
+import { UploadCloud, CheckCircle2, FileText, Loader2 } from 'lucide-react'
 import ColumnMappingConfirmationDialog from '@/components/analysis/ColumnMappingConfirmationDialog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { isValidStateCode, isValidPastDate, isValidFileSize, formatFileSize } from '@/lib/utils/validation'
@@ -35,7 +35,7 @@ interface StateRegistration {
   registrationDate: string
 }
 
-export default function ClientSetupPage() {
+function ClientSetupPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -600,5 +600,30 @@ export default function ClientSetupPage() {
       </AppLayout>
       </ErrorBoundary>
     </ProtectedRoute>
+  )
+}
+
+export default function ClientSetupPage() {
+  return (
+    <Suspense fallback={
+      <ProtectedRoute>
+        <ErrorBoundary>
+          <AppLayout
+            maxWidth="4xl"
+            breadcrumbs={[
+              { label: 'Analyses', href: '/analyses' },
+              { label: 'New Analysis' },
+            ]}
+          >
+            <div className="p-8 text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          </AppLayout>
+        </ErrorBoundary>
+      </ProtectedRoute>
+    }>
+      <ClientSetupPageContent />
+    </Suspense>
   )
 }
