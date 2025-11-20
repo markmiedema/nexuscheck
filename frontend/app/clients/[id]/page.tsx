@@ -11,7 +11,7 @@ import { TabsCustom } from '@/components/ui/tabs-custom'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
-import { showSuccess, handleError } from '@/lib/utils/errorHandler'
+import { showSuccess, handleApiError } from '@/lib/utils/errorHandler'
 import {
   Building2, Phone, Mail, Globe, MapPin,
   FileText, Plus, Loader2
@@ -41,7 +41,7 @@ function ClientCRMPageContent() {
       setNotes(notesData)
     } catch (err) {
       console.error(err)
-      handleError(err)
+      handleApiError(err)
     } finally {
       setLoading(false)
     }
@@ -62,7 +62,7 @@ function ClientCRMPageContent() {
       const updatedNotes = await getClientNotes(params.id as string)
       setNotes(updatedNotes)
     } catch (err) {
-      handleError(err)
+      handleApiError(err)
     } finally {
       setIsSubmittingNote(false)
     }
