@@ -235,7 +235,7 @@ export default function ClientsPage() {
               <h1 className="text-3xl font-bold text-foreground tracking-tight">Client List</h1>
               <p className="text-muted-foreground mt-1">Manage your client nexus assessments.</p>
             </div>
-            <Button onClick={() => router.push('/analysis/new')} size="lg" className="shadow-md">
+            <Button onClick={() => router.push('/clients/new')} size="lg" className="shadow-md">
               <Plus className="mr-2 h-4 w-4" /> New Client
             </Button>
           </div>
@@ -318,7 +318,7 @@ export default function ClientsPage() {
               <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-1 mb-6">
                 {searchTerm ? 'Try adjusting your search terms.' : 'Get started by adding your first client.'}
               </p>
-              <Button onClick={() => router.push('/analysis/new')}>
+              <Button onClick={() => router.push('/clients/new')}>
                 <Plus className="mr-2 h-4 w-4" /> New Client
               </Button>
             </div>
