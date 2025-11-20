@@ -14,6 +14,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { Separator } from '@/components/ui/separator'
 import { Github } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { Card } from '@/components/ui/card'
 
 // Define Validation Schema
 const loginSchema = z.object({
@@ -73,12 +74,12 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
 
-      <div className="max-w-md w-full space-y-6 bg-card p-8 rounded-xl shadow-lg border border-border backdrop-blur-sm">
+      <Card className="max-w-md w-full p-8 space-y-6 shadow-floating border-border/50 backdrop-blur-sm bg-card/95">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Welcome back
@@ -176,7 +177,7 @@ function LoginForm() {
             Sign up
           </Link>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
@@ -184,11 +185,11 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
-        <div className="max-w-md w-full space-y-6 bg-card p-8 rounded-xl shadow-lg border border-border backdrop-blur-sm">
+        <Card className="max-w-md w-full p-8 space-y-6 shadow-floating border-border/50 backdrop-blur-sm bg-card/95">
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Welcome back
@@ -197,7 +198,7 @@ export default function LoginPage() {
               Loading...
             </p>
           </div>
-        </div>
+        </Card>
       </div>
     }>
       <LoginForm />

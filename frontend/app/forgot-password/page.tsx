@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { Card } from '@/components/ui/card'
 import { ArrowLeft, Mail } from 'lucide-react'
 
 const forgotPasswordSchema = z.object({
@@ -48,12 +49,12 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
 
-      <div className="max-w-md w-full space-y-6 bg-card p-8 rounded-xl shadow-lg border border-border backdrop-blur-sm">
+      <Card className="max-w-md w-full p-8 space-y-6 shadow-floating border-border/50 backdrop-blur-sm bg-card/95">
         {!isSubmitted ? (
           <>
             <div className="text-center space-y-2">
@@ -115,7 +116,7 @@ export default function ForgotPasswordPage() {
             Back to login
           </Link>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
