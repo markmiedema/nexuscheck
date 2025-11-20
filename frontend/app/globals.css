@@ -4,44 +4,47 @@
 
 @layer base {
   :root {
-    /* ===== THEME: WARM ALABASTER (Paper) ===== */
-    /* Warm, eye-friendly tones that mimic physical paper for long sessions */
+    /* ===== LIGHT MODE: COOL PAPER (Slate/Gray Tints) ===== */
+    /* Reduces eye strain with cool platinum tones instead of harsh white */
 
-    /* Background: Subtle warm cream (Alabaster) - absorbs light instead of emitting it */
-    --background: 35 30% 98%;                     /* Warm cream/alabaster */
-    --foreground: 20 10% 20%;                     /* Soft warm charcoal */
+    /* Background: Soft "Platinum" (Cool Off-White) */
+    /* Reduces eye strain by tinting white with a tiny bit of blue-gray */
+    --background: 220 20% 97%;                    /* Cool platinum gray */
 
-    /* Cards: Pure white to pop against the cream background */
+    /* Foreground: Deep Slate (High contrast, but softer than black) */
+    --foreground: 222 47% 11%;                    /* Deep slate */
+
+    /* Cards: Pure White to pop against the cool gray background */
     --card: 0 0% 100%;                            /* Pure white */
-    --card-foreground: 20 10% 20%;                /* Warm charcoal */
+    --card-foreground: 222 47% 11%;               /* Deep slate */
 
     /* Popovers & Dropdowns */
     --popover: 0 0% 100%;                         /* Pure white */
-    --popover-foreground: 20 10% 20%;             /* Warm charcoal */
+    --popover-foreground: 222 47% 11%;            /* Deep slate */
 
-    /* Primary Interactive - Keep brand identity */
-    --primary: 217.2 32.6% 17.5%;                 /* Slate-800: Button background */
-    --primary-foreground: 210 40% 98%;            /* Slate-50: Light text on dark */
+    /* Primary: Brand Blue */
+    --primary: 217.2 32.6% 17.5%;                 /* Slate-800 */
+    --primary-foreground: 210 40% 98%;            /* Slate-50 */
 
-    /* Secondary Interactive - Warm Beige */
-    --secondary: 35 20% 94%;                      /* Warm beige */
-    --secondary-foreground: 217.2 32.6% 17.5%;    /* Slate-800 */
+    /* Secondary: Cool Silver */
+    --secondary: 210 20% 96%;                     /* Cool silver */
+    --secondary-foreground: 222 47% 11%;          /* Deep slate */
 
-    /* Muted/Disabled - Warm Grays */
-    --muted: 30 15% 94%;                          /* Warm gray */
-    --muted-foreground: 25 5% 45%;                /* Warm muted text */
+    /* Muted: Cool Gray */
+    --muted: 210 20% 96%;                         /* Cool gray */
+    --muted-foreground: 215 16% 47%;              /* Medium slate */
 
     /* Accent (Hover States) */
-    --accent: 35 20% 94%;                         /* Warm beige */
-    --accent-foreground: 217.2 32.6% 17.5%;       /* Slate-800 */
+    --accent: 210 20% 96%;                        /* Cool silver */
+    --accent-foreground: 222 47% 11%;             /* Deep slate */
 
     /* Destructive */
     --destructive: 0 84.2% 60.2%;                 /* Red for destructive actions */
     --destructive-foreground: 210 40% 98%;        /* Slate-50 */
 
-    /* Borders & Inputs - Warm Taupe (critical for the "Soft" look) */
-    --border: 30 12% 88%;                         /* Warm taupe */
-    --input: 30 12% 88%;                          /* Warm taupe */
+    /* Borders: Slate-Blue tinted Gray (The "Cool" border) */
+    --border: 214 20% 88%;                        /* Cool slate border */
+    --input: 214 20% 88%;                         /* Cool slate input */
     --ring: 217.2 32.6% 17.5%;                    /* Slate-800 */
 
     /* Success State */
@@ -64,8 +67,9 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 
-    /* Shadow Color - Warm Taupe (The "Golden" Shadow) */
-    --shadow-color: 30 20% 82%;                   /* Warm taupe */
+    /* Shadow Color: Slate Blue (The "Cool Glow" Shadow) */
+    /* Replaces dirty black shadow with a soft blue-grey shadow */
+    --shadow-color: 220 25% 80%;                  /* Slate-blue shadow */
 
     /* Chart Colors */
     --chart-1: 220 70% 50%;
@@ -76,35 +80,35 @@
   }
 
   .dark {
-    /* ===== THEME: WARM DARK (Espresso) ===== */
-    /* Warm dark tones that complement the light mode alabaster theme */
+    /* ===== DARK MODE: ORIGINAL (Reverted) ===== */
+    /* Original "Slate" dark mode configuration - technical and professional */
 
-    /* Background: Deep warm grey (Espresso) */
-    --background: 20 10% 10%;                     /* Warm espresso */
-    --foreground: 35 10% 90%;                     /* Warm light grey */
+    /* Slate-800 Background */
+    --background: 217.2 32.6% 17.5%;              /* Slate-800 */
+    --foreground: 214.3 31.8% 91.4%;              /* Slate-200 */
 
-    /* Surface/Card Layer */
-    --card: 20 10% 12%;                           /* Slightly lighter espresso */
-    --card-foreground: 35 10% 90%;                /* Warm light grey */
+    /* Slate-700 Cards */
+    --card: 215.3 25% 26.7%;                      /* Slate-700 */
+    --card-foreground: 214.3 31.8% 91.4%;         /* Slate-200 */
 
     /* Popovers & Dropdowns */
-    --popover: 20 10% 12%;                        /* Slightly lighter espresso */
-    --popover-foreground: 35 10% 90%;             /* Warm light grey */
+    --popover: 215.3 25% 26.7%;                   /* Slate-700 */
+    --popover-foreground: 212.7 26.8% 83.9%;      /* Slate-300 */
 
     /* Primary Interactive */
-    --primary: 210 40% 98%;                       /* Slate-50: Button background */
-    --primary-foreground: 217.2 32.6% 17.5%;      /* Slate-800: Dark text on light */
+    --primary: 210 40% 98%;                       /* Slate-50 */
+    --primary-foreground: 217.2 32.6% 17.5%;      /* Slate-800 */
 
     /* Secondary Interactive */
-    --secondary: 20 10% 16%;                      /* Warm dark grey */
+    --secondary: 215.3 19.3% 34.5%;               /* Slate-600 */
     --secondary-foreground: 210 40% 98%;          /* Slate-50 */
 
     /* Muted/Disabled States */
-    --muted: 20 10% 16%;                          /* Warm dark grey */
-    --muted-foreground: 25 5% 60%;                /* Warm muted text */
+    --muted: 215.3 19.3% 34.5%;                   /* Slate-600 */
+    --muted-foreground: 215 20.2% 65.1%;          /* Slate-400 */
 
     /* Accent (Hover States) */
-    --accent: 20 10% 16%;                         /* Warm dark grey */
+    --accent: 215.4 16.3% 46.9%;                  /* Slate-500 */
     --accent-foreground: 210 40% 98%;             /* Slate-50 */
 
     /* Destructive */
@@ -112,9 +116,9 @@
     --destructive-foreground: 210 40% 98%;        /* Slate-50 */
 
     /* Borders */
-    --border: 20 10% 18%;                         /* Warm border */
-    --input: 20 10% 18%;                          /* Warm input */
-    --ring: 20 10% 18%;                           /* Warm focus ring */
+    --border: 215 20.2% 65.1%;                    /* Slate-400 */
+    --input: 215.3 19.3% 34.5%;                   /* Slate-600 */
+    --ring: 215 20.2% 65.1%;                      /* Slate-400 */
 
     /* Success State */
     --success: 142.1 70.6% 45.3%;                 /* Brighter green for dark backgrounds */
@@ -158,25 +162,25 @@
 @layer utilities {
   /* ===== Shadow System for Depth Hierarchy ===== */
 
-  /* Light Mode Shadows - Warm taupe shadows with softer opacity */
+  /* Light Mode Shadows - Cool slate-blue shadows */
   .shadow-soft {
-    box-shadow: 0 2px 4px -1px hsl(var(--shadow-color) / 0.4),
-                0 1px 2px -1px hsl(var(--shadow-color) / 0.3);
+    box-shadow: 0 2px 4px -1px hsl(var(--shadow-color) / 0.5),
+                0 1px 2px -1px hsl(var(--shadow-color) / 0.4);
   }
 
   .shadow-card {
-    box-shadow: 0 10px 15px -3px hsl(var(--shadow-color) / 0.3),
-                0 4px 6px -4px hsl(var(--shadow-color) / 0.2);
+    box-shadow: 0 10px 15px -3px hsl(var(--shadow-color) / 0.4),
+                0 4px 6px -4px hsl(var(--shadow-color) / 0.3);
   }
 
   .shadow-elevated {
-    box-shadow: 0 12px 20px -4px hsl(var(--shadow-color) / 0.35),
-                0 6px 10px -5px hsl(var(--shadow-color) / 0.25);
+    box-shadow: 0 12px 20px -4px hsl(var(--shadow-color) / 0.4),
+                0 6px 10px -5px hsl(var(--shadow-color) / 0.3);
   }
 
   .shadow-floating {
-    box-shadow: 0 20px 25px -5px hsl(var(--shadow-color) / 0.35),
-                0 8px 10px -6px hsl(var(--shadow-color) / 0.2);
+    box-shadow: 0 20px 25px -5px hsl(var(--shadow-color) / 0.4),
+                0 8px 10px -6px hsl(var(--shadow-color) / 0.3);
   }
 
   /* Dark Mode Shadows - Much stronger and more visible */
@@ -305,7 +309,7 @@
     mask-image: radial-gradient(circle at center, black, transparent 80%);
   }
 
-  /* Light Mode: Golden Hour / Warm Ambient Glow */
+  /* Light Mode: Cool Blue-Gray "North Light" Effect */
   .bg-grainy::after {
     content: "";
     position: fixed;
@@ -313,20 +317,21 @@
     z-index: -2;
     background: radial-gradient(
       circle at 50% 0%,
-      hsl(45 50% 70% / 0.12) 0%,
+      hsl(210 40% 90% / 0.4) 0%,
       transparent 60%
     );
   }
 
-  /* Dark Mode Adjustments */
+  /* Dark Mode Adjustments - Minimal spotlight for classic look */
   .dark .bg-grainy::before {
-    opacity: 0.25; /* Slightly more visible grain on dark */
+    opacity: 0.3; /* Subtle grain */
   }
 
   .dark .bg-grainy::after {
+    /* Very faint blue tint, almost invisible for classic look */
     background: radial-gradient(
       circle at 50% 0%,
-      hsl(40 30% 20% / 0.3) 0%,
+      hsl(220 70% 50% / 0.05) 0%,
       transparent 70%
     );
   }
