@@ -279,13 +279,48 @@
     border-color: var(--banner-border-dark) !important;
   }
 
-  /* ===== Background Patterns ===== */
-  .bg-dot-pattern {
-    /* Creates a 1px dot using the foreground color with 10% opacity */
-    background-image: radial-gradient(circle, hsl(var(--foreground) / 0.1) 1px, transparent 1px);
-    /* Spaces the dots 24px apart */
-    background-size: 24px 24px;
-    /* Ensures it covers the whole area */
-    background-attachment: fixed;
+  /* ===== Premium Paper Texture (Grainy Gradient) ===== */
+  .bg-grainy {
+    position: relative;
+    background-color: hsl(var(--background));
+  }
+
+  /* The Noise Layer */
+  .bg-grainy::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    /* SVG Turbulence Filter for Noise */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    /* Mask fades the noise out at the edges for softness */
+    mask-image: radial-gradient(circle at center, black, transparent 80%);
+  }
+
+  /* Light Mode: Subtle warm spotlight */
+  .bg-grainy::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background: radial-gradient(
+      circle at 50% 0%,
+      hsl(var(--primary) / 0.03) 0%,
+      transparent 60%
+    );
+  }
+
+  /* Dark Mode Adjustments */
+  .dark .bg-grainy::before {
+    opacity: 0.3; /* Slightly more visible grain on dark */
+  }
+
+  .dark .bg-grainy::after {
+    background: radial-gradient(
+      circle at 50% 0%,
+      hsl(var(--primary) / 0.08) 0%,
+      transparent 70%
+    );
   }
 }

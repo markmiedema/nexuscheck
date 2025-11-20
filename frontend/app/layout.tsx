@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={cn(
         inter.className,
-        "min-h-screen bg-background font-sans antialiased bg-dot-pattern"
+        "min-h-screen font-sans antialiased bg-grainy text-foreground"
       )}>
         <ThemeProvider
           attribute="class"
