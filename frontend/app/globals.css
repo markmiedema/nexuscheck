@@ -4,45 +4,52 @@
 
 @layer base {
   :root {
-    /* ===== SEMANTIC TOKENS - Light Mode ===== */
-    /* Hierarchy: slate-50 (page) → slate-100 (card) → slate-200 (input) → slate-300 (hover) → slate-800 (button) */
+    /* ===== LIGHT MODE: HIGH CONTRAST COOL PAPER ===== */
+    /* Reduces eye strain with cool platinum tones and improved contrast */
 
-    /* Backgrounds - slate-50 (LIGHTEST) */
-    --background: 210 40% 98%;                    /* Slate-50: Page background */
-    --foreground: 215.3 19.3% 34.5%;              /* Slate-600: Body text */
+    /* Background: Soft "Platinum" (Cool Off-White) */
+    /* Reduces eye strain by tinting white with a tiny bit of blue-gray */
+    --background: 220 20% 97%;                    /* Cool platinum gray */
 
-    /* Cards & Elevated Surfaces - slate-100 */
-    --card: 210 40% 96.1%;                        /* Slate-100: Cards/Components */
-    --card-foreground: 215.3 25% 26.7%;           /* Slate-700: Headings on cards */
+    /* Foreground: Deep Slate (High contrast, but softer than black) */
+    --foreground: 222 47% 11%;                    /* Deep slate */
 
-    /* Popovers & Dropdowns - slate-100 */
-    --popover: 210 40% 96.1%;                     /* Slate-100 */
-    --popover-foreground: 215.3 19.3% 34.5%;      /* Slate-600 */
+    /* Cards: Pure White to pop against the cool gray background */
+    --card: 0 0% 100%;                            /* Pure white */
+    --card-foreground: 222 47% 11%;               /* Deep slate */
 
-    /* Primary Interactive - slate-800 (Button background) */
-    --primary: 217.2 32.6% 17.5%;                 /* Slate-800: Button background */
-    --primary-foreground: 210 40% 98%;            /* Slate-50: Light text on dark */
+    /* Popovers & Dropdowns */
+    --popover: 0 0% 100%;                         /* Pure white */
+    --popover-foreground: 222 47% 11%;            /* Deep slate */
 
-    /* Secondary Interactive */
-    --secondary: 214.3 31.8% 91.4%;               /* Slate-200: Input fields */
-    --secondary-foreground: 217.2 32.6% 17.5%;    /* Slate-800 */
+    /* Primary: Brand Blue */
+    --primary: 217.2 32.6% 17.5%;                 /* Slate-800 */
+    --primary-foreground: 210 40% 98%;            /* Slate-50 */
 
-    /* Muted/Disabled */
-    --muted: 214.3 31.8% 91.4%;                   /* Slate-200: Muted backgrounds */
-    --muted-foreground: 215 20.2% 65.1%;          /* Slate-400: Placeholder text */
+    /* Secondary: Button Grey - Darkened significantly for contrast */
+    /* Was: 210 20% 96% (almost invisible) */
+    /* Now: 214 30% 85% (Slate 300 - clearly visible) */
+    --secondary: 214 30% 85%;                     /* Slate-300 button grey */
+    --secondary-foreground: 222 47% 11%;          /* Deep slate */
 
-    /* Accent (Hover States) - slate-300 */
-    --accent: 212.7 26.8% 83.9%;                  /* Slate-300: Input hover state */
-    --accent-foreground: 217.2 32.6% 17.5%;       /* Slate-800 */
+    /* Muted: Matching the button grey */
+    --muted: 214 30% 85%;                         /* Slate-300 grey */
+    --muted-foreground: 215 16% 47%;              /* Medium slate */
+
+    /* Accent (Hover States) */
+    --accent: 214 30% 85%;                        /* Slate-300 grey */
+    --accent-foreground: 222 47% 11%;             /* Deep slate */
 
     /* Destructive */
     --destructive: 0 84.2% 60.2%;                 /* Red for destructive actions */
     --destructive-foreground: 210 40% 98%;        /* Slate-50 */
 
-    /* Borders & Inputs - slate-200/slate-300 */
-    --border: 212.7 26.8% 83.9%;                  /* Slate-300: Borders */
-    --input: 214.3 31.8% 91.4%;                   /* Slate-200: Input fields (default) */
-    --ring: 215 20.2% 65.1%;                      /* Slate-400: Focus ring */
+    /* Borders: Darkened to frame inputs and outline buttons */
+    /* Was: 214 20% 88% (too faint) */
+    /* Now: 214 25% 80% (darker grey for better framing) */
+    --border: 214 25% 80%;                        /* Darker slate border */
+    --input: 214 25% 80%;                         /* Darker slate input */
+    --ring: 217.2 32.6% 17.5%;                    /* Slate-800 */
 
     /* Success State */
     --success: 142.1 76.2% 36.3%;                 /* Green for success */
@@ -64,8 +71,9 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 
-    /* Shadow Color - Use Slate-300 for blue-grey glow in light mode */
-    --shadow-color: 212.7 26.8% 83.9%;            /* Slate-300 */
+    /* Shadow Color: Slate Blue (The "Cool Glow" Shadow) */
+    /* Replaces dirty black shadow with a soft blue-grey shadow */
+    --shadow-color: 220 25% 80%;                  /* Slate-blue shadow */
 
     /* Chart Colors */
     --chart-1: 220 70% 50%;
@@ -76,48 +84,45 @@
   }
 
   .dark {
-    /* ===== SEMANTIC TOKENS - Dark Mode ===== */
-    /* Hierarchy: slate-800 (page) → slate-700 (card) → slate-600 (input) → slate-500 (hover) → slate-50 (button) */
+    /* ===== DARK MODE: ORIGINAL (Reverted) ===== */
+    /* Original "Slate" dark mode configuration - technical and professional */
 
-    /* Background Layer - slate-800 (DARKEST ALLOWED) */
-    --background: 217.2 32.6% 17.5%;              /* Slate-800: Page background */
-    --foreground: 214.3 31.8% 91.4%;              /* Slate-200: Titles, headings */
+    /* Slate-800 Background */
+    --background: 217.2 32.6% 17.5%;              /* Slate-800 */
+    --foreground: 214.3 31.8% 91.4%;              /* Slate-200 */
 
-    /* Surface/Card Layer - slate-700 */
-    --card: 215.3 25% 26.7%;                      /* Slate-700: Cards/Components */
-    --card-foreground: 214.3 31.8% 91.4%;         /* Slate-200: Titles on cards */
+    /* Slate-700 Cards */
+    --card: 215.3 25% 26.7%;                      /* Slate-700 */
+    --card-foreground: 214.3 31.8% 91.4%;         /* Slate-200 */
 
-    /* Popovers & Dropdowns - slate-700 */
+    /* Popovers & Dropdowns */
     --popover: 215.3 25% 26.7%;                   /* Slate-700 */
-    --popover-foreground: 212.7 26.8% 83.9%;      /* Slate-300: Labels, links */
+    --popover-foreground: 212.7 26.8% 83.9%;      /* Slate-300 */
 
-    /* Primary Interactive - slate-50 (Button background) */
-    --primary: 210 40% 98%;                       /* Slate-50: Button background */
-    --primary-foreground: 217.2 32.6% 17.5%;      /* Slate-800: Dark text on light */
+    /* Primary Interactive */
+    --primary: 210 40% 98%;                       /* Slate-50 */
+    --primary-foreground: 217.2 32.6% 17.5%;      /* Slate-800 */
 
     /* Secondary Interactive */
-    --secondary: 215.3 19.3% 34.5%;               /* Slate-600: Input fields */
+    --secondary: 215.3 19.3% 34.5%;               /* Slate-600 */
     --secondary-foreground: 210 40% 98%;          /* Slate-50 */
 
     /* Muted/Disabled States */
-    --muted: 215.3 19.3% 34.5%;                   /* Slate-600: Muted backgrounds */
-    --muted-foreground: 215 20.2% 65.1%;          /* Slate-400: Placeholder text */
+    --muted: 215.3 19.3% 34.5%;                   /* Slate-600 */
+    --muted-foreground: 215 20.2% 65.1%;          /* Slate-400 */
 
-    /* Accent (Hover States) - slate-500 */
-    --accent: 215.4 16.3% 46.9%;                  /* Slate-500: Input hover state */
+    /* Accent (Hover States) */
+    --accent: 215.4 16.3% 46.9%;                  /* Slate-500 */
     --accent-foreground: 210 40% 98%;             /* Slate-50 */
 
     /* Destructive */
     --destructive: 0 62.8% 50%;                   /* Red for destructive actions */
     --destructive-foreground: 210 40% 98%;        /* Slate-50 */
 
-    /* Input Layer - slate-600 */
-    --input: 215.3 19.3% 34.5%;                   /* Slate-600: Input fields (default) */
-    --input-border: 215 20.2% 65.1%;              /* Slate-400: Borders */
-
-    /* Borders - slate-400 */
-    --border: 215 20.2% 65.1%;                    /* Slate-400: Borders */
-    --ring: 215 20.2% 65.1%;                      /* Slate-400: Focus ring */
+    /* Borders */
+    --border: 215 20.2% 65.1%;                    /* Slate-400 */
+    --input: 215.3 19.3% 34.5%;                   /* Slate-600 */
+    --ring: 215 20.2% 65.1%;                      /* Slate-400 */
 
     /* Success State */
     --success: 142.1 70.6% 45.3%;                 /* Brighter green for dark backgrounds */
@@ -161,10 +166,10 @@
 @layer utilities {
   /* ===== Shadow System for Depth Hierarchy ===== */
 
-  /* Light Mode Shadows - Using slate color for blue-grey glow */
+  /* Light Mode Shadows - Cool slate-blue shadows */
   .shadow-soft {
     box-shadow: 0 2px 4px -1px hsl(var(--shadow-color) / 0.5),
-                0 1px 2px -1px hsl(var(--shadow-color) / 0.5);
+                0 1px 2px -1px hsl(var(--shadow-color) / 0.4);
   }
 
   .shadow-card {
@@ -173,12 +178,12 @@
   }
 
   .shadow-elevated {
-    box-shadow: 0 12px 20px -4px hsl(var(--shadow-color) / 0.45),
-                0 6px 10px -5px hsl(var(--shadow-color) / 0.35);
+    box-shadow: 0 12px 20px -4px hsl(var(--shadow-color) / 0.4),
+                0 6px 10px -5px hsl(var(--shadow-color) / 0.3);
   }
 
   .shadow-floating {
-    box-shadow: 0 20px 25px -5px hsl(var(--shadow-color) / 0.5),
+    box-shadow: 0 20px 25px -5px hsl(var(--shadow-color) / 0.4),
                 0 8px 10px -6px hsl(var(--shadow-color) / 0.3);
   }
 
@@ -308,7 +313,7 @@
     mask-image: radial-gradient(circle at center, black, transparent 80%);
   }
 
-  /* Light Mode: Subtle blue-slate atmospheric glow */
+  /* Light Mode: Cool Blue-Gray "North Light" Effect */
   .bg-grainy::after {
     content: "";
     position: fixed;
@@ -316,20 +321,21 @@
     z-index: -2;
     background: radial-gradient(
       circle at 50% 0%,
-      hsl(210 40% 96.1% / 0.4) 0%,
-      transparent 70%
+      hsl(210 40% 90% / 0.4) 0%,
+      transparent 60%
     );
   }
 
-  /* Dark Mode Adjustments */
+  /* Dark Mode Adjustments - Minimal spotlight for classic look */
   .dark .bg-grainy::before {
-    opacity: 0.3; /* Slightly more visible grain on dark */
+    opacity: 0.3; /* Subtle grain */
   }
 
   .dark .bg-grainy::after {
+    /* Very faint blue tint, almost invisible for classic look */
     background: radial-gradient(
       circle at 50% 0%,
-      hsl(var(--primary) / 0.08) 0%,
+      hsl(220 70% 50% / 0.05) 0%,
       transparent 70%
     );
   }
