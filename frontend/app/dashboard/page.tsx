@@ -7,7 +7,7 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    router.replace('/analyses')
+    router.replace('/clients')
   }, [router])
 
   return (

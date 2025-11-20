@@ -60,7 +60,7 @@ function LoginForm() {
   const [globalError, setGlobalError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const redirectTo = searchParams.get('redirectTo') || '/analyses'
+  const redirectTo = searchParams.get('redirectTo') || '/clients'
 
   const {
     register,
