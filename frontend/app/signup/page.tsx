@@ -110,7 +110,7 @@ export default function SignupPage() {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <Card className="max-w-md w-full p-8 text-center space-y-6 shadow-floating border-border/50 backdrop-blur-sm bg-card/95">
+        <Card className="max-w-md w-full p-8 text-center space-y-6 shadow-floating">
           <div className="h-12 w-12 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-full flex items-center justify-center mx-auto">
             <Check className="h-6 w-6" />
           </div>
@@ -129,7 +129,7 @@ export default function SignupPage() {
         <ThemeToggle />
       </div>
 
-      <Card className="max-w-md w-full p-8 space-y-6 shadow-floating border-border/50 backdrop-blur-sm bg-card/95">
+      <Card className="max-w-md w-full p-8 space-y-6 shadow-floating">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Create an account

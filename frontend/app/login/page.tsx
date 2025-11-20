@@ -79,7 +79,7 @@ function LoginForm() {
         <ThemeToggle />
       </div>
 
-      <Card className="max-w-md w-full p-8 space-y-6 shadow-floating border-border/50 backdrop-blur-sm bg-card/95">
+      <Card className="max-w-md w-full p-8 space-y-6 shadow-floating">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Welcome back
@@ -189,7 +189,7 @@ export default function LoginPage() {
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
-        <Card className="max-w-md w-full p-8 space-y-6 shadow-floating border-border/50 backdrop-blur-sm bg-card/95">
+        <Card className="max-w-md w-full p-8 space-y-6 shadow-floating">
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Welcome back
