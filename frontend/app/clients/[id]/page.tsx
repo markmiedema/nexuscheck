@@ -195,6 +195,51 @@ export default function ClientCRMPage() {
               </div>
             </Card>
 
+            {/* Business Profile Card */}
+            <Card className="p-6 space-y-4">
+              <h3 className="font-semibold text-foreground">Business Profile</h3>
+
+              {/* Tax Risk Indicators */}
+              <div className="flex flex-wrap gap-2">
+                {client.business_profile?.sells_tpp && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Tangible Goods</Badge>
+                )}
+                {client.business_profile?.sells_saas && (
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">SaaS</Badge>
+                )}
+                {client.business_profile?.sells_digital_goods && (
+                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">Digital Goods</Badge>
+                )}
+                {client.business_profile?.is_marketplace_seller && (
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">Marketplace Seller</Badge>
+                )}
+                {client.business_profile?.has_inventory_3pl && (
+                  <Badge variant="secondary" className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Physical Nexus (3PL)</Badge>
+                )}
+                {!client.business_profile && (
+                  <span className="text-sm text-muted-foreground">No business profile data</span>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Tech Stack List */}
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">ERP</span>
+                  <span className="font-medium">{client.tech_stack?.erp_system || 'Unknown'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">E-Comm</span>
+                  <span className="font-medium">{client.tech_stack?.ecommerce_platform || 'Unknown'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tax Engine</span>
+                  <span className="font-medium">{client.tech_stack?.tax_engine || 'None'}</span>
+                </div>
+              </div>
+            </Card>
+
             <Card className="p-6">
               <h3 className="font-semibold text-foreground mb-4">Active Engagements</h3>
               <div className="space-y-4">

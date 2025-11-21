@@ -17,20 +17,53 @@ async def create_client(
     supabase = get_supabase()
 
     try:
-        # Prepare data
-        new_client = client_data.model_dump()
-        new_client["user_id"] = user_id
+        # 1. Separate the nested data from the main client data
+        full_payload = client_data.model_dump()
 
-        # Insert into DB
-        result = supabase.table('clients').insert(new_client).execute()
+        # Pop nested objects so they don't get sent to the 'clients' table
+        business_profile_data = full_payload.pop('business_profile', None)
+        tech_stack_data = full_payload.pop('tech_stack', None)
+
+        # 2. Insert the main Client record
+        full_payload["user_id"] = user_id
+
+        # Clean up any None values to let DB defaults take over
+        client_insert_data = {k: v for k, v in full_payload.items() if v is not None}
+
+        result = supabase.table('clients').insert(client_insert_data).execute()
 
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to create client")
 
-        return result.data[0]
+        new_client = result.data[0]
+        new_client_id = new_client['id']
+
+        # 3. Insert Business Profile (if provided)
+        if business_profile_data:
+            # Filter out None values
+            profile_insert = {k: v for k, v in business_profile_data.items() if v is not None}
+            if profile_insert:
+                profile_insert['client_id'] = new_client_id
+                supabase.table('client_profiles').insert(profile_insert).execute()
+
+                # Attach to response so frontend sees it immediately
+                new_client['business_profile'] = business_profile_data
+
+        # 4. Insert Tech Stack (if provided)
+        if tech_stack_data:
+            stack_insert = {k: v for k, v in tech_stack_data.items() if v is not None}
+            if stack_insert:
+                stack_insert['client_id'] = new_client_id
+                supabase.table('client_tech_stacks').insert(stack_insert).execute()
+
+                # Attach to response
+                new_client['tech_stack'] = tech_stack_data
+
+        return new_client
 
     except Exception as e:
         logger.error(f"Error creating client: {str(e)}")
+        print(f"DEBUG ERROR: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create client"
@@ -63,6 +96,7 @@ async def get_client(
 ):
     supabase = get_supabase()
     try:
+        # Fetch client
         result = supabase.table('clients')\
             .select('*')\
             .eq('id', client_id)\
@@ -73,7 +107,37 @@ async def get_client(
         if not result.data:
             raise HTTPException(status_code=404, detail="Client not found")
 
-        return result.data
+        client = result.data
+
+        # Fetch business profile
+        profile_result = supabase.table('client_profiles')\
+            .select('*')\
+            .eq('client_id', client_id)\
+            .maybe_single()\
+            .execute()
+
+        if profile_result.data:
+            # Remove internal fields from profile response
+            profile = {k: v for k, v in profile_result.data.items()
+                      if k not in ('id', 'client_id', 'created_at', 'updated_at')}
+            client['business_profile'] = profile
+
+        # Fetch tech stack
+        tech_result = supabase.table('client_tech_stacks')\
+            .select('*')\
+            .eq('client_id', client_id)\
+            .maybe_single()\
+            .execute()
+
+        if tech_result.data:
+            # Remove internal fields from tech stack response
+            tech_stack = {k: v for k, v in tech_result.data.items()
+                         if k not in ('id', 'client_id', 'created_at', 'updated_at')}
+            client['tech_stack'] = tech_stack
+
+        return client
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching client: {str(e)}")
         raise HTTPException(status_code=404, detail="Client not found")
@@ -86,22 +150,72 @@ async def update_client(
 ):
     supabase = get_supabase()
     try:
-        # Only include non-None fields in update
-        update_data = {k: v for k, v in client_data.model_dump().items() if v is not None}
+        # Separate nested data from main client data
+        full_payload = client_data.model_dump()
+        business_profile_data = full_payload.pop('business_profile', None)
+        tech_stack_data = full_payload.pop('tech_stack', None)
 
-        if not update_data:
-            raise HTTPException(status_code=400, detail="No fields to update")
+        # Only include non-None fields in update for main client
+        update_data = {k: v for k, v in full_payload.items() if v is not None}
 
-        result = supabase.table('clients')\
-            .update(update_data)\
-            .eq('id', client_id)\
-            .eq('user_id', user_id)\
-            .execute()
+        # Update main client record if there's data
+        if update_data:
+            result = supabase.table('clients')\
+                .update(update_data)\
+                .eq('id', client_id)\
+                .eq('user_id', user_id)\
+                .execute()
 
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Client not found")
+            if not result.data:
+                raise HTTPException(status_code=404, detail="Client not found")
 
-        return result.data[0]
+        # Update or insert business profile
+        if business_profile_data:
+            profile_update = {k: v for k, v in business_profile_data.items() if v is not None}
+            if profile_update:
+                # Check if profile exists
+                existing_profile = supabase.table('client_profiles')\
+                    .select('id')\
+                    .eq('client_id', client_id)\
+                    .maybe_single()\
+                    .execute()
+
+                if existing_profile.data:
+                    # Update existing profile
+                    supabase.table('client_profiles')\
+                        .update(profile_update)\
+                        .eq('client_id', client_id)\
+                        .execute()
+                else:
+                    # Insert new profile
+                    profile_update['client_id'] = client_id
+                    supabase.table('client_profiles').insert(profile_update).execute()
+
+        # Update or insert tech stack
+        if tech_stack_data:
+            stack_update = {k: v for k, v in tech_stack_data.items() if v is not None}
+            if stack_update:
+                # Check if tech stack exists
+                existing_stack = supabase.table('client_tech_stacks')\
+                    .select('id')\
+                    .eq('client_id', client_id)\
+                    .maybe_single()\
+                    .execute()
+
+                if existing_stack.data:
+                    # Update existing tech stack
+                    supabase.table('client_tech_stacks')\
+                        .update(stack_update)\
+                        .eq('client_id', client_id)\
+                        .execute()
+                else:
+                    # Insert new tech stack
+                    stack_update['client_id'] = client_id
+                    supabase.table('client_tech_stacks').insert(stack_update).execute()
+
+        # Fetch and return the updated client with nested data
+        return await get_client(client_id, user_id)
+
     except HTTPException:
         raise
     except Exception as e:
