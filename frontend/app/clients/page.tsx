@@ -328,8 +328,8 @@ export default function ClientsPage() {
           {/* TABS & FILTERS */}
           <div className="space-y-4 mb-6">
              <TabsCustom
-                defaultValue="active"
-                onValueChange={setActiveTab}
+                defaultTab="active"
+                onTabChange={setActiveTab}
                 variant="pills"
                 items={[
                     {
