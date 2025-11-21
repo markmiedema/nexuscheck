@@ -333,13 +333,13 @@ export default function ClientsPage() {
                 variant="pills"
                 items={[
                     {
-                        id: 'active',
-                        label: 'Active Clients',
+                        id: 'prospects',
+                        label: 'Prospects & Leads',
                         content: null
                     },
                     {
-                        id: 'prospects',
-                        label: 'Prospects & Leads',
+                        id: 'active',
+                        label: 'Active Clients',
                         content: null
                     },
                     {
