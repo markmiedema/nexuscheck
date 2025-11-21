@@ -34,16 +34,6 @@ import {
   Trash2,
   Search,
   Clock,
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
-  AlertTriangle,
-  MapPin,
-  FolderOpen,
-  Plus,
   LayoutGrid,
   List as ListIcon,
   MoreHorizontal,
@@ -52,7 +42,14 @@ import {
   User,
   Mail,
   Users,
-  FileText
+  FileText,
+  Archive,
+  Plus,
+  FolderOpen,
+  Target,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -62,7 +59,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 type SortConfig = {
-  column: 'company_name' | 'industry' | 'created_at' | null
+  column: 'company_name' | 'contact_name' | 'industry' | 'created_at' | null
   direction: 'asc' | 'desc'
 }
 
@@ -79,6 +76,9 @@ export default function ClientsPage() {
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const [sortConfig, setSortConfig] = useState<SortConfig>({ column: 'created_at', direction: 'desc' })
 
+  // NEW: Default to 'active' tab, but options are: 'active', 'prospects', 'archived'
+  const [activeTab, setActiveTab] = useState('active')
+
   // Note modal state
   const [noteModalOpen, setNoteModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
@@ -93,7 +93,7 @@ export default function ClientsPage() {
 
   useEffect(() => {
     loadClients()
-  }, [debouncedSearchTerm])
+  }, [])
 
   async function loadClients() {
     try {
@@ -151,29 +151,58 @@ export default function ClientsPage() {
     }
   }
 
-  // Stats calculation
-  const stats = useMemo(() => {
-    const filtered = clients.filter(c =>
-      c.company_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    )
-    return {
-      totalClients: clients.length,
-      filteredCount: filtered.length,
-      recentCount: clients.filter(c => {
-        const daysSince = (Date.now() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24)
-        return daysSince <= 30
-      }).length,
-      withContactCount: clients.filter(c => c.contact_email || c.contact_phone).length,
-    }
-  }, [clients, debouncedSearchTerm])
+  // --- SORT HANDLER ---
+  function handleSort(column: SortConfig['column']) {
+    setSortConfig(prev => ({
+      column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }))
+  }
 
-  const displayedClients = useMemo(() => {
+  // --- SORTABLE HEADER COMPONENT ---
+  const SortableHeader = ({ column, children, className = '' }: { column: SortConfig['column'], children: React.ReactNode, className?: string }) => {
+    const isActive = sortConfig.column === column
+    return (
+      <TableHead
+        className={`cursor-pointer hover:bg-muted/50 select-none ${className}`}
+        onClick={() => handleSort(column)}
+      >
+        <div className="flex items-center gap-1">
+          {children}
+          {isActive ? (
+            sortConfig.direction === 'asc' ?
+              <ArrowUp className="h-3 w-3 text-primary" /> :
+              <ArrowDown className="h-3 w-3 text-primary" />
+          ) : (
+            <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />
+          )}
+        </div>
+      </TableHead>
+    )
+  }
+
+  // --- FILTERING LOGIC (THE 3 BUCKETS) ---
+  const { displayedClients, stats } = useMemo(() => {
+    // 1. Filter by Search Term
     let filtered = clients.filter(c =>
       c.company_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       c.industry?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       c.contact_name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     )
 
+    // 2. Filter by Tab (Status Buckets)
+    if (activeTab === 'archived') {
+        // Bucket 3: Churned
+        filtered = filtered.filter(c => c.status === 'churned')
+    } else if (activeTab === 'prospects') {
+        // Bucket 2: Prospects (prospect or null)
+        filtered = filtered.filter(c => c.status === 'prospect' || !c.status)
+    } else {
+        // Bucket 1: Active (active or paused)
+        filtered = filtered.filter(c => c.status === 'active' || c.status === 'paused')
+    }
+
+    // 3. Sort
     if (sortConfig.column) {
       filtered.sort((a, b) => {
         const aVal = a[sortConfig.column!] ?? ''
@@ -181,16 +210,40 @@ export default function ClientsPage() {
         if (typeof aVal === 'string' && typeof bVal === 'string') {
           return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
         }
+        // @ts-ignore - simple number sort for now
         const comparison = Number(aVal) - Number(bVal)
         return sortConfig.direction === 'asc' ? comparison : -comparison
       })
     }
-    return filtered
-  }, [clients, sortConfig, debouncedSearchTerm])
+
+    // 4. Calculate Stats
+    return {
+      displayedClients: filtered,
+      stats: {
+        totalClients: clients.length,
+        activeCount: clients.filter(c => c.status === 'active' || c.status === 'paused').length,
+        prospectCount: clients.filter(c => c.status === 'prospect' || !c.status).length,
+        archivedCount: clients.filter(c => c.status === 'churned').length,
+      }
+    }
+  }, [clients, sortConfig, debouncedSearchTerm, activeTab])
+
+  // --- HELPER: STATUS BADGE ---
+  const StatusBadge = ({ status }: { status?: string }) => {
+    switch (status) {
+        case 'active':
+            return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200 shadow-none">Active</Badge>
+        case 'paused':
+            return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">Paused</Badge>
+        case 'churned':
+            return <Badge variant="secondary">Archived</Badge>
+        default:
+            return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">Prospect</Badge>
+    }
+  }
 
   // --- CLIENT CARD COMPONENT ---
   const ClientCard = ({ client }: { client: Client }) => {
-    // Avatar Color Generator
     const initial = client.company_name.charAt(0).toUpperCase()
     const colors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700']
     const avatarColor = colors[client.company_name.length % colors.length]
@@ -207,7 +260,10 @@ export default function ClientsPage() {
             </div>
             <div>
               <h3 className="font-semibold text-foreground line-clamp-1">{client.company_name}</h3>
-              <span className="text-xs text-muted-foreground">{new Date(client.created_at).toLocaleDateString()}</span>
+              <div className="flex items-center gap-2 mt-1">
+                 <span className="text-xs text-muted-foreground">{new Date(client.created_at).toLocaleDateString()}</span>
+                 <StatusBadge status={client.status} />
+              </div>
             </div>
           </div>
           <DropdownMenu>
@@ -274,20 +330,21 @@ export default function ClientsPage() {
         <AppLayout maxWidth="7xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground tracking-tight">Client List</h1>
-              <p className="text-muted-foreground mt-1">Manage your client nexus assessments.</p>
+              <h1 className="text-3xl font-bold text-foreground tracking-tight">Client Registry</h1>
+              <p className="text-muted-foreground mt-1">Manage nexus compliance and engagement lifecycles.</p>
             </div>
             <Button onClick={() => router.push('/clients/new')} size="lg" className="shadow-md">
               <Plus className="mr-2 h-4 w-4" /> New Client
             </Button>
           </div>
 
+          {/* STATS ROW */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
-              { label: 'Total Clients', value: stats.totalClients, icon: Building2, color: 'text-blue-600' },
-              { label: 'Added (30d)', value: stats.recentCount, icon: Clock, color: 'text-emerald-600' },
-              { label: 'With Contact', value: stats.withContactCount, icon: Users, color: 'text-purple-600' },
-              { label: 'Shown', value: stats.filteredCount, icon: Search, color: 'text-orange-600' },
+              { label: 'Pipeline (Prospects)', value: stats.prospectCount, icon: Target, color: 'text-blue-600' },
+              { label: 'Active Clients', value: stats.activeCount, icon: Building2, color: 'text-emerald-600' },
+              { label: 'Archived', value: stats.archivedCount, icon: Archive, color: 'text-gray-500' },
+              { label: 'Total Database', value: stats.totalClients, icon: Users, color: 'text-purple-600' },
             ].map((stat, i) => (
               <Card key={i} className="p-4 bg-card/50 backdrop-blur-sm border-border/60 shadow-sm flex items-center justify-between">
                 <div>
@@ -301,41 +358,67 @@ export default function ClientsPage() {
             ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+          {/* TABS & FILTERS */}
+          <div className="space-y-4 mb-6">
+             <TabsCustom
+                defaultTab="active"
+                onTabChange={setActiveTab}
+                variant="pills"
+                items={[
+                    {
+                        id: 'prospects',
+                        label: 'Prospects & Leads',
+                        content: null
+                    },
+                    {
+                        id: 'active',
+                        label: 'Active Clients',
+                        content: null
+                    },
+                    {
+                        id: 'archived',
+                        label: 'Archived',
+                        content: null
+                    }
+                ]}
+             />
 
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <div className="relative flex-1 sm:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search clients..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 bg-background/50"
-                />
-              </div>
+             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                    placeholder="Search clients..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 bg-background/50"
+                    />
+                </div>
 
-              <div className="flex items-center bg-muted rounded-lg p-1 border border-border">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                  title="Grid View"
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                  title="List View"
-                >
-                  <ListIcon className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+                <div className="flex items-center bg-muted rounded-lg p-1 border border-border">
+                    <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    title="Grid View"
+                    >
+                    <LayoutGrid className="h-4 w-4" />
+                    </button>
+                    <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    title="List View"
+                    >
+                    <ListIcon className="h-4 w-4" />
+                    </button>
+                </div>
+                </div>
+             </div>
           </div>
 
+          {/* MAIN CONTENT AREA */}
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
+              {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-48 w-full rounded-xl" />
               ))}
             </div>
@@ -344,13 +427,29 @@ export default function ClientsPage() {
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
                 <FolderOpen className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">No clients found</h3>
+
+              {/* Dynamic Empty State Messaging */}
+              <h3 className="text-lg font-semibold text-foreground">
+                {activeTab === 'active' ? 'No active clients' :
+                 activeTab === 'prospects' ? 'Pipeline is empty' :
+                 'No archived records'}
+              </h3>
+
               <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-1 mb-6">
-                {searchTerm ? 'Try adjusting your search terms.' : 'Get started by adding your first client.'}
+                {searchTerm
+                    ? 'Try adjusting your search terms.'
+                    : activeTab === 'prospects'
+                        ? 'Add a new lead to start scoping their nexus exposure.'
+                        : activeTab === 'active'
+                            ? 'Promote a prospect or add a new client to see them here.'
+                            : 'Clients you delete or mark as churned will appear here.'}
               </p>
-              <Button onClick={() => router.push('/clients/new')}>
-                <Plus className="mr-2 h-4 w-4" /> New Client
-              </Button>
+
+              {activeTab !== 'archived' && (
+                  <Button onClick={() => router.push('/clients/new')}>
+                    <Plus className="mr-2 h-4 w-4" /> New Client
+                  </Button>
+              )}
             </div>
           ) : (
             <>
@@ -365,11 +464,11 @@ export default function ClientsPage() {
                   <Table>
                     <TableHeader className="bg-muted/30">
                       <TableRow>
-                        <TableHead className="w-[30%]">Company</TableHead>
-                        <TableHead className="w-[20%]">Contact</TableHead>
-                        <TableHead className="w-[15%]">Industry</TableHead>
-                        <TableHead className="w-[20%]">Email</TableHead>
-                        <TableHead className="w-[10%]">Created</TableHead>
+                        <SortableHeader column="company_name" className="w-[30%]">Company</SortableHeader>
+                        <TableHead className="w-[10%]">Status</TableHead>
+                        <SortableHeader column="contact_name" className="w-[20%]">Contact</SortableHeader>
+                        <SortableHeader column="industry" className="w-[15%]">Industry</SortableHeader>
+                        <SortableHeader column="created_at" className="w-[15%]">Created</SortableHeader>
                         <TableHead className="w-[5%]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -382,9 +481,9 @@ export default function ClientsPage() {
                             onClick={() => router.push(`/clients/${client.id}`)}
                           >
                             <TableCell className="font-medium">{client.company_name}</TableCell>
+                            <TableCell><StatusBadge status={client.status} /></TableCell>
                             <TableCell className="text-muted-foreground">{client.contact_name || '-'}</TableCell>
                             <TableCell className="text-muted-foreground">{client.industry || '-'}</TableCell>
-                            <TableCell className="text-muted-foreground text-sm truncate max-w-[200px]">{client.contact_email || '-'}</TableCell>
                             <TableCell className="text-muted-foreground text-sm">{new Date(client.created_at).toLocaleDateString()}</TableCell>
                             <TableCell>
                               <Button variant="ghost" size="icon" onClick={(e) => handleDelete(client.id, client.company_name, e as any)}>
@@ -403,7 +502,7 @@ export default function ClientsPage() {
 
         </AppLayout>
 
-        {/* Log Note Modal */}
+        {/* Log Note Modal (unchanged logic) */}
         <Dialog open={noteModalOpen} onOpenChange={setNoteModalOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
@@ -421,50 +520,16 @@ export default function ClientsPage() {
               />
               <div className="flex items-center justify-between">
                 <div className="flex gap-2">
-                  <Badge
-                    variant="outline"
-                    className={`cursor-pointer transition-all ${
-                      noteType === 'discovery'
-                        ? 'bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700'
-                        : 'hover:bg-purple-50 hover:border-purple-200 dark:hover:bg-purple-900/20'
-                    }`}
-                    onClick={() => setNoteType('discovery')}
-                  >
-                    Discovery
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={`cursor-pointer transition-all ${
-                      noteType === 'call'
-                        ? 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-700'
-                        : 'hover:bg-orange-50 hover:border-orange-200 dark:hover:bg-orange-900/20'
-                    }`}
-                    onClick={() => setNoteType('call')}
-                  >
-                    Call
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={`cursor-pointer transition-all ${
-                      noteType === 'email'
-                        ? 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700'
-                        : 'hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-900/20'
-                    }`}
-                    onClick={() => setNoteType('email')}
-                  >
-                    Email
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={`cursor-pointer transition-all ${
-                      noteType === 'meeting'
-                        ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700'
-                        : 'hover:bg-green-50 hover:border-green-200 dark:hover:bg-green-900/20'
-                    }`}
-                    onClick={() => setNoteType('meeting')}
-                  >
-                    Meeting
-                  </Badge>
+                  {['discovery', 'call', 'email', 'meeting'].map((type) => (
+                      <Badge
+                        key={type}
+                        variant="outline"
+                        className={`cursor-pointer capitalize ${noteType === type ? 'bg-primary/10 border-primary text-primary' : 'hover:bg-muted'}`}
+                        onClick={() => setNoteType(type)}
+                      >
+                        {type}
+                      </Badge>
+                  ))}
                 </div>
               </div>
               <div className="flex justify-end gap-2 pt-2">

@@ -43,7 +43,7 @@ const newClientSchema = z.object({
   // Business DNA (Booleans)
   is_marketplace_seller: z.boolean().default(false),
   percent_marketplace_revenue: z.coerce.number().min(0).max(100).optional(),
-  sells_tpp: z.boolean().default(true),
+  sells_tpp: z.boolean().default(false),
   sells_saas: z.boolean().default(false),
   sells_digital_goods: z.boolean().default(false),
   has_inventory_3pl: z.boolean().default(false),
@@ -69,7 +69,7 @@ export default function NewClientPage() {
   } = useForm<NewClientForm>({
     resolver: zodResolver(newClientSchema),
     defaultValues: {
-      sells_tpp: true,
+      sells_tpp: false,
       is_marketplace_seller: false,
       sells_saas: false,
       has_inventory_3pl: false,

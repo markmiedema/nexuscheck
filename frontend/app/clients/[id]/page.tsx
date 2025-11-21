@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ClientValueSummary } from '@/components/clients/ClientValueSummary'
+import { ClientContacts } from '@/components/clients/ClientContacts'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
@@ -151,7 +152,19 @@ export default function ClientCRMPage() {
                   Client Since {new Date(client.created_at).getFullYear()}
                 </span>
                 {client.industry && <span className="flex items-center gap-1"><Building2 className="h-3 w-3" /> {client.industry}</span>}
-                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400">Active Client</Badge>
+{/* Dynamic Status Badge */}
+                {client.status === 'active' && (
+                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Active Client</Badge>
+                )}
+                {(client.status === 'prospect' || !client.status) && (
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Prospect</Badge>
+                )}
+                {client.status === 'paused' && (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Paused</Badge>
+                )}
+                {client.status === 'churned' && (
+                  <Badge variant="secondary">Archived</Badge>
+                )}
               </div>
             </div>
           </div>
@@ -171,29 +184,8 @@ export default function ClientCRMPage() {
 
           {/* LEFT COL: CONTACT & INFO */}
           <div className="space-y-6">
-            <Card className="p-6 space-y-6">
-              <h3 className="font-semibold text-foreground">Primary Contact</h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center font-semibold">
-                    {client.contact_name?.charAt(0) || '?'}
-                  </div>
-                  <div>
-                    <p className="font-medium">{client.contact_name || 'No contact'}</p>
-                    <p className="text-xs text-muted-foreground">Primary Point of Contact</p>
-                  </div>
-                </div>
-                <Separator />
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Mail className="h-4 w-4" /> {client.contact_email || 'N/A'}
-                  </div>
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Phone className="h-4 w-4" /> {client.contact_phone || 'N/A'}
-                  </div>
-                </div>
-              </div>
-            </Card>
+            {/* Team Roster (Replaces static Contact Card) */}
+            <ClientContacts clientId={client.id} />
 
             {/* Business Profile Card */}
             <Card className="p-6 space-y-4">
