@@ -100,52 +100,47 @@ async def get_client(
 ):
     supabase = get_supabase()
     try:
-        # Fetch client - use maybe_single() to avoid exception on no rows
+        # 1. Fetch the Core Client (Must exist)
         result = supabase.table('clients')\
             .select('*')\
             .eq('id', client_id)\
             .eq('user_id', user_id)\
-            .maybe_single()\
+            .single()\
             .execute()
 
         if not result.data:
-            logger.error(f"Client not found: client_id={client_id}, user_id={user_id}")
             raise HTTPException(status_code=404, detail="Client not found")
 
         client = result.data
 
-        # Fetch business profile
-        profile_result = supabase.table('client_profiles')\
+        # 2. Safely Fetch Optional Business Profile
+        # We use .select().limit(1).execute() instead of .single() to avoid crashes if 0 rows found
+        profile_res = supabase.table('client_profiles')\
             .select('*')\
             .eq('client_id', client_id)\
-            .maybe_single()\
+            .limit(1)\
             .execute()
 
-        if profile_result.data:
-            # Remove internal fields from profile response
-            profile = {k: v for k, v in profile_result.data.items()
-                      if k not in ('id', 'client_id', 'created_at', 'updated_at')}
-            client['business_profile'] = profile
+        if profile_res.data:
+            client['business_profile'] = profile_res.data[0]
 
-        # Fetch tech stack
-        tech_result = supabase.table('client_tech_stacks')\
+        # 3. Safely Fetch Optional Tech Stack
+        stack_res = supabase.table('client_tech_stacks')\
             .select('*')\
             .eq('client_id', client_id)\
-            .maybe_single()\
+            .limit(1)\
             .execute()
 
-        if tech_result.data:
-            # Remove internal fields from tech stack response
-            tech_stack = {k: v for k, v in tech_result.data.items()
-                         if k not in ('id', 'client_id', 'created_at', 'updated_at')}
-            client['tech_stack'] = tech_stack
+        if stack_res.data:
+            client['tech_stack'] = stack_res.data[0]
 
         return client
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error fetching client: {str(e)}")
-        raise HTTPException(status_code=404, detail="Client not found")
+        raise HTTPException(status_code=500, detail="Failed to fetch client details")
 
 @router.patch("/{client_id}", response_model=ClientResponse)
 async def update_client(
