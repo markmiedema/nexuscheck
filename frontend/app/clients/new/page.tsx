@@ -119,15 +119,15 @@ export default function NewClientPage() {
       // Log activity note for client creation
       try {
         const noteContent = data.notes
-          ? `New client onboarded. Discovery notes: ${data.notes}`
-          : 'New client onboarded'
+          ? `Initial contact - client record created. Notes: ${data.notes}`
+          : 'Initial contact - client record created'
         await createClientNote(newClient.id, {
           content: noteContent,
-          note_type: 'discovery'
+          note_type: 'call'
         })
       } catch {
         // Silently fail - note creation is not critical
-        console.warn('Failed to create onboarding activity note')
+        console.warn('Failed to create activity note')
       }
 
       showSuccess(`Client "${newClient.company_name}" added successfully`)
