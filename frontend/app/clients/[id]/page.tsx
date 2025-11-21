@@ -14,10 +14,11 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { EngagementGenerator } from '@/components/clients/EngagementGenerator'
 import { ClientValueSummary } from '@/components/clients/ClientValueSummary'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
-  Building2, Phone, Mail, Globe, MapPin,
-  FileText, Plus, Calendar, Clock,
-  CheckCircle2, AlertCircle, Download, Trash2
+  Building2, Phone, Mail, Globe,
+  FileText, Plus, Calendar,
+  Download, Trash2
 } from 'lucide-react'
 import apiClient from '@/lib/api/client'
 
@@ -33,6 +34,14 @@ export default function ClientCRMPage() {
   const [loading, setLoading] = useState(true)
   const [savingNote, setSavingNote] = useState(false)
   const [deletingAnalysis, setDeletingAnalysis] = useState<string | null>(null)
+
+  // Data Request Checklist state (in real app, save to DB)
+  const [checklist, setChecklist] = useState({
+    salesData: false,
+    priorReturns: false,
+    nexusQuestionnaire: true,
+    powerOfAttorney: false
+  })
 
   useEffect(() => {
     async function loadClient() {
@@ -129,17 +138,20 @@ export default function ClientCRMPage() {
           { label: client.company_name }
         ]}
       >
-        {/* CRM HEADER */}
-        <div className="flex justify-between items-start mb-8">
+        {/* ENHANCED HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
           <div className="flex gap-4">
             <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
               <Building2 className="h-8 w-8" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-foreground">{client.company_name}</h1>
-              <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  Client Since {new Date(client.created_at).getFullYear()}
+                </span>
                 {client.industry && <span className="flex items-center gap-1"><Building2 className="h-3 w-3" /> {client.industry}</span>}
-                {client.website && <span className="flex items-center gap-1"><Globe className="h-3 w-3" /> {client.website}</span>}
                 <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400">Active Client</Badge>
               </div>
             </div>
@@ -147,15 +159,14 @@ export default function ClientCRMPage() {
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => router.push(`/clients/${client.id}/edit`)}>Edit Profile</Button>
             <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)}>
+              <Plus className="h-4 w-4 mr-2" />
               New Analysis
             </Button>
           </div>
         </div>
 
-        {/* Client Value Summary - At a Glance Metrics */}
-        {analyses.length > 0 && (
-          <ClientValueSummary analyses={analyses} notesCount={notes.length} />
-        )}
+        {/* VALUE SUMMARY ("RAINMAKER" VIEW) */}
+        <ClientValueSummary analyses={analyses} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -188,17 +199,30 @@ export default function ClientCRMPage() {
             <Card className="p-6">
               <h3 className="font-semibold text-foreground mb-4">Active Engagements</h3>
               <div className="space-y-4">
-                {/* Mock Engagement Item */}
-                <div className="border rounded-lg p-3 bg-muted/30">
-                  <div className="flex justify-between items-start mb-2">
-                    <p className="font-medium text-sm">Nexus Study 2024</p>
-                    <Badge className="text-[10px] h-5">Signed</Badge>
+                {analyses.length > 0 ? (
+                  analyses.slice(0, 3).map(analysis => (
+                    <div
+                      key={analysis.id}
+                      className="border rounded-lg p-3 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/analysis/${analysis.id}/results`)}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="font-medium text-sm">Nexus Study</p>
+                        <Badge variant={analysis.status === 'complete' ? 'default' : 'secondary'} className="text-[10px] h-5">
+                          {analysis.status}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">Started {new Date(analysis.created_at).toLocaleDateString()}</p>
+                      <Button variant="outline" size="sm" className="w-full h-7 text-xs">
+                        Open
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground text-sm">
+                    No active projects.
                   </div>
-                  <p className="text-xs text-muted-foreground mb-3">Signed on Mar 1, 2024</p>
-                  <Button variant="outline" size="sm" className="w-full h-8 text-xs">
-                    <FileText className="h-3 w-3 mr-2" /> View Letter
-                  </Button>
-                </div>
+                )}
                 <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
                   <Plus className="h-3 w-3 mr-2" /> Create Engagement Letter
                 </Button>
@@ -402,11 +426,40 @@ export default function ClientCRMPage() {
                 },
                 {
                   id: 'files',
-                  label: 'Files & Docs',
+                  label: 'Data Checklist',
                   content: (
-                    <div className="p-8 text-center text-muted-foreground">
-                      <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p>File manager coming in Phase 2</p>
+                    <div className="pt-4 space-y-6">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="text-lg font-medium">Data Request Checklist</h3>
+                          <p className="text-sm text-muted-foreground">Track received documents for this client.</p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-2" />
+                          Email Request
+                        </Button>
+                      </div>
+                      <Card className="p-0 overflow-hidden">
+                        <div className="divide-y">
+                          {Object.entries(checklist).map(([key, checked]) => (
+                            <div key={key} className="p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors">
+                              <Checkbox
+                                id={key}
+                                checked={checked}
+                                onCheckedChange={(c) => setChecklist(prev => ({...prev, [key]: !!c}))}
+                              />
+                              <label htmlFor={key} className="flex-1 cursor-pointer font-medium text-sm capitalize">
+                                {key.replace(/([A-Z])/g, ' $1').trim()}
+                              </label>
+                              {checked && (
+                                <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300">
+                                  Received
+                                </Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
                     </div>
                   )
                 }

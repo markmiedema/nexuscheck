@@ -1,80 +1,79 @@
 'use client'
 
 import { Card } from '@/components/ui/card'
-import { DollarSign, MapPin, AlertTriangle, FileText, TrendingUp } from 'lucide-react'
-import { ClientAnalysis } from '@/lib/api/clients'
+import { DollarSign, MapPin, FileText, TrendingUp } from 'lucide-react'
+import { type ClientAnalysis } from '@/lib/api/clients'
 
-interface ClientValueSummaryProps {
-  analyses: ClientAnalysis[]
-  notesCount: number
-}
+export function ClientValueSummary({ analyses }: { analyses: ClientAnalysis[] }) {
+  // 1. Get the most relevant analysis (most recent)
+  const activeAnalysis = analyses && analyses.length > 0
+    ? analyses.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+    : null
 
-export function ClientValueSummary({ analyses, notesCount }: ClientValueSummaryProps) {
-  // Get the most recent completed analysis for metrics
-  const completedAnalyses = analyses.filter(a => a.status === 'complete')
-  const latestAnalysis = analyses[0] // Most recent (assuming sorted by date desc)
-  const latestComplete = completedAnalyses[0]
+  if (!activeAnalysis) {
+    return (
+      <Card className="p-6 border-dashed flex items-center justify-center bg-muted/30 mb-8">
+        <div className="text-center text-muted-foreground">
+          <p className="font-medium">No Analysis Data Available</p>
+          <p className="text-sm">Start a Nexus Check to generate insights.</p>
+        </div>
+      </Card>
+    )
+  }
 
-  // Aggregate metrics from latest complete analysis
-  const totalNexusStates = latestComplete?.states_with_nexus || 0
-  const estimatedLiability = latestComplete?.total_liability || 0
+  // 2. Get exposure from analysis results
+  const estimatedExposure = activeAnalysis.status === 'complete' && activeAnalysis.total_liability
+    ? `$${activeAnalysis.total_liability.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
+    : 'Pending'
+  const nexusCount = activeAnalysis.states_with_nexus || 0
 
-  // Calculate pending action items
-  const pendingProjects = analyses.filter(a => a.status === 'draft' || a.status === 'processing').length
-  const actionItems = pendingProjects + (notesCount > 0 ? 0 : 1) // +1 if no notes logged yet
-
-  // Don't show if no analyses exist
-  if (analyses.length === 0) return null
+  // 3. Count potential VDAs (states with nexus that may need voluntary disclosure)
+  const potentialVDAs = nexusCount > 0 ? Math.min(nexusCount, 5) : 0
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <Card className="p-4 shadow-sm bg-card/50">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Latest Project</p>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      {/* METRIC 1: Latest Project Status */}
+      <Card className="p-4 shadow-sm bg-card relative overflow-hidden">
+        <div className="flex items-center justify-between mb-2 relative z-10">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Latest Project</p>
           <FileText className="h-4 w-4 text-muted-foreground" />
         </div>
-        <p className="font-semibold text-sm truncate text-foreground">
-          Nexus Analysis
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          {new Date(latestAnalysis.created_at).toLocaleDateString()}
+        <p className="font-bold text-sm truncate relative z-10">Nexus Analysis</p>
+        <p className="text-xs text-muted-foreground mt-1 relative z-10">
+          Updated {new Date(activeAnalysis.updated_at).toLocaleDateString()}
         </p>
       </Card>
 
-      <Card className="p-4 shadow-sm bg-card/50">
+      {/* METRIC 2: Nexus Count */}
+      <Card className="p-4 shadow-sm bg-card">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Nexus States</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Nexus Risk</p>
           <MapPin className="h-4 w-4 text-muted-foreground" />
         </div>
-        <p className="text-2xl font-bold text-foreground">
-          {totalNexusStates}
-        </p>
-        <p className="text-xs text-muted-foreground">Physical & Economic</p>
+        <div className="flex items-baseline gap-2">
+          <p className="text-2xl font-bold text-foreground">{nexusCount}</p>
+          <p className="text-xs text-muted-foreground">States Identified</p>
+        </div>
       </Card>
 
-      <Card className="p-4 shadow-sm bg-card/50">
+      {/* METRIC 3: Estimated Exposure (Revenue Opportunity) */}
+      <Card className="p-4 shadow-sm bg-card">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Est. Exposure</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Est. Liability</p>
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </div>
-        <p className="text-2xl font-bold text-foreground">
-          {estimatedLiability > 0
-            ? `$${estimatedLiability.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
-            : '—'
-          }
-        </p>
-        <p className="text-xs text-muted-foreground">Unregistered Liability</p>
+        <p className="text-2xl font-bold text-foreground">{estimatedExposure}</p>
+        <p className="text-xs text-muted-foreground">Unregistered Exposure</p>
       </Card>
 
-      <Card className="p-4 shadow-sm bg-card/50">
+      {/* METRIC 4: Action Items */}
+      <Card className="p-4 shadow-sm bg-card">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Projects</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Opportunity</p>
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </div>
-        <p className="text-2xl font-bold text-foreground">{analyses.length}</p>
-        <p className="text-xs text-muted-foreground">
-          {completedAnalyses.length} completed
-        </p>
+        <p className="text-2xl font-bold text-foreground">{potentialVDAs}</p>
+        <p className="text-xs text-muted-foreground">Potential VDAs</p>
       </Card>
     </div>
   )

@@ -11,6 +11,9 @@ class ClientBase(BaseModel):
     industry: Optional[str] = None
     website: Optional[str] = None
     notes: Optional[str] = None
+    # CRM Fields
+    status: Optional[str] = "active"  # active, prospect, churned
+    fiscal_year_end: Optional[str] = "12-31"  # MM-DD format
 
 class ClientCreate(ClientBase):
     pass
