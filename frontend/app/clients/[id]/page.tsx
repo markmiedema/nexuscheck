@@ -231,35 +231,6 @@ export default function ClientCRMPage() {
                 </div>
               </div>
             </Card>
-
-            {analyses.length > 0 && (
-              <Card className="p-6">
-                <h3 className="font-semibold text-foreground mb-4">Active Engagements</h3>
-                <div className="space-y-4">
-                  {analyses.slice(0, 3).map(analysis => (
-                    <div
-                      key={analysis.id}
-                      className="border rounded-lg p-3 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => router.push(`/analysis/${analysis.id}/results`)}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="font-medium text-sm">Nexus Study</p>
-                        <Badge variant={analysis.status === 'complete' ? 'default' : 'secondary'} className="text-[10px] h-5">
-                          {analysis.status}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-2">Started {new Date(analysis.created_at).toLocaleDateString()}</p>
-                      <Button variant="outline" size="sm" className="w-full h-7 text-xs">
-                        Open
-                      </Button>
-                    </div>
-                  ))}
-                  <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
-                    <Plus className="h-3 w-3 mr-2" /> Create Engagement Letter
-                  </Button>
-                </div>
-              </Card>
-            )}
           </div>
 
           {/* CENTER COL: ACTIVITY & NOTES */}
@@ -427,21 +398,14 @@ export default function ClientCRMPage() {
                        ) : (
                          <div className="space-y-3">
                            {analyses.map((analysis) => (
-                             <Card
+                             <div
                                key={analysis.id}
-                               className="p-4 cursor-pointer hover:shadow-md transition-shadow group"
+                               className="border rounded-lg p-4 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group"
                                onClick={() => router.push(`/analysis/${analysis.id}/results`)}
                              >
-                               <div className="flex justify-between items-start">
-                                 <div>
-                                   <h4 className="font-medium text-foreground">{analysis.client_company_name}</h4>
-                                   <p className="text-sm text-muted-foreground mt-1">
-                                     {analysis.analysis_period_start && analysis.analysis_period_end
-                                       ? `${new Date(analysis.analysis_period_start).toLocaleDateString()} - ${new Date(analysis.analysis_period_end).toLocaleDateString()}`
-                                       : 'Period not set'}
-                                   </p>
-                                 </div>
-                                 <div className="flex items-start gap-2">
+                               <div className="flex justify-between items-start mb-2">
+                                 <p className="font-medium">Nexus Study</p>
+                                 <div className="flex items-center gap-2">
                                    <Badge variant="outline" className={
                                      analysis.status === 'complete'
                                        ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300'
@@ -454,25 +418,23 @@ export default function ClientCRMPage() {
                                    <Button
                                      variant="ghost"
                                      size="icon"
-                                     className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                     className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
                                      onClick={(e) => handleDeleteAnalysis(analysis.id, e)}
                                      disabled={deletingAnalysis === analysis.id}
                                    >
-                                     <Trash2 className="h-4 w-4" />
+                                     <Trash2 className="h-3 w-3" />
                                    </Button>
                                  </div>
                                </div>
-                               <div className="flex justify-between items-center mt-3">
-                                 <p className="text-xs text-muted-foreground">
-                                   Created {new Date(analysis.created_at).toLocaleDateString()}
-                                 </p>
-                                 {analysis.states_with_nexus !== undefined && analysis.states_with_nexus > 0 && (
-                                   <p className="text-xs text-muted-foreground">
-                                     {analysis.states_with_nexus} states with nexus
-                                   </p>
-                                 )}
-                               </div>
-                             </Card>
+                               <p className="text-sm text-muted-foreground mb-3">
+                                 {analysis.analysis_period_start && analysis.analysis_period_end
+                                   ? `${new Date(analysis.analysis_period_start).toLocaleDateString()} - ${new Date(analysis.analysis_period_end).toLocaleDateString()}`
+                                   : `Started ${new Date(analysis.created_at).toLocaleDateString()}`}
+                               </p>
+                               <Button variant="outline" size="sm" className="w-full h-8 text-sm">
+                                 Open
+                               </Button>
+                             </div>
                            ))}
                          </div>
                        )}
