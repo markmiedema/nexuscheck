@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -11,7 +11,7 @@ import AppLayout from '@/components/layout/AppLayout'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
-import { UploadCloud, CheckCircle2, FileText } from 'lucide-react'
+import { UploadCloud, CheckCircle2, FileText, ShieldAlert, FileCheck, RefreshCw, ArrowLeft } from 'lucide-react'
 import ColumnMappingConfirmationDialog from '@/components/analysis/ColumnMappingConfirmationDialog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { isValidStateCode, isValidPastDate, isValidFileSize, formatFileSize } from '@/lib/utils/validation'
@@ -35,12 +35,109 @@ interface StateRegistration {
   registrationDate: string
 }
 
+// Placeholder component for engagement types not yet implemented
+function ComingSoonPlaceholder({
+  type,
+  clientId,
+  clientName
+}: {
+  type: string
+  clientId: string | null
+  clientName: string | null
+}) {
+  const router = useRouter()
+
+  const typeConfig: Record<string, { title: string; icon: React.ElementType; color: string; bgColor: string; description: string }> = {
+    vda: {
+      title: 'VDA / Remediation',
+      icon: ShieldAlert,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100',
+      description: 'Anonymous voluntary disclosure agreements to clear past tax liabilities without penalties.'
+    },
+    registration: {
+      title: 'State Registration',
+      icon: FileCheck,
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-100',
+      description: 'Filing forms to register for sales tax permits in states where you have nexus.'
+    },
+    compliance: {
+      title: 'Monthly Compliance',
+      icon: RefreshCw,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100',
+      description: 'Recurring filing setup, return preparation, and notice management services.'
+    }
+  }
+
+  const config = typeConfig[type] || typeConfig.vda
+  const Icon = config.icon
+
+  const handleBack = () => {
+    if (clientId) {
+      router.push(`/clients/${clientId}`)
+    } else {
+      router.push('/clients')
+    }
+  }
+
+  return (
+    <ProtectedRoute>
+      <AppLayout
+        maxWidth="4xl"
+        breadcrumbs={
+          clientId && clientName
+            ? [
+                { label: 'Clients', href: '/clients' },
+                { label: clientName, href: `/clients/${clientId}` },
+                { label: config.title },
+              ]
+            : [
+                { label: 'Clients', href: '/clients' },
+                { label: config.title },
+              ]
+        }
+      >
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader className="text-center pb-2">
+            <div className={`h-16 w-16 rounded-xl ${config.bgColor} flex items-center justify-center mx-auto mb-4`}>
+              <Icon className={`h-8 w-8 ${config.color}`} />
+            </div>
+            <CardTitle className="text-2xl">{config.title}</CardTitle>
+            <CardDescription className="text-base mt-2">
+              {config.description}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-6 pt-4">
+            <div className="bg-muted/50 rounded-lg p-6 border border-dashed">
+              <p className="text-muted-foreground">
+                This engagement type is coming soon. We're building out the workflow to support {config.title.toLowerCase()} engagements.
+              </p>
+            </div>
+            <Button variant="outline" onClick={handleBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Client
+            </Button>
+          </CardContent>
+        </Card>
+      </AppLayout>
+    </ProtectedRoute>
+  )
+}
+
 // Component to handle search params
 function AnalysisFormContent() {
   const searchParams = useSearchParams()
   const clientId = searchParams?.get('clientId')
   const clientName = searchParams?.get('clientName')
+  const type = searchParams?.get('type')
   const router = useRouter()
+
+  // Route to appropriate wizard based on engagement type
+  if (type && type !== 'nexus') {
+    return <ComingSoonPlaceholder type={type} clientId={clientId} clientName={clientName} />
+  }
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [stateRegistrations, setStateRegistrations] = useState<StateRegistration[]>([])

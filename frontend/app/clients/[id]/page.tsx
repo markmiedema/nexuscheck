@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ClientValueSummary } from '@/components/clients/ClientValueSummary'
 import { ClientContacts } from '@/components/clients/ClientContacts'
+import { NewProjectDialog } from '@/components/clients/NewProjectDialog'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
@@ -170,10 +171,10 @@ export default function ClientCRMPage() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => router.push(`/clients/${client.id}/edit`)}>Edit Profile</Button>
-            <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Analysis
-            </Button>
+            <NewProjectDialog
+              clientId={client.id}
+              clientName={client.company_name}
+            />
           </div>
         </div>
 
@@ -381,9 +382,10 @@ export default function ClientCRMPage() {
                     <div className="pt-4">
                        <div className="flex justify-between items-center mb-4">
                          <h3 className="text-lg font-medium">Projects</h3>
-                         <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)} size="sm">
-                           <Plus className="h-4 w-4 mr-2" /> New Project
-                         </Button>
+                         <NewProjectDialog
+                           clientId={client.id}
+                           clientName={client.company_name}
+                         />
                        </div>
 
                        {/* Project list - analyses */}
@@ -391,9 +393,12 @@ export default function ClientCRMPage() {
                          <Card className="p-8 text-center text-muted-foreground border-dashed">
                            <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
                            <p>No projects yet for this client.</p>
-                           <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)} variant="outline" size="sm" className="mt-4">
-                             <Plus className="h-4 w-4 mr-2" /> Start First Project
-                           </Button>
+                           <div className="mt-4">
+                             <NewProjectDialog
+                               clientId={client.id}
+                               clientName={client.company_name}
+                             />
+                           </div>
                          </Card>
                        ) : (
                          <div className="space-y-3">
