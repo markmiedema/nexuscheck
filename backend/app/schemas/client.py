@@ -14,6 +14,7 @@ class BusinessProfileBase(BaseModel):
     sells_tpp: bool = True  # Tangible Personal Property
     sells_saas: bool = False
     sells_digital_goods: bool = False
+    has_inventory_3pl: bool = False  # Has 3PL/warehouse inventory (physical nexus indicator)
     uses_fba: bool = False  # Fulfillment by Amazon
 
 
