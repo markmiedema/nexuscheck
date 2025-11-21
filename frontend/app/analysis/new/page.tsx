@@ -11,6 +11,7 @@ import AppLayout from '@/components/layout/AppLayout'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
+import { createClientNote } from '@/lib/api/clients'
 import { UploadCloud, CheckCircle2, FileText, ShieldAlert, FileCheck, RefreshCw, ArrowLeft } from 'lucide-react'
 import ColumnMappingConfirmationDialog from '@/components/analysis/ColumnMappingConfirmationDialog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -235,6 +236,19 @@ function AnalysisFormContent() {
       setAnalysisId(newAnalysisId)
       setShowUploadZone(true)
       showSuccess('Analysis created! Now upload your transaction data.')
+
+      // Log activity note if this is linked to a client
+      if (clientId) {
+        try {
+          await createClientNote(clientId, {
+            content: `Started new Nexus Study project for ${data.companyName}`,
+            note_type: 'analysis'
+          })
+        } catch {
+          // Silently fail - note creation is not critical
+          console.warn('Failed to create activity note')
+        }
+      }
     } catch (err) {
       const errorMsg = handleApiError(err, { userMessage: 'Failed to create analysis' })
       setError(errorMsg)
