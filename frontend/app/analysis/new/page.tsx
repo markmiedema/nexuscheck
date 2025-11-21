@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -35,7 +35,11 @@ interface StateRegistration {
   registrationDate: string
 }
 
-export default function ClientSetupPage() {
+// Component to handle search params
+function AnalysisFormContent() {
+  const searchParams = useSearchParams()
+  const clientId = searchParams?.get('clientId')
+  const clientName = searchParams?.get('clientName')
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -56,10 +60,21 @@ export default function ClientSetupPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<ClientSetupForm>({
     resolver: zodResolver(clientSetupSchema),
+    defaultValues: {
+      companyName: clientName || ''
+    }
   })
+
+  // Pre-fill company name if clientName is provided
+  useEffect(() => {
+    if (clientName) {
+      setValue('companyName', clientName)
+    }
+  }, [clientName, setValue])
 
   const handleAddState = () => {
     if (!newState.stateCode || !newState.registrationDate) {
@@ -116,6 +131,7 @@ export default function ClientSetupPage() {
           state_code: s.stateCode,
           registration_date: s.registrationDate,
         })),
+        client_id: clientId || null,  // Link to client if provided
       })
 
       const newAnalysisId = response.data.id
@@ -590,5 +606,25 @@ export default function ClientSetupPage() {
       </AppLayout>
       </ErrorBoundary>
     </ProtectedRoute>
+  )
+}
+
+// Main export component with Suspense boundary
+export default function ClientSetupPage() {
+  return (
+    <Suspense fallback={
+      <ProtectedRoute>
+        <AppLayout maxWidth="4xl">
+          <div className="flex items-center justify-center py-32">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          </div>
+        </AppLayout>
+      </ProtectedRoute>
+    }>
+      <AnalysisFormContent />
+    </Suspense>
   )
 }

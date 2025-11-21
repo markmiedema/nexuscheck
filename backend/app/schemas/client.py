@@ -26,3 +26,21 @@ class ClientResponse(ClientBase):
 
     class Config:
         from_attributes = True
+
+# Client Note schemas
+class ClientNoteBase(BaseModel):
+    content: str
+    note_type: Optional[str] = None  # e.g., 'discovery', 'email', 'call', 'meeting'
+
+class ClientNoteCreate(ClientNoteBase):
+    pass
+
+class ClientNoteResponse(ClientNoteBase):
+    id: UUID
+    client_id: UUID
+    user_id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
