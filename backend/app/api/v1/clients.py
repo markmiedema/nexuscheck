@@ -96,15 +96,16 @@ async def get_client(
 ):
     supabase = get_supabase()
     try:
-        # Fetch client
+        # Fetch client - use maybe_single() to avoid exception on no rows
         result = supabase.table('clients')\
             .select('*')\
             .eq('id', client_id)\
             .eq('user_id', user_id)\
-            .single()\
+            .maybe_single()\
             .execute()
 
         if not result.data:
+            logger.error(f"Client not found: client_id={client_id}, user_id={user_id}")
             raise HTTPException(status_code=404, detail="Client not found")
 
         client = result.data
