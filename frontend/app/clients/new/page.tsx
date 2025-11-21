@@ -168,13 +168,25 @@ export default function NewClientPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                    {/* Row 1: Name (Full Width) */}
+                    <div className="col-span-2 space-y-2">
                       <Label htmlFor="contact_name">Contact Name</Label>
                       <Input id="contact_name" {...register('contact_name')} />
                     </div>
+
+                    {/* Row 2: Email & Phone (Split 50/50) */}
                     <div className="space-y-2">
                       <Label htmlFor="contact_email">Email</Label>
                       <Input id="contact_email" {...register('contact_email')} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="contact_phone">Phone</Label>
+                      <Input
+                        id="contact_phone"
+                        placeholder="(555) 123-4567"
+                        {...register('contact_phone')}
+                      />
                     </div>
                   </div>
 
