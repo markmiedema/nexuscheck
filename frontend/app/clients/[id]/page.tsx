@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getClient, listClientNotes, createClientNote, type Client, type ClientNote } from '@/lib/api/clients'
+import { getClient, listClientNotes, createClientNote, listClientAnalyses, type Client, type ClientNote, type ClientAnalysis } from '@/lib/api/clients'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import AppLayout from '@/components/layout/AppLayout'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -24,6 +24,7 @@ export default function ClientCRMPage() {
   const router = useRouter()
   const [client, setClient] = useState<Client | null>(null)
   const [notes, setNotes] = useState<ClientNote[]>([])
+  const [analyses, setAnalyses] = useState<ClientAnalysis[]>([])
   const [activeTab, setActiveTab] = useState('overview')
   const [newNote, setNewNote] = useState('')
   const [noteType, setNoteType] = useState<string>('call')
@@ -37,9 +38,13 @@ export default function ClientCRMPage() {
         const data = await getClient(params.id as string)
         setClient(data)
 
-        // Load notes
-        const notesData = await listClientNotes(params.id as string)
+        // Load notes and analyses in parallel
+        const [notesData, analysesData] = await Promise.all([
+          listClientNotes(params.id as string),
+          listClientAnalyses(params.id as string)
+        ])
         setNotes(notesData)
+        setAnalyses(analysesData)
       } catch (err) {
         handleApiError(err, { userMessage: 'Failed to load client' })
       } finally {
@@ -202,29 +207,45 @@ export default function ClientCRMPage() {
                         <div className="flex justify-between items-center">
                            <div className="flex gap-2">
                              <Badge
-                               variant={noteType === 'discovery' ? 'default' : 'outline'}
-                               className="cursor-pointer hover:bg-background"
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'discovery'
+                                   ? 'bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700'
+                                   : 'hover:bg-purple-50 hover:border-purple-200 dark:hover:bg-purple-900/20'
+                               }`}
                                onClick={() => setNoteType('discovery')}
                              >
                                Discovery
                              </Badge>
                              <Badge
-                               variant={noteType === 'call' ? 'default' : 'outline'}
-                               className="cursor-pointer hover:bg-background"
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'call'
+                                   ? 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-700'
+                                   : 'hover:bg-orange-50 hover:border-orange-200 dark:hover:bg-orange-900/20'
+                               }`}
                                onClick={() => setNoteType('call')}
                              >
                                Call
                              </Badge>
                              <Badge
-                               variant={noteType === 'email' ? 'default' : 'outline'}
-                               className="cursor-pointer hover:bg-background"
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'email'
+                                   ? 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700'
+                                   : 'hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-900/20'
+                               }`}
                                onClick={() => setNoteType('email')}
                              >
                                Email
                              </Badge>
                              <Badge
-                               variant={noteType === 'meeting' ? 'default' : 'outline'}
-                               className="cursor-pointer hover:bg-background"
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'meeting'
+                                   ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700'
+                                   : 'hover:bg-green-50 hover:border-green-200 dark:hover:bg-green-900/20'
+                               }`}
                                onClick={() => setNoteType('meeting')}
                              >
                                Meeting
@@ -246,23 +267,23 @@ export default function ClientCRMPage() {
                         ) : (
                           notes.map((note) => (
                             <div key={note.id} className="relative">
-                              <div className={`absolute -left-[21px] top-1 h-3 w-3 rounded-full border-2 border-background ${
+                              <div className={`absolute -left-[21px] top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-background ${
                                 note.note_type === 'discovery' ? 'bg-purple-500' :
                                 note.note_type === 'email' ? 'bg-blue-500' :
                                 note.note_type === 'meeting' ? 'bg-green-500' :
                                 'bg-orange-500'
                               }`} />
-                              <div className="bg-card border rounded-lg p-4 shadow-sm">
+                              <div className="bg-card border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start mb-2">
                                   <div className="flex items-center gap-2">
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                                      note.note_type === 'discovery' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
-                                      note.note_type === 'email' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                                      note.note_type === 'meeting' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
-                                      'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                                    <Badge variant="outline" className={`text-xs font-semibold px-2.5 py-0.5 ${
+                                      note.note_type === 'discovery' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700' :
+                                      note.note_type === 'email' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700' :
+                                      note.note_type === 'meeting' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700' :
+                                      'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700'
                                     }`}>
-                                      {(note.note_type || 'note').toUpperCase()}
-                                    </span>
+                                      {(note.note_type || 'note').charAt(0).toUpperCase() + (note.note_type || 'note').slice(1)}
+                                    </Badge>
                                   </div>
                                   <span className="text-xs text-muted-foreground">
                                     {new Date(note.created_at).toLocaleDateString()}
@@ -280,25 +301,67 @@ export default function ClientCRMPage() {
                   )
                 },
                 {
-                  id: 'analyses',
-                  label: 'Tax Analyses',
+                  id: 'projects',
+                  label: 'Project History',
                   content: (
                     <div className="pt-4">
                        <div className="flex justify-between items-center mb-4">
-                         <h3 className="text-lg font-medium">Project History</h3>
+                         <h3 className="text-lg font-medium">Projects</h3>
                          <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)} size="sm">
-                           <Plus className="h-4 w-4 mr-2" /> New Analysis
+                           <Plus className="h-4 w-4 mr-2" /> New Project
                          </Button>
                        </div>
 
-                       {/* This would be your Analysis List Table filtered by this client */}
-                       <Card className="p-8 text-center text-muted-foreground border-dashed">
-                         <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                         <p>No active analyses for this client.</p>
-                         <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)} variant="outline" size="sm" className="mt-4">
-                           <Plus className="h-4 w-4 mr-2" /> Start First Analysis
-                         </Button>
-                       </Card>
+                       {/* Project list - analyses */}
+                       {analyses.length === 0 ? (
+                         <Card className="p-8 text-center text-muted-foreground border-dashed">
+                           <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                           <p>No projects yet for this client.</p>
+                           <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)} variant="outline" size="sm" className="mt-4">
+                             <Plus className="h-4 w-4 mr-2" /> Start First Project
+                           </Button>
+                         </Card>
+                       ) : (
+                         <div className="space-y-3">
+                           {analyses.map((analysis) => (
+                             <Card
+                               key={analysis.id}
+                               className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+                               onClick={() => router.push(`/analysis/${analysis.id}/results`)}
+                             >
+                               <div className="flex justify-between items-start">
+                                 <div>
+                                   <h4 className="font-medium text-foreground">{analysis.client_company_name}</h4>
+                                   <p className="text-sm text-muted-foreground mt-1">
+                                     {analysis.analysis_period_start && analysis.analysis_period_end
+                                       ? `${new Date(analysis.analysis_period_start).toLocaleDateString()} - ${new Date(analysis.analysis_period_end).toLocaleDateString()}`
+                                       : 'Period not set'}
+                                   </p>
+                                 </div>
+                                 <div className="text-right">
+                                   <Badge variant="outline" className={
+                                     analysis.status === 'complete'
+                                       ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300'
+                                       : analysis.status === 'error'
+                                       ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300'
+                                       : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                   }>
+                                     {analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1)}
+                                   </Badge>
+                                   {analysis.states_with_nexus !== undefined && analysis.states_with_nexus > 0 && (
+                                     <p className="text-xs text-muted-foreground mt-2">
+                                       {analysis.states_with_nexus} states with nexus
+                                     </p>
+                                   )}
+                                 </div>
+                               </div>
+                               <p className="text-xs text-muted-foreground mt-3">
+                                 Created {new Date(analysis.created_at).toLocaleDateString()}
+                               </p>
+                             </Card>
+                           ))}
+                         </div>
+                       )}
                     </div>
                   )
                 },

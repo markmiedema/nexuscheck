@@ -259,9 +259,7 @@ export default function MappingPage() {
         <AppLayout
           maxWidth="4xl"
           breadcrumbs={[
-            { label: 'Analyses', href: '/analyses' },
-            { label: 'New Analysis', href: '/analysis/new' },
-            { label: 'Upload Data', href: `/analysis/${analysisId}/upload` },
+            { label: 'Clients', href: '/clients' },
             { label: 'Map Columns' },
           ]}
         >
@@ -282,9 +280,7 @@ export default function MappingPage() {
         <AppLayout
           maxWidth="4xl"
           breadcrumbs={[
-            { label: 'Analyses', href: '/analyses' },
-            { label: 'New Analysis', href: '/analysis/new' },
-            { label: 'Upload Data', href: `/analysis/${analysisId}/upload` },
+            { label: 'Clients', href: '/clients' },
             { label: 'Map Columns' },
           ]}
         >

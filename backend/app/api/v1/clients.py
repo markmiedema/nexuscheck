@@ -210,3 +210,42 @@ async def list_client_notes(
     except Exception as e:
         logger.error(f"Error listing client notes: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch notes")
+
+
+@router.get("/{client_id}/analyses")
+async def list_client_analyses(
+    client_id: str,
+    user_id: str = Depends(require_auth),
+    skip: int = 0,
+    limit: int = 100
+):
+    """List all analyses linked to a specific client"""
+    supabase = get_supabase()
+    try:
+        # Verify client exists and belongs to user
+        client_result = supabase.table('clients')\
+            .select('id')\
+            .eq('id', client_id)\
+            .eq('user_id', user_id)\
+            .single()\
+            .execute()
+
+        if not client_result.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+
+        # Get analyses linked to this client
+        result = supabase.table('analyses')\
+            .select('id, client_company_name, status, created_at, updated_at, analysis_period_start, analysis_period_end, total_liability, states_with_nexus')\
+            .eq('client_id', client_id)\
+            .eq('user_id', user_id)\
+            .is_('deleted_at', 'null')\
+            .order('created_at', desc=True)\
+            .range(skip, skip + limit - 1)\
+            .execute()
+
+        return result.data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error listing client analyses: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch analyses")

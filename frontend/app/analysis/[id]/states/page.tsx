@@ -170,7 +170,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
-            { label: 'Analyses', href: '/analyses' },
+            { label: 'Clients', href: '/clients' },
             { label: 'Analysis Results', href: `/analysis/${analysisId}/results` },
             { label: 'State Table' },
           ]}
@@ -211,7 +211,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
-            { label: 'Analyses', href: '/analyses' },
+            { label: 'Clients', href: '/clients' },
             { label: 'Analysis Results', href: `/analysis/${analysisId}/results` },
             { label: 'State Table' },
           ]}
@@ -280,7 +280,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
-            { label: 'Analyses', href: '/analyses' },
+            { label: 'Clients', href: '/clients' },
             { label: 'Analysis Results', href: `/analysis/${analysisId}/results` },
             { label: 'State Table' },
           ]}
@@ -317,7 +317,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
-            { label: 'Analyses', href: '/analyses' },
+            { label: 'Clients', href: '/clients' },
             { label: 'Analysis Results', href: `/analysis/${analysisId}/results` },
             { label: 'State Table' },
           ]}

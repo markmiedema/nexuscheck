@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { listClients, deleteClient, type Client } from '@/lib/api/clients'
+import { listClients, deleteClient, createClientNote, type Client } from '@/lib/api/clients'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
@@ -20,6 +20,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TabsCustom } from '@/components/ui/tabs-custom'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Eye,
   Trash2,
@@ -42,7 +51,8 @@ import {
   Briefcase,
   User,
   Mail,
-  Users
+  Users,
+  FileText
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -68,6 +78,13 @@ export default function ClientsPage() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const [sortConfig, setSortConfig] = useState<SortConfig>({ column: 'created_at', direction: 'desc' })
+
+  // Note modal state
+  const [noteModalOpen, setNoteModalOpen] = useState(false)
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [newNote, setNewNote] = useState('')
+  const [noteType, setNoteType] = useState<string>('call')
+  const [savingNote, setSavingNote] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300)
@@ -103,6 +120,34 @@ export default function ClientsPage() {
       handleApiError(error, { userMessage: 'Failed to delete client' })
     } finally {
       setDeleteLoading(null)
+    }
+  }
+
+  function handleOpenNoteModal(client: Client, e?: React.MouseEvent) {
+    e?.stopPropagation()
+    setSelectedClient(client)
+    setNewNote('')
+    setNoteType('call')
+    setNoteModalOpen(true)
+  }
+
+  async function handleSaveNote() {
+    if (!newNote.trim() || !selectedClient) return
+
+    try {
+      setSavingNote(true)
+      await createClientNote(selectedClient.id, {
+        content: newNote,
+        note_type: noteType
+      })
+      showSuccess('Note saved successfully')
+      setNoteModalOpen(false)
+      setNewNote('')
+      setSelectedClient(null)
+    } catch (error) {
+      handleApiError(error, { userMessage: 'Failed to save note' })
+    } finally {
+      setSavingNote(false)
     }
   }
 
@@ -210,13 +255,10 @@ export default function ClientsPage() {
           <Button
             size="sm"
             variant="outline"
-            onClick={(e) => {
-              e.stopPropagation()
-              router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)
-            }}
+            onClick={(e) => handleOpenNoteModal(client, e)}
           >
-            <Plus className="mr-1.5 h-3 w-3" />
-            New Analysis
+            <FileText className="mr-1.5 h-3 w-3" />
+            Log Note
           </Button>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity text-xs font-medium text-primary flex items-center">
             View Profile &rarr;
@@ -360,6 +402,82 @@ export default function ClientsPage() {
           )}
 
         </AppLayout>
+
+        {/* Log Note Modal */}
+        <Dialog open={noteModalOpen} onOpenChange={setNoteModalOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Log Note for {selectedClient?.company_name}</DialogTitle>
+              <DialogDescription>
+                Add a quick note about your interaction with this client
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <Textarea
+                placeholder="Log a call, meeting note, or thought..."
+                className="min-h-[120px]"
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+              />
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  <Badge
+                    variant="outline"
+                    className={`cursor-pointer transition-all ${
+                      noteType === 'discovery'
+                        ? 'bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700'
+                        : 'hover:bg-purple-50 hover:border-purple-200 dark:hover:bg-purple-900/20'
+                    }`}
+                    onClick={() => setNoteType('discovery')}
+                  >
+                    Discovery
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={`cursor-pointer transition-all ${
+                      noteType === 'call'
+                        ? 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-700'
+                        : 'hover:bg-orange-50 hover:border-orange-200 dark:hover:bg-orange-900/20'
+                    }`}
+                    onClick={() => setNoteType('call')}
+                  >
+                    Call
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={`cursor-pointer transition-all ${
+                      noteType === 'email'
+                        ? 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700'
+                        : 'hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-900/20'
+                    }`}
+                    onClick={() => setNoteType('email')}
+                  >
+                    Email
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className={`cursor-pointer transition-all ${
+                      noteType === 'meeting'
+                        ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700'
+                        : 'hover:bg-green-50 hover:border-green-200 dark:hover:bg-green-900/20'
+                    }`}
+                    onClick={() => setNoteType('meeting')}
+                  >
+                    Meeting
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setNoteModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveNote} disabled={!newNote.trim() || savingNote}>
+                  {savingNote ? 'Saving...' : 'Save Note'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </ErrorBoundary>
     </ProtectedRoute>
   )

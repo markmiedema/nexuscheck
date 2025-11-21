@@ -39,6 +39,18 @@ export interface CreateClientNoteData {
   note_type?: string
 }
 
+export interface ClientAnalysis {
+  id: string
+  client_company_name: string
+  status: string
+  created_at: string
+  updated_at: string
+  analysis_period_start?: string
+  analysis_period_end?: string
+  total_liability?: number
+  states_with_nexus?: number
+}
+
 export async function listClients(): Promise<Client[]> {
   const response = await apiClient.get('/api/v1/clients')
   return response.data
@@ -70,5 +82,10 @@ export async function createClientNote(clientId: string, data: CreateClientNoteD
 
 export async function listClientNotes(clientId: string): Promise<ClientNote[]> {
   const response = await apiClient.get(`/api/v1/clients/${clientId}/notes`)
+  return response.data
+}
+
+export async function listClientAnalyses(clientId: string): Promise<ClientAnalysis[]> {
+  const response = await apiClient.get(`/api/v1/clients/${clientId}/analyses`)
   return response.data
 }

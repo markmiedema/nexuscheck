@@ -64,6 +64,7 @@ class AnalysisListItem(BaseModel):
     states_with_nexus: Optional[int] = None
     created_at: str
     updated_at: str
+    client_id: Optional[str] = None  # Link to CRM client
 
     class Config:
         from_attributes = True
@@ -93,6 +94,7 @@ class AnalysisDetailResponse(BaseModel):
     updated_at: str
     retention_policy: str
     auto_delete_at: Optional[str] = None
+    client_id: Optional[str] = None  # Link to CRM client
     # Computed fields
     total_transactions: int = 0
     unique_states: int = 0

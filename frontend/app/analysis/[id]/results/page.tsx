@@ -32,6 +32,7 @@ interface AnalysisSummary {
   total_transactions: number
   unique_states: number
   completed_at: string
+  client_id?: string
 }
 
 interface CalculationResults {
@@ -95,7 +96,8 @@ export default function ResultsPage() {
         period_end: data.analysis_period_end,
         total_transactions: data.total_transactions || 0,
         unique_states: data.unique_states || 0,
-        completed_at: new Date().toISOString()
+        completed_at: new Date().toISOString(),
+        client_id: data.client_id || undefined
       })
 
       // Check if calculation has already been done
@@ -195,13 +197,28 @@ export default function ResultsPage() {
     setRefreshTrigger(prev => prev + 1)
   }
 
+  // Generate breadcrumbs based on whether analysis is linked to a client
+  const getBreadcrumbs = () => {
+    if (summary?.client_id) {
+      return [
+        { label: 'Clients', href: '/clients' },
+        { label: summary.company_name, href: `/clients/${summary.client_id}` },
+        { label: 'Analysis Results' },
+      ]
+    }
+    return [
+      { label: 'Clients', href: '/clients' },
+      { label: 'Analysis Results' },
+    ]
+  }
+
   if (loading) {
     return (
       <ProtectedRoute>
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
-            { label: 'Analyses', href: '/analyses' },
+            { label: 'Clients', href: '/clients' },
             { label: 'Analysis Results' },
           ]}
         >
@@ -223,7 +240,7 @@ export default function ResultsPage() {
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
-            { label: 'Analyses', href: '/analyses' },
+            { label: 'Clients', href: '/clients' },
             { label: 'Analysis Results' },
           ]}
         >
@@ -236,8 +253,8 @@ export default function ResultsPage() {
               <Button onClick={() => fetchAnalysisSummary()} variant="outline">
                 Try Again
               </Button>
-              <Button onClick={() => router.push('/analyses')} variant="ghost">
-                Back to Analyses
+              <Button onClick={() => router.push('/clients')} variant="ghost">
+                Back to Clients
               </Button>
             </div>
           </div>
@@ -250,10 +267,7 @@ export default function ResultsPage() {
     <ProtectedRoute>
       <AppLayout
         maxWidth="7xl"
-        breadcrumbs={[
-          { label: 'Analyses', href: '/analyses' },
-          { label: 'Analysis Results' },
-        ]}
+        breadcrumbs={getBreadcrumbs()}
       >
         <ErrorBoundary>
           {/* Header Section */}
