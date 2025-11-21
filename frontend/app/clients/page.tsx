@@ -46,7 +46,10 @@ import {
   Archive,
   Plus,
   FolderOpen,
-  Target
+  Target,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -56,7 +59,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 type SortConfig = {
-  column: 'company_name' | 'industry' | 'created_at' | null
+  column: 'company_name' | 'contact_name' | 'industry' | 'created_at' | null
   direction: 'asc' | 'desc'
 }
 
@@ -146,6 +149,36 @@ export default function ClientsPage() {
     } finally {
       setSavingNote(false)
     }
+  }
+
+  // --- SORT HANDLER ---
+  function handleSort(column: SortConfig['column']) {
+    setSortConfig(prev => ({
+      column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }))
+  }
+
+  // --- SORTABLE HEADER COMPONENT ---
+  const SortableHeader = ({ column, children, className = '' }: { column: SortConfig['column'], children: React.ReactNode, className?: string }) => {
+    const isActive = sortConfig.column === column
+    return (
+      <TableHead
+        className={`cursor-pointer hover:bg-muted/50 select-none ${className}`}
+        onClick={() => handleSort(column)}
+      >
+        <div className="flex items-center gap-1">
+          {children}
+          {isActive ? (
+            sortConfig.direction === 'asc' ?
+              <ArrowUp className="h-3 w-3 text-primary" /> :
+              <ArrowDown className="h-3 w-3 text-primary" />
+          ) : (
+            <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />
+          )}
+        </div>
+      </TableHead>
+    )
   }
 
   // --- FILTERING LOGIC (THE 3 BUCKETS) ---
@@ -431,11 +464,11 @@ export default function ClientsPage() {
                   <Table>
                     <TableHeader className="bg-muted/30">
                       <TableRow>
-                        <TableHead className="w-[30%]">Company</TableHead>
+                        <SortableHeader column="company_name" className="w-[30%]">Company</SortableHeader>
                         <TableHead className="w-[10%]">Status</TableHead>
-                        <TableHead className="w-[20%]">Contact</TableHead>
-                        <TableHead className="w-[15%]">Industry</TableHead>
-                        <TableHead className="w-[15%]">Created</TableHead>
+                        <SortableHeader column="contact_name" className="w-[20%]">Contact</SortableHeader>
+                        <SortableHeader column="industry" className="w-[15%]">Industry</SortableHeader>
+                        <SortableHeader column="created_at" className="w-[15%]">Created</SortableHeader>
                         <TableHead className="w-[5%]"></TableHead>
                       </TableRow>
                     </TableHeader>
