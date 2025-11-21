@@ -246,7 +246,7 @@ export default function ClientCRMPage() {
                         ) : (
                           notes.map((note) => (
                             <div key={note.id} className="relative">
-                              <div className={`absolute -left-[21px] top-1 h-3 w-3 rounded-full border-2 border-background ${
+                              <div className={`absolute -left-[21px] top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-background ${
                                 note.note_type === 'discovery' ? 'bg-purple-500' :
                                 note.note_type === 'email' ? 'bg-blue-500' :
                                 note.note_type === 'meeting' ? 'bg-green-500' :
