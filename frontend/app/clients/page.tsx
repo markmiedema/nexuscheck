@@ -212,11 +212,11 @@ export default function ClientsPage() {
             variant="outline"
             onClick={(e) => {
               e.stopPropagation()
-              router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)
+              router.push(`/clients/${client.id}#notes`)
             }}
           >
-            <Plus className="mr-1.5 h-3 w-3" />
-            New Analysis
+            <FileText className="mr-1.5 h-3 w-3" />
+            Log Note
           </Button>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity text-xs font-medium text-primary flex items-center">
             View Profile &rarr;
