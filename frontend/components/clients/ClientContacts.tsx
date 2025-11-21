@@ -78,7 +78,7 @@ export function ClientContacts({ clientId }: { clientId: string }) {
   }
 
   return (
-    <Card className="p-6 space-y-4 h-full">
+    <Card className="p-6 space-y-4">
       <div className="flex items-center justify-between pb-2 border-b border-border/60">
         <h2 className="text-lg font-semibold">Team Roster</h2>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
