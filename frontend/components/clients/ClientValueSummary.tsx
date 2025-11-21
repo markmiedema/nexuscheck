@@ -10,15 +10,9 @@ export function ClientValueSummary({ analyses }: { analyses: ClientAnalysis[] })
     ? analyses.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
     : null
 
+  // Don't render anything if no analysis data
   if (!activeAnalysis) {
-    return (
-      <Card className="p-6 border-dashed flex items-center justify-center bg-muted/30 mb-8">
-        <div className="text-center text-muted-foreground">
-          <p className="font-medium">No Analysis Data Available</p>
-          <p className="text-sm">Start a Nexus Check to generate insights.</p>
-        </div>
-      </Card>
-    )
+    return null
   }
 
   // 2. Get exposure from analysis results

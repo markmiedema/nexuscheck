@@ -18,7 +18,7 @@ import { ClientContacts } from '@/components/clients/ClientContacts'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
-  Download, Trash2
+  Trash2
 } from 'lucide-react'
 import apiClient from '@/lib/api/client'
 
@@ -39,7 +39,7 @@ export default function ClientCRMPage() {
   const [checklist, setChecklist] = useState({
     salesData: false,
     priorReturns: false,
-    nexusQuestionnaire: true,
+    nexusQuestionnaire: false,
     powerOfAttorney: false
   })
 
@@ -231,39 +231,6 @@ export default function ClientCRMPage() {
                 </div>
               </div>
             </Card>
-
-            <Card className="p-6">
-              <h3 className="font-semibold text-foreground mb-4">Active Engagements</h3>
-              <div className="space-y-4">
-                {analyses.length > 0 ? (
-                  analyses.slice(0, 3).map(analysis => (
-                    <div
-                      key={analysis.id}
-                      className="border rounded-lg p-3 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
-                      onClick={() => router.push(`/analysis/${analysis.id}/results`)}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="font-medium text-sm">Nexus Study</p>
-                        <Badge variant={analysis.status === 'complete' ? 'default' : 'secondary'} className="text-[10px] h-5">
-                          {analysis.status}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-2">Started {new Date(analysis.created_at).toLocaleDateString()}</p>
-                      <Button variant="outline" size="sm" className="w-full h-7 text-xs">
-                        Open
-                      </Button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-muted-foreground text-sm">
-                    No active projects.
-                  </div>
-                )}
-                <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
-                  <Plus className="h-3 w-3 mr-2" /> Create Engagement Letter
-                </Button>
-              </div>
-            </Card>
           </div>
 
           {/* CENTER COL: ACTIVITY & NOTES */}
@@ -331,6 +298,28 @@ export default function ClientCRMPage() {
                              >
                                Meeting
                              </Badge>
+                             <Badge
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'analysis'
+                                   ? 'bg-teal-100 text-teal-700 border-teal-300 hover:bg-teal-200 dark:bg-teal-900/40 dark:text-teal-300 dark:border-teal-700'
+                                   : 'hover:bg-teal-50 hover:border-teal-200 dark:hover:bg-teal-900/20'
+                               }`}
+                               onClick={() => setNoteType('analysis')}
+                             >
+                               Nexus Analysis
+                             </Badge>
+                             <Badge
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'deliverable'
+                                   ? 'bg-pink-100 text-pink-700 border-pink-300 hover:bg-pink-200 dark:bg-pink-900/40 dark:text-pink-300 dark:border-pink-700'
+                                   : 'hover:bg-pink-50 hover:border-pink-200 dark:hover:bg-pink-900/20'
+                               }`}
+                               onClick={() => setNoteType('deliverable')}
+                             >
+                               Deliverable
+                             </Badge>
                            </div>
                            <Button size="sm" disabled={!newNote || savingNote} onClick={handleSaveNote}>
                              {savingNote ? 'Saving...' : 'Log Note'}
@@ -352,6 +341,8 @@ export default function ClientCRMPage() {
                                 note.note_type === 'discovery' ? 'bg-purple-500' :
                                 note.note_type === 'email' ? 'bg-blue-500' :
                                 note.note_type === 'meeting' ? 'bg-green-500' :
+                                note.note_type === 'analysis' ? 'bg-teal-500' :
+                                note.note_type === 'deliverable' ? 'bg-pink-500' :
                                 'bg-orange-500'
                               }`} />
                               <div className="bg-card border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -361,6 +352,8 @@ export default function ClientCRMPage() {
                                       note.note_type === 'discovery' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700' :
                                       note.note_type === 'email' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700' :
                                       note.note_type === 'meeting' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700' :
+                                      note.note_type === 'analysis' ? 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700' :
+                                      note.note_type === 'deliverable' ? 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-700' :
                                       'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700'
                                     }`}>
                                       {(note.note_type || 'note').charAt(0).toUpperCase() + (note.note_type || 'note').slice(1)}
@@ -405,24 +398,17 @@ export default function ClientCRMPage() {
                        ) : (
                          <div className="space-y-3">
                            {analyses.map((analysis) => (
-                             <Card
+                             <div
                                key={analysis.id}
-                               className="p-4 cursor-pointer hover:shadow-md transition-shadow group"
+                               className="border rounded-lg p-4 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group"
                                onClick={() => router.push(`/analysis/${analysis.id}/results`)}
                              >
-                               <div className="flex justify-between items-start">
-                                 <div>
-                                   <h4 className="font-medium text-foreground">{analysis.client_company_name}</h4>
-                                   <p className="text-sm text-muted-foreground mt-1">
-                                     {analysis.analysis_period_start && analysis.analysis_period_end
-                                       ? `${new Date(analysis.analysis_period_start).toLocaleDateString()} - ${new Date(analysis.analysis_period_end).toLocaleDateString()}`
-                                       : 'Period not set'}
-                                   </p>
-                                 </div>
-                                 <div className="flex items-start gap-2">
-                                   <Badge variant="outline" className={
+                               <div className="flex justify-between items-start mb-2">
+                                 <p className="font-medium">Nexus Study</p>
+                                 <div className="flex items-center gap-2">
+                                   <Badge variant={analysis.status === 'complete' ? 'default' : 'outline'} className={
                                      analysis.status === 'complete'
-                                       ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300'
+                                       ? ''
                                        : analysis.status === 'error'
                                        ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300'
                                        : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300'
@@ -432,25 +418,23 @@ export default function ClientCRMPage() {
                                    <Button
                                      variant="ghost"
                                      size="icon"
-                                     className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                     className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
                                      onClick={(e) => handleDeleteAnalysis(analysis.id, e)}
                                      disabled={deletingAnalysis === analysis.id}
                                    >
-                                     <Trash2 className="h-4 w-4" />
+                                     <Trash2 className="h-3 w-3" />
                                    </Button>
                                  </div>
                                </div>
-                               <div className="flex justify-between items-center mt-3">
-                                 <p className="text-xs text-muted-foreground">
-                                   Created {new Date(analysis.created_at).toLocaleDateString()}
-                                 </p>
-                                 {analysis.states_with_nexus !== undefined && analysis.states_with_nexus > 0 && (
-                                   <p className="text-xs text-muted-foreground">
-                                     {analysis.states_with_nexus} states with nexus
-                                   </p>
-                                 )}
-                               </div>
-                             </Card>
+                               <p className="text-sm text-muted-foreground mb-3">
+                                 {analysis.analysis_period_start && analysis.analysis_period_end
+                                   ? `${new Date(analysis.analysis_period_start).toLocaleDateString()} - ${new Date(analysis.analysis_period_end).toLocaleDateString()}`
+                                   : `Started ${new Date(analysis.created_at).toLocaleDateString()}`}
+                               </p>
+                               <Button variant="outline" size="sm" className="w-full h-8 text-sm">
+                                 Open
+                               </Button>
+                             </div>
                            ))}
                          </div>
                        )}
@@ -462,15 +446,9 @@ export default function ClientCRMPage() {
                   label: 'Data Checklist',
                   content: (
                     <div className="pt-4 space-y-6">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="text-lg font-medium">Data Request Checklist</h3>
-                          <p className="text-sm text-muted-foreground">Track received documents for this client.</p>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Email Request
-                        </Button>
+                      <div>
+                        <h3 className="text-lg font-medium">Data Request Checklist</h3>
+                        <p className="text-sm text-muted-foreground">Track received documents for this client.</p>
                       </div>
                       <Card className="p-0 overflow-hidden">
                         <div className="divide-y">
