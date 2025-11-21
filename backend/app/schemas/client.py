@@ -88,3 +88,26 @@ class ClientNoteResponse(ClientNoteBase):
 
     class Config:
         from_attributes = True
+
+
+# --- Client Contact Schemas ---
+
+class ClientContactBase(BaseModel):
+    name: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    role: Optional[str] = None
+    is_primary: bool = False
+
+
+class ClientContactCreate(ClientContactBase):
+    pass
+
+
+class ClientContactResponse(ClientContactBase):
+    id: UUID
+    client_id: UUID
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

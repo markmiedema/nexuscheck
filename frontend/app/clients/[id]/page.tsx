@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ClientValueSummary } from '@/components/clients/ClientValueSummary'
+import { ClientContacts } from '@/components/clients/ClientContacts'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
@@ -183,29 +184,8 @@ export default function ClientCRMPage() {
 
           {/* LEFT COL: CONTACT & INFO */}
           <div className="space-y-6">
-            <Card className="p-6 space-y-6">
-              <h3 className="font-semibold text-foreground">Primary Contact</h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center font-semibold">
-                    {client.contact_name?.charAt(0) || '?'}
-                  </div>
-                  <div>
-                    <p className="font-medium">{client.contact_name || 'No contact'}</p>
-                    <p className="text-xs text-muted-foreground">Primary Point of Contact</p>
-                  </div>
-                </div>
-                <Separator />
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Mail className="h-4 w-4" /> {client.contact_email || 'N/A'}
-                  </div>
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Phone className="h-4 w-4" /> {client.contact_phone || 'N/A'}
-                  </div>
-                </div>
-              </div>
-            </Card>
+            {/* Team Roster (Replaces static Contact Card) */}
+            <ClientContacts clientId={client.id} />
 
             {/* Business Profile Card */}
             <Card className="p-6 space-y-4">

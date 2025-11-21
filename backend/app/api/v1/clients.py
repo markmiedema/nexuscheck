@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from typing import List, Optional
 from app.core.auth import require_auth
 from app.core.supabase import get_supabase
-from app.schemas.client import ClientCreate, ClientUpdate, ClientResponse, ClientNoteCreate, ClientNoteResponse
+from app.schemas.client import (
+    ClientCreate, ClientUpdate, ClientResponse,
+    ClientNoteCreate, ClientNoteResponse,
+    ClientContactCreate, ClientContactResponse
+)
 import logging
 from datetime import datetime
 
@@ -364,3 +368,107 @@ async def list_client_analyses(
     except Exception as e:
         logger.error(f"Error listing client analyses: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch analyses")
+
+
+# --- Client Contacts Endpoints ---
+
+@router.get("/{client_id}/contacts", response_model=List[ClientContactResponse])
+async def list_client_contacts(
+    client_id: str,
+    user_id: str = Depends(require_auth)
+):
+    supabase = get_supabase()
+    try:
+        # Verify client access
+        client_check = supabase.table('clients')\
+            .select('id')\
+            .eq('id', client_id)\
+            .eq('user_id', user_id)\
+            .maybe_single()\
+            .execute()
+        if not client_check.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+
+        # Fetch contacts
+        result = supabase.table('client_contacts')\
+            .select('*')\
+            .eq('client_id', client_id)\
+            .order('is_primary', desc=True)\
+            .order('created_at', desc=True)\
+            .execute()
+
+        return result.data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error listing contacts: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to list contacts")
+
+
+@router.post("/{client_id}/contacts", response_model=ClientContactResponse)
+async def create_client_contact(
+    client_id: str,
+    contact_data: ClientContactCreate,
+    user_id: str = Depends(require_auth)
+):
+    supabase = get_supabase()
+    try:
+        # Verify client access
+        client_check = supabase.table('clients')\
+            .select('id')\
+            .eq('id', client_id)\
+            .eq('user_id', user_id)\
+            .maybe_single()\
+            .execute()
+        if not client_check.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+
+        # Prepare data
+        new_contact = contact_data.model_dump()
+        new_contact['client_id'] = client_id
+
+        # Insert
+        result = supabase.table('client_contacts').insert(new_contact).execute()
+
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to create contact")
+
+        return result.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating contact: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create contact")
+
+
+@router.delete("/{client_id}/contacts/{contact_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_client_contact(
+    client_id: str,
+    contact_id: str,
+    user_id: str = Depends(require_auth)
+):
+    supabase = get_supabase()
+    try:
+        # Verify client access
+        client_check = supabase.table('clients')\
+            .select('id')\
+            .eq('id', client_id)\
+            .eq('user_id', user_id)\
+            .maybe_single()\
+            .execute()
+        if not client_check.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+
+        # Delete
+        supabase.table('client_contacts')\
+            .delete()\
+            .eq('id', contact_id)\
+            .eq('client_id', client_id)\
+            .execute()
+
+        return None
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting contact: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete contact")
