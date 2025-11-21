@@ -147,7 +147,12 @@ function AnalysisFormContent() {
   }
 
   const handleCancel = () => {
-    router.push('/analyses')
+    // Navigate back to the client page if we came from one, otherwise go to clients list
+    if (clientId) {
+      router.push(`/clients/${clientId}`)
+    } else {
+      router.push('/clients')
+    }
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -292,10 +297,18 @@ function AnalysisFormContent() {
       <ErrorBoundary>
         <AppLayout
           maxWidth="4xl"
-          breadcrumbs={[
-            { label: 'Analyses', href: '/analyses' },
-            { label: 'New Analysis' },
-          ]}
+          breadcrumbs={
+            clientId && clientName
+              ? [
+                  { label: 'Clients', href: '/clients' },
+                  { label: clientName, href: `/clients/${clientId}` },
+                  { label: 'New Analysis' },
+                ]
+              : [
+                  { label: 'Clients', href: '/clients' },
+                  { label: 'New Analysis' },
+                ]
+          }
         >
         <div className="bg-card rounded-lg shadow-sm border border-border p-6">
           <h2 className="text-3xl font-bold text-card-foreground mb-6">

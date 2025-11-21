@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { getClient, listClientNotes, createClientNote, type Client, type ClientNote } from '@/lib/api/clients'
+import { getClient, listClientNotes, createClientNote, listClientAnalyses, type Client, type ClientNote, type ClientAnalysis } from '@/lib/api/clients'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import AppLayout from '@/components/layout/AppLayout'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -24,6 +24,7 @@ export default function ClientCRMPage() {
   const router = useRouter()
   const [client, setClient] = useState<Client | null>(null)
   const [notes, setNotes] = useState<ClientNote[]>([])
+  const [analyses, setAnalyses] = useState<ClientAnalysis[]>([])
   const [activeTab, setActiveTab] = useState('overview')
   const [newNote, setNewNote] = useState('')
   const [noteType, setNoteType] = useState<string>('call')
@@ -37,9 +38,13 @@ export default function ClientCRMPage() {
         const data = await getClient(params.id as string)
         setClient(data)
 
-        // Load notes
-        const notesData = await listClientNotes(params.id as string)
+        // Load notes and analyses in parallel
+        const [notesData, analysesData] = await Promise.all([
+          listClientNotes(params.id as string),
+          listClientAnalyses(params.id as string)
+        ])
         setNotes(notesData)
+        setAnalyses(analysesData)
       } catch (err) {
         handleApiError(err, { userMessage: 'Failed to load client' })
       } finally {
@@ -307,14 +312,56 @@ export default function ClientCRMPage() {
                          </Button>
                        </div>
 
-                       {/* Project list - analyses and other project types */}
-                       <Card className="p-8 text-center text-muted-foreground border-dashed">
-                         <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                         <p>No projects yet for this client.</p>
-                         <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)} variant="outline" size="sm" className="mt-4">
-                           <Plus className="h-4 w-4 mr-2" /> Start First Project
-                         </Button>
-                       </Card>
+                       {/* Project list - analyses */}
+                       {analyses.length === 0 ? (
+                         <Card className="p-8 text-center text-muted-foreground border-dashed">
+                           <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                           <p>No projects yet for this client.</p>
+                           <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)} variant="outline" size="sm" className="mt-4">
+                             <Plus className="h-4 w-4 mr-2" /> Start First Project
+                           </Button>
+                         </Card>
+                       ) : (
+                         <div className="space-y-3">
+                           {analyses.map((analysis) => (
+                             <Card
+                               key={analysis.id}
+                               className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+                               onClick={() => router.push(`/analysis/${analysis.id}/results`)}
+                             >
+                               <div className="flex justify-between items-start">
+                                 <div>
+                                   <h4 className="font-medium text-foreground">{analysis.client_company_name}</h4>
+                                   <p className="text-sm text-muted-foreground mt-1">
+                                     {analysis.analysis_period_start && analysis.analysis_period_end
+                                       ? `${new Date(analysis.analysis_period_start).toLocaleDateString()} - ${new Date(analysis.analysis_period_end).toLocaleDateString()}`
+                                       : 'Period not set'}
+                                   </p>
+                                 </div>
+                                 <div className="text-right">
+                                   <Badge variant="outline" className={
+                                     analysis.status === 'complete'
+                                       ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300'
+                                       : analysis.status === 'error'
+                                       ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300'
+                                       : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                   }>
+                                     {analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1)}
+                                   </Badge>
+                                   {analysis.states_with_nexus !== undefined && analysis.states_with_nexus > 0 && (
+                                     <p className="text-xs text-muted-foreground mt-2">
+                                       {analysis.states_with_nexus} states with nexus
+                                     </p>
+                                   )}
+                                 </div>
+                               </div>
+                               <p className="text-xs text-muted-foreground mt-3">
+                                 Created {new Date(analysis.created_at).toLocaleDateString()}
+                               </p>
+                             </Card>
+                           ))}
+                         </div>
+                       )}
                     </div>
                   )
                 },
