@@ -151,7 +151,19 @@ export default function ClientCRMPage() {
                   Client Since {new Date(client.created_at).getFullYear()}
                 </span>
                 {client.industry && <span className="flex items-center gap-1"><Building2 className="h-3 w-3" /> {client.industry}</span>}
-                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400">Active Client</Badge>
+{/* Dynamic Status Badge */}
+                {client.status === 'active' && (
+                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Active Client</Badge>
+                )}
+                {(client.status === 'prospect' || !client.status) && (
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Prospect</Badge>
+                )}
+                {client.status === 'paused' && (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Paused</Badge>
+                )}
+                {client.status === 'churned' && (
+                  <Badge variant="secondary">Archived</Badge>
+                )}
               </div>
             </div>
           </div>
