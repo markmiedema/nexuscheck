@@ -406,9 +406,9 @@ export default function ClientCRMPage() {
                                <div className="flex justify-between items-start mb-2">
                                  <p className="font-medium">Nexus Study</p>
                                  <div className="flex items-center gap-2">
-                                   <Badge variant="outline" className={
+                                   <Badge variant={analysis.status === 'complete' ? 'default' : 'outline'} className={
                                      analysis.status === 'complete'
-                                       ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300'
+                                       ? ''
                                        : analysis.status === 'error'
                                        ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300'
                                        : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300'
