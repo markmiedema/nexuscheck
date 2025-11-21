@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import apiClient from '@/lib/api/client'
 import { toast } from '@/hooks/use-toast'
+import { createClientNote } from '@/lib/api/clients'
 
 export interface PhysicalNexusConfig {
   state_code: string
@@ -23,6 +24,7 @@ export interface PhysicalNexusFormData {
 
 export interface UsePhysicalNexusConfigOptions {
   onRecalculated?: () => void | Promise<void>
+  clientId?: string  // If provided, activity notes will be logged to client timeline
 }
 
 export function usePhysicalNexusConfig(
@@ -82,6 +84,7 @@ export function usePhysicalNexusConfig(
           title: 'Success',
           description: `Physical nexus updated for ${editingState}`
         })
+        await logActivityNote(`Updated physical nexus for ${editingState}: ${data.reason}`)
       } else {
         // Create new
         await apiClient.post(
@@ -92,6 +95,7 @@ export function usePhysicalNexusConfig(
           title: 'Success',
           description: `Physical nexus added for ${data.state_code}`
         })
+        await logActivityNote(`Added physical nexus for ${data.state_code}: ${data.reason}`)
       }
 
       await loadConfigs()
@@ -140,6 +144,7 @@ export function usePhysicalNexusConfig(
         title: 'Success',
         description: `Physical nexus deleted for ${stateCode}`
       })
+      await logActivityNote(`Removed physical nexus for ${stateCode}`)
       await loadConfigs()
 
       // ENHANCEMENT: Trigger recalculation after deletion
@@ -206,6 +211,7 @@ export function usePhysicalNexusConfig(
         title: 'Success',
         description: `Imported ${response.data.imported_count} states, updated ${response.data.updated_count} states`
       })
+      await logActivityNote(`Imported physical nexus config: ${response.data.imported_count} new, ${response.data.updated_count} updated`)
 
       // ENHANCEMENT: Trigger recalculation after import
       await triggerRecalculation()
@@ -233,6 +239,20 @@ export function usePhysicalNexusConfig(
     setShowForm(false)
     setEditingState(null)
     setFormData(null)
+  }
+
+  // Log activity note to client timeline
+  const logActivityNote = async (content: string) => {
+    if (!options?.clientId) return
+    try {
+      await createClientNote(options.clientId, {
+        content,
+        note_type: 'analysis'
+      })
+    } catch {
+      // Silently fail - note creation is not critical
+      console.warn('Failed to create activity note')
+    }
   }
 
   // ENHANCEMENT: Trigger analysis recalculation (from reference implementation)

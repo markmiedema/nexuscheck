@@ -426,6 +426,7 @@ export default function ResultsPage() {
           <div className="mb-6">
             <PhysicalNexusManager
               analysisId={analysisId}
+              clientId={summary?.client_id}
               onRecalculated={handleRecalculated}
             />
           </div>
