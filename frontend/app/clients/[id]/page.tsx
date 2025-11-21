@@ -12,9 +12,8 @@ import { TabsCustom } from '@/components/ui/tabs-custom'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
-import { EngagementGenerator } from '@/components/clients/EngagementGenerator'
-import { ClientValueSummary } from '@/components/clients/ClientValueSummary'
 import { Checkbox } from '@/components/ui/checkbox'
+import { ClientValueSummary } from '@/components/clients/ClientValueSummary'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
@@ -228,9 +227,6 @@ export default function ClientCRMPage() {
                 </Button>
               </div>
             </Card>
-
-            {/* Engagement Generator */}
-            <EngagementGenerator client={client} />
           </div>
 
           {/* CENTER COL: ACTIVITY & NOTES */}
