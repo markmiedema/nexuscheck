@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { EngagementGenerator } from '@/components/clients/EngagementGenerator'
+import { ClientValueSummary } from '@/components/clients/ClientValueSummary'
 import {
   Building2, Phone, Mail, Globe, MapPin,
   FileText, Plus, Calendar, Clock,
@@ -150,6 +151,11 @@ export default function ClientCRMPage() {
             </Button>
           </div>
         </div>
+
+        {/* Client Value Summary - At a Glance Metrics */}
+        {analyses.length > 0 && (
+          <ClientValueSummary analyses={analyses} notesCount={notes.length} />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
