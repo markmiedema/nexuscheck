@@ -16,8 +16,9 @@ import { EngagementGenerator } from '@/components/clients/EngagementGenerator'
 import {
   Building2, Phone, Mail, Globe, MapPin,
   FileText, Plus, Calendar, Clock,
-  CheckCircle2, AlertCircle, Download
+  CheckCircle2, AlertCircle, Download, Trash2
 } from 'lucide-react'
+import apiClient from '@/lib/api/client'
 
 export default function ClientCRMPage() {
   const params = useParams()
@@ -30,6 +31,7 @@ export default function ClientCRMPage() {
   const [noteType, setNoteType] = useState<string>('call')
   const [loading, setLoading] = useState(true)
   const [savingNote, setSavingNote] = useState(false)
+  const [deletingAnalysis, setDeletingAnalysis] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadClient() {
@@ -70,6 +72,22 @@ export default function ClientCRMPage() {
       handleApiError(err, { userMessage: 'Failed to save note' })
     } finally {
       setSavingNote(false)
+    }
+  }
+
+  const handleDeleteAnalysis = async (analysisId: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click navigation
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) return
+
+    try {
+      setDeletingAnalysis(analysisId)
+      await apiClient.delete(`/api/v1/analyses/${analysisId}`)
+      setAnalyses(analyses.filter(a => a.id !== analysisId))
+      showSuccess('Project deleted successfully')
+    } catch (err) {
+      handleApiError(err, { userMessage: 'Failed to delete project' })
+    } finally {
+      setDeletingAnalysis(null)
     }
   }
 
@@ -326,7 +344,7 @@ export default function ClientCRMPage() {
                            {analyses.map((analysis) => (
                              <Card
                                key={analysis.id}
-                               className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+                               className="p-4 cursor-pointer hover:shadow-md transition-shadow group"
                                onClick={() => router.push(`/analysis/${analysis.id}/results`)}
                              >
                                <div className="flex justify-between items-start">
@@ -338,7 +356,7 @@ export default function ClientCRMPage() {
                                        : 'Period not set'}
                                    </p>
                                  </div>
-                                 <div className="text-right">
+                                 <div className="flex items-start gap-2">
                                    <Badge variant="outline" className={
                                      analysis.status === 'complete'
                                        ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300'
@@ -348,16 +366,27 @@ export default function ClientCRMPage() {
                                    }>
                                      {analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1)}
                                    </Badge>
-                                   {analysis.states_with_nexus !== undefined && analysis.states_with_nexus > 0 && (
-                                     <p className="text-xs text-muted-foreground mt-2">
-                                       {analysis.states_with_nexus} states with nexus
-                                     </p>
-                                   )}
+                                   <Button
+                                     variant="ghost"
+                                     size="icon"
+                                     className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                     onClick={(e) => handleDeleteAnalysis(analysis.id, e)}
+                                     disabled={deletingAnalysis === analysis.id}
+                                   >
+                                     <Trash2 className="h-4 w-4" />
+                                   </Button>
                                  </div>
                                </div>
-                               <p className="text-xs text-muted-foreground mt-3">
-                                 Created {new Date(analysis.created_at).toLocaleDateString()}
-                               </p>
+                               <div className="flex justify-between items-center mt-3">
+                                 <p className="text-xs text-muted-foreground">
+                                   Created {new Date(analysis.created_at).toLocaleDateString()}
+                                 </p>
+                                 {analysis.states_with_nexus !== undefined && analysis.states_with_nexus > 0 && (
+                                   <p className="text-xs text-muted-foreground">
+                                     {analysis.states_with_nexus} states with nexus
+                                   </p>
+                                 )}
+                               </div>
                              </Card>
                            ))}
                          </div>

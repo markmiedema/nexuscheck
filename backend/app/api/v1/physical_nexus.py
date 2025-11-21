@@ -24,9 +24,9 @@ limiter = Limiter(key_func=get_remote_address)
 @router.post("/{analysis_id}/physical-nexus", response_model=PhysicalNexusResponse, status_code=201)
 @limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def create_physical_nexus(
-    http_request: Request,
+    request: Request,
     analysis_id: str,
-    request: PhysicalNexusCreate,
+    nexus_data: PhysicalNexusCreate,
     user_id: str = Depends(get_current_user)
 ):
     """
@@ -55,24 +55,24 @@ async def create_physical_nexus(
     existing = supabase.table('physical_nexus')\
         .select('state_code')\
         .eq('analysis_id', analysis_id)\
-        .eq('state_code', request.state_code)\
+        .eq('state_code', nexus_data.state_code)\
         .execute()
 
     if existing.data:
         raise HTTPException(
             status_code=400,
-            detail=f"Physical nexus already exists for {request.state_code}. Use PATCH to update."
+            detail=f"Physical nexus already exists for {nexus_data.state_code}. Use PATCH to update."
         )
 
     # Create record
     data = {
         'analysis_id': analysis_id,
-        'state_code': request.state_code,
-        'nexus_date': request.nexus_date.isoformat(),
-        'reason': request.reason,
-        'registration_date': request.registration_date.isoformat() if request.registration_date else None,
-        'permit_number': request.permit_number,
-        'notes': request.notes
+        'state_code': nexus_data.state_code,
+        'nexus_date': nexus_data.nexus_date.isoformat(),
+        'reason': nexus_data.reason,
+        'registration_date': nexus_data.registration_date.isoformat() if nexus_data.registration_date else None,
+        'permit_number': nexus_data.permit_number,
+        'notes': nexus_data.notes
     }
 
     result = supabase.table('physical_nexus').insert(data).execute()
@@ -80,7 +80,7 @@ async def create_physical_nexus(
     if not result.data:
         raise HTTPException(status_code=500, detail="Failed to create physical nexus")
 
-    logger.info(f"Created physical nexus for {analysis_id} - {request.state_code}")
+    logger.info(f"Created physical nexus for {analysis_id} - {nexus_data.state_code}")
 
     return PhysicalNexusResponse(**result.data[0])
 
@@ -121,10 +121,10 @@ async def list_physical_nexus(
 @router.patch("/{analysis_id}/physical-nexus/{state_code}", response_model=PhysicalNexusResponse)
 @limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def update_physical_nexus(
-    http_request: Request,
+    request: Request,
     analysis_id: str,
     state_code: str,
-    request: PhysicalNexusUpdate,
+    nexus_data: PhysicalNexusUpdate,
     user_id: str = Depends(get_current_user)
 ):
     """
@@ -158,16 +158,16 @@ async def update_physical_nexus(
 
     # Build update data (only include provided fields)
     update_data = {}
-    if request.nexus_date is not None:
-        update_data['nexus_date'] = request.nexus_date.isoformat()
-    if request.reason is not None:
-        update_data['reason'] = request.reason
-    if request.registration_date is not None:
-        update_data['registration_date'] = request.registration_date.isoformat()
-    if request.permit_number is not None:
-        update_data['permit_number'] = request.permit_number
-    if request.notes is not None:
-        update_data['notes'] = request.notes
+    if nexus_data.nexus_date is not None:
+        update_data['nexus_date'] = nexus_data.nexus_date.isoformat()
+    if nexus_data.reason is not None:
+        update_data['reason'] = nexus_data.reason
+    if nexus_data.registration_date is not None:
+        update_data['registration_date'] = nexus_data.registration_date.isoformat()
+    if nexus_data.permit_number is not None:
+        update_data['permit_number'] = nexus_data.permit_number
+    if nexus_data.notes is not None:
+        update_data['notes'] = nexus_data.notes
 
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields to update")
@@ -239,9 +239,9 @@ async def delete_physical_nexus(
 @router.post("/{analysis_id}/physical-nexus/import", response_model=PhysicalNexusImportResponse)
 @limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def import_physical_nexus(
-    http_request: Request,
+    request: Request,
     analysis_id: str,
-    request: PhysicalNexusImportRequest,
+    import_data: PhysicalNexusImportRequest,
     user_id: str = Depends(get_current_user)
 ):
     """
@@ -295,7 +295,7 @@ async def import_physical_nexus(
     errors = []
 
     # Process each config
-    for state_code, config in request.configs.items():
+    for state_code, config in import_data.configs.items():
         try:
             state_code_upper = state_code.upper()
 
