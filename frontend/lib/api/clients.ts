@@ -1,15 +1,14 @@
 import apiClient from './client'
 
-// --- New Interfaces for CRM Upgrade ---
+// --- 1. New Data Structures ---
 export interface BusinessProfile {
   is_marketplace_seller: boolean
-  marketplace_channels: string[] // e.g. ['amazon', 'shopify']
+  marketplace_channels: string[]
   percent_marketplace_revenue?: number
   sells_tpp: boolean
   sells_saas: boolean
   sells_digital_goods: boolean
-  sells_services?: boolean
-  has_inventory_3pl?: boolean
+  has_inventory_3pl: boolean
   uses_fba: boolean
 }
 
@@ -21,7 +20,7 @@ export interface TechStack {
   data_hygiene_score?: number
 }
 
-// --- Updated Client Interfaces ---
+// --- 2. Updated Client Interfaces ---
 export interface Client {
   id: string
   user_id: string
@@ -32,10 +31,9 @@ export interface Client {
   industry?: string
   website?: string
   notes?: string
-  status?: 'prospect' | 'onboarding' | 'active' | 'churned'
-  fiscal_year_end?: string
+  status: string // e.g. 'prospect', 'active', 'paused'
 
-  // Nested Objects
+  // Nested Objects (Now the frontend knows these exist!)
   business_profile?: BusinessProfile
   tech_stack?: TechStack
 
@@ -53,10 +51,12 @@ export interface CreateClientData {
   notes?: string | null
   status?: string
 
-  // New Optional Fields
+  // New Optional Fields for the Form
   business_profile?: Partial<BusinessProfile>
   tech_stack?: Partial<TechStack>
 }
+
+// --- 3. API Functions (Keep these mostly the same) ---
 
 export interface ClientNote {
   id: string

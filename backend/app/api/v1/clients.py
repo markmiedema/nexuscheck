@@ -66,7 +66,7 @@ async def create_client(
         print(f"DEBUG ERROR: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create client"
+            detail=f"Failed to create client: {str(e)}"
         )
 
 @router.get("", response_model=List[ClientResponse])
