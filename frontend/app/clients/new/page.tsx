@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { createClient, type CreateClientData } from '@/lib/api/clients'
+import { createClient, createClientNote, type CreateClientData } from '@/lib/api/clients'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import {
   Building2,
@@ -115,6 +115,20 @@ export default function NewClientPage() {
       }
 
       const newClient = await createClient(payload)
+
+      // Log activity note for client creation
+      try {
+        const noteContent = data.notes
+          ? `New client onboarded. Discovery notes: ${data.notes}`
+          : 'New client onboarded'
+        await createClientNote(newClient.id, {
+          content: noteContent,
+          note_type: 'discovery'
+        })
+      } catch {
+        // Silently fail - note creation is not critical
+        console.warn('Failed to create onboarding activity note')
+      }
 
       showSuccess(`Client "${newClient.company_name}" added successfully`)
       router.push(`/clients/${newClient.id}`)
