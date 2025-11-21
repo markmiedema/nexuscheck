@@ -39,7 +39,7 @@ export default function ClientCRMPage() {
   const [checklist, setChecklist] = useState({
     salesData: false,
     priorReturns: false,
-    nexusQuestionnaire: true,
+    nexusQuestionnaire: false,
     powerOfAttorney: false
   })
 
