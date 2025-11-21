@@ -50,7 +50,7 @@ export function EngagementGenerator({ client }: { client: any }) {
 
   return (
     <Card className="p-4 space-y-4">
-      <h3 className="font-medium">Engagement Letter Generator</h3>
+      <h3 className="font-medium">Communication Templates</h3>
       <Select value={type} onValueChange={setType}>
         <SelectTrigger><SelectValue /></SelectTrigger>
         <SelectContent>
@@ -76,7 +76,7 @@ export function EngagementGenerator({ client }: { client: any }) {
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Copy this text to your letterhead or email to send to the client.
+        Quick templates for engagement letters and client communications.
       </p>
     </Card>
   )
