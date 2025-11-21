@@ -280,23 +280,23 @@ export default function ClientCRMPage() {
                   )
                 },
                 {
-                  id: 'analyses',
-                  label: 'Tax Analyses',
+                  id: 'projects',
+                  label: 'Project History',
                   content: (
                     <div className="pt-4">
                        <div className="flex justify-between items-center mb-4">
-                         <h3 className="text-lg font-medium">Project History</h3>
+                         <h3 className="text-lg font-medium">Projects</h3>
                          <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)} size="sm">
-                           <Plus className="h-4 w-4 mr-2" /> New Analysis
+                           <Plus className="h-4 w-4 mr-2" /> New Project
                          </Button>
                        </div>
 
-                       {/* This would be your Analysis List Table filtered by this client */}
+                       {/* Project list - analyses and other project types */}
                        <Card className="p-8 text-center text-muted-foreground border-dashed">
                          <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                         <p>No active analyses for this client.</p>
+                         <p>No projects yet for this client.</p>
                          <Button onClick={() => router.push(`/analysis/new?clientId=${client.id}&clientName=${encodeURIComponent(client.company_name)}`)} variant="outline" size="sm" className="mt-4">
-                           <Plus className="h-4 w-4 mr-2" /> Start First Analysis
+                           <Plus className="h-4 w-4 mr-2" /> Start First Project
                          </Button>
                        </Card>
                     </div>
