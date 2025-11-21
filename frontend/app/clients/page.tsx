@@ -42,7 +42,8 @@ import {
   Briefcase,
   User,
   Mail,
-  Users
+  Users,
+  FileText
 } from 'lucide-react'
 import {
   DropdownMenu,
