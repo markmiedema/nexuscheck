@@ -327,6 +327,28 @@ export default function ClientCRMPage() {
                              >
                                Meeting
                              </Badge>
+                             <Badge
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'analysis'
+                                   ? 'bg-teal-100 text-teal-700 border-teal-300 hover:bg-teal-200 dark:bg-teal-900/40 dark:text-teal-300 dark:border-teal-700'
+                                   : 'hover:bg-teal-50 hover:border-teal-200 dark:hover:bg-teal-900/20'
+                               }`}
+                               onClick={() => setNoteType('analysis')}
+                             >
+                               Nexus Analysis
+                             </Badge>
+                             <Badge
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'deliverable'
+                                   ? 'bg-pink-100 text-pink-700 border-pink-300 hover:bg-pink-200 dark:bg-pink-900/40 dark:text-pink-300 dark:border-pink-700'
+                                   : 'hover:bg-pink-50 hover:border-pink-200 dark:hover:bg-pink-900/20'
+                               }`}
+                               onClick={() => setNoteType('deliverable')}
+                             >
+                               Deliverable
+                             </Badge>
                            </div>
                            <Button size="sm" disabled={!newNote || savingNote} onClick={handleSaveNote}>
                              {savingNote ? 'Saving...' : 'Log Note'}
@@ -348,6 +370,8 @@ export default function ClientCRMPage() {
                                 note.note_type === 'discovery' ? 'bg-purple-500' :
                                 note.note_type === 'email' ? 'bg-blue-500' :
                                 note.note_type === 'meeting' ? 'bg-green-500' :
+                                note.note_type === 'analysis' ? 'bg-teal-500' :
+                                note.note_type === 'deliverable' ? 'bg-pink-500' :
                                 'bg-orange-500'
                               }`} />
                               <div className="bg-card border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -357,6 +381,8 @@ export default function ClientCRMPage() {
                                       note.note_type === 'discovery' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700' :
                                       note.note_type === 'email' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700' :
                                       note.note_type === 'meeting' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700' :
+                                      note.note_type === 'analysis' ? 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700' :
+                                      note.note_type === 'deliverable' ? 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-700' :
                                       'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700'
                                     }`}>
                                       {(note.note_type || 'note').charAt(0).toUpperCase() + (note.note_type || 'note').slice(1)}
