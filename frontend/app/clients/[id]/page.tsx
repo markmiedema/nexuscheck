@@ -232,11 +232,11 @@ export default function ClientCRMPage() {
               </div>
             </Card>
 
-            <Card className="p-6">
-              <h3 className="font-semibold text-foreground mb-4">Active Engagements</h3>
-              <div className="space-y-4">
-                {analyses.length > 0 ? (
-                  analyses.slice(0, 3).map(analysis => (
+            {analyses.length > 0 && (
+              <Card className="p-6">
+                <h3 className="font-semibold text-foreground mb-4">Active Engagements</h3>
+                <div className="space-y-4">
+                  {analyses.slice(0, 3).map(analysis => (
                     <div
                       key={analysis.id}
                       className="border rounded-lg p-3 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
@@ -253,17 +253,13 @@ export default function ClientCRMPage() {
                         Open
                       </Button>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-muted-foreground text-sm">
-                    No active projects.
-                  </div>
-                )}
-                <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
-                  <Plus className="h-3 w-3 mr-2" /> Create Engagement Letter
-                </Button>
-              </div>
-            </Card>
+                  ))}
+                  <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
+                    <Plus className="h-3 w-3 mr-2" /> Create Engagement Letter
+                  </Button>
+                </div>
+              </Card>
+            )}
           </div>
 
           {/* CENTER COL: ACTIVITY & NOTES */}
