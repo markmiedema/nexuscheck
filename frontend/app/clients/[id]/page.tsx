@@ -18,7 +18,7 @@ import { ClientContacts } from '@/components/clients/ClientContacts'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
-  Download, Trash2
+  Trash2
 } from 'lucide-react'
 import apiClient from '@/lib/api/client'
 
@@ -458,15 +458,9 @@ export default function ClientCRMPage() {
                   label: 'Data Checklist',
                   content: (
                     <div className="pt-4 space-y-6">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="text-lg font-medium">Data Request Checklist</h3>
-                          <p className="text-sm text-muted-foreground">Track received documents for this client.</p>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Email Request
-                        </Button>
+                      <div>
+                        <h3 className="text-lg font-medium">Data Request Checklist</h3>
+                        <p className="text-sm text-muted-foreground">Track received documents for this client.</p>
                       </div>
                       <Card className="p-0 overflow-hidden">
                         <div className="divide-y">
