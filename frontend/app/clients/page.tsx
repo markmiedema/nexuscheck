@@ -45,7 +45,8 @@ import {
   FileText,
   Archive,
   Plus,
-  FolderOpen
+  FolderOpen,
+  Target
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -72,8 +73,8 @@ export default function ClientsPage() {
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const [sortConfig, setSortConfig] = useState<SortConfig>({ column: 'created_at', direction: 'desc' })
 
-  // NEW: Filter state for Tabs
-  const [activeTab, setActiveTab] = useState('active_directory')
+  // NEW: Default to 'active' tab, but options are: 'active', 'prospects', 'archived'
+  const [activeTab, setActiveTab] = useState('active')
 
   // Note modal state
   const [noteModalOpen, setNoteModalOpen] = useState(false)
@@ -147,7 +148,7 @@ export default function ClientsPage() {
     }
   }
 
-  // --- FILTERING LOGIC ---
+  // --- FILTERING LOGIC (THE 3 BUCKETS) ---
   const { displayedClients, stats } = useMemo(() => {
     // 1. Filter by Search Term
     let filtered = clients.filter(c =>
@@ -156,12 +157,16 @@ export default function ClientsPage() {
       c.contact_name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     )
 
-    // 2. Filter by Tab (Status)
-    // "Archived" tab shows ONLY 'churned'. Everything else (prospect, active, paused) goes to "Active Directory"
+    // 2. Filter by Tab (Status Buckets)
     if (activeTab === 'archived') {
+        // Bucket 3: Churned
         filtered = filtered.filter(c => c.status === 'churned')
+    } else if (activeTab === 'prospects') {
+        // Bucket 2: Prospects (prospect or null)
+        filtered = filtered.filter(c => c.status === 'prospect' || !c.status)
     } else {
-        filtered = filtered.filter(c => c.status !== 'churned')
+        // Bucket 1: Active (active or paused)
+        filtered = filtered.filter(c => c.status === 'active' || c.status === 'paused')
     }
 
     // 3. Sort
@@ -178,16 +183,14 @@ export default function ClientsPage() {
       })
     }
 
-    // 4. Calculate Stats (based on TOTAL non-archived clients usually)
-    const activeBase = clients.filter(c => c.status !== 'churned')
-
+    // 4. Calculate Stats
     return {
       displayedClients: filtered,
       stats: {
-        totalClients: activeBase.length,
+        totalClients: clients.length,
+        activeCount: clients.filter(c => c.status === 'active' || c.status === 'paused').length,
+        prospectCount: clients.filter(c => c.status === 'prospect' || !c.status).length,
         archivedCount: clients.filter(c => c.status === 'churned').length,
-        activeCount: activeBase.filter(c => c.status === 'active').length,
-        prospectCount: activeBase.filter(c => c.status === 'prospect' || !c.status).length,
       }
     }
   }, [clients, sortConfig, debouncedSearchTerm, activeTab])
@@ -196,12 +199,12 @@ export default function ClientsPage() {
   const StatusBadge = ({ status }: { status?: string }) => {
     switch (status) {
         case 'active':
-            return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200">Active</Badge>
+            return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200 shadow-none">Active</Badge>
         case 'paused':
             return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">Paused</Badge>
         case 'churned':
             return <Badge variant="secondary">Archived</Badge>
-        default: // prospect or null
+        default:
             return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">Prospect</Badge>
     }
   }
@@ -305,9 +308,9 @@ export default function ClientsPage() {
           {/* STATS ROW */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
-              { label: 'Total Active', value: stats.totalClients, icon: Building2, color: 'text-blue-600' },
-              { label: 'Active Engagements', value: stats.activeCount, icon: Clock, color: 'text-emerald-600' },
-              { label: 'Prospects', value: stats.prospectCount, icon: Users, color: 'text-purple-600' },
+              { label: 'Active Clients', value: stats.activeCount, icon: Building2, color: 'text-emerald-600' },
+              { label: 'Pipeline (Prospects)', value: stats.prospectCount, icon: Target, color: 'text-blue-600' },
+              { label: 'Total Database', value: stats.totalClients, icon: Users, color: 'text-purple-600' },
               { label: 'Archived', value: stats.archivedCount, icon: Archive, color: 'text-gray-500' },
             ].map((stat, i) => (
               <Card key={i} className="p-4 bg-card/50 backdrop-blur-sm border-border/60 shadow-sm flex items-center justify-between">
@@ -325,18 +328,23 @@ export default function ClientsPage() {
           {/* TABS & FILTERS */}
           <div className="space-y-4 mb-6">
              <TabsCustom
-                defaultValue="active_directory"
+                defaultValue="active"
                 onValueChange={setActiveTab}
                 variant="pills"
                 items={[
                     {
-                        id: 'active_directory',
-                        label: 'Active Directory',
+                        id: 'active',
+                        label: 'Active Clients',
+                        content: null
+                    },
+                    {
+                        id: 'prospects',
+                        label: 'Prospects & Leads',
                         content: null
                     },
                     {
                         id: 'archived',
-                        label: 'Archived / Churned',
+                        label: 'Archived',
                         content: null
                     }
                 ]}
@@ -386,14 +394,24 @@ export default function ClientsPage() {
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
                 <FolderOpen className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">No clients found</h3>
+
+              {/* Dynamic Empty State Messaging */}
+              <h3 className="text-lg font-semibold text-foreground">
+                {activeTab === 'active' ? 'No active clients' :
+                 activeTab === 'prospects' ? 'Pipeline is empty' :
+                 'No archived records'}
+              </h3>
+
               <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-1 mb-6">
-                {activeTab === 'archived'
-                    ? "No archived clients found. Great retention!"
-                    : searchTerm
-                        ? 'Try adjusting your search terms.'
-                        : 'Get started by adding your first client.'}
+                {searchTerm
+                    ? 'Try adjusting your search terms.'
+                    : activeTab === 'prospects'
+                        ? 'Add a new lead to start scoping their nexus exposure.'
+                        : activeTab === 'active'
+                            ? 'Promote a prospect or add a new client to see them here.'
+                            : 'Clients you delete or mark as churned will appear here.'}
               </p>
+
               {activeTab !== 'archived' && (
                   <Button onClick={() => router.push('/clients/new')}>
                     <Plus className="mr-2 h-4 w-4" /> New Client
