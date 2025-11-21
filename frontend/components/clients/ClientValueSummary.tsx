@@ -28,23 +28,23 @@ export function ClientValueSummary({ analyses, notesCount }: ClientValueSummaryP
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <Card className="p-4 border-l-4 border-l-blue-500 shadow-sm bg-card/50">
+      <Card className="p-4 shadow-sm bg-card/50">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Latest Project</p>
-          <FileText className="h-4 w-4 text-blue-500" />
+          <FileText className="h-4 w-4 text-muted-foreground" />
         </div>
         <p className="font-semibold text-sm truncate text-foreground">
-          {latestAnalysis?.client_company_name || 'Nexus Analysis'}
+          Nexus Analysis
         </p>
         <p className="text-xs text-muted-foreground mt-1">
           {new Date(latestAnalysis.created_at).toLocaleDateString()}
         </p>
       </Card>
 
-      <Card className="p-4 border-l-4 border-l-red-500 shadow-sm bg-card/50">
+      <Card className="p-4 shadow-sm bg-card/50">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Nexus States</p>
-          <MapPin className="h-4 w-4 text-red-500" />
+          <MapPin className="h-4 w-4 text-muted-foreground" />
         </div>
         <p className="text-2xl font-bold text-foreground">
           {totalNexusStates}
@@ -52,10 +52,10 @@ export function ClientValueSummary({ analyses, notesCount }: ClientValueSummaryP
         <p className="text-xs text-muted-foreground">Physical & Economic</p>
       </Card>
 
-      <Card className="p-4 border-l-4 border-l-amber-500 shadow-sm bg-card/50">
+      <Card className="p-4 shadow-sm bg-card/50">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Est. Exposure</p>
-          <DollarSign className="h-4 w-4 text-amber-500" />
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
         </div>
         <p className="text-2xl font-bold text-foreground">
           {estimatedLiability > 0
@@ -66,10 +66,10 @@ export function ClientValueSummary({ analyses, notesCount }: ClientValueSummaryP
         <p className="text-xs text-muted-foreground">Unregistered Liability</p>
       </Card>
 
-      <Card className="p-4 border-l-4 border-l-emerald-500 shadow-sm bg-card/50">
+      <Card className="p-4 shadow-sm bg-card/50">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Projects</p>
-          <TrendingUp className="h-4 w-4 text-emerald-500" />
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </div>
         <p className="text-2xl font-bold text-foreground">{analyses.length}</p>
         <p className="text-xs text-muted-foreground">
