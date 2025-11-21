@@ -422,29 +422,45 @@ export default function ClientsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex gap-2">
                   <Badge
-                    variant={noteType === 'discovery' ? 'default' : 'outline'}
-                    className="cursor-pointer hover:bg-background"
+                    variant="outline"
+                    className={`cursor-pointer transition-all ${
+                      noteType === 'discovery'
+                        ? 'bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700'
+                        : 'hover:bg-purple-50 hover:border-purple-200 dark:hover:bg-purple-900/20'
+                    }`}
                     onClick={() => setNoteType('discovery')}
                   >
                     Discovery
                   </Badge>
                   <Badge
-                    variant={noteType === 'call' ? 'default' : 'outline'}
-                    className="cursor-pointer hover:bg-background"
+                    variant="outline"
+                    className={`cursor-pointer transition-all ${
+                      noteType === 'call'
+                        ? 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-700'
+                        : 'hover:bg-orange-50 hover:border-orange-200 dark:hover:bg-orange-900/20'
+                    }`}
                     onClick={() => setNoteType('call')}
                   >
                     Call
                   </Badge>
                   <Badge
-                    variant={noteType === 'email' ? 'default' : 'outline'}
-                    className="cursor-pointer hover:bg-background"
+                    variant="outline"
+                    className={`cursor-pointer transition-all ${
+                      noteType === 'email'
+                        ? 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700'
+                        : 'hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-900/20'
+                    }`}
                     onClick={() => setNoteType('email')}
                   >
                     Email
                   </Badge>
                   <Badge
-                    variant={noteType === 'meeting' ? 'default' : 'outline'}
-                    className="cursor-pointer hover:bg-background"
+                    variant="outline"
+                    className={`cursor-pointer transition-all ${
+                      noteType === 'meeting'
+                        ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700'
+                        : 'hover:bg-green-50 hover:border-green-200 dark:hover:bg-green-900/20'
+                    }`}
                     onClick={() => setNoteType('meeting')}
                   >
                     Meeting

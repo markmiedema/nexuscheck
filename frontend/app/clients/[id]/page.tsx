@@ -202,29 +202,45 @@ export default function ClientCRMPage() {
                         <div className="flex justify-between items-center">
                            <div className="flex gap-2">
                              <Badge
-                               variant={noteType === 'discovery' ? 'default' : 'outline'}
-                               className="cursor-pointer hover:bg-background"
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'discovery'
+                                   ? 'bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700'
+                                   : 'hover:bg-purple-50 hover:border-purple-200 dark:hover:bg-purple-900/20'
+                               }`}
                                onClick={() => setNoteType('discovery')}
                              >
                                Discovery
                              </Badge>
                              <Badge
-                               variant={noteType === 'call' ? 'default' : 'outline'}
-                               className="cursor-pointer hover:bg-background"
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'call'
+                                   ? 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-700'
+                                   : 'hover:bg-orange-50 hover:border-orange-200 dark:hover:bg-orange-900/20'
+                               }`}
                                onClick={() => setNoteType('call')}
                              >
                                Call
                              </Badge>
                              <Badge
-                               variant={noteType === 'email' ? 'default' : 'outline'}
-                               className="cursor-pointer hover:bg-background"
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'email'
+                                   ? 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700'
+                                   : 'hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-900/20'
+                               }`}
                                onClick={() => setNoteType('email')}
                              >
                                Email
                              </Badge>
                              <Badge
-                               variant={noteType === 'meeting' ? 'default' : 'outline'}
-                               className="cursor-pointer hover:bg-background"
+                               variant="outline"
+                               className={`cursor-pointer transition-all ${
+                                 noteType === 'meeting'
+                                   ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700'
+                                   : 'hover:bg-green-50 hover:border-green-200 dark:hover:bg-green-900/20'
+                               }`}
                                onClick={() => setNoteType('meeting')}
                              >
                                Meeting
@@ -252,17 +268,17 @@ export default function ClientCRMPage() {
                                 note.note_type === 'meeting' ? 'bg-green-500' :
                                 'bg-orange-500'
                               }`} />
-                              <div className="bg-card border rounded-lg p-4 shadow-sm">
+                              <div className="bg-card border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start mb-2">
                                   <div className="flex items-center gap-2">
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                                      note.note_type === 'discovery' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
-                                      note.note_type === 'email' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                                      note.note_type === 'meeting' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
-                                      'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                                    <Badge variant="outline" className={`text-xs font-semibold px-2.5 py-0.5 ${
+                                      note.note_type === 'discovery' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700' :
+                                      note.note_type === 'email' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700' :
+                                      note.note_type === 'meeting' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700' :
+                                      'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700'
                                     }`}>
-                                      {(note.note_type || 'note').toUpperCase()}
-                                    </span>
+                                      {(note.note_type || 'note').charAt(0).toUpperCase() + (note.note_type || 'note').slice(1)}
+                                    </Badge>
                                   </div>
                                   <span className="text-xs text-muted-foreground">
                                     {new Date(note.created_at).toLocaleDateString()}
