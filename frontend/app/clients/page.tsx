@@ -308,10 +308,10 @@ export default function ClientsPage() {
           {/* STATS ROW */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
-              { label: 'Active Clients', value: stats.activeCount, icon: Building2, color: 'text-emerald-600' },
               { label: 'Pipeline (Prospects)', value: stats.prospectCount, icon: Target, color: 'text-blue-600' },
-              { label: 'Total Database', value: stats.totalClients, icon: Users, color: 'text-purple-600' },
+              { label: 'Active Clients', value: stats.activeCount, icon: Building2, color: 'text-emerald-600' },
               { label: 'Archived', value: stats.archivedCount, icon: Archive, color: 'text-gray-500' },
+              { label: 'Total Database', value: stats.totalClients, icon: Users, color: 'text-purple-600' },
             ].map((stat, i) => (
               <Card key={i} className="p-4 bg-card/50 backdrop-blur-sm border-border/60 shadow-sm flex items-center justify-between">
                 <div>
