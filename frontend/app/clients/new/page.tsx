@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -19,7 +19,8 @@ import {
   Loader2,
   Plus,
   FileText,
-  ArrowRight
+  ArrowRight,
+  ClipboardList
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 
@@ -39,6 +40,8 @@ type NewClientForm = z.infer<typeof newClientSchema>
 export default function NewClientPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitAction, setSubmitAction] = useState<'create' | 'discovery'>('create')
+  const formRef = useRef<HTMLFormElement>(null)
 
   const {
     register,
@@ -98,12 +101,29 @@ export default function NewClientPage() {
       }
 
       showSuccess(`Client "${newClient.company_name}" added successfully`)
-      router.push(`/clients/${newClient.id}`)
+
+      // Navigate based on which button was clicked
+      if (submitAction === 'discovery') {
+        // Navigate to client page with discovery tab active
+        router.push(`/clients/${newClient.id}?tab=discovery`)
+      } else {
+        router.push(`/clients/${newClient.id}`)
+      }
     } catch (error) {
       handleApiError(error, { userMessage: 'Failed to create client' })
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleCreateAndDiscover = () => {
+    setSubmitAction('discovery')
+    // Trigger form submission
+    formRef.current?.requestSubmit()
+  }
+
+  const handleCreate = () => {
+    setSubmitAction('create')
   }
 
   return (
@@ -122,7 +142,7 @@ export default function NewClientPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-6 max-w-2xl">
 
             {/* Company Identity Card */}
@@ -201,22 +221,30 @@ export default function NewClientPage() {
               />
             </Card>
 
-            {/* Next Steps Info */}
-            <div className="p-4 bg-muted/50 rounded-lg border border-border">
-              <div className="flex items-start gap-3">
-                <ArrowRight className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="font-medium text-foreground">Next: Schedule Discovery Meeting</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    After creating the client, complete the Discovery Profile to capture business details,
-                    sales channels, and physical presence indicators needed for nexus analysis.
-                  </p>
+            {/* Next Steps - Now clickable */}
+            <Card
+              className="p-4 bg-primary/5 border-primary/20 hover:bg-primary/10 hover:border-primary/30 transition-colors cursor-pointer group"
+              onClick={handleCreateAndDiscover}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-start gap-3">
+                  <ClipboardList className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+                      Ready for Discovery?
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Create client and continue directly to capture business details, sales channels,
+                      and physical presence indicators.
+                    </p>
+                  </div>
                 </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </div>
-            </div>
+            </Card>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-4 pt-4 border-t border-border">
+            <div className="flex items-center justify-between pt-4 border-t border-border">
               <Button
                 type="button"
                 variant="ghost"
@@ -225,17 +253,39 @@ export default function NewClientPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="min-w-[140px]">
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="mr-2 h-4 w-4" /> Add Client
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  type="submit"
+                  variant="outline"
+                  disabled={isSubmitting}
+                  onClick={handleCreate}
+                >
+                  {isSubmitting && submitAction === 'create' ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" /> Add Client
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleCreateAndDiscover}
+                >
+                  {isSubmitting && submitAction === 'discovery' ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...
+                    </>
+                  ) : (
+                    <>
+                      <ClipboardList className="mr-2 h-4 w-4" /> Add & Start Discovery
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </form>

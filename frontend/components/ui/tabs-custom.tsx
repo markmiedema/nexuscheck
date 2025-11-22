@@ -14,8 +14,10 @@ export interface TabItem {
 
 export interface TabsCustomProps {
   items: TabItem[]
-  /** Default active tab ID */
+  /** Default active tab ID (uncontrolled mode) */
   defaultTab?: string
+  /** Active tab ID (controlled mode) - when provided, component becomes controlled */
+  activeTab?: string
   /** Callback when tab changes */
   onTabChange?: (tabId: string) => void
   /** Styling variant */
@@ -52,6 +54,7 @@ export interface TabsCustomProps {
 export function TabsCustom({
   items,
   defaultTab,
+  activeTab: controlledActiveTab,
   onTabChange,
   variant = 'default',
   fullWidth = false,
@@ -59,13 +62,19 @@ export function TabsCustom({
 }: TabsCustomProps) {
   // Set initial active tab
   const initialTab = defaultTab || items[0]?.id || ''
-  const [activeTab, setActiveTab] = useState(initialTab)
+  const [internalActiveTab, setInternalActiveTab] = useState(initialTab)
+
+  // Support both controlled and uncontrolled modes
+  const isControlled = controlledActiveTab !== undefined
+  const activeTab = isControlled ? controlledActiveTab : internalActiveTab
 
   const handleTabChange = (tabId: string) => {
     const tab = items.find(item => item.id === tabId)
     if (tab?.disabled) return
 
-    setActiveTab(tabId)
+    if (!isControlled) {
+      setInternalActiveTab(tabId)
+    }
     onTabChange?.(tabId)
   }
 

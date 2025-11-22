@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { getClient, listClientNotes, createClientNote, listClientAnalyses, type Client, type ClientNote, type ClientAnalysis } from '@/lib/api/clients'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import AppLayout from '@/components/layout/AppLayout'
@@ -28,10 +28,13 @@ import apiClient from '@/lib/api/client'
 export default function ClientCRMPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [client, setClient] = useState<Client | null>(null)
   const [notes, setNotes] = useState<ClientNote[]>([])
   const [analyses, setAnalyses] = useState<ClientAnalysis[]>([])
-  const [activeTab, setActiveTab] = useState('overview')
+  // Initialize tab from URL query param or default to 'overview'
+  const initialTab = searchParams.get('tab') || 'overview'
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [newNote, setNewNote] = useState('')
   const [noteType, setNoteType] = useState<string>('call')
   const [loading, setLoading] = useState(true)
@@ -239,7 +242,8 @@ export default function ClientCRMPage() {
           {/* CENTER COL: ACTIVITY & NOTES */}
           <div className="lg:col-span-2 space-y-6">
             <TabsCustom
-              defaultTab="overview"
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
               variant="pills"
               items={[
                 {
