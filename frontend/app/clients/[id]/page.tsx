@@ -491,7 +491,7 @@ export default function ClientCRMPage() {
                         initialData={{
                           channels: client.channels || [],
                           product_types: client.product_types || [],
-                          tech_stack: client.tech_stack || [],
+                          systems: client.systems || [],
                           has_remote_employees: client.has_remote_employees || false,
                           remote_employee_states: client.remote_employee_states || [],
                           has_inventory_3pl: client.has_inventory_3pl || false,

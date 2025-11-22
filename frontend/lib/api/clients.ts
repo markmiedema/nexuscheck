@@ -41,6 +41,7 @@ export interface Client {
   // Discovery Profile Fields
   channels?: string[]
   product_types?: string[]
+  systems?: string[]  // Tech systems from discovery (renamed from tech_stack to avoid collision)
   has_remote_employees?: boolean
   remote_employee_states?: string[]
   has_inventory_3pl?: boolean

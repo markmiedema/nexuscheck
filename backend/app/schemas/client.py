@@ -14,8 +14,8 @@ class DiscoveryProfile(BaseModel):
     # Product Types
     product_types: List[str] = []  # ["physical_goods", "digital_goods", "saas", "services", "mixed"]
 
-    # Tech Stack
-    tech_stack: List[str] = []  # ["shopify", "woocommerce", "bigcommerce", "amazon", "netsuite", "quickbooks", "xero", "stripe"]
+    # Systems (Tech Stack from discovery - renamed to avoid collision with TechStack object)
+    systems: List[str] = []  # ["shopify", "woocommerce", "bigcommerce", "amazon", "netsuite", "quickbooks", "xero", "stripe"]
 
     # Physical Presence (Critical for Nexus)
     has_remote_employees: bool = False
@@ -106,7 +106,7 @@ class ClientResponse(ClientBase):
     # Discovery profile data
     channels: Optional[List[str]] = None
     product_types: Optional[List[str]] = None
-    tech_stack_list: Optional[List[str]] = Field(None, alias='tech_stack')
+    systems: Optional[List[str]] = None  # Tech systems from discovery (renamed from tech_stack)
     has_remote_employees: Optional[bool] = None
     remote_employee_states: Optional[List[str]] = None
     has_inventory_3pl: Optional[bool] = None

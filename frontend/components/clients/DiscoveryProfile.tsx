@@ -87,7 +87,7 @@ interface DiscoveryProfileProps {
   initialData?: {
     channels?: string[]
     product_types?: string[]
-    tech_stack?: string[]
+    systems?: string[]
     has_remote_employees?: boolean
     remote_employee_states?: string[]
     has_inventory_3pl?: boolean
@@ -109,7 +109,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
   // Form state
   const [channels, setChannels] = useState<string[]>(initialData?.channels || [])
   const [productTypes, setProductTypes] = useState<string[]>(initialData?.product_types || [])
-  const [techStack, setTechStack] = useState<string[]>(initialData?.tech_stack || [])
+  const [techStack, setTechStack] = useState<string[]>(initialData?.systems || [])
   const [hasRemoteEmployees, setHasRemoteEmployees] = useState(initialData?.has_remote_employees || false)
   const [remoteEmployeeStates, setRemoteEmployeeStates] = useState<string[]>(initialData?.remote_employee_states || [])
   const [hasInventory3pl, setHasInventory3pl] = useState(initialData?.has_inventory_3pl || false)
@@ -150,7 +150,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
       const payload: any = {
         channels,
         product_types: productTypes,
-        tech_stack: techStack,
+        systems: techStack,
         has_remote_employees: hasRemoteEmployees,
         remote_employee_states: remoteEmployeeStates,
         has_inventory_3pl: hasInventory3pl,
