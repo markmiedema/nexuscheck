@@ -162,6 +162,26 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
   const [ecommercePlatform, setEcommercePlatform] = useState(initialData?.ecommerce_platform || '')
   const [taxEngine, setTaxEngine] = useState(initialData?.tax_engine || '')
 
+  // Sync state when initialData changes (e.g., after save and refetch)
+  useEffect(() => {
+    setChannels(initialData?.channels || [])
+    setProductTypes(initialData?.product_types || [])
+    setTechStack(initialData?.systems || [])
+    setHasRemoteEmployees(initialData?.has_remote_employees || false)
+    setRemoteEmployeeStates(initialData?.remote_employee_states || [])
+    setHasInventory3pl(initialData?.has_inventory_3pl || false)
+    setInventory3plStates(initialData?.inventory_3pl_states || [])
+    setEstimatedRevenue(initialData?.estimated_annual_revenue || '')
+    setTransactionVolume(initialData?.transaction_volume || '')
+    setRegistrationCount(initialData?.current_registration_count || 0)
+    setRegisteredStates(initialData?.registered_states || [])
+    setDiscoveryNotes(initialData?.discovery_notes || '')
+    setErpSystem(initialData?.erp_system || '')
+    setEcommercePlatform(initialData?.ecommerce_platform || '')
+    setTaxEngine(initialData?.tax_engine || '')
+    setHasChanges(false)
+  }, [initialData])
+
   const isCompleted = !!initialData?.discovery_completed_at
 
   // Toggle functions for multi-selects
