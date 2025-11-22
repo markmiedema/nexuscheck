@@ -260,7 +260,7 @@ export function usePhysicalNexusConfig(
       if (includeSummary) {
         try {
           const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`)
-          const summary = resultsResponse.data
+          const summary = resultsResponse.data?.summary
           if (summary) {
             const liability = new Intl.NumberFormat('en-US', {
               style: 'currency',
