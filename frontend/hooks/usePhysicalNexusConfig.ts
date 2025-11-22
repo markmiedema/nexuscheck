@@ -74,7 +74,10 @@ export function usePhysicalNexusConfig(
         notes: data.notes || null
       }
 
-      if (editingState) {
+      const isUpdate = !!editingState
+      const stateCode = isUpdate ? editingState : data.state_code
+
+      if (isUpdate) {
         // Update existing
         await apiClient.patch(
           `/api/v1/analyses/${analysisId}/physical-nexus/${editingState}`,
@@ -84,7 +87,6 @@ export function usePhysicalNexusConfig(
           title: 'Success',
           description: `Physical nexus updated for ${editingState}`
         })
-        await logActivityNote(`Updated physical nexus for ${editingState}: ${data.reason}`)
       } else {
         // Create new
         await apiClient.post(
@@ -95,7 +97,6 @@ export function usePhysicalNexusConfig(
           title: 'Success',
           description: `Physical nexus added for ${data.state_code}`
         })
-        await logActivityNote(`Added physical nexus for ${data.state_code}: ${data.reason}`)
       }
 
       await loadConfigs()
@@ -104,6 +105,10 @@ export function usePhysicalNexusConfig(
       // ENHANCEMENT: Trigger analysis recalculation
       // Physical nexus changes should update state results immediately
       await triggerRecalculation()
+
+      // Log activity note AFTER recalculation so summary reflects updated state
+      const action = isUpdate ? 'Updated' : 'Added'
+      await logActivityNote(`${action} physical nexus for ${stateCode}: ${data.reason}`, true)
     } catch (error: any) {
       console.error('Failed to save physical nexus:', error)
       toast({
@@ -144,11 +149,13 @@ export function usePhysicalNexusConfig(
         title: 'Success',
         description: `Physical nexus deleted for ${stateCode}`
       })
-      await logActivityNote(`Removed physical nexus for ${stateCode}`)
       await loadConfigs()
 
       // ENHANCEMENT: Trigger recalculation after deletion
       await triggerRecalculation()
+
+      // Log activity note AFTER recalculation so summary reflects updated state
+      await logActivityNote(`Removed physical nexus for ${stateCode}`, true)
     } catch (error: any) {
       console.error('Failed to delete physical nexus:', error)
       toast({
@@ -211,10 +218,12 @@ export function usePhysicalNexusConfig(
         title: 'Success',
         description: `Imported ${response.data.imported_count} states, updated ${response.data.updated_count} states`
       })
-      await logActivityNote(`Imported physical nexus config: ${response.data.imported_count} new, ${response.data.updated_count} updated`)
 
       // ENHANCEMENT: Trigger recalculation after import
       await triggerRecalculation()
+
+      // Log activity note AFTER recalculation so summary reflects updated state
+      await logActivityNote(`Imported physical nexus config: ${response.data.imported_count} new, ${response.data.updated_count} updated`, true)
 
       if (response.data.errors.length > 0) {
         console.error('Import errors:', response.data.errors)
@@ -241,12 +250,33 @@ export function usePhysicalNexusConfig(
     setFormData(null)
   }
 
-  // Log activity note to client timeline
-  const logActivityNote = async (content: string) => {
+  // Log activity note to client timeline with optional results summary
+  const logActivityNote = async (content: string, includeSummary: boolean = false) => {
     if (!options?.clientId) return
     try {
+      let noteContent = content
+
+      // Optionally fetch and append current analysis summary
+      if (includeSummary) {
+        try {
+          const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results`)
+          const summary = resultsResponse.data?.summary
+          if (summary) {
+            const liability = new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(summary.total_estimated_liability || 0)
+            noteContent += `. Analysis now shows ${summary.states_with_nexus || 0} states with nexus, ${liability} estimated liability`
+          }
+        } catch {
+          // Continue without summary if fetch fails
+        }
+      }
+
       await createClientNote(options.clientId, {
-        content,
+        content: noteContent,
         note_type: 'analysis'
       })
     } catch {

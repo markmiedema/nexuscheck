@@ -378,6 +378,32 @@ function AnalysisFormContent() {
         if (statusResponse.data.status === 'complete') {
           // Calculation complete!
           showSuccess('Analysis complete!')
+
+          // Log completion note with results summary if linked to a client
+          if (clientId) {
+            try {
+              // Fetch the calculation results to get summary stats
+              const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results`)
+              const summary = resultsResponse.data?.summary
+              if (summary) {
+                const liability = new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0
+                }).format(summary.total_estimated_liability || 0)
+
+                await createClientNote(clientId, {
+                  content: `Nexus Study completed: ${summary.states_with_nexus || 0} states with nexus, ${liability} estimated liability`,
+                  note_type: 'analysis'
+                })
+              }
+            } catch {
+              // Silently fail - note creation is not critical
+              console.warn('Failed to create completion activity note')
+            }
+          }
+
           router.push(`/analysis/${analysisId}/results`)
           return
         }
