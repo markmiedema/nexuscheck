@@ -348,7 +348,7 @@ export default function ClientCRMPage() {
                         <Users className="h-3.5 w-3.5" />
                         Remote Employees
                       </div>
-                      {client.remote_employee_states?.length > 0 && (
+                      {(client.remote_employee_states?.length ?? 0) > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
                           {client.remote_employee_states.map((state: string) => (
                             <Badge key={state} variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">{state}</Badge>
@@ -363,7 +363,7 @@ export default function ClientCRMPage() {
                         <Warehouse className="h-3.5 w-3.5" />
                         3PL / FBA Inventory
                       </div>
-                      {client.inventory_3pl_states?.length > 0 && (
+                      {(client.inventory_3pl_states?.length ?? 0) > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
                           {client.inventory_3pl_states.map((state: string) => (
                             <Badge key={state} variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">{state}</Badge>
@@ -379,7 +379,7 @@ export default function ClientCRMPage() {
               </div>
 
               {/* Current Registrations */}
-              {(client.registered_states?.length > 0 || client.current_registration_count > 0) && (
+              {((client.registered_states?.length ?? 0) > 0 || (client.current_registration_count ?? 0) > 0) && (
                 <>
                   <Separator />
                   <div className="space-y-2">
