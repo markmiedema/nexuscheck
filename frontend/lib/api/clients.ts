@@ -66,10 +66,9 @@ export interface CreateClientData {
   website?: string | null
   notes?: string | null
   status?: string
-
-  // New Optional Fields for the Form
-  business_profile?: Partial<BusinessProfile>
-  tech_stack?: Partial<TechStack>
+  lifecycle_status?: string
+  // Note: business_profile and tech_stack removed from creation
+  // Business details are captured during the Discovery meeting
 }
 
 // --- 3. API Functions (Keep these mostly the same) ---
