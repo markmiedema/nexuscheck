@@ -11,10 +11,11 @@ import { useRef } from 'react'
 
 interface PhysicalNexusManagerProps {
   analysisId: string
+  clientId?: string
   onRecalculated?: () => void | Promise<void>
 }
 
-export function PhysicalNexusManager({ analysisId, onRecalculated }: PhysicalNexusManagerProps) {
+export function PhysicalNexusManager({ analysisId, clientId, onRecalculated }: PhysicalNexusManagerProps) {
   const {
     configs,
     loading,
@@ -28,7 +29,7 @@ export function PhysicalNexusManager({ analysisId, onRecalculated }: PhysicalNex
     exportConfig,
     importConfig,
     cancelForm
-  } = usePhysicalNexusConfig(analysisId, { onRecalculated })
+  } = usePhysicalNexusConfig(analysisId, { onRecalculated, clientId })
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 

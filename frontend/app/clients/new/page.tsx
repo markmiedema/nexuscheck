@@ -13,7 +13,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { createClient, type CreateClientData } from '@/lib/api/clients'
+import { createClient, createClientNote, type CreateClientData } from '@/lib/api/clients'
+import apiClient from '@/lib/api/client'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import {
   Building2,
@@ -116,6 +117,36 @@ export default function NewClientPage() {
 
       const newClient = await createClient(payload)
 
+      // Create primary contact in Team Roster if contact info was provided
+      if (data.contact_name) {
+        try {
+          await apiClient.post(`/api/v1/clients/${newClient.id}/contacts`, {
+            name: data.contact_name,
+            role: 'Primary Contact',
+            email: data.contact_email || null,
+            phone: data.contact_phone || null,
+            is_primary: true
+          })
+        } catch {
+          // Silently fail - contact creation is not critical
+          console.warn('Failed to create primary contact')
+        }
+      }
+
+      // Log activity note for client creation
+      try {
+        const noteContent = data.notes
+          ? `Initial contact - client record created. Notes: ${data.notes}`
+          : 'Initial contact - client record created'
+        await createClientNote(newClient.id, {
+          content: noteContent,
+          note_type: 'call'
+        })
+      } catch {
+        // Silently fail - note creation is not critical
+        console.warn('Failed to create activity note')
+      }
+
       showSuccess(`Client "${newClient.company_name}" added successfully`)
       router.push(`/clients/${newClient.id}`)
     } catch (error) {
@@ -190,9 +221,15 @@ export default function NewClientPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
-                    <Input id="website" placeholder="https://" {...register('website')} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="website">Website</Label>
+                      <Input id="website" placeholder="https://" {...register('website')} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="industry">Industry</Label>
+                      <Input id="industry" placeholder="e.g. Manufacturing, Retail" {...register('industry')} />
+                    </div>
                   </div>
                 </div>
               </Card>

@@ -8,6 +8,7 @@ import AppLayout from '@/components/layout/AppLayout'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
+import { createClientNote } from '@/lib/api/clients'
 import { findDuplicates } from '@/lib/utils/validation'
 import {
   Card,
@@ -85,6 +86,8 @@ export default function MappingPage() {
   const [validating, setValidating] = useState(false)
   const [columns, setColumns] = useState<ColumnInfo[]>([])
   const [dataSummary, setDataSummary] = useState<DataSummary | null>(null)
+  const [clientId, setClientId] = useState<string | null>(null)
+  const [companyName, setCompanyName] = useState<string>('')
 
   // Mapping state
   const [mappings, setMappings] = useState<MappingConfig>({
@@ -109,9 +112,18 @@ export default function MappingPage() {
   const fetchColumnInfo = async () => {
     try {
       setLoading(true)
-      const response = await apiClient.get(`/api/v1/analyses/${analysisId}/columns`)
-      const data = response.data
 
+      // Fetch analysis data and column info in parallel
+      const [analysisResponse, columnsResponse] = await Promise.all([
+        apiClient.get(`/api/v1/analyses/${analysisId}`),
+        apiClient.get(`/api/v1/analyses/${analysisId}/columns`)
+      ])
+
+      // Store client info for activity logging
+      setClientId(analysisResponse.data.client_id || null)
+      setCompanyName(analysisResponse.data.client_company_name || '')
+
+      const data = columnsResponse.data
       setColumns(data.columns)
       setDataSummary(data.summary)
 
@@ -225,15 +237,51 @@ export default function MappingPage() {
       // Run nexus calculation
       try {
         await apiClient.post(`/api/v1/analyses/${analysisId}/calculate`)
+
+        // Poll for completion
+        let attempts = 0
+        const maxAttempts = 30
+
+        while (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          const statusResponse = await apiClient.get(`/api/v1/analyses/${analysisId}`)
+
+          if (statusResponse.data.status === 'complete') {
+            // Log completion note with results summary if linked to a client
+            if (clientId) {
+              try {
+                const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`)
+                console.log('DEBUG: Raw API response:', JSON.stringify(resultsResponse.data, null, 2))
+                const summary = resultsResponse.data?.summary
+                console.log('DEBUG: Summary object:', JSON.stringify(summary, null, 2))
+                if (summary) {
+                  const liability = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  }).format(summary.total_estimated_liability || 0)
+
+                  await createClientNote(clientId, {
+                    content: `Nexus Study completed: ${summary.states_with_nexus || 0} states with nexus, ${liability} estimated liability`,
+                    note_type: 'analysis'
+                  })
+                }
+              } catch {
+                console.warn('Failed to create completion activity note')
+              }
+            }
+            break
+          }
+          attempts++
+        }
       } catch (calcError: any) {
         console.error('Calculation failed:', calcError)
         // Continue to results page anyway
       }
 
       // Navigate to results
-      setTimeout(() => {
-        router.push(`/analysis/${analysisId}/results`)
-      }, 1000)
+      router.push(`/analysis/${analysisId}/results`)
 
     } catch (error: any) {
       // Handle validation errors

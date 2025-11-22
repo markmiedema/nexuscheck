@@ -127,7 +127,7 @@ export function ClientContacts({ clientId }: { clientId: string }) {
         {contacts.map((contact) => (
           <div key={contact.id} className="flex items-start gap-3 group">
             <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground shrink-0">
-              {contact.name.charAt(0).toUpperCase()}
+              {contact.name.split(' ').map(n => n.charAt(0).toUpperCase()).slice(0, 2).join('')}
             </div>
 
             <div className="flex-1 min-w-0">

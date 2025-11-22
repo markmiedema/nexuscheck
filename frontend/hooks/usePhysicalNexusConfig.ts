@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import apiClient from '@/lib/api/client'
 import { toast } from '@/hooks/use-toast'
+import { createClientNote } from '@/lib/api/clients'
 
 export interface PhysicalNexusConfig {
   state_code: string
@@ -23,6 +24,7 @@ export interface PhysicalNexusFormData {
 
 export interface UsePhysicalNexusConfigOptions {
   onRecalculated?: () => void | Promise<void>
+  clientId?: string  // If provided, activity notes will be logged to client timeline
 }
 
 export function usePhysicalNexusConfig(
@@ -72,7 +74,10 @@ export function usePhysicalNexusConfig(
         notes: data.notes || null
       }
 
-      if (editingState) {
+      const isUpdate = !!editingState
+      const stateCode = isUpdate ? editingState : data.state_code
+
+      if (isUpdate) {
         // Update existing
         await apiClient.patch(
           `/api/v1/analyses/${analysisId}/physical-nexus/${editingState}`,
@@ -100,6 +105,10 @@ export function usePhysicalNexusConfig(
       // ENHANCEMENT: Trigger analysis recalculation
       // Physical nexus changes should update state results immediately
       await triggerRecalculation()
+
+      // Log activity note AFTER recalculation so summary reflects updated state
+      const action = isUpdate ? 'Updated' : 'Added'
+      await logActivityNote(`${action} physical nexus for ${stateCode}: ${data.reason}`, true)
     } catch (error: any) {
       console.error('Failed to save physical nexus:', error)
       toast({
@@ -144,6 +153,9 @@ export function usePhysicalNexusConfig(
 
       // ENHANCEMENT: Trigger recalculation after deletion
       await triggerRecalculation()
+
+      // Log activity note AFTER recalculation so summary reflects updated state
+      await logActivityNote(`Removed physical nexus for ${stateCode}`, true)
     } catch (error: any) {
       console.error('Failed to delete physical nexus:', error)
       toast({
@@ -210,6 +222,9 @@ export function usePhysicalNexusConfig(
       // ENHANCEMENT: Trigger recalculation after import
       await triggerRecalculation()
 
+      // Log activity note AFTER recalculation so summary reflects updated state
+      await logActivityNote(`Imported physical nexus config: ${response.data.imported_count} new, ${response.data.updated_count} updated`, true)
+
       if (response.data.errors.length > 0) {
         console.error('Import errors:', response.data.errors)
         toast({
@@ -235,11 +250,61 @@ export function usePhysicalNexusConfig(
     setFormData(null)
   }
 
-  // ENHANCEMENT: Trigger analysis recalculation (from reference implementation)
+  // Log activity note to client timeline with optional results summary
+  const logActivityNote = async (content: string, includeSummary: boolean = false) => {
+    if (!options?.clientId) return
+    try {
+      let noteContent = content
+
+      // Optionally fetch and append current analysis summary
+      if (includeSummary) {
+        try {
+          const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`)
+          console.log('DEBUG: Raw API response:', JSON.stringify(resultsResponse.data, null, 2))
+          const summary = resultsResponse.data?.summary
+          console.log('DEBUG: Summary object:', JSON.stringify(summary, null, 2))
+          if (summary) {
+            const liability = new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(summary.total_estimated_liability || 0)
+            noteContent += `. Analysis now shows ${summary.states_with_nexus || 0} states with nexus, ${liability} estimated liability`
+          }
+        } catch {
+          // Continue without summary if fetch fails
+        }
+      }
+
+      await createClientNote(options.clientId, {
+        content: noteContent,
+        note_type: 'analysis'
+      })
+    } catch {
+      // Silently fail - note creation is not critical
+      console.warn('Failed to create activity note')
+    }
+  }
+
+  // ENHANCEMENT: Trigger analysis recalculation and wait for completion
   const triggerRecalculation = async () => {
     try {
       await apiClient.post(`/api/v1/analyses/${analysisId}/recalculate`)
       console.log('Analysis recalculation triggered')
+
+      // Poll for completion so activity notes have updated data
+      let attempts = 0
+      const maxAttempts = 15 // 15 seconds max wait
+
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        const statusResponse = await apiClient.get(`/api/v1/analyses/${analysisId}`)
+        if (statusResponse.data.status === 'complete') {
+          break
+        }
+        attempts++
+      }
 
       // Call callback if provided to refresh parent component
       if (options?.onRecalculated) {
