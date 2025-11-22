@@ -154,9 +154,11 @@ DECLARE
   oldest_analysis_date TIMESTAMP;
 BEGIN
   -- Find all clients that have analyses without engagement_id
+  -- Get user_id from the clients table (analyses doesn't have user_id directly)
   FOR client_rec IN
-    SELECT DISTINCT a.client_id, a.user_id
+    SELECT DISTINCT a.client_id, c.user_id
     FROM analyses a
+    JOIN clients c ON c.id = a.client_id
     WHERE a.client_id IS NOT NULL
       AND a.engagement_id IS NULL
   LOOP
