@@ -229,15 +229,21 @@ async def create_analysis(
         if analysis_data.client_id:
             try:
                 # Fetch client's discovery profile
+                logger.info(f"Fetching discovery profile for client_id: {analysis_data.client_id}")
                 client_result = supabase.table('clients')\
                     .select('has_remote_employees, remote_employee_states, has_inventory_3pl, inventory_3pl_states')\
                     .eq('id', analysis_data.client_id)\
                     .eq('user_id', user_id)\
                     .execute()
 
+                logger.info(f"Client discovery data: {client_result.data}")
+
                 if client_result.data:
                     client = client_result.data[0]
                     today = datetime.utcnow().date().isoformat()
+
+                    logger.info(f"has_remote_employees: {client.get('has_remote_employees')}, remote_employee_states: {client.get('remote_employee_states')}")
+                    logger.info(f"has_inventory_3pl: {client.get('has_inventory_3pl')}, inventory_3pl_states: {client.get('inventory_3pl_states')}")
 
                     # Remote Employees trigger physical nexus (the "Silent Killer")
                     if client.get('has_remote_employees') and client.get('remote_employee_states'):
@@ -254,6 +260,8 @@ async def create_analysis(
                                 logger.info(f"Auto-created physical nexus for {state_code} (Remote Employee)")
                             except Exception as pn_err:
                                 logger.warning(f"Could not auto-create physical nexus for {state_code}: {pn_err}")
+                    else:
+                        logger.info("No remote employee states to auto-populate")
 
                     # 3PL/FBA Inventory triggers physical nexus
                     if client.get('has_inventory_3pl') and client.get('inventory_3pl_states'):
@@ -273,6 +281,10 @@ async def create_analysis(
                                 logger.info(f"Auto-created physical nexus for {state_code} (3PL/FBA Inventory)")
                             except Exception as pn_err:
                                 logger.warning(f"Could not auto-create physical nexus for {state_code}: {pn_err}")
+                    else:
+                        logger.info("No 3PL/inventory states to auto-populate")
+                else:
+                    logger.warning(f"No client data found for client_id: {analysis_data.client_id}")
 
             except Exception as client_err:
                 logger.warning(f"Could not fetch client discovery profile: {client_err}")
