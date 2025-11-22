@@ -218,45 +218,61 @@ export default function ClientCRMPage() {
 
             {/* Business Profile Card */}
             <Card className="p-6 space-y-4">
-              <h3 className="font-semibold text-foreground">Business Profile</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-foreground">Business Profile</h3>
+                {client.discovery_completed_at && (
+                  <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+                    Discovery Complete
+                  </Badge>
+                )}
+              </div>
 
-              {/* Tax Risk Indicators */}
+              {/* Product Types from Discovery */}
               <div className="flex flex-wrap gap-2">
-                {client.business_profile?.sells_tpp && (
+                {client.product_types?.includes('physical_goods') && (
                   <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Tangible Goods</Badge>
                 )}
-                {client.business_profile?.sells_saas && (
+                {client.product_types?.includes('saas') && (
                   <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">SaaS</Badge>
                 )}
-                {client.business_profile?.sells_digital_goods && (
+                {client.product_types?.includes('digital_goods') && (
                   <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">Digital Goods</Badge>
                 )}
-                {client.business_profile?.is_marketplace_seller && (
+                {client.product_types?.includes('services') && (
+                  <Badge variant="secondary" className="bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300">Services</Badge>
+                )}
+                {/* Sales Channel indicators */}
+                {client.channels?.some(c => ['amazon_fba', 'amazon_fbm', 'marketplace_other'].includes(c)) && (
                   <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">Marketplace Seller</Badge>
                 )}
-                {client.business_profile?.has_inventory_3pl && (
+                {/* Physical Nexus Indicators */}
+                {client.has_inventory_3pl && (
                   <Badge variant="secondary" className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Physical Nexus (3PL)</Badge>
                 )}
-                {!client.business_profile && (
-                  <span className="text-sm text-muted-foreground">No business profile data</span>
+                {client.has_remote_employees && (
+                  <Badge variant="secondary" className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Physical Nexus (Employees)</Badge>
+                )}
+                {/* Fallback if no Discovery data */}
+                {!client.product_types?.length && !client.channels?.length && !client.discovery_completed_at && (
+                  <span className="text-sm text-muted-foreground">Complete Discovery to populate</span>
                 )}
               </div>
 
               <Separator />
 
-              {/* Tech Stack List */}
+              {/* Tech Stack from Discovery fields */}
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">ERP</span>
-                  <span className="font-medium">{client.tech_stack?.erp_system || 'Unknown'}</span>
+                  <span className="font-medium capitalize">{client.erp_system?.replace('_', ' ') || 'Not set'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">E-Comm</span>
-                  <span className="font-medium">{client.tech_stack?.ecommerce_platform || 'Unknown'}</span>
+                  <span className="font-medium capitalize">{client.ecommerce_platform?.replace('_', ' ') || 'Not set'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tax Engine</span>
-                  <span className="font-medium">{client.tech_stack?.tax_engine || 'None'}</span>
+                  <span className="font-medium capitalize">{client.tax_engine?.replace('_', ' ') || 'None'}</span>
                 </div>
               </div>
             </Card>
