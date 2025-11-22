@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createClient, createClientNote, type CreateClientData } from '@/lib/api/clients'
+import apiClient from '@/lib/api/client'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import {
   Building2,
@@ -115,6 +116,22 @@ export default function NewClientPage() {
       }
 
       const newClient = await createClient(payload)
+
+      // Create primary contact in Team Roster if contact info was provided
+      if (data.contact_name) {
+        try {
+          await apiClient.post(`/api/v1/clients/${newClient.id}/contacts`, {
+            name: data.contact_name,
+            role: 'Primary Contact',
+            email: data.contact_email || null,
+            phone: data.contact_phone || null,
+            is_primary: true
+          })
+        } catch {
+          // Silently fail - contact creation is not critical
+          console.warn('Failed to create primary contact')
+        }
+      }
 
       // Log activity note for client creation
       try {
