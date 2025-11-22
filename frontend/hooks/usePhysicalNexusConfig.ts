@@ -285,11 +285,24 @@ export function usePhysicalNexusConfig(
     }
   }
 
-  // ENHANCEMENT: Trigger analysis recalculation (from reference implementation)
+  // ENHANCEMENT: Trigger analysis recalculation and wait for completion
   const triggerRecalculation = async () => {
     try {
       await apiClient.post(`/api/v1/analyses/${analysisId}/recalculate`)
       console.log('Analysis recalculation triggered')
+
+      // Poll for completion so activity notes have updated data
+      let attempts = 0
+      const maxAttempts = 15 // 15 seconds max wait
+
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        const statusResponse = await apiClient.get(`/api/v1/analyses/${analysisId}`)
+        if (statusResponse.data.status === 'complete') {
+          break
+        }
+        attempts++
+      }
 
       // Call callback if provided to refresh parent component
       if (options?.onRecalculated) {
