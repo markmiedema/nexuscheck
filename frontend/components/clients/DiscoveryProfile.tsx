@@ -237,6 +237,85 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
       const response = await apiClient.patch(`/api/v1/clients/${clientId}`, payload)
       console.log('[DiscoveryProfile] Save response:', response.data)
 
+      // If marking complete, create an activity note summarizing the discovery
+      if (markComplete) {
+        const summaryParts: string[] = []
+
+        // Product types
+        if (productTypes.length > 0) {
+          const typeLabels: Record<string, string> = {
+            physical_goods: 'Tangible Goods',
+            saas: 'SaaS',
+            digital_goods: 'Digital Goods',
+            services: 'Services',
+            mixed: 'Mixed'
+          }
+          summaryParts.push(`Product Types: ${productTypes.map(t => typeLabels[t] || t).join(', ')}`)
+        }
+
+        // Sales channels
+        if (channels.length > 0) {
+          const channelLabels: Record<string, string> = {
+            dtc: 'DTC',
+            amazon_fba: 'Amazon FBA',
+            amazon_fbm: 'Amazon FBM',
+            wholesale: 'Wholesale',
+            retail: 'Retail',
+            marketplace_other: 'Other Marketplaces'
+          }
+          summaryParts.push(`Sales Channels: ${channels.map(c => channelLabels[c] || c).join(', ')}`)
+        }
+
+        // Tech stack
+        const techParts: string[] = []
+        if (erpSystem) techParts.push(`ERP: ${erpSystem}`)
+        if (ecommercePlatform) techParts.push(`E-Comm: ${ecommercePlatform}`)
+        if (taxEngine) techParts.push(`Tax Engine: ${taxEngine}`)
+        if (techParts.length > 0) summaryParts.push(techParts.join(' | '))
+
+        // Revenue
+        if (estimatedRevenue) {
+          const revenueLabels: Record<string, string> = {
+            under_100k: 'Under $100K',
+            '100k_500k': '$100K-$500K',
+            '500k_1m': '$500K-$1M',
+            '1m_5m': '$1M-$5M',
+            '5m_10m': '$5M-$10M',
+            over_10m: 'Over $10M'
+          }
+          summaryParts.push(`Est. Revenue: ${revenueLabels[estimatedRevenue] || estimatedRevenue}`)
+        }
+
+        // Physical nexus warnings
+        const nexusWarnings: string[] = []
+        if (hasRemoteEmployees && remoteEmployeeStates.length > 0) {
+          nexusWarnings.push(`Remote employees in: ${remoteEmployeeStates.join(', ')}`)
+        }
+        if (hasInventory3pl && inventory3plStates.length > 0) {
+          nexusWarnings.push(`3PL/FBA inventory in: ${inventory3plStates.join(', ')}`)
+        }
+        if (nexusWarnings.length > 0) {
+          summaryParts.push(`⚠️ Physical Nexus: ${nexusWarnings.join('; ')}`)
+        }
+
+        // Registered states
+        if (registeredStates.length > 0) {
+          summaryParts.push(`Currently registered in ${registeredStates.length} states: ${registeredStates.join(', ')}`)
+        }
+
+        const noteContent = `Discovery meeting completed.\n\n${summaryParts.join('\n')}`
+
+        try {
+          await apiClient.post(`/api/v1/clients/${clientId}/notes`, {
+            content: noteContent,
+            note_type: 'discovery'
+          })
+        } catch (noteError) {
+          console.error('[DiscoveryProfile] Failed to create discovery note:', noteError)
+          // Don't fail the whole operation if note creation fails
+        }
+      }
+
       showSuccess(markComplete ? 'Discovery profile completed!' : 'Discovery profile saved')
       setHasChanges(false)
       onUpdate?.()
