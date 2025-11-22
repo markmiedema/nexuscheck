@@ -221,9 +221,15 @@ export default function NewClientPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
-                    <Input id="website" placeholder="https://" {...register('website')} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="website">Website</Label>
+                      <Input id="website" placeholder="https://" {...register('website')} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="industry">Industry</Label>
+                      <Input id="industry" placeholder="e.g. Manufacturing, Retail" {...register('industry')} />
+                    </div>
                   </div>
                 </div>
               </Card>
