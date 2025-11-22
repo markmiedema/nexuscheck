@@ -222,16 +222,70 @@ async def create_analysis(
                 detail="Failed to create analysis"
             )
 
-        # NOTE: known_registrations are accepted in request but not automatically saved
-        # Users can add them via the physical nexus UI after analysis creation
-        # Future: Auto-insert known_registrations into physical_nexus table here
+        # Auto-populate physical nexus from client's Discovery Profile
+        # This connects the CRM data to the calculation engine ("Intelligence Integration")
+        physical_nexus_auto_created = []
+
+        if analysis_data.client_id:
+            try:
+                # Fetch client's discovery profile
+                client_result = supabase.table('clients')\
+                    .select('has_remote_employees, remote_employee_states, has_inventory_3pl, inventory_3pl_states')\
+                    .eq('id', analysis_data.client_id)\
+                    .eq('user_id', user_id)\
+                    .execute()
+
+                if client_result.data:
+                    client = client_result.data[0]
+                    today = datetime.utcnow().date().isoformat()
+
+                    # Remote Employees trigger physical nexus (the "Silent Killer")
+                    if client.get('has_remote_employees') and client.get('remote_employee_states'):
+                        for state_code in client['remote_employee_states']:
+                            try:
+                                supabase.table('physical_nexus').insert({
+                                    'analysis_id': analysis_id,
+                                    'state_code': state_code,
+                                    'nexus_date': today,
+                                    'reason': 'Remote Employee',
+                                    'notes': 'Auto-populated from client Discovery Profile'
+                                }).execute()
+                                physical_nexus_auto_created.append(state_code)
+                                logger.info(f"Auto-created physical nexus for {state_code} (Remote Employee)")
+                            except Exception as pn_err:
+                                logger.warning(f"Could not auto-create physical nexus for {state_code}: {pn_err}")
+
+                    # 3PL/FBA Inventory triggers physical nexus
+                    if client.get('has_inventory_3pl') and client.get('inventory_3pl_states'):
+                        for state_code in client['inventory_3pl_states']:
+                            # Skip if already created (might overlap with employee states)
+                            if state_code in physical_nexus_auto_created:
+                                continue
+                            try:
+                                supabase.table('physical_nexus').insert({
+                                    'analysis_id': analysis_id,
+                                    'state_code': state_code,
+                                    'nexus_date': today,
+                                    'reason': '3PL/FBA Inventory',
+                                    'notes': 'Auto-populated from client Discovery Profile'
+                                }).execute()
+                                physical_nexus_auto_created.append(state_code)
+                                logger.info(f"Auto-created physical nexus for {state_code} (3PL/FBA Inventory)")
+                            except Exception as pn_err:
+                                logger.warning(f"Could not auto-create physical nexus for {state_code}: {pn_err}")
+
+            except Exception as client_err:
+                logger.warning(f"Could not fetch client discovery profile: {client_err}")
 
         logger.info(f"Created analysis {analysis_id} for user {user_id}")
+        if physical_nexus_auto_created:
+            logger.info(f"Auto-populated physical nexus for {len(physical_nexus_auto_created)} states: {physical_nexus_auto_created}")
 
         return {
             "id": analysis_id,
             "status": "setup",
-            "message": "Analysis created successfully"
+            "message": "Analysis created successfully",
+            "physical_nexus_auto_populated": physical_nexus_auto_created
         }
 
     except ValueError as e:
