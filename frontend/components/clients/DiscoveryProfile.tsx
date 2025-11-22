@@ -164,6 +164,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
 
   // Sync state when initialData changes (e.g., after save and refetch)
   useEffect(() => {
+    console.log('[DiscoveryProfile] useEffect triggered with initialData:', initialData)
     setChannels(initialData?.channels || [])
     setProductTypes(initialData?.product_types || [])
     setTechStack(initialData?.systems || [])
@@ -232,12 +233,15 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
         payload.discovery_completed_at = new Date().toISOString()
       }
 
-      await apiClient.patch(`/api/v1/clients/${clientId}`, payload)
+      console.log('[DiscoveryProfile] Saving payload:', JSON.stringify(payload, null, 2))
+      const response = await apiClient.patch(`/api/v1/clients/${clientId}`, payload)
+      console.log('[DiscoveryProfile] Save response:', response.data)
 
       showSuccess(markComplete ? 'Discovery profile completed!' : 'Discovery profile saved')
       setHasChanges(false)
       onUpdate?.()
     } catch (error) {
+      console.error('[DiscoveryProfile] Save error:', error)
       handleApiError(error, { userMessage: 'Failed to save discovery profile' })
     } finally {
       setSaving(false)

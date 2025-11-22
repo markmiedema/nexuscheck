@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { getClient, listClientNotes, createClientNote, listClientAnalyses, type Client, type ClientNote, type ClientAnalysis } from '@/lib/api/clients'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
@@ -106,6 +106,29 @@ export default function ClientCRMPage() {
       setDeletingAnalysis(null)
     }
   }
+
+  // Memoize discovery initialData to prevent useEffect from triggering on every parent render
+  const discoveryInitialData = useMemo(() => {
+    if (!client) return undefined
+    return {
+      channels: client.channels || [],
+      product_types: client.product_types || [],
+      systems: client.systems || [],
+      has_remote_employees: client.has_remote_employees || false,
+      remote_employee_states: client.remote_employee_states || [],
+      has_inventory_3pl: client.has_inventory_3pl || false,
+      inventory_3pl_states: client.inventory_3pl_states || [],
+      estimated_annual_revenue: client.estimated_annual_revenue,
+      transaction_volume: client.transaction_volume,
+      current_registration_count: client.current_registration_count || 0,
+      registered_states: client.registered_states || [],
+      discovery_completed_at: client.discovery_completed_at,
+      discovery_notes: client.discovery_notes,
+      erp_system: client.erp_system,
+      ecommerce_platform: client.ecommerce_platform,
+      tax_engine: client.tax_engine
+    }
+  }, [client])
 
   if (loading) {
     return (
@@ -492,27 +515,14 @@ export default function ClientCRMPage() {
                     <div className="pt-4">
                       <DiscoveryProfile
                         clientId={client.id}
-                        initialData={{
-                          channels: client.channels || [],
-                          product_types: client.product_types || [],
-                          systems: client.systems || [],
-                          has_remote_employees: client.has_remote_employees || false,
-                          remote_employee_states: client.remote_employee_states || [],
-                          has_inventory_3pl: client.has_inventory_3pl || false,
-                          inventory_3pl_states: client.inventory_3pl_states || [],
-                          estimated_annual_revenue: client.estimated_annual_revenue,
-                          transaction_volume: client.transaction_volume,
-                          current_registration_count: client.current_registration_count || 0,
-                          registered_states: client.registered_states || [],
-                          discovery_completed_at: client.discovery_completed_at,
-                          discovery_notes: client.discovery_notes,
-                          erp_system: client.erp_system,
-                          ecommerce_platform: client.ecommerce_platform,
-                          tax_engine: client.tax_engine
-                        }}
+                        initialData={discoveryInitialData}
                         onUpdate={() => {
                           // Reload client data to reflect changes
-                          getClient(params.id as string).then(setClient)
+                          console.log('[ClientPage] onUpdate triggered, refetching client...')
+                          getClient(params.id as string).then(data => {
+                            console.log('[ClientPage] Refetched client data:', data)
+                            setClient(data)
+                          })
                         }}
                       />
                     </div>
