@@ -32,10 +32,25 @@ export interface Client {
   website?: string
   notes?: string
   status: string // e.g. 'prospect', 'active', 'paused'
+  lifecycle_status?: string // 'prospect', 'scoping', 'active', 'inactive', 'churned'
 
   // Nested Objects (Now the frontend knows these exist!)
   business_profile?: BusinessProfile
   tech_stack?: TechStack
+
+  // Discovery Profile Fields
+  channels?: string[]
+  product_types?: string[]
+  has_remote_employees?: boolean
+  remote_employee_states?: string[]
+  has_inventory_3pl?: boolean
+  inventory_3pl_states?: string[]
+  estimated_annual_revenue?: string
+  transaction_volume?: string
+  current_registration_count?: number
+  registered_states?: string[]
+  discovery_completed_at?: string
+  discovery_notes?: string
 
   created_at: string
   updated_at: string
