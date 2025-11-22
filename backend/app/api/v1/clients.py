@@ -150,24 +150,36 @@ async def update_client(
 ):
     supabase = get_supabase()
     try:
-        # Separate nested data from main client data
-        full_payload = client_data.model_dump()
+        # Use exclude_unset=True to only include fields that were actually sent in the request
+        full_payload = client_data.model_dump(exclude_unset=True)
+        logger.info(f"Update payload for client {client_id}: {full_payload}")
+
         business_profile_data = full_payload.pop('business_profile', None)
         tech_stack_data = full_payload.pop('tech_stack', None)
 
-        # Only include non-None fields in update for main client
-        update_data = {k: v for k, v in full_payload.items() if v is not None}
+        # With exclude_unset=True, all fields in the payload were explicitly sent
+        # Keep everything except None (which might be accidental - we don't want to clear fields)
+        # But DO keep empty lists [] (intentionally clearing arrays)
+        update_data = {}
+        for k, v in full_payload.items():
+            if v is None:
+                continue  # Skip None to avoid accidentally clearing fields
+            update_data[k] = v
 
         # Update main client record if there's data
         if update_data:
+            logger.info(f"Sending update to DB for client {client_id}: {update_data}")
             result = supabase.table('clients')\
                 .update(update_data)\
                 .eq('id', client_id)\
                 .eq('user_id', user_id)\
                 .execute()
+            logger.info(f"DB update result for client {client_id}: {result.data}")
 
             if not result.data:
                 raise HTTPException(status_code=404, detail="Client not found")
+        else:
+            logger.warning(f"No update_data for client {client_id} - nothing to update")
 
         # Update or insert business profile
         if business_profile_data:

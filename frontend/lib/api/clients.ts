@@ -53,6 +53,11 @@ export interface Client {
   discovery_completed_at?: string
   discovery_notes?: string
 
+  // Tech integration fields (specific selections for integrations)
+  erp_system?: string
+  ecommerce_platform?: string
+  tax_engine?: string
+
   created_at: string
   updated_at: string
 }
@@ -66,10 +71,9 @@ export interface CreateClientData {
   website?: string | null
   notes?: string | null
   status?: string
-
-  // New Optional Fields for the Form
-  business_profile?: Partial<BusinessProfile>
-  tech_stack?: Partial<TechStack>
+  lifecycle_status?: string
+  // Note: business_profile and tech_stack removed from creation
+  // Business details are captured during the Discovery meeting
 }
 
 // --- 3. API Functions (Keep these mostly the same) ---

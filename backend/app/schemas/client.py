@@ -77,20 +77,36 @@ class ClientBase(BaseModel):
 
 
 class ClientCreate(ClientBase):
-    # Allow creating profile info during initial onboarding
-    business_profile: Optional[BusinessProfileBase] = None
-    tech_stack: Optional[TechStackBase] = None
-    # Discovery profile can be populated during or after creation
-    discovery_profile: Optional[DiscoveryProfile] = None
+    # Simplified creation - just the basics
+    # Business details are captured during Discovery meeting
+    pass
 
 
 class ClientUpdate(ClientBase):
     company_name: Optional[str] = None
-    # Allow updating profile info
+    # Legacy profile info (kept for backward compatibility)
     business_profile: Optional[BusinessProfileBase] = None
     tech_stack: Optional[TechStackBase] = None
-    # Discovery profile updates
-    discovery_profile: Optional[DiscoveryProfile] = None
+
+    # Discovery Profile fields (updated via Discovery tab)
+    channels: Optional[List[str]] = None
+    product_types: Optional[List[str]] = None
+    systems: Optional[List[str]] = None
+    has_remote_employees: Optional[bool] = None
+    remote_employee_states: Optional[List[str]] = None
+    has_inventory_3pl: Optional[bool] = None
+    inventory_3pl_states: Optional[List[str]] = None
+    estimated_annual_revenue: Optional[str] = None
+    transaction_volume: Optional[str] = None
+    current_registration_count: Optional[int] = None
+    registered_states: Optional[List[str]] = None
+    discovery_notes: Optional[str] = None
+    discovery_completed_at: Optional[datetime] = None
+
+    # Tech integration fields (specific selections for integrations)
+    erp_system: Optional[str] = None
+    ecommerce_platform: Optional[str] = None
+    tax_engine: Optional[str] = None
 
 
 class ClientResponse(ClientBase):
@@ -117,6 +133,11 @@ class ClientResponse(ClientBase):
     registered_states: Optional[List[str]] = None
     discovery_completed_at: Optional[datetime] = None
     discovery_notes: Optional[str] = None
+
+    # Tech integration fields
+    erp_system: Optional[str] = None
+    ecommerce_platform: Optional[str] = None
+    tax_engine: Optional[str] = None
 
     class Config:
         from_attributes = True

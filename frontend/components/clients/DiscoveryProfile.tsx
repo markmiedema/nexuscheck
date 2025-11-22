@@ -82,6 +82,40 @@ const VOLUME_OPTIONS = [
   { value: 'high', label: 'High (>10,000/year)' },
 ]
 
+// ERP/Accounting options
+const ERP_OPTIONS = [
+  { value: 'netsuite', label: 'NetSuite' },
+  { value: 'quickbooks', label: 'QuickBooks' },
+  { value: 'xero', label: 'Xero' },
+  { value: 'sage', label: 'Sage' },
+  { value: 'freshbooks', label: 'FreshBooks' },
+  { value: 'other', label: 'Other' },
+  { value: 'none', label: 'None / Manual' },
+]
+
+// E-commerce platform options
+const ECOMMERCE_OPTIONS = [
+  { value: 'shopify', label: 'Shopify' },
+  { value: 'woocommerce', label: 'WooCommerce' },
+  { value: 'bigcommerce', label: 'BigCommerce' },
+  { value: 'magento', label: 'Magento' },
+  { value: 'amazon', label: 'Amazon Seller Central' },
+  { value: 'squarespace', label: 'Squarespace' },
+  { value: 'custom', label: 'Custom Build' },
+  { value: 'none', label: 'None / N/A' },
+]
+
+// Tax engine options
+const TAX_ENGINE_OPTIONS = [
+  { value: 'avalara', label: 'Avalara AvaTax' },
+  { value: 'vertex', label: 'Vertex O Series' },
+  { value: 'taxjar', label: 'Stripe Tax / TaxJar' },
+  { value: 'anrok', label: 'Anrok' },
+  { value: 'sovos', label: 'Sovos' },
+  { value: 'other', label: 'Other' },
+  { value: 'none', label: 'None / Manual' },
+]
+
 interface DiscoveryProfileProps {
   clientId: string
   initialData?: {
@@ -98,6 +132,10 @@ interface DiscoveryProfileProps {
     registered_states?: string[]
     discovery_completed_at?: string
     discovery_notes?: string
+    // Tech integration fields
+    erp_system?: string
+    ecommerce_platform?: string
+    tax_engine?: string
   }
   onUpdate?: () => void
 }
@@ -119,6 +157,31 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
   const [registrationCount, setRegistrationCount] = useState(initialData?.current_registration_count || 0)
   const [registeredStates, setRegisteredStates] = useState<string[]>(initialData?.registered_states || [])
   const [discoveryNotes, setDiscoveryNotes] = useState(initialData?.discovery_notes || '')
+  // Tech integration fields
+  const [erpSystem, setErpSystem] = useState(initialData?.erp_system || '')
+  const [ecommercePlatform, setEcommercePlatform] = useState(initialData?.ecommerce_platform || '')
+  const [taxEngine, setTaxEngine] = useState(initialData?.tax_engine || '')
+
+  // Sync state when initialData changes (e.g., after save and refetch)
+  useEffect(() => {
+    console.log('[DiscoveryProfile] useEffect triggered with initialData:', initialData)
+    setChannels(initialData?.channels || [])
+    setProductTypes(initialData?.product_types || [])
+    setTechStack(initialData?.systems || [])
+    setHasRemoteEmployees(initialData?.has_remote_employees || false)
+    setRemoteEmployeeStates(initialData?.remote_employee_states || [])
+    setHasInventory3pl(initialData?.has_inventory_3pl || false)
+    setInventory3plStates(initialData?.inventory_3pl_states || [])
+    setEstimatedRevenue(initialData?.estimated_annual_revenue || '')
+    setTransactionVolume(initialData?.transaction_volume || '')
+    setRegistrationCount(initialData?.current_registration_count || 0)
+    setRegisteredStates(initialData?.registered_states || [])
+    setDiscoveryNotes(initialData?.discovery_notes || '')
+    setErpSystem(initialData?.erp_system || '')
+    setEcommercePlatform(initialData?.ecommerce_platform || '')
+    setTaxEngine(initialData?.tax_engine || '')
+    setHasChanges(false)
+  }, [initialData])
 
   const isCompleted = !!initialData?.discovery_completed_at
 
@@ -160,18 +223,25 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
         current_registration_count: registrationCount,
         registered_states: registeredStates,
         discovery_notes: discoveryNotes || null,
+        // Tech integration fields
+        erp_system: erpSystem || null,
+        ecommerce_platform: ecommercePlatform || null,
+        tax_engine: taxEngine || null,
       }
 
       if (markComplete) {
         payload.discovery_completed_at = new Date().toISOString()
       }
 
-      await apiClient.patch(`/api/v1/clients/${clientId}`, payload)
+      console.log('[DiscoveryProfile] Saving payload:', JSON.stringify(payload, null, 2))
+      const response = await apiClient.patch(`/api/v1/clients/${clientId}`, payload)
+      console.log('[DiscoveryProfile] Save response:', response.data)
 
       showSuccess(markComplete ? 'Discovery profile completed!' : 'Discovery profile saved')
       setHasChanges(false)
       onUpdate?.()
     } catch (error) {
+      console.error('[DiscoveryProfile] Save error:', error)
       handleApiError(error, { userMessage: 'Failed to save discovery profile' })
     } finally {
       setSaving(false)
@@ -257,26 +327,74 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
         </Card>
 
         {/* Tech Stack */}
-        <Card className="p-6">
+        <Card className="p-6 lg:col-span-2">
           <div className="flex items-center gap-2 mb-4">
             <Laptop className="h-5 w-5 text-muted-foreground" />
             <h3 className="font-semibold">Technology Stack</h3>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {TECH_STACK_OPTIONS.map(tech => (
-              <Badge
-                key={tech.id}
-                variant="outline"
-                className={`cursor-pointer transition-all ${
-                  techStack.includes(tech.id)
-                    ? 'bg-primary/10 border-primary text-primary'
-                    : 'hover:bg-muted'
-                }`}
-                onClick={() => toggleTechStack(tech.id)}
-              >
-                {tech.label}
-              </Badge>
-            ))}
+
+          {/* Primary Systems - Specific selections for integrations */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="space-y-2">
+              <Label>ERP / Accounting</Label>
+              <Select value={erpSystem} onValueChange={(v) => { setErpSystem(v); setHasChanges(true) }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select ERP..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {ERP_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>E-commerce Platform</Label>
+              <Select value={ecommercePlatform} onValueChange={(v) => { setEcommercePlatform(v); setHasChanges(true) }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select platform..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {ECOMMERCE_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Current Tax Engine</Label>
+              <Select value={taxEngine} onValueChange={(v) => { setTaxEngine(v); setHasChanges(true) }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select tax engine..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {TAX_ENGINE_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Additional Systems - Badge multi-select */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Additional Systems (select all that apply)</Label>
+            <div className="flex flex-wrap gap-2">
+              {TECH_STACK_OPTIONS.map(tech => (
+                <Badge
+                  key={tech.id}
+                  variant="outline"
+                  className={`cursor-pointer transition-all ${
+                    techStack.includes(tech.id)
+                      ? 'bg-primary/10 border-primary text-primary'
+                      : 'hover:bg-muted'
+                  }`}
+                  onClick={() => toggleTechStack(tech.id)}
+                >
+                  {tech.label}
+                </Badge>
+              ))}
+            </div>
           </div>
         </Card>
 

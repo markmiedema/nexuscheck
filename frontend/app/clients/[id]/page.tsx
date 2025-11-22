@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect, useMemo } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { getClient, listClientNotes, createClientNote, listClientAnalyses, type Client, type ClientNote, type ClientAnalysis } from '@/lib/api/clients'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import AppLayout from '@/components/layout/AppLayout'
@@ -28,10 +28,13 @@ import apiClient from '@/lib/api/client'
 export default function ClientCRMPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [client, setClient] = useState<Client | null>(null)
   const [notes, setNotes] = useState<ClientNote[]>([])
   const [analyses, setAnalyses] = useState<ClientAnalysis[]>([])
-  const [activeTab, setActiveTab] = useState('overview')
+  // Initialize tab from URL query param or default to 'overview'
+  const initialTab = searchParams.get('tab') || 'overview'
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [newNote, setNewNote] = useState('')
   const [noteType, setNoteType] = useState<string>('call')
   const [loading, setLoading] = useState(true)
@@ -103,6 +106,29 @@ export default function ClientCRMPage() {
       setDeletingAnalysis(null)
     }
   }
+
+  // Memoize discovery initialData to prevent useEffect from triggering on every parent render
+  const discoveryInitialData = useMemo(() => {
+    if (!client) return undefined
+    return {
+      channels: client.channels || [],
+      product_types: client.product_types || [],
+      systems: client.systems || [],
+      has_remote_employees: client.has_remote_employees || false,
+      remote_employee_states: client.remote_employee_states || [],
+      has_inventory_3pl: client.has_inventory_3pl || false,
+      inventory_3pl_states: client.inventory_3pl_states || [],
+      estimated_annual_revenue: client.estimated_annual_revenue,
+      transaction_volume: client.transaction_volume,
+      current_registration_count: client.current_registration_count || 0,
+      registered_states: client.registered_states || [],
+      discovery_completed_at: client.discovery_completed_at,
+      discovery_notes: client.discovery_notes,
+      erp_system: client.erp_system,
+      ecommerce_platform: client.ecommerce_platform,
+      tax_engine: client.tax_engine
+    }
+  }, [client])
 
   if (loading) {
     return (
@@ -239,7 +265,8 @@ export default function ClientCRMPage() {
           {/* CENTER COL: ACTIVITY & NOTES */}
           <div className="lg:col-span-2 space-y-6">
             <TabsCustom
-              defaultTab="overview"
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
               variant="pills"
               items={[
                 {
@@ -488,24 +515,14 @@ export default function ClientCRMPage() {
                     <div className="pt-4">
                       <DiscoveryProfile
                         clientId={client.id}
-                        initialData={{
-                          channels: client.channels || [],
-                          product_types: client.product_types || [],
-                          systems: client.systems || [],
-                          has_remote_employees: client.has_remote_employees || false,
-                          remote_employee_states: client.remote_employee_states || [],
-                          has_inventory_3pl: client.has_inventory_3pl || false,
-                          inventory_3pl_states: client.inventory_3pl_states || [],
-                          estimated_annual_revenue: client.estimated_annual_revenue,
-                          transaction_volume: client.transaction_volume,
-                          current_registration_count: client.current_registration_count || 0,
-                          registered_states: client.registered_states || [],
-                          discovery_completed_at: client.discovery_completed_at,
-                          discovery_notes: client.discovery_notes
-                        }}
+                        initialData={discoveryInitialData}
                         onUpdate={() => {
                           // Reload client data to reflect changes
-                          getClient(params.id as string).then(setClient)
+                          console.log('[ClientPage] onUpdate triggered, refetching client...')
+                          getClient(params.id as string).then(data => {
+                            console.log('[ClientPage] Refetched client data:', data)
+                            setClient(data)
+                          })
                         }}
                       />
                     </div>
