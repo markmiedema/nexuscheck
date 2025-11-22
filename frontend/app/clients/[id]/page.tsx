@@ -21,7 +21,8 @@ import { EngagementManager } from '@/components/clients/EngagementManager'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
-  Trash2, ClipboardList, FileSignature
+  Trash2, ClipboardList, FileSignature,
+  Users, Warehouse
 } from 'lucide-react'
 import apiClient from '@/lib/api/client'
 
@@ -216,65 +217,201 @@ export default function ClientCRMPage() {
             {/* Team Roster (Replaces static Contact Card) */}
             <ClientContacts clientId={client.id} />
 
-            {/* Business Profile Card */}
-            <Card className="p-6 space-y-4">
+            {/* Business Profile Card - Full Discovery Summary */}
+            <Card className="p-6 space-y-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-foreground">Business Profile</h3>
-                {client.discovery_completed_at && (
+                {client.discovery_completed_at ? (
                   <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
                     Discovery Complete
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                    Pending Discovery
                   </Badge>
                 )}
               </div>
 
-              {/* Product Types from Discovery */}
-              <div className="flex flex-wrap gap-2">
-                {client.product_types?.includes('physical_goods') && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Tangible Goods</Badge>
-                )}
-                {client.product_types?.includes('saas') && (
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">SaaS</Badge>
-                )}
-                {client.product_types?.includes('digital_goods') && (
-                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">Digital Goods</Badge>
-                )}
-                {client.product_types?.includes('services') && (
-                  <Badge variant="secondary" className="bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300">Services</Badge>
-                )}
-                {/* Sales Channel indicators */}
-                {client.channels?.some(c => ['amazon_fba', 'amazon_fbm', 'marketplace_other'].includes(c)) && (
-                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">Marketplace Seller</Badge>
-                )}
-                {/* Physical Nexus Indicators */}
-                {client.has_inventory_3pl && (
-                  <Badge variant="secondary" className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Physical Nexus (3PL)</Badge>
-                )}
-                {client.has_remote_employees && (
-                  <Badge variant="secondary" className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">Physical Nexus (Employees)</Badge>
-                )}
-                {/* Fallback if no Discovery data */}
-                {!client.product_types?.length && !client.channels?.length && !client.discovery_completed_at && (
-                  <span className="text-sm text-muted-foreground">Complete Discovery to populate</span>
-                )}
+              {/* Sales Channels */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Sales Channels</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {client.channels?.includes('dtc') && (
+                    <Badge variant="outline" className="text-xs">DTC</Badge>
+                  )}
+                  {client.channels?.includes('amazon_fba') && (
+                    <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">Amazon FBA</Badge>
+                  )}
+                  {client.channels?.includes('amazon_fbm') && (
+                    <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">Amazon FBM</Badge>
+                  )}
+                  {client.channels?.includes('wholesale') && (
+                    <Badge variant="outline" className="text-xs">Wholesale</Badge>
+                  )}
+                  {client.channels?.includes('retail') && (
+                    <Badge variant="outline" className="text-xs">Retail</Badge>
+                  )}
+                  {client.channels?.includes('marketplace_other') && (
+                    <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">Marketplace</Badge>
+                  )}
+                  {!client.channels?.length && (
+                    <span className="text-xs text-muted-foreground italic">Not set</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Product Types */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product Types</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {client.product_types?.includes('physical_goods') && (
+                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">Tangible Goods</Badge>
+                  )}
+                  {client.product_types?.includes('saas') && (
+                    <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800">SaaS</Badge>
+                  )}
+                  {client.product_types?.includes('digital_goods') && (
+                    <Badge variant="secondary" className="text-xs bg-indigo-100 text-indigo-800">Digital Goods</Badge>
+                  )}
+                  {client.product_types?.includes('services') && (
+                    <Badge variant="secondary" className="text-xs bg-teal-100 text-teal-800">Services</Badge>
+                  )}
+                  {client.product_types?.includes('mixed') && (
+                    <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-800">Mixed</Badge>
+                  )}
+                  {!client.product_types?.length && (
+                    <span className="text-xs text-muted-foreground italic">Not set</span>
+                  )}
+                </div>
               </div>
 
               <Separator />
 
-              {/* Tech Stack from Discovery fields */}
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">ERP</span>
-                  <span className="font-medium capitalize">{client.erp_system?.replace('_', ' ') || 'Not set'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">E-Comm</span>
-                  <span className="font-medium capitalize">{client.ecommerce_platform?.replace('_', ' ') || 'Not set'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax Engine</span>
-                  <span className="font-medium capitalize">{client.tax_engine?.replace('_', ' ') || 'None'}</span>
+              {/* Tech Stack */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tech Stack</p>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">ERP</span>
+                    <span className="font-medium capitalize">{client.erp_system?.replace(/_/g, ' ') || <span className="text-muted-foreground italic font-normal">Not set</span>}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">E-Commerce</span>
+                    <span className="font-medium capitalize">{client.ecommerce_platform?.replace(/_/g, ' ') || <span className="text-muted-foreground italic font-normal">Not set</span>}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Tax Engine</span>
+                    <span className="font-medium capitalize">{client.tax_engine?.replace(/_/g, ' ') || <span className="text-muted-foreground italic font-normal">None</span>}</span>
+                  </div>
                 </div>
               </div>
+
+              <Separator />
+
+              {/* Business Volume */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Business Volume</p>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Est. Revenue</span>
+                    <span className="font-medium">
+                      {client.estimated_annual_revenue === 'under_100k' && 'Under $100K'}
+                      {client.estimated_annual_revenue === '100k_500k' && '$100K - $500K'}
+                      {client.estimated_annual_revenue === '500k_1m' && '$500K - $1M'}
+                      {client.estimated_annual_revenue === '1m_5m' && '$1M - $5M'}
+                      {client.estimated_annual_revenue === '5m_10m' && '$5M - $10M'}
+                      {client.estimated_annual_revenue === 'over_10m' && 'Over $10M'}
+                      {!client.estimated_annual_revenue && <span className="text-muted-foreground italic font-normal">Not set</span>}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Transaction Vol.</span>
+                    <span className="font-medium capitalize">
+                      {client.transaction_volume === 'low' && 'Low (<1K/yr)'}
+                      {client.transaction_volume === 'medium' && 'Medium (1K-10K/yr)'}
+                      {client.transaction_volume === 'high' && 'High (>10K/yr)'}
+                      {!client.transaction_volume && <span className="text-muted-foreground italic font-normal">Not set</span>}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Physical Presence / Nexus Triggers */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Physical Presence (Nexus Triggers)</p>
+                <div className="space-y-2">
+                  {client.has_remote_employees && (
+                    <div className="p-2 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-2 text-sm font-medium text-red-700 dark:text-red-300">
+                        <Users className="h-3.5 w-3.5" />
+                        Remote Employees
+                      </div>
+                      {client.remote_employee_states?.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {client.remote_employee_states.map((state: string) => (
+                            <Badge key={state} variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">{state}</Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {client.has_inventory_3pl && (
+                    <div className="p-2 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-2 text-sm font-medium text-red-700 dark:text-red-300">
+                        <Warehouse className="h-3.5 w-3.5" />
+                        3PL / FBA Inventory
+                      </div>
+                      {client.inventory_3pl_states?.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {client.inventory_3pl_states.map((state: string) => (
+                            <Badge key={state} variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">{state}</Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {!client.has_remote_employees && !client.has_inventory_3pl && (
+                    <span className="text-xs text-muted-foreground italic">No physical presence indicators</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Current Registrations */}
+              {(client.registered_states?.length > 0 || client.current_registration_count > 0) && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Current Registrations ({client.registered_states?.length || client.current_registration_count || 0} states)
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {client.registered_states?.map((state: string) => (
+                        <Badge key={state} variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-300">{state}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Discovery Notes */}
+              {client.discovery_notes && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Discovery Notes</p>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{client.discovery_notes}</p>
+                  </div>
+                </>
+              )}
+
+              {/* Fallback if no Discovery data at all */}
+              {!client.discovery_completed_at && !client.product_types?.length && !client.channels?.length && (
+                <div className="text-center py-2">
+                  <p className="text-sm text-muted-foreground">Complete Discovery to populate business profile</p>
+                </div>
+              )}
             </Card>
           </div>
 
