@@ -350,7 +350,7 @@ export default function ClientCRMPage() {
                       </div>
                       {(client.remote_employee_states?.length ?? 0) > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
-                          {client.remote_employee_states.map((state: string) => (
+                          {client.remote_employee_states?.map((state: string) => (
                             <Badge key={state} variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">{state}</Badge>
                           ))}
                         </div>
@@ -365,7 +365,7 @@ export default function ClientCRMPage() {
                       </div>
                       {(client.inventory_3pl_states?.length ?? 0) > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
-                          {client.inventory_3pl_states.map((state: string) => (
+                          {client.inventory_3pl_states?.map((state: string) => (
                             <Badge key={state} variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">{state}</Badge>
                           ))}
                         </div>
