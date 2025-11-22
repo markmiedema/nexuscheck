@@ -383,8 +383,8 @@ function AnalysisFormContent() {
           if (clientId) {
             try {
               // Fetch the calculation results to get summary stats
-              const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results`)
-              const summary = resultsResponse.data?.summary
+              const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`)
+              const summary = resultsResponse.data
               if (summary) {
                 const liability = new Intl.NumberFormat('en-US', {
                   style: 'currency',

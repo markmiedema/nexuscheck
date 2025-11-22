@@ -259,8 +259,8 @@ export function usePhysicalNexusConfig(
       // Optionally fetch and append current analysis summary
       if (includeSummary) {
         try {
-          const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results`)
-          const summary = resultsResponse.data?.summary
+          const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`)
+          const summary = resultsResponse.data
           if (summary) {
             const liability = new Intl.NumberFormat('en-US', {
               style: 'currency',

@@ -250,8 +250,8 @@ export default function MappingPage() {
             // Log completion note with results summary if linked to a client
             if (clientId) {
               try {
-                const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results`)
-                const summary = resultsResponse.data?.summary
+                const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`)
+                const summary = resultsResponse.data
                 if (summary) {
                   const liability = new Intl.NumberFormat('en-US', {
                     style: 'currency',
