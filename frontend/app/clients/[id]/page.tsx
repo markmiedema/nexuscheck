@@ -522,6 +522,7 @@ export default function ClientCRMPage() {
                             <div key={note.id} className="relative">
                               <div className={`absolute -left-[21px] top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-background ${
                                 note.note_type === 'discovery' ? 'bg-purple-500' :
+                                note.note_type === 'discovery_update' ? 'bg-purple-400' :
                                 note.note_type === 'email' ? 'bg-blue-500' :
                                 note.note_type === 'meeting' ? 'bg-green-500' :
                                 note.note_type === 'analysis' ? 'bg-teal-500' :
@@ -533,13 +534,14 @@ export default function ClientCRMPage() {
                                   <div className="flex items-center gap-2">
                                     <Badge variant="outline" className={`text-xs font-semibold px-2.5 py-0.5 ${
                                       note.note_type === 'discovery' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700' :
+                                      note.note_type === 'discovery_update' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700' :
                                       note.note_type === 'email' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700' :
                                       note.note_type === 'meeting' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700' :
                                       note.note_type === 'analysis' ? 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700' :
                                       note.note_type === 'deliverable' ? 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-700' :
                                       'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700'
                                     }`}>
-                                      {(note.note_type || 'note').charAt(0).toUpperCase() + (note.note_type || 'note').slice(1)}
+                                      {note.note_type === 'discovery_update' ? 'Discovery Update' : (note.note_type || 'note').charAt(0).toUpperCase() + (note.note_type || 'note').slice(1)}
                                     </Badge>
                                   </div>
                                   <span className="text-xs text-muted-foreground">
