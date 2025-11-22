@@ -16,10 +16,12 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ClientValueSummary } from '@/components/clients/ClientValueSummary'
 import { ClientContacts } from '@/components/clients/ClientContacts'
 import { NewProjectDialog } from '@/components/clients/NewProjectDialog'
+import { DiscoveryProfile } from '@/components/clients/DiscoveryProfile'
+import { EngagementManager } from '@/components/clients/EngagementManager'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
-  Trash2
+  Trash2, ClipboardList, FileSignature
 } from 'lucide-react'
 import apiClient from '@/lib/api/client'
 
@@ -476,6 +478,53 @@ export default function ClientCRMPage() {
                           ))}
                         </div>
                       </Card>
+                    </div>
+                  )
+                },
+                {
+                  id: 'discovery',
+                  label: 'Discovery',
+                  content: (
+                    <div className="pt-4">
+                      <DiscoveryProfile
+                        clientId={client.id}
+                        initialData={{
+                          channels: client.channels || [],
+                          product_types: client.product_types || [],
+                          systems: client.systems || [],
+                          has_remote_employees: client.has_remote_employees || false,
+                          remote_employee_states: client.remote_employee_states || [],
+                          has_inventory_3pl: client.has_inventory_3pl || false,
+                          inventory_3pl_states: client.inventory_3pl_states || [],
+                          estimated_annual_revenue: client.estimated_annual_revenue,
+                          transaction_volume: client.transaction_volume,
+                          current_registration_count: client.current_registration_count || 0,
+                          registered_states: client.registered_states || [],
+                          discovery_completed_at: client.discovery_completed_at,
+                          discovery_notes: client.discovery_notes
+                        }}
+                        onUpdate={() => {
+                          // Reload client data to reflect changes
+                          getClient(params.id as string).then(setClient)
+                        }}
+                      />
+                    </div>
+                  )
+                },
+                {
+                  id: 'engagements',
+                  label: 'Engagements',
+                  content: (
+                    <div className="pt-4">
+                      <EngagementManager
+                        clientId={client.id}
+                        clientName={client.company_name}
+                        discoveryCompleted={!!client.discovery_completed_at}
+                        onEngagementChange={() => {
+                          // Reload client data to reflect changes
+                          getClient(params.id as string).then(setClient)
+                        }}
+                      />
                     </div>
                   )
                 }

@@ -69,7 +69,7 @@ async def root():
     }
 
 # Include API routers
-from app.api.v1 import analyses, physical_nexus, vda, clients
+from app.api.v1 import analyses, physical_nexus, vda, clients, engagements
 
 app.include_router(
     analyses.router,
@@ -93,6 +93,12 @@ app.include_router(
     clients.router,
     prefix=f"{settings.API_V1_PREFIX}/clients",
     tags=["clients"]
+)
+
+app.include_router(
+    engagements.router,
+    prefix=f"{settings.API_V1_PREFIX}/engagements",
+    tags=["engagements"]
 )
 
 # TODO: Add more routers as they are implemented

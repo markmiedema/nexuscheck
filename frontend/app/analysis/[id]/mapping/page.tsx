@@ -251,9 +251,7 @@ export default function MappingPage() {
             if (clientId) {
               try {
                 const resultsResponse = await apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`)
-                console.log('DEBUG: Raw API response:', JSON.stringify(resultsResponse.data, null, 2))
                 const summary = resultsResponse.data?.summary
-                console.log('DEBUG: Summary object:', JSON.stringify(summary, null, 2))
                 if (summary) {
                   const liability = new Intl.NumberFormat('en-US', {
                     style: 'currency',
