@@ -164,7 +164,11 @@ async def update_client(
         for k, v in full_payload.items():
             if v is None:
                 continue  # Skip None to avoid accidentally clearing fields
-            update_data[k] = v
+            # Convert datetime objects to ISO strings for JSON serialization
+            if hasattr(v, 'isoformat'):
+                update_data[k] = v.isoformat()
+            else:
+                update_data[k] = v
 
         # Update main client record if there's data
         if update_data:
