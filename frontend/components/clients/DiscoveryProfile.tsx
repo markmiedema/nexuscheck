@@ -206,9 +206,126 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
     setHasChanges(true)
   }
 
+  // Helper to detect changes for update notes
+  const detectChanges = (): string[] => {
+    const changes: string[] = []
+
+    const channelLabels: Record<string, string> = {
+      dtc: 'DTC', amazon_fba: 'Amazon FBA', amazon_fbm: 'Amazon FBM',
+      wholesale: 'Wholesale', retail: 'Retail', marketplace_other: 'Other Marketplaces'
+    }
+    const typeLabels: Record<string, string> = {
+      physical_goods: 'Tangible Goods', saas: 'SaaS', digital_goods: 'Digital Goods',
+      services: 'Services', mixed: 'Mixed'
+    }
+    const revenueLabels: Record<string, string> = {
+      under_100k: 'Under $100K', '100k_500k': '$100K-$500K', '500k_1m': '$500K-$1M',
+      '1m_5m': '$1M-$5M', '5m_10m': '$5M-$10M', over_10m: 'Over $10M'
+    }
+    const volumeLabels: Record<string, string> = {
+      low: 'Low', medium: 'Medium', high: 'High'
+    }
+
+    // Check channels
+    const prevChannels = initialData?.channels || []
+    if (JSON.stringify([...channels].sort()) !== JSON.stringify([...prevChannels].sort())) {
+      const added = channels.filter(c => !prevChannels.includes(c))
+      const removed = prevChannels.filter(c => !channels.includes(c))
+      if (added.length) changes.push(`Added sales channels: ${added.map(c => channelLabels[c] || c).join(', ')}`)
+      if (removed.length) changes.push(`Removed sales channels: ${removed.map(c => channelLabels[c] || c).join(', ')}`)
+    }
+
+    // Check product types
+    const prevTypes = initialData?.product_types || []
+    if (JSON.stringify([...productTypes].sort()) !== JSON.stringify([...prevTypes].sort())) {
+      const added = productTypes.filter(t => !prevTypes.includes(t))
+      const removed = prevTypes.filter(t => !productTypes.includes(t))
+      if (added.length) changes.push(`Added product types: ${added.map(t => typeLabels[t] || t).join(', ')}`)
+      if (removed.length) changes.push(`Removed product types: ${removed.map(t => typeLabels[t] || t).join(', ')}`)
+    }
+
+    // Check tech stack
+    const prevTech = initialData?.systems || []
+    if (JSON.stringify([...techStack].sort()) !== JSON.stringify([...prevTech].sort())) {
+      const added = techStack.filter(t => !prevTech.includes(t))
+      const removed = prevTech.filter(t => !techStack.includes(t))
+      if (added.length) changes.push(`Added systems: ${added.join(', ')}`)
+      if (removed.length) changes.push(`Removed systems: ${removed.join(', ')}`)
+    }
+
+    // Check ERP
+    if (erpSystem !== (initialData?.erp_system || '')) {
+      changes.push(`Changed ERP from "${initialData?.erp_system || 'none'}" to "${erpSystem || 'none'}"`)
+    }
+
+    // Check E-commerce
+    if (ecommercePlatform !== (initialData?.ecommerce_platform || '')) {
+      changes.push(`Changed E-commerce from "${initialData?.ecommerce_platform || 'none'}" to "${ecommercePlatform || 'none'}"`)
+    }
+
+    // Check Tax Engine
+    if (taxEngine !== (initialData?.tax_engine || '')) {
+      changes.push(`Changed Tax Engine from "${initialData?.tax_engine || 'none'}" to "${taxEngine || 'none'}"`)
+    }
+
+    // Check revenue
+    if (estimatedRevenue !== (initialData?.estimated_annual_revenue || '')) {
+      changes.push(`Changed revenue from "${revenueLabels[initialData?.estimated_annual_revenue || ''] || 'not set'}" to "${revenueLabels[estimatedRevenue] || 'not set'}"`)
+    }
+
+    // Check volume
+    if (transactionVolume !== (initialData?.transaction_volume || '')) {
+      changes.push(`Changed transaction volume from "${volumeLabels[initialData?.transaction_volume || ''] || 'not set'}" to "${volumeLabels[transactionVolume] || 'not set'}"`)
+    }
+
+    // Check remote employees
+    if (hasRemoteEmployees !== (initialData?.has_remote_employees || false)) {
+      changes.push(hasRemoteEmployees ? 'Enabled remote employees' : 'Disabled remote employees')
+    }
+    const prevRemoteStates = initialData?.remote_employee_states || []
+    if (JSON.stringify([...remoteEmployeeStates].sort()) !== JSON.stringify([...prevRemoteStates].sort())) {
+      const added = remoteEmployeeStates.filter(s => !prevRemoteStates.includes(s))
+      const removed = prevRemoteStates.filter(s => !remoteEmployeeStates.includes(s))
+      if (added.length) changes.push(`Added remote employee states: ${added.join(', ')}`)
+      if (removed.length) changes.push(`Removed remote employee states: ${removed.join(', ')}`)
+    }
+
+    // Check 3PL/inventory
+    if (hasInventory3pl !== (initialData?.has_inventory_3pl || false)) {
+      changes.push(hasInventory3pl ? 'Enabled 3PL/FBA inventory' : 'Disabled 3PL/FBA inventory')
+    }
+    const prevInventoryStates = initialData?.inventory_3pl_states || []
+    if (JSON.stringify([...inventory3plStates].sort()) !== JSON.stringify([...prevInventoryStates].sort())) {
+      const added = inventory3plStates.filter(s => !prevInventoryStates.includes(s))
+      const removed = prevInventoryStates.filter(s => !inventory3plStates.includes(s))
+      if (added.length) changes.push(`Added inventory states: ${added.join(', ')}`)
+      if (removed.length) changes.push(`Removed inventory states: ${removed.join(', ')}`)
+    }
+
+    // Check registered states
+    const prevRegistered = initialData?.registered_states || []
+    if (JSON.stringify([...registeredStates].sort()) !== JSON.stringify([...prevRegistered].sort())) {
+      const added = registeredStates.filter(s => !prevRegistered.includes(s))
+      const removed = prevRegistered.filter(s => !registeredStates.includes(s))
+      if (added.length) changes.push(`Added registered states: ${added.join(', ')}`)
+      if (removed.length) changes.push(`Removed registered states: ${removed.join(', ')}`)
+    }
+
+    // Check notes
+    if (discoveryNotes !== (initialData?.discovery_notes || '')) {
+      changes.push('Updated discovery notes')
+    }
+
+    return changes
+  }
+
   // Save discovery profile
   const handleSave = async (markComplete: boolean = false) => {
     setSaving(true)
+
+    // Detect changes before saving (for update notes)
+    const changes = detectChanges()
+
     try {
       const payload: any = {
         channels,
@@ -312,6 +429,19 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
           })
         } catch (noteError) {
           console.error('[DiscoveryProfile] Failed to create discovery note:', noteError)
+          // Don't fail the whole operation if note creation fails
+        }
+      } else if (changes.length > 0) {
+        // Create an update note when changes are saved (not completing)
+        const noteContent = `Discovery profile updated:\n\n${changes.map(c => `• ${c}`).join('\n')}`
+
+        try {
+          await apiClient.post(`/api/v1/clients/${clientId}/notes`, {
+            content: noteContent,
+            note_type: 'discovery_update'
+          })
+        } catch (noteError) {
+          console.error('[DiscoveryProfile] Failed to create update note:', noteError)
           // Don't fail the whole operation if note creation fails
         }
       }
