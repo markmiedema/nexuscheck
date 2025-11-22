@@ -505,7 +505,10 @@ export default function ClientCRMPage() {
                           current_registration_count: client.current_registration_count || 0,
                           registered_states: client.registered_states || [],
                           discovery_completed_at: client.discovery_completed_at,
-                          discovery_notes: client.discovery_notes
+                          discovery_notes: client.discovery_notes,
+                          erp_system: client.erp_system,
+                          ecommerce_platform: client.ecommerce_platform,
+                          tax_engine: client.tax_engine
                         }}
                         onUpdate={() => {
                           // Reload client data to reflect changes

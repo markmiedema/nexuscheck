@@ -53,6 +53,11 @@ export interface Client {
   discovery_completed_at?: string
   discovery_notes?: string
 
+  // Tech integration fields (specific selections for integrations)
+  erp_system?: string
+  ecommerce_platform?: string
+  tax_engine?: string
+
   created_at: string
   updated_at: string
 }

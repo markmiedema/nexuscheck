@@ -103,6 +103,11 @@ class ClientUpdate(ClientBase):
     discovery_notes: Optional[str] = None
     discovery_completed_at: Optional[datetime] = None
 
+    # Tech integration fields (specific selections for integrations)
+    erp_system: Optional[str] = None
+    ecommerce_platform: Optional[str] = None
+    tax_engine: Optional[str] = None
+
 
 class ClientResponse(ClientBase):
     id: UUID
@@ -128,6 +133,11 @@ class ClientResponse(ClientBase):
     registered_states: Optional[List[str]] = None
     discovery_completed_at: Optional[datetime] = None
     discovery_notes: Optional[str] = None
+
+    # Tech integration fields
+    erp_system: Optional[str] = None
+    ecommerce_platform: Optional[str] = None
+    tax_engine: Optional[str] = None
 
     class Config:
         from_attributes = True
