@@ -235,13 +235,24 @@ function AnalysisFormContent() {
       const newAnalysisId = response.data.id
       setAnalysisId(newAnalysisId)
       setShowUploadZone(true)
-      showSuccess('Analysis created! Now upload your transaction data.')
+
+      // Show success message including any auto-populated physical nexus states
+      const autoPopulated = response.data.physical_nexus_auto_populated || []
+      if (autoPopulated.length > 0) {
+        showSuccess(`Analysis created! Physical nexus auto-populated for ${autoPopulated.length} state(s) from Discovery: ${autoPopulated.join(', ')}. Now upload your transaction data.`)
+      } else {
+        showSuccess('Analysis created! Now upload your transaction data.')
+      }
 
       // Log activity note if this is linked to a client
       if (clientId) {
         try {
+          let noteContent = `Started new Nexus Study project for ${data.companyName}`
+          if (autoPopulated.length > 0) {
+            noteContent += `\n\nPhysical nexus auto-populated from Discovery for ${autoPopulated.length} state(s): ${autoPopulated.join(', ')}`
+          }
           await createClientNote(clientId, {
-            content: `Started new Nexus Study project for ${data.companyName}`,
+            content: noteContent,
             note_type: 'analysis'
           })
         } catch {
