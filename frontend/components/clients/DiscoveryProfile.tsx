@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -124,8 +125,10 @@ interface DiscoveryProfileProps {
     systems?: string[]
     has_remote_employees?: boolean
     remote_employee_states?: string[]
+    remote_employee_state_dates?: Record<string, string>  // State code -> date
     has_inventory_3pl?: boolean
     inventory_3pl_states?: string[]
+    inventory_3pl_state_dates?: Record<string, string>  // State code -> date
     estimated_annual_revenue?: string
     transaction_volume?: string
     current_registration_count?: number
@@ -150,8 +153,10 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
   const [techStack, setTechStack] = useState<string[]>(initialData?.systems || [])
   const [hasRemoteEmployees, setHasRemoteEmployees] = useState(initialData?.has_remote_employees || false)
   const [remoteEmployeeStates, setRemoteEmployeeStates] = useState<string[]>(initialData?.remote_employee_states || [])
+  const [remoteEmployeeStateDates, setRemoteEmployeeStateDates] = useState<Record<string, string>>(initialData?.remote_employee_state_dates || {})
   const [hasInventory3pl, setHasInventory3pl] = useState(initialData?.has_inventory_3pl || false)
   const [inventory3plStates, setInventory3plStates] = useState<string[]>(initialData?.inventory_3pl_states || [])
+  const [inventory3plStateDates, setInventory3plStateDates] = useState<Record<string, string>>(initialData?.inventory_3pl_state_dates || {})
   const [estimatedRevenue, setEstimatedRevenue] = useState(initialData?.estimated_annual_revenue || '')
   const [transactionVolume, setTransactionVolume] = useState(initialData?.transaction_volume || '')
   const [registrationCount, setRegistrationCount] = useState(initialData?.current_registration_count || 0)
@@ -170,8 +175,10 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
     setTechStack(initialData?.systems || [])
     setHasRemoteEmployees(initialData?.has_remote_employees || false)
     setRemoteEmployeeStates(initialData?.remote_employee_states || [])
+    setRemoteEmployeeStateDates(initialData?.remote_employee_state_dates || {})
     setHasInventory3pl(initialData?.has_inventory_3pl || false)
     setInventory3plStates(initialData?.inventory_3pl_states || [])
+    setInventory3plStateDates(initialData?.inventory_3pl_state_dates || {})
     setEstimatedRevenue(initialData?.estimated_annual_revenue || '')
     setTransactionVolume(initialData?.transaction_volume || '')
     setRegistrationCount(initialData?.current_registration_count || 0)
@@ -206,9 +213,126 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
     setHasChanges(true)
   }
 
+  // Helper to detect changes for update notes
+  const detectChanges = (): string[] => {
+    const changes: string[] = []
+
+    const channelLabels: Record<string, string> = {
+      dtc: 'DTC', amazon_fba: 'Amazon FBA', amazon_fbm: 'Amazon FBM',
+      wholesale: 'Wholesale', retail: 'Retail', marketplace_other: 'Other Marketplaces'
+    }
+    const typeLabels: Record<string, string> = {
+      physical_goods: 'Tangible Goods', saas: 'SaaS', digital_goods: 'Digital Goods',
+      services: 'Services', mixed: 'Mixed'
+    }
+    const revenueLabels: Record<string, string> = {
+      under_100k: 'Under $100K', '100k_500k': '$100K-$500K', '500k_1m': '$500K-$1M',
+      '1m_5m': '$1M-$5M', '5m_10m': '$5M-$10M', over_10m: 'Over $10M'
+    }
+    const volumeLabels: Record<string, string> = {
+      low: 'Low', medium: 'Medium', high: 'High'
+    }
+
+    // Check channels
+    const prevChannels = initialData?.channels || []
+    if (JSON.stringify([...channels].sort()) !== JSON.stringify([...prevChannels].sort())) {
+      const added = channels.filter(c => !prevChannels.includes(c))
+      const removed = prevChannels.filter(c => !channels.includes(c))
+      if (added.length) changes.push(`Added sales channels: ${added.map(c => channelLabels[c] || c).join(', ')}`)
+      if (removed.length) changes.push(`Removed sales channels: ${removed.map(c => channelLabels[c] || c).join(', ')}`)
+    }
+
+    // Check product types
+    const prevTypes = initialData?.product_types || []
+    if (JSON.stringify([...productTypes].sort()) !== JSON.stringify([...prevTypes].sort())) {
+      const added = productTypes.filter(t => !prevTypes.includes(t))
+      const removed = prevTypes.filter(t => !productTypes.includes(t))
+      if (added.length) changes.push(`Added product types: ${added.map(t => typeLabels[t] || t).join(', ')}`)
+      if (removed.length) changes.push(`Removed product types: ${removed.map(t => typeLabels[t] || t).join(', ')}`)
+    }
+
+    // Check tech stack
+    const prevTech = initialData?.systems || []
+    if (JSON.stringify([...techStack].sort()) !== JSON.stringify([...prevTech].sort())) {
+      const added = techStack.filter(t => !prevTech.includes(t))
+      const removed = prevTech.filter(t => !techStack.includes(t))
+      if (added.length) changes.push(`Added systems: ${added.join(', ')}`)
+      if (removed.length) changes.push(`Removed systems: ${removed.join(', ')}`)
+    }
+
+    // Check ERP
+    if (erpSystem !== (initialData?.erp_system || '')) {
+      changes.push(`Changed ERP from "${initialData?.erp_system || 'none'}" to "${erpSystem || 'none'}"`)
+    }
+
+    // Check E-commerce
+    if (ecommercePlatform !== (initialData?.ecommerce_platform || '')) {
+      changes.push(`Changed E-commerce from "${initialData?.ecommerce_platform || 'none'}" to "${ecommercePlatform || 'none'}"`)
+    }
+
+    // Check Tax Engine
+    if (taxEngine !== (initialData?.tax_engine || '')) {
+      changes.push(`Changed Tax Engine from "${initialData?.tax_engine || 'none'}" to "${taxEngine || 'none'}"`)
+    }
+
+    // Check revenue
+    if (estimatedRevenue !== (initialData?.estimated_annual_revenue || '')) {
+      changes.push(`Changed revenue from "${revenueLabels[initialData?.estimated_annual_revenue || ''] || 'not set'}" to "${revenueLabels[estimatedRevenue] || 'not set'}"`)
+    }
+
+    // Check volume
+    if (transactionVolume !== (initialData?.transaction_volume || '')) {
+      changes.push(`Changed transaction volume from "${volumeLabels[initialData?.transaction_volume || ''] || 'not set'}" to "${volumeLabels[transactionVolume] || 'not set'}"`)
+    }
+
+    // Check remote employees
+    if (hasRemoteEmployees !== (initialData?.has_remote_employees || false)) {
+      changes.push(hasRemoteEmployees ? 'Enabled remote employees' : 'Disabled remote employees')
+    }
+    const prevRemoteStates = initialData?.remote_employee_states || []
+    if (JSON.stringify([...remoteEmployeeStates].sort()) !== JSON.stringify([...prevRemoteStates].sort())) {
+      const added = remoteEmployeeStates.filter(s => !prevRemoteStates.includes(s))
+      const removed = prevRemoteStates.filter(s => !remoteEmployeeStates.includes(s))
+      if (added.length) changes.push(`Added remote employee states: ${added.join(', ')}`)
+      if (removed.length) changes.push(`Removed remote employee states: ${removed.join(', ')}`)
+    }
+
+    // Check 3PL/inventory
+    if (hasInventory3pl !== (initialData?.has_inventory_3pl || false)) {
+      changes.push(hasInventory3pl ? 'Enabled 3PL/FBA inventory' : 'Disabled 3PL/FBA inventory')
+    }
+    const prevInventoryStates = initialData?.inventory_3pl_states || []
+    if (JSON.stringify([...inventory3plStates].sort()) !== JSON.stringify([...prevInventoryStates].sort())) {
+      const added = inventory3plStates.filter(s => !prevInventoryStates.includes(s))
+      const removed = prevInventoryStates.filter(s => !inventory3plStates.includes(s))
+      if (added.length) changes.push(`Added inventory states: ${added.join(', ')}`)
+      if (removed.length) changes.push(`Removed inventory states: ${removed.join(', ')}`)
+    }
+
+    // Check registered states
+    const prevRegistered = initialData?.registered_states || []
+    if (JSON.stringify([...registeredStates].sort()) !== JSON.stringify([...prevRegistered].sort())) {
+      const added = registeredStates.filter(s => !prevRegistered.includes(s))
+      const removed = prevRegistered.filter(s => !registeredStates.includes(s))
+      if (added.length) changes.push(`Added registered states: ${added.join(', ')}`)
+      if (removed.length) changes.push(`Removed registered states: ${removed.join(', ')}`)
+    }
+
+    // Check notes
+    if (discoveryNotes !== (initialData?.discovery_notes || '')) {
+      changes.push('Updated discovery notes')
+    }
+
+    return changes
+  }
+
   // Save discovery profile
   const handleSave = async (markComplete: boolean = false) => {
     setSaving(true)
+
+    // Detect changes before saving (for update notes)
+    const changes = detectChanges()
+
     try {
       const payload: any = {
         channels,
@@ -216,8 +340,10 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
         systems: techStack,
         has_remote_employees: hasRemoteEmployees,
         remote_employee_states: remoteEmployeeStates,
+        remote_employee_state_dates: remoteEmployeeStateDates,
         has_inventory_3pl: hasInventory3pl,
         inventory_3pl_states: inventory3plStates,
+        inventory_3pl_state_dates: inventory3plStateDates,
         estimated_annual_revenue: estimatedRevenue || null,
         transaction_volume: transactionVolume || null,
         current_registration_count: registrationCount,
@@ -236,6 +362,98 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
       console.log('[DiscoveryProfile] Saving payload:', JSON.stringify(payload, null, 2))
       const response = await apiClient.patch(`/api/v1/clients/${clientId}`, payload)
       console.log('[DiscoveryProfile] Save response:', response.data)
+
+      // If marking complete, create an activity note summarizing the discovery
+      if (markComplete) {
+        const summaryParts: string[] = []
+
+        // Product types
+        if (productTypes.length > 0) {
+          const typeLabels: Record<string, string> = {
+            physical_goods: 'Tangible Goods',
+            saas: 'SaaS',
+            digital_goods: 'Digital Goods',
+            services: 'Services',
+            mixed: 'Mixed'
+          }
+          summaryParts.push(`Product Types: ${productTypes.map(t => typeLabels[t] || t).join(', ')}`)
+        }
+
+        // Sales channels
+        if (channels.length > 0) {
+          const channelLabels: Record<string, string> = {
+            dtc: 'DTC',
+            amazon_fba: 'Amazon FBA',
+            amazon_fbm: 'Amazon FBM',
+            wholesale: 'Wholesale',
+            retail: 'Retail',
+            marketplace_other: 'Other Marketplaces'
+          }
+          summaryParts.push(`Sales Channels: ${channels.map(c => channelLabels[c] || c).join(', ')}`)
+        }
+
+        // Tech stack
+        const techParts: string[] = []
+        if (erpSystem) techParts.push(`ERP: ${erpSystem}`)
+        if (ecommercePlatform) techParts.push(`E-Comm: ${ecommercePlatform}`)
+        if (taxEngine) techParts.push(`Tax Engine: ${taxEngine}`)
+        if (techParts.length > 0) summaryParts.push(techParts.join(' | '))
+
+        // Revenue
+        if (estimatedRevenue) {
+          const revenueLabels: Record<string, string> = {
+            under_100k: 'Under $100K',
+            '100k_500k': '$100K-$500K',
+            '500k_1m': '$500K-$1M',
+            '1m_5m': '$1M-$5M',
+            '5m_10m': '$5M-$10M',
+            over_10m: 'Over $10M'
+          }
+          summaryParts.push(`Est. Revenue: ${revenueLabels[estimatedRevenue] || estimatedRevenue}`)
+        }
+
+        // Physical nexus warnings
+        const nexusWarnings: string[] = []
+        if (hasRemoteEmployees && remoteEmployeeStates.length > 0) {
+          nexusWarnings.push(`Remote employees in: ${remoteEmployeeStates.join(', ')}`)
+        }
+        if (hasInventory3pl && inventory3plStates.length > 0) {
+          nexusWarnings.push(`3PL/FBA inventory in: ${inventory3plStates.join(', ')}`)
+        }
+        if (nexusWarnings.length > 0) {
+          summaryParts.push(`⚠️ Physical Nexus: ${nexusWarnings.join('; ')}`)
+        }
+
+        // Registered states
+        if (registeredStates.length > 0) {
+          summaryParts.push(`Currently registered in ${registeredStates.length} states: ${registeredStates.join(', ')}`)
+        }
+
+        const noteContent = `Discovery meeting completed.\n\n${summaryParts.join('\n')}`
+
+        try {
+          await apiClient.post(`/api/v1/clients/${clientId}/notes`, {
+            content: noteContent,
+            note_type: 'discovery'
+          })
+        } catch (noteError) {
+          console.error('[DiscoveryProfile] Failed to create discovery note:', noteError)
+          // Don't fail the whole operation if note creation fails
+        }
+      } else if (changes.length > 0) {
+        // Create an update note when changes are saved (not completing)
+        const noteContent = `Discovery profile updated:\n\n${changes.map(c => `• ${c}`).join('\n')}`
+
+        try {
+          await apiClient.post(`/api/v1/clients/${clientId}/notes`, {
+            content: noteContent,
+            note_type: 'discovery_update'
+          })
+        } catch (noteError) {
+          console.error('[DiscoveryProfile] Failed to create update note:', noteError)
+          // Don't fail the whole operation if note creation fails
+        }
+      }
 
       showSuccess(markComplete ? 'Discovery profile completed!' : 'Discovery profile saved')
       setHasChanges(false)
@@ -455,7 +673,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
                 <span className="font-medium">Has Remote Employees</span>
               </label>
               {hasRemoteEmployees && (
-                <div className="ml-7 space-y-2">
+                <div className="ml-7 space-y-3">
                   <Label className="text-xs text-muted-foreground">Select states with employees:</Label>
                   <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 border rounded-md">
                     {US_STATES.map(state => (
@@ -473,6 +691,26 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
                       </Badge>
                     ))}
                   </div>
+                  {/* Date inputs for selected states */}
+                  {remoteEmployeeStates.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t">
+                      <Label className="text-xs text-muted-foreground">When was nexus established?</Label>
+                      {remoteEmployeeStates.map(state => (
+                        <div key={state} className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300 w-10 justify-center">{state}</Badge>
+                          <Input
+                            type="date"
+                            className="h-8 text-sm w-36"
+                            value={remoteEmployeeStateDates[state] || ''}
+                            onChange={(e) => {
+                              setRemoteEmployeeStateDates(prev => ({ ...prev, [state]: e.target.value }))
+                              setHasChanges(true)
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -487,7 +725,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
                 <span className="font-medium">Has 3PL / FBA Inventory</span>
               </label>
               {hasInventory3pl && (
-                <div className="ml-7 space-y-2">
+                <div className="ml-7 space-y-3">
                   <Label className="text-xs text-muted-foreground">Select states with inventory:</Label>
                   <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 border rounded-md">
                     {US_STATES.map(state => (
@@ -505,6 +743,26 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
                       </Badge>
                     ))}
                   </div>
+                  {/* Date inputs for selected states */}
+                  {inventory3plStates.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t">
+                      <Label className="text-xs text-muted-foreground">When was nexus established?</Label>
+                      {inventory3plStates.map(state => (
+                        <div key={state} className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300 w-10 justify-center">{state}</Badge>
+                          <Input
+                            type="date"
+                            className="h-8 text-sm w-36"
+                            value={inventory3plStateDates[state] || ''}
+                            onChange={(e) => {
+                              setInventory3plStateDates(prev => ({ ...prev, [state]: e.target.value }))
+                              setHasChanges(true)
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

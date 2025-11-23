@@ -44,8 +44,10 @@ export interface Client {
   systems?: string[]  // Tech systems from discovery (renamed from tech_stack to avoid collision)
   has_remote_employees?: boolean
   remote_employee_states?: string[]
+  remote_employee_state_dates?: Record<string, string>
   has_inventory_3pl?: boolean
   inventory_3pl_states?: string[]
+  inventory_3pl_state_dates?: Record<string, string>
   estimated_annual_revenue?: string
   transaction_volume?: string
   current_registration_count?: number

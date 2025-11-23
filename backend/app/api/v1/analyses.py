@@ -229,31 +229,48 @@ async def create_analysis(
         if analysis_data.client_id:
             try:
                 # Fetch client's discovery profile
+                logger.info(f"Fetching discovery profile for client_id: {analysis_data.client_id}")
                 client_result = supabase.table('clients')\
-                    .select('has_remote_employees, remote_employee_states, has_inventory_3pl, inventory_3pl_states')\
+                    .select('has_remote_employees, remote_employee_states, remote_employee_state_dates, has_inventory_3pl, inventory_3pl_states, inventory_3pl_state_dates')\
                     .eq('id', analysis_data.client_id)\
                     .eq('user_id', user_id)\
                     .execute()
 
+                logger.info(f"Client discovery data: {client_result.data}")
+
                 if client_result.data:
                     client = client_result.data[0]
-                    today = datetime.utcnow().date().isoformat()
+                    # Default date if no establishment date provided in Discovery
+                    default_nexus_date = "2020-01-01"
+
+                    # Get date dictionaries (state code -> establishment date)
+                    remote_dates = client.get('remote_employee_state_dates') or {}
+                    inventory_dates = client.get('inventory_3pl_state_dates') or {}
+
+                    logger.info(f"has_remote_employees: {client.get('has_remote_employees')}, remote_employee_states: {client.get('remote_employee_states')}")
+                    logger.info(f"remote_employee_state_dates: {remote_dates}")
+                    logger.info(f"has_inventory_3pl: {client.get('has_inventory_3pl')}, inventory_3pl_states: {client.get('inventory_3pl_states')}")
+                    logger.info(f"inventory_3pl_state_dates: {inventory_dates}")
 
                     # Remote Employees trigger physical nexus (the "Silent Killer")
                     if client.get('has_remote_employees') and client.get('remote_employee_states'):
                         for state_code in client['remote_employee_states']:
+                            # Use date from Discovery if provided, otherwise default
+                            nexus_date = remote_dates.get(state_code, default_nexus_date)
                             try:
                                 supabase.table('physical_nexus').insert({
                                     'analysis_id': analysis_id,
                                     'state_code': state_code,
-                                    'nexus_date': today,
+                                    'nexus_date': nexus_date,
                                     'reason': 'Remote Employee',
                                     'notes': 'Auto-populated from client Discovery Profile'
                                 }).execute()
                                 physical_nexus_auto_created.append(state_code)
-                                logger.info(f"Auto-created physical nexus for {state_code} (Remote Employee)")
+                                logger.info(f"Auto-created physical nexus for {state_code} (Remote Employee) with date {nexus_date}")
                             except Exception as pn_err:
                                 logger.warning(f"Could not auto-create physical nexus for {state_code}: {pn_err}")
+                    else:
+                        logger.info("No remote employee states to auto-populate")
 
                     # 3PL/FBA Inventory triggers physical nexus
                     if client.get('has_inventory_3pl') and client.get('inventory_3pl_states'):
@@ -261,18 +278,24 @@ async def create_analysis(
                             # Skip if already created (might overlap with employee states)
                             if state_code in physical_nexus_auto_created:
                                 continue
+                            # Use date from Discovery if provided, otherwise default
+                            nexus_date = inventory_dates.get(state_code, default_nexus_date)
                             try:
                                 supabase.table('physical_nexus').insert({
                                     'analysis_id': analysis_id,
                                     'state_code': state_code,
-                                    'nexus_date': today,
+                                    'nexus_date': nexus_date,
                                     'reason': '3PL/FBA Inventory',
                                     'notes': 'Auto-populated from client Discovery Profile'
                                 }).execute()
                                 physical_nexus_auto_created.append(state_code)
-                                logger.info(f"Auto-created physical nexus for {state_code} (3PL/FBA Inventory)")
+                                logger.info(f"Auto-created physical nexus for {state_code} (3PL/FBA Inventory) with date {nexus_date}")
                             except Exception as pn_err:
                                 logger.warning(f"Could not auto-create physical nexus for {state_code}: {pn_err}")
+                    else:
+                        logger.info("No 3PL/inventory states to auto-populate")
+                else:
+                    logger.warning(f"No client data found for client_id: {analysis_data.client_id}")
 
             except Exception as client_err:
                 logger.warning(f"Could not fetch client discovery profile: {client_err}")

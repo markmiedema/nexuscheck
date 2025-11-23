@@ -144,8 +144,15 @@ export function PhysicalNexusManager({ analysisId, clientId, onRecalculated }: P
                           </div>
                         </TableCell>
                         <TableCell className="px-4 py-4">{formatDate(config.nexus_date)}</TableCell>
-                        <TableCell className="px-4 py-4 max-w-[200px] truncate">
-                          {config.reason}
+                        <TableCell className="px-4 py-4 max-w-[200px]">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate">{config.reason}</span>
+                            {config.notes?.includes('Auto-populated') && (
+                              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 whitespace-nowrap">
+                                From Discovery
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="px-4 py-4">
                           {config.registration_date ? (
