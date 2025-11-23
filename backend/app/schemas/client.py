@@ -20,9 +20,11 @@ class DiscoveryProfile(BaseModel):
     # Physical Presence (Critical for Nexus)
     has_remote_employees: bool = False
     remote_employee_states: List[str] = []  # State codes
+    remote_employee_state_dates: Dict[str, str] = {}  # State code -> establishment date (ISO format)
 
     has_inventory_3pl: bool = False
     inventory_3pl_states: List[str] = []  # State codes
+    inventory_3pl_state_dates: Dict[str, str] = {}  # State code -> establishment date (ISO format)
 
     # Volume Indicators
     estimated_annual_revenue: Optional[str] = None  # "under_100k", "100k_500k", "500k_1m", "1m_5m", "5m_10m", "over_10m"
@@ -94,8 +96,10 @@ class ClientUpdate(ClientBase):
     systems: Optional[List[str]] = None
     has_remote_employees: Optional[bool] = None
     remote_employee_states: Optional[List[str]] = None
+    remote_employee_state_dates: Optional[Dict[str, str]] = None
     has_inventory_3pl: Optional[bool] = None
     inventory_3pl_states: Optional[List[str]] = None
+    inventory_3pl_state_dates: Optional[Dict[str, str]] = None
     estimated_annual_revenue: Optional[str] = None
     transaction_volume: Optional[str] = None
     current_registration_count: Optional[int] = None

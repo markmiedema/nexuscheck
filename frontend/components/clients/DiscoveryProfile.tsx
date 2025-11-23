@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -124,8 +125,10 @@ interface DiscoveryProfileProps {
     systems?: string[]
     has_remote_employees?: boolean
     remote_employee_states?: string[]
+    remote_employee_state_dates?: Record<string, string>  // State code -> date
     has_inventory_3pl?: boolean
     inventory_3pl_states?: string[]
+    inventory_3pl_state_dates?: Record<string, string>  // State code -> date
     estimated_annual_revenue?: string
     transaction_volume?: string
     current_registration_count?: number
@@ -150,8 +153,10 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
   const [techStack, setTechStack] = useState<string[]>(initialData?.systems || [])
   const [hasRemoteEmployees, setHasRemoteEmployees] = useState(initialData?.has_remote_employees || false)
   const [remoteEmployeeStates, setRemoteEmployeeStates] = useState<string[]>(initialData?.remote_employee_states || [])
+  const [remoteEmployeeStateDates, setRemoteEmployeeStateDates] = useState<Record<string, string>>(initialData?.remote_employee_state_dates || {})
   const [hasInventory3pl, setHasInventory3pl] = useState(initialData?.has_inventory_3pl || false)
   const [inventory3plStates, setInventory3plStates] = useState<string[]>(initialData?.inventory_3pl_states || [])
+  const [inventory3plStateDates, setInventory3plStateDates] = useState<Record<string, string>>(initialData?.inventory_3pl_state_dates || {})
   const [estimatedRevenue, setEstimatedRevenue] = useState(initialData?.estimated_annual_revenue || '')
   const [transactionVolume, setTransactionVolume] = useState(initialData?.transaction_volume || '')
   const [registrationCount, setRegistrationCount] = useState(initialData?.current_registration_count || 0)
@@ -170,8 +175,10 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
     setTechStack(initialData?.systems || [])
     setHasRemoteEmployees(initialData?.has_remote_employees || false)
     setRemoteEmployeeStates(initialData?.remote_employee_states || [])
+    setRemoteEmployeeStateDates(initialData?.remote_employee_state_dates || {})
     setHasInventory3pl(initialData?.has_inventory_3pl || false)
     setInventory3plStates(initialData?.inventory_3pl_states || [])
+    setInventory3plStateDates(initialData?.inventory_3pl_state_dates || {})
     setEstimatedRevenue(initialData?.estimated_annual_revenue || '')
     setTransactionVolume(initialData?.transaction_volume || '')
     setRegistrationCount(initialData?.current_registration_count || 0)
@@ -333,8 +340,10 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
         systems: techStack,
         has_remote_employees: hasRemoteEmployees,
         remote_employee_states: remoteEmployeeStates,
+        remote_employee_state_dates: remoteEmployeeStateDates,
         has_inventory_3pl: hasInventory3pl,
         inventory_3pl_states: inventory3plStates,
+        inventory_3pl_state_dates: inventory3plStateDates,
         estimated_annual_revenue: estimatedRevenue || null,
         transaction_volume: transactionVolume || null,
         current_registration_count: registrationCount,
@@ -664,7 +673,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
                 <span className="font-medium">Has Remote Employees</span>
               </label>
               {hasRemoteEmployees && (
-                <div className="ml-7 space-y-2">
+                <div className="ml-7 space-y-3">
                   <Label className="text-xs text-muted-foreground">Select states with employees:</Label>
                   <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 border rounded-md">
                     {US_STATES.map(state => (
@@ -682,6 +691,26 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
                       </Badge>
                     ))}
                   </div>
+                  {/* Date inputs for selected states */}
+                  {remoteEmployeeStates.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t">
+                      <Label className="text-xs text-muted-foreground">When was nexus established?</Label>
+                      {remoteEmployeeStates.map(state => (
+                        <div key={state} className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300 w-10 justify-center">{state}</Badge>
+                          <Input
+                            type="date"
+                            className="h-8 text-sm w-36"
+                            value={remoteEmployeeStateDates[state] || ''}
+                            onChange={(e) => {
+                              setRemoteEmployeeStateDates(prev => ({ ...prev, [state]: e.target.value }))
+                              setHasChanges(true)
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -696,7 +725,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
                 <span className="font-medium">Has 3PL / FBA Inventory</span>
               </label>
               {hasInventory3pl && (
-                <div className="ml-7 space-y-2">
+                <div className="ml-7 space-y-3">
                   <Label className="text-xs text-muted-foreground">Select states with inventory:</Label>
                   <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 border rounded-md">
                     {US_STATES.map(state => (
@@ -714,6 +743,26 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
                       </Badge>
                     ))}
                   </div>
+                  {/* Date inputs for selected states */}
+                  {inventory3plStates.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t">
+                      <Label className="text-xs text-muted-foreground">When was nexus established?</Label>
+                      {inventory3plStates.map(state => (
+                        <div key={state} className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300 w-10 justify-center">{state}</Badge>
+                          <Input
+                            type="date"
+                            className="h-8 text-sm w-36"
+                            value={inventory3plStateDates[state] || ''}
+                            onChange={(e) => {
+                              setInventory3plStateDates(prev => ({ ...prev, [state]: e.target.value }))
+                              setHasChanges(true)
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
