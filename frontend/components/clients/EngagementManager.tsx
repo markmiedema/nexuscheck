@@ -30,6 +30,7 @@ import {
   AlertTriangle, Calendar, DollarSign, ExternalLink, Pencil
 } from 'lucide-react'
 import apiClient from '@/lib/api/client'
+import { createClientNote } from '@/lib/api/clients'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 
 // Service types available for engagements
@@ -197,6 +198,17 @@ export function EngagementManager({
           status: 'draft',
         })
         showSuccess('Engagement created')
+
+        // Log activity note for new engagement
+        const serviceLabels = selectedServices.map(s => SERVICE_OPTIONS.find(o => o.id === s)?.label || s).join(', ')
+        try {
+          await createClientNote(clientId, {
+            content: `New engagement created: "${title}"\n\nServices: ${serviceLabels || 'None specified'}`,
+            note_type: 'engagement'
+          })
+        } catch {
+          // Silent fail - note creation is not critical
+        }
       }
 
       setDialogOpen(false)
@@ -211,10 +223,27 @@ export function EngagementManager({
   }
 
   // Update engagement status
-  const updateStatus = async (engagementId: string, newStatus: string) => {
+  const updateStatus = async (engagementId: string, newStatus: string, engagementTitle?: string) => {
     try {
       await apiClient.patch(`/api/v1/engagements/${engagementId}`, { status: newStatus })
       showSuccess(`Engagement marked as ${newStatus}`)
+
+      // Log activity note for sent/signed status changes
+      if (newStatus === 'sent' || newStatus === 'signed') {
+        const noteContent = newStatus === 'sent'
+          ? `Engagement sent to client: "${engagementTitle || 'Untitled'}"`
+          : `Engagement signed: "${engagementTitle || 'Untitled'}"\n\nClient is now ready for project work.`
+
+        try {
+          await createClientNote(clientId, {
+            content: noteContent,
+            note_type: 'engagement'
+          })
+        } catch {
+          // Silent fail - note creation is not critical
+        }
+      }
+
       loadEngagements()
       onEngagementChange?.()
     } catch (error) {
@@ -480,7 +509,7 @@ export function EngagementManager({
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => updateStatus(engagement.id, 'sent')}
+                          onClick={() => updateStatus(engagement.id, 'sent', engagement.title)}
                         >
                           <Send className="h-3 w-3 mr-1" />
                           Mark Sent
@@ -490,7 +519,7 @@ export function EngagementManager({
                     {engagement.status === 'sent' && (
                       <Button
                         size="sm"
-                        onClick={() => updateStatus(engagement.id, 'signed')}
+                        onClick={() => updateStatus(engagement.id, 'signed', engagement.title)}
                       >
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Mark Signed
@@ -500,7 +529,7 @@ export function EngagementManager({
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => updateStatus(engagement.id, 'archived')}
+                        onClick={() => updateStatus(engagement.id, 'archived', engagement.title)}
                       >
                         <Archive className="h-3 w-3 mr-1" />
                         Archive
