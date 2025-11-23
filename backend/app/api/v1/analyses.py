@@ -240,7 +240,9 @@ async def create_analysis(
 
                 if client_result.data:
                     client = client_result.data[0]
-                    today = datetime.utcnow().date().isoformat()
+                    # Use a far-back default date to ensure physical nexus covers typical analysis periods
+                    # Users can adjust in Physical Nexus Configuration if they know the actual establishment date
+                    default_nexus_date = "2020-01-01"
 
                     logger.info(f"has_remote_employees: {client.get('has_remote_employees')}, remote_employee_states: {client.get('remote_employee_states')}")
                     logger.info(f"has_inventory_3pl: {client.get('has_inventory_3pl')}, inventory_3pl_states: {client.get('inventory_3pl_states')}")
@@ -252,9 +254,9 @@ async def create_analysis(
                                 supabase.table('physical_nexus').insert({
                                     'analysis_id': analysis_id,
                                     'state_code': state_code,
-                                    'nexus_date': today,
+                                    'nexus_date': default_nexus_date,
                                     'reason': 'Remote Employee',
-                                    'notes': 'Auto-populated from client Discovery Profile'
+                                    'notes': 'Auto-populated from client Discovery Profile (date can be adjusted)'
                                 }).execute()
                                 physical_nexus_auto_created.append(state_code)
                                 logger.info(f"Auto-created physical nexus for {state_code} (Remote Employee)")
@@ -273,9 +275,9 @@ async def create_analysis(
                                 supabase.table('physical_nexus').insert({
                                     'analysis_id': analysis_id,
                                     'state_code': state_code,
-                                    'nexus_date': today,
+                                    'nexus_date': default_nexus_date,
                                     'reason': '3PL/FBA Inventory',
-                                    'notes': 'Auto-populated from client Discovery Profile'
+                                    'notes': 'Auto-populated from client Discovery Profile (date can be adjusted)'
                                 }).execute()
                                 physical_nexus_auto_created.append(state_code)
                                 logger.info(f"Auto-created physical nexus for {state_code} (3PL/FBA Inventory)")
