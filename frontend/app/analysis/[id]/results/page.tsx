@@ -390,12 +390,16 @@ export default function ResultsPage() {
                 <h4 className="text-sm font-medium text-foreground mb-3">By Type:</h4>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex justify-between">
-                    <span>• Physical Nexus:</span>
+                    <span>• Physical Nexus Only:</span>
                     <span className="font-medium">{results ? results.nexus_breakdown.physical_nexus : '—'}</span>
                   </li>
                   <li className="flex justify-between">
-                    <span>• Economic Nexus:</span>
+                    <span>• Economic Nexus Only:</span>
                     <span className="font-medium">{results ? results.nexus_breakdown.economic_nexus : '—'}</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>• Both Physical & Economic:</span>
+                    <span className="font-medium">{results ? results.nexus_breakdown.both : '—'}</span>
                   </li>
                   <li className="flex justify-between">
                     <span>• No Nexus:</span>
