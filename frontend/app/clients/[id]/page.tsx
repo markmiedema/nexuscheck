@@ -681,6 +681,17 @@ export default function ClientCRMPage() {
                             setClient(data)
                           })
                         }}
+                        onComplete={async () => {
+                          // Reload client and notes, then switch to Activity tab
+                          console.log('[ClientPage] onComplete triggered, switching to Activity tab...')
+                          const [clientData, notesData] = await Promise.all([
+                            getClient(params.id as string),
+                            listClientNotes(params.id as string)
+                          ])
+                          setClient(clientData)
+                          setNotes(notesData)
+                          setActiveTab('overview')
+                        }}
                       />
                     </div>
                   )

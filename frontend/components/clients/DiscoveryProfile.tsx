@@ -141,9 +141,10 @@ interface DiscoveryProfileProps {
     tax_engine?: string
   }
   onUpdate?: () => void
+  onComplete?: () => void  // Called when discovery is marked complete
 }
 
-export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryProfileProps) {
+export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }: DiscoveryProfileProps) {
   const [saving, setSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 
@@ -457,7 +458,12 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate }: DiscoveryP
 
       showSuccess(markComplete ? 'Discovery profile completed!' : 'Discovery profile saved')
       setHasChanges(false)
-      onUpdate?.()
+
+      if (markComplete) {
+        onComplete?.()  // Switch to Activity tab after completing
+      } else {
+        onUpdate?.()
+      }
     } catch (error) {
       console.error('[DiscoveryProfile] Save error:', error)
       handleApiError(error, { userMessage: 'Failed to save discovery profile' })
