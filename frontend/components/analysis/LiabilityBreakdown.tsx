@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency, formatPercentage } from '@/lib/utils/formatting';
 
 interface LiabilityBreakdownProps {
   taxableSales: number; // This is actually exposure_sales - sales during obligation period
@@ -33,18 +34,6 @@ export const LiabilityBreakdown = memo(function LiabilityBreakdown({
   daysOutstanding,
   penaltyRate,
 }: LiabilityBreakdownProps) {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(2)}%`;
-  };
 
   // Only show for states with nexus
   if (nexusStatus !== 'has_nexus') {

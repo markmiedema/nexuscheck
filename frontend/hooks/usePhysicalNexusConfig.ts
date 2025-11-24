@@ -39,17 +39,30 @@ export function usePhysicalNexusConfig(
 
   // Load configs on mount
   useEffect(() => {
-    loadConfigs()
+    const controller = new AbortController()
+    loadConfigs(controller.signal)
+
+    return () => {
+      controller.abort()
+    }
   }, [analysisId])
 
-  const loadConfigs = async () => {
+  const loadConfigs = async (signal?: AbortSignal) => {
     try {
       setLoading(true)
       const response = await apiClient.get(
-        `/api/v1/analyses/${analysisId}/physical-nexus`
+        `/api/v1/analyses/${analysisId}/physical-nexus`,
+        { signal }
       )
+
+      // Don't update state if request was aborted
+      if (signal?.aborted) return
+
       setConfigs(response.data)
     } catch (error: any) {
+      // Ignore abort errors - component unmounted
+      if (error?.name === 'CanceledError' || signal?.aborted) return
+
       console.error('Failed to load physical nexus configs:', error)
       toast({
         title: 'Error',
@@ -57,7 +70,9 @@ export function usePhysicalNexusConfig(
         variant: 'destructive'
       })
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+      }
     }
   }
 

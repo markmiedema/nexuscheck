@@ -22,15 +22,7 @@ import {
 } from 'lucide-react'
 import apiClient from '@/lib/api/client'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
-
-// US States for multi-select
-const US_STATES = [
-  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC'
-]
+import { US_STATE_CODES } from '@/lib/constants/states'
 
 // Channel options
 const CHANNEL_OPTIONS = [
@@ -682,7 +674,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
                 <div className="ml-7 space-y-3">
                   <Label className="text-xs text-muted-foreground">Select states with employees:</Label>
                   <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 border rounded-md">
-                    {US_STATES.map(state => (
+                    {US_STATE_CODES.map(state => (
                       <Badge
                         key={state}
                         variant="outline"
@@ -734,7 +726,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
                 <div className="ml-7 space-y-3">
                   <Label className="text-xs text-muted-foreground">Select states with inventory:</Label>
                   <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 border rounded-md">
-                    {US_STATES.map(state => (
+                    {US_STATE_CODES.map(state => (
                       <Badge
                         key={state}
                         variant="outline"
@@ -785,7 +777,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
             States where the client is already registered to collect sales tax.
           </p>
           <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto p-2 border rounded-md">
-            {US_STATES.map(state => (
+            {US_STATE_CODES.map(state => (
               <Badge
                 key={state}
                 variant="outline"

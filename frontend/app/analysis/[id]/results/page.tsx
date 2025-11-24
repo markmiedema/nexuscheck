@@ -9,10 +9,8 @@ import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
 import StateTable from '@/components/analysis/StateTable'
 import { PhysicalNexusManager } from '@/components/analysis/PhysicalNexusManager'
-import { VDAModePanel } from '@/components/analysis/VDAModePanel'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { StateResult as StateResultMap } from '@/types/states'
-import { StateResult as StateResultVDA } from '@/hooks/useVDAMode'
 import { handleApiError, showError } from '@/lib/utils/errorHandler'
 
 // Lazy load USMap to reduce initial bundle size (saves ~200KB from react-simple-maps)
@@ -434,24 +432,6 @@ export default function ResultsPage() {
               onRecalculated={handleRecalculated}
             />
           </div>
-
-          {/* VDA Mode - Voluntary Disclosure Agreement */}
-          {calculationStatus === 'calculated' && stateResults.length > 0 && (
-            <div className="mb-6">
-              <VDAModePanel
-                analysisId={analysisId}
-                stateResults={stateResults.map((state): StateResultVDA => ({
-                  state_code: state.state_code,
-                  state_name: state.state_name,
-                  estimated_liability: state.estimated_liability,
-                  base_tax: 0,
-                  interest: 0,
-                  penalties: 0,
-                  nexus_status: state.nexus_status
-                }))}
-              />
-            </div>
-          )}
 
           {/* Calculate Button */}
           {calculationStatus === 'pending' && (

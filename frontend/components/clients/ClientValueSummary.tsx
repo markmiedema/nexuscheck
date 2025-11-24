@@ -21,8 +21,8 @@ export function ClientValueSummary({ analyses }: { analyses: ClientAnalysis[] })
     : 'Pending'
   const nexusCount = activeAnalysis.states_with_nexus || 0
 
-  // 3. Count potential VDAs (states with nexus that may need voluntary disclosure)
-  const potentialVDAs = nexusCount > 0 ? Math.min(nexusCount, 5) : 0
+  // 3. Count states requiring action
+  const statesToAddress = nexusCount > 0 ? nexusCount : 0
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -63,11 +63,11 @@ export function ClientValueSummary({ analyses }: { analyses: ClientAnalysis[] })
       {/* METRIC 4: Action Items */}
       <Card className="p-4 shadow-sm bg-card">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Opportunity</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Action Items</p>
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </div>
-        <p className="text-2xl font-bold text-foreground">{potentialVDAs}</p>
-        <p className="text-xs text-muted-foreground">Potential VDAs</p>
+        <p className="text-2xl font-bold text-foreground">{statesToAddress}</p>
+        <p className="text-xs text-muted-foreground">States to Address</p>
       </Card>
     </div>
   )
