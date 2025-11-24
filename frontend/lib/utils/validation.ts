@@ -2,22 +2,13 @@
  * Validation utilities for form inputs and data validation
  */
 
-// US State codes for validation
-export const US_STATE_CODES = [
-  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
-  'DC' // District of Columbia
-]
+import {
+  US_STATE_CODES,
+  isValidStateCode,
+} from '@/lib/constants/states'
 
-/**
- * Validates if a string is a valid US state code
- */
-export function isValidStateCode(code: string): boolean {
-  return US_STATE_CODES.includes(code.toUpperCase())
-}
+// Re-export for backward compatibility
+export { US_STATE_CODES, isValidStateCode }
 
 /**
  * Validates email format using RFC 5322 compliant regex

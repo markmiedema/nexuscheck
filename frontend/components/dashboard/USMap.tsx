@@ -3,25 +3,9 @@
 import { useState, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
+import { STATE_NAME_TO_CODE, getStateCode } from '@/lib/constants/states'
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json'
-
-// Map state names to their codes
-const STATE_NAME_TO_CODE: Record<string, string> = {
-  'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR',
-  'California': 'CA', 'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE',
-  'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
-  'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS',
-  'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
-  'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS',
-  'Missouri': 'MO', 'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV',
-  'New Hampshire': 'NH', 'New Jersey': 'NJ', 'New Mexico': 'NM', 'New York': 'NY',
-  'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH', 'Oklahoma': 'OK',
-  'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
-  'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT',
-  'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV',
-  'Wisconsin': 'WI', 'Wyoming': 'WY', 'District of Columbia': 'DC', 'Puerto Rico': 'PR'
-}
 
 interface StateData {
   state_code: string
@@ -47,11 +31,6 @@ const USMap = memo(function USMap({ stateData, analysisId, onStateClick }: USMap
     acc[state.state_code] = state
     return acc
   }, {} as Record<string, StateData>)
-
-  // Get state code from geography name
-  const getStateCode = (geoName: string): string | null => {
-    return STATE_NAME_TO_CODE[geoName] || null
-  }
 
   // Get color based on nexus status and type
   const getStateColor = (geoName: string) => {
