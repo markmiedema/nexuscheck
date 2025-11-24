@@ -15,26 +15,27 @@ import { createClientNote } from '@/lib/api/clients'
 import { UploadCloud, CheckCircle2, FileText, ShieldAlert, FileCheck, RefreshCw, ArrowLeft } from 'lucide-react'
 import ColumnMappingConfirmationDialog from '@/components/analysis/ColumnMappingConfirmationDialog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { isValidStateCode, isValidPastDate, isValidFileSize, formatFileSize } from '@/lib/utils/validation'
+import { isValidFileSize, formatFileSize } from '@/lib/utils/validation'
 
-// Validation schema
-const clientSetupSchema = z.object({
+// Validation schema for standalone mode (no client)
+const standaloneSchema = z.object({
   companyName: z.string()
     .min(1, 'Company name is required')
     .max(200, 'Company name must be less than 200 characters'),
   businessType: z.enum(['product_sales', 'digital_products', 'mixed'], {
     required_error: 'Please select a business type',
   }),
-  notes: z.string().optional(),
 })
 
-type ClientSetupForm = z.infer<typeof clientSetupSchema>
+// Validation schema for client-linked mode (simplified)
+const clientLinkedSchema = z.object({
+  companyName: z.string()
+    .min(1, 'Company name is required')
+    .max(200, 'Company name must be less than 200 characters'),
+})
 
-interface StateRegistration {
-  id: string
-  stateCode: string
-  registrationDate: string
-}
+type StandaloneForm = z.infer<typeof standaloneSchema>
+type ClientLinkedForm = z.infer<typeof clientLinkedSchema>
 
 // Placeholder component for engagement types not yet implemented
 function ComingSoonPlaceholder({
@@ -139,11 +140,12 @@ function AnalysisFormContent() {
   if (type && type !== 'nexus') {
     return <ComingSoonPlaceholder type={type} clientId={clientId} clientName={clientName} />
   }
+
+  // Determine if we're in client-linked mode or standalone mode
+  const isClientLinked = Boolean(clientId)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [stateRegistrations, setStateRegistrations] = useState<StateRegistration[]>([])
-  const [showAddState, setShowAddState] = useState(false)
-  const [newState, setNewState] = useState({ stateCode: '', registrationDate: '' })
 
   // Upload state
   const [analysisId, setAnalysisId] = useState<string | null>(null)
@@ -155,15 +157,17 @@ function AnalysisFormContent() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [calculating, setCalculating] = useState(false)
 
+  // Use different schemas based on mode
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<ClientSetupForm>({
-    resolver: zodResolver(clientSetupSchema),
+  } = useForm<StandaloneForm>({
+    resolver: zodResolver(isClientLinked ? clientLinkedSchema : standaloneSchema),
     defaultValues: {
-      companyName: clientName || ''
+      companyName: clientName || '',
+      businessType: isClientLinked ? 'mixed' : undefined,
     }
   })
 
@@ -174,61 +178,17 @@ function AnalysisFormContent() {
     }
   }, [clientName, setValue])
 
-  const handleAddState = () => {
-    if (!newState.stateCode || !newState.registrationDate) {
-      showError('Both state code and registration date are required')
-      return
-    }
-
-    // Validate state code
-    if (!isValidStateCode(newState.stateCode)) {
-      showError('Invalid state code. Please enter a valid 2-letter US state code')
-      return
-    }
-
-    // Validate registration date is not in the future
-    if (!isValidPastDate(newState.registrationDate)) {
-      showError('Registration date cannot be in the future')
-      return
-    }
-
-    // Check for duplicate state
-    if (stateRegistrations.some(s => s.stateCode === newState.stateCode)) {
-      showError(`State ${newState.stateCode} has already been added`)
-      return
-    }
-
-    setStateRegistrations([
-      ...stateRegistrations,
-      {
-        id: Math.random().toString(36).substr(2, 9),
-        stateCode: newState.stateCode,
-        registrationDate: newState.registrationDate,
-      },
-    ])
-    setNewState({ stateCode: '', registrationDate: '' })
-    setShowAddState(false)
-  }
-
-  const handleRemoveState = (id: string) => {
-    setStateRegistrations(stateRegistrations.filter((s) => s.id !== id))
-  }
-
-  const onSubmit = async (data: ClientSetupForm) => {
+  const onSubmit = async (data: StandaloneForm) => {
     setLoading(true)
     setError('')
 
     try {
       // Create analysis in backend
+      // For client-linked mode, default to 'mixed' business type
       const response = await apiClient.post('/api/v1/analyses', {
         company_name: data.companyName,
         // Dates will be auto-detected from CSV upload
-        business_type: data.businessType,
-        notes: data.notes || '',
-        known_registrations: stateRegistrations.map((s) => ({
-          state_code: s.stateCode,
-          registration_date: s.registrationDate,
-        })),
+        business_type: isClientLinked ? 'mixed' : data.businessType,
         client_id: clientId || null,  // Link to client if provided
       })
 
@@ -481,174 +441,84 @@ function AnalysisFormContent() {
                   <label htmlFor="companyName" className="block text-sm font-medium text-foreground mb-2">
                     Company Name <span className="text-destructive">*</span>
                   </label>
-                  <input
-                    {...register('companyName')}
-                    type="text"
-                    id="companyName"
-                    className="w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                    placeholder="Enter company name"
-                  />
+                  {isClientLinked ? (
+                    // Read-only display for client-linked mode
+                    <div className="w-full px-3 py-2 border border-input rounded-md bg-muted text-foreground">
+                      {clientName}
+                      <input type="hidden" {...register('companyName')} />
+                    </div>
+                  ) : (
+                    // Editable input for standalone mode
+                    <input
+                      {...register('companyName')}
+                      type="text"
+                      id="companyName"
+                      className="w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                      placeholder="Enter company name"
+                    />
+                  )}
                   {errors.companyName && (
                     <p className="mt-1 text-sm text-destructive">{errors.companyName.message}</p>
                   )}
                 </div>
               </div>
 
-              {/* Business Type */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-card-foreground border-b border-border pb-2">
-                  Business Type <span className="text-destructive">*</span>
-                </h3>
+              {/* Business Type - Only shown in standalone mode */}
+              {!isClientLinked && (
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-card-foreground border-b border-border pb-2">
+                    Business Type <span className="text-destructive">*</span>
+                  </h3>
 
-                <div className="space-y-3">
-                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
-                    <input
-                      {...register('businessType')}
-                      type="radio"
-                      value="product_sales"
-                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
-                    />
-                    <span className="ml-3">
-                      <span className="block text-sm font-medium text-foreground">
-                        Product Sales (Physical goods)
+                  <div className="space-y-3">
+                    <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
+                      <input
+                        {...register('businessType')}
+                        type="radio"
+                        value="product_sales"
+                        className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
+                      />
+                      <span className="ml-3">
+                        <span className="block text-sm font-medium text-foreground">
+                          Product Sales (Physical goods)
+                        </span>
                       </span>
-                    </span>
-                  </label>
+                    </label>
 
-                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
-                    <input
-                      {...register('businessType')}
-                      type="radio"
-                      value="digital_products"
-                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
-                    />
-                    <span className="ml-3">
-                      <span className="block text-sm font-medium text-foreground">
-                        Digital Products/Services
+                    <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
+                      <input
+                        {...register('businessType')}
+                        type="radio"
+                        value="digital_products"
+                        className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
+                      />
+                      <span className="ml-3">
+                        <span className="block text-sm font-medium text-foreground">
+                          Digital Products/Services
+                        </span>
                       </span>
-                    </span>
-                  </label>
+                    </label>
 
-                  <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
-                    <input
-                      {...register('businessType')}
-                      type="radio"
-                      value="mixed"
-                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
-                    />
-                    <span className="ml-3">
-                      <span className="block text-sm font-medium text-foreground">
-                        Mixed (Products + Services)
+                    <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
+                      <input
+                        {...register('businessType')}
+                        type="radio"
+                        value="mixed"
+                        className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
+                      />
+                      <span className="ml-3">
+                        <span className="block text-sm font-medium text-foreground">
+                          Mixed (Products + Services)
+                        </span>
                       </span>
-                    </span>
-                  </label>
+                    </label>
+                  </div>
+
+                  {errors.businessType && (
+                    <p className="text-sm text-destructive">{errors.businessType.message}</p>
+                  )}
                 </div>
-
-                {errors.businessType && (
-                  <p className="text-sm text-destructive">{errors.businessType.message}</p>
-                )}
-              </div>
-
-              {/* Known State Registrations */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-card-foreground border-b border-border pb-2">
-                  Known State Registrations <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
-                </h3>
-
-                {stateRegistrations.length > 0 && (
-                  <div className="space-y-2">
-                    {stateRegistrations.map((reg) => (
-                      <div key={reg.id} className="flex items-center justify-between p-3 bg-muted rounded-md border border-border">
-                        <div>
-                          <span className="font-medium text-foreground">{reg.stateCode}</span>
-                          <span className="text-sm text-muted-foreground ml-3">
-                            Registration Date: {new Date(reg.registrationDate).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveState(reg.id)}
-                          className="text-sm text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {!showAddState ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowAddState(true)}
-                    className="text-sm text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium inline-flex items-center gap-1"
-                  >
-                    + Add State
-                  </button>
-                ) : (
-                  <div className="p-4 border border-input rounded-md space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">
-                          State Code
-                        </label>
-                        <input
-                          type="text"
-                          maxLength={2}
-                          value={newState.stateCode}
-                          onChange={(e) => setNewState({ ...newState, stateCode: e.target.value.toUpperCase() })}
-                          className="w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                          placeholder="CA"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">
-                          Registration Date
-                        </label>
-                        <input
-                          type="date"
-                          value={newState.registrationDate}
-                          onChange={(e) => setNewState({ ...newState, registrationDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        type="button"
-                        onClick={handleAddState}
-                        className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg shadow-sm hover:shadow-md hover:bg-primary/90 transition-all active:scale-95"
-                      >
-                        Add
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowAddState(false)
-                          setNewState({ stateCode: '', registrationDate: '' })
-                        }}
-                        className="px-4 py-2 bg-secondary text-secondary-foreground text-sm rounded-lg border border-border hover:bg-secondary/80 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Notes */}
-              <div className="space-y-2">
-                <label htmlFor="notes" className="block text-sm font-medium text-foreground">
-                  Notes <span className="text-muted-foreground">(Optional)</span>
-                </label>
-                <textarea
-                  {...register('notes')}
-                  id="notes"
-                  rows={4}
-                  className="w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                  placeholder="Add any internal notes about this analysis..."
-                />
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-4 pt-6 border-t">
