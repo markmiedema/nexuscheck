@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { LogOut } from 'lucide-react'
+import { LogOut, Zap } from 'lucide-react'
 
 export default function AppNav() {
   const router = useRouter()
@@ -33,6 +33,17 @@ export default function AppNav() {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
+            {/* Quick Analysis - Standalone mode */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/analysis/new')}
+              className="hidden sm:flex items-center gap-2"
+            >
+              <Zap className="h-4 w-4" />
+              Quick Analysis
+            </Button>
+
             {/* User & Theme */}
             <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground hidden md:inline mr-2">
