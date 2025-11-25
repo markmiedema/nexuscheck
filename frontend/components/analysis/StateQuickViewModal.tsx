@@ -192,12 +192,12 @@ export function StateQuickViewModal({
                     NEXUS TRIGGERED
                   </Badge>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
+                <div className="flex items-start justify-between gap-4 text-sm">
+                  <div className="text-center">
                     <div className="text-muted-foreground text-xs mb-1">Nexus Type</div>
                     <div className="font-medium text-foreground">{getNexusStatusLabel(data.nexus_type)}</div>
                   </div>
-                  <div>
+                  <div className="text-center">
                     <div className="text-muted-foreground text-xs mb-1">Total Liability</div>
                     <div className="font-bold text-foreground">{formatCurrency(data.estimated_liability || 0)}</div>
                   </div>
@@ -244,12 +244,12 @@ export function StateQuickViewModal({
                     }
 
                     return nexusDate ? (
-                      <div>
-                        <div className="text-muted-foreground text-xs mb-1">Nexus Triggered On</div>
+                      <div className="text-center">
+                        <div className="text-muted-foreground text-xs mb-1">Triggered On</div>
                         <div className="font-medium text-foreground">{formatDate(nexusDate)}</div>
                       </div>
                     ) : data.first_nexus_year ? (
-                      <div>
+                      <div className="text-center">
                         <div className="text-muted-foreground text-xs mb-1">First Nexus Year</div>
                         <div className="font-medium text-foreground">{data.first_nexus_year}</div>
                       </div>
@@ -259,12 +259,12 @@ export function StateQuickViewModal({
                     // Find registration deadline from year_data
                     const yearWithObligation = data.year_data.find(yr => yr.obligation_start_date)
                     return yearWithObligation?.obligation_start_date ? (
-                      <div>
+                      <div className="text-center">
                         <div className="text-muted-foreground text-xs mb-1">Register By</div>
                         <div className="font-medium text-warning">{formatDate(yearWithObligation.obligation_start_date)}</div>
                       </div>
                     ) : data.compliance_info.registration_info?.registration_required ? (
-                      <div>
+                      <div className="text-center">
                         <div className="text-muted-foreground text-xs mb-1">Registration</div>
                         <div className="font-medium text-warning">Required</div>
                       </div>
