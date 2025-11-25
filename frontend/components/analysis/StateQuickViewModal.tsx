@@ -258,12 +258,26 @@ export function StateQuickViewModal({
                   {(() => {
                     // Find registration deadline from year_data
                     const yearWithObligation = data.year_data.find(yr => yr.obligation_start_date)
-                    return yearWithObligation?.obligation_start_date ? (
-                      <div className="text-center">
-                        <div className="text-muted-foreground text-xs mb-1">Register By</div>
-                        <div className="font-medium text-warning">{formatDate(yearWithObligation.obligation_start_date)}</div>
-                      </div>
-                    ) : data.compliance_info.registration_info?.registration_required ? (
+                    if (yearWithObligation?.obligation_start_date) {
+                      const deadlineDate = new Date(yearWithObligation.obligation_start_date)
+                      const isOverdue = deadlineDate < new Date()
+                      return (
+                        <div className="text-center">
+                          <div className="text-muted-foreground text-xs mb-1">Register By</div>
+                          {isOverdue ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="font-medium text-destructive">{formatDate(yearWithObligation.obligation_start_date)}</span>
+                              <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                                OVERDUE
+                              </Badge>
+                            </div>
+                          ) : (
+                            <div className="font-medium text-warning">{formatDate(yearWithObligation.obligation_start_date)}</div>
+                          )}
+                        </div>
+                      )
+                    }
+                    return data.compliance_info.registration_info?.registration_required ? (
                       <div className="text-center">
                         <div className="text-muted-foreground text-xs mb-1">Registration</div>
                         <div className="font-medium text-warning">Required</div>
