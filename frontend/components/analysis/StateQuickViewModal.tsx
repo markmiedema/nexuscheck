@@ -278,6 +278,45 @@ export function StateQuickViewModal({
               </div>
             )}
 
+            {/* Tax Exposure Details */}
+            {data.nexus_type && data.nexus_type !== 'none' && data.estimated_liability > 0 && (
+              <div className="bg-muted/50 border border-border rounded-lg p-4">
+                <h4 className="font-semibold text-foreground mb-3">Tax Exposure Details</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Exposure Sales</span>
+                    <span className="font-medium text-foreground">
+                      {formatCurrency(data.exposure_sales || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Uncollected Tax</span>
+                    <span className="font-medium text-foreground">
+                      {formatCurrency(data.base_tax || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Interest</span>
+                    <span className="font-medium text-foreground">
+                      {formatCurrency(data.interest || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Penalties</span>
+                    <span className="font-medium text-foreground">
+                      {formatCurrency(data.penalties || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-border font-semibold">
+                    <span className="text-foreground">Total Exposure</span>
+                    <span className="text-foreground">
+                      {formatCurrency(data.estimated_liability || 0)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Key Metrics Grid */}
             {data.has_transactions && (
               <div className="grid grid-cols-2 gap-3">
@@ -325,45 +364,6 @@ export function StateQuickViewModal({
                     {data.total_sales && data.total_sales > 0
                       ? `${(((data.marketplace_sales || 0) / data.total_sales) * 100).toFixed(0)}% of total`
                       : '0% of total'}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Tax Exposure Details */}
-            {data.nexus_type && data.nexus_type !== 'none' && data.estimated_liability > 0 && (
-              <div className="bg-muted/50 border border-border rounded-lg p-4">
-                <h4 className="font-semibold text-foreground mb-3">Tax Exposure Details</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Exposure Sales</span>
-                    <span className="font-medium text-foreground">
-                      {formatCurrency(data.exposure_sales || 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Uncollected Tax</span>
-                    <span className="font-medium text-foreground">
-                      {formatCurrency(data.base_tax || 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Interest</span>
-                    <span className="font-medium text-foreground">
-                      {formatCurrency(data.interest || 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Penalties</span>
-                    <span className="font-medium text-foreground">
-                      {formatCurrency(data.penalties || 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-border font-semibold">
-                    <span className="text-foreground">Total Exposure</span>
-                    <span className="text-foreground">
-                      {formatCurrency(data.estimated_liability || 0)}
-                    </span>
                   </div>
                 </div>
               </div>
