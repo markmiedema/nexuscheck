@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
 import { getStateDetail, StateDetailResponse } from '@/lib/api'
 import apiClient from '@/lib/api/client'
 import { ExternalLink, TrendingUp, DollarSign, Package, AlertCircle } from 'lucide-react'
@@ -176,22 +175,12 @@ export function StateQuickViewModal({
             {/* Nexus Status Header */}
             {data.nexus_type && data.nexus_type !== 'none' && (
               <div className="bg-muted/50 border border-border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-foreground">
-                    Nexus Status
-                  </h4>
-                  <Badge
-                    variant="outline"
-                    className="text-xs font-semibold"
-                    style={{
-                      backgroundColor: `${getNexusStatusColor(data.nexus_type)}15`,
-                      color: getNexusStatusColor(data.nexus_type),
-                      borderColor: `${getNexusStatusColor(data.nexus_type)}30`,
-                    }}
-                  >
-                    NEXUS TRIGGERED
-                  </Badge>
-                </div>
+                <h4
+                  className="font-semibold mb-3"
+                  style={{ color: getNexusStatusColor(data.nexus_type) }}
+                >
+                  Nexus Triggered
+                </h4>
                 <div className="flex items-start justify-between gap-4 text-sm">
                   <div className="text-center">
                     <div className="text-muted-foreground text-xs mb-1">Nexus Type</div>
