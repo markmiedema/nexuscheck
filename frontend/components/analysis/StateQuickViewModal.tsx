@@ -114,68 +114,6 @@ export function StateQuickViewModal({
     return null
   }
 
-  const generateNexusSummaryFacts = (data: StateDetailResponse): {
-    title: string
-    bullets: string[]
-  } => {
-    const hasNexus = data.nexus_type && data.nexus_type !== 'none'
-    const totalSales = data.total_sales || 0
-    const directSales = data.direct_sales || 0  // ✅ Trust backend aggregate
-    const marketplaceSales = data.marketplace_sales || 0  // ✅ Trust backend aggregate
-    const taxableSales = data.taxable_sales || 0
-    const exemptSales = data.exempt_sales || 0
-    const exposureSales = data.exposure_sales || 0  // ✅ Trust backend aggregate
-    const threshold = data.year_data[0]?.threshold_info?.revenue_threshold || 0
-    const thresholdPercent = threshold > 0 ? ((totalSales / threshold) * 100).toFixed(0) : '0'
-
-    const facts: string[] = []
-
-    // Always show sales breakdown
-    facts.push(`Total Sales: $${totalSales.toLocaleString()} (${thresholdPercent}% of $${threshold.toLocaleString()} threshold)`)
-
-    if (directSales > 0 || marketplaceSales > 0) {
-      facts.push(`  • Direct: $${directSales.toLocaleString()} | Marketplace: $${marketplaceSales.toLocaleString()}`)
-    }
-
-    if (exemptSales > 0) {
-      facts.push(`  • Taxable: $${taxableSales.toLocaleString()} | Exempt: $${exemptSales.toLocaleString()}`)
-    }
-
-    // Show nexus determination
-    if (hasNexus) {
-      const nexusTypeLabel = data.nexus_type === 'both' ? 'Physical + Economic Nexus'
-        : data.nexus_type === 'physical' ? 'Physical Nexus'
-        : data.nexus_type === 'economic' ? 'Economic Nexus'
-        : 'Nexus Established'
-
-      facts.push(`Nexus: ${nexusTypeLabel}`)
-
-      // Show exposure sales if different from total
-      if (exposureSales > 0 && exposureSales !== totalSales) {
-        facts.push(`Exposure Sales: $${exposureSales.toLocaleString()} (sales during obligation period)`)
-      }
-
-      // Show liability
-      if (data.estimated_liability && data.estimated_liability > 0) {
-        facts.push(`Estimated Liability: $${data.estimated_liability.toLocaleString()}`)
-      } else if (taxableSales === 0 && exemptSales > 0) {
-        facts.push(`Liability: $0 (all sales are exempt)`)
-      }
-    } else {
-      facts.push(`Nexus: Not Established`)
-
-      if (threshold > 0 && totalSales < threshold) {
-        const shortfall = threshold - totalSales
-        facts.push(`  • Below threshold by $${shortfall.toLocaleString()}`)
-      }
-    }
-
-    return {
-      title: 'Nexus Summary',
-      bullets: facts
-    }
-  }
-
   const handleViewFullDetails = () => {
     onOpenChange(false)
     router.push(`/analysis/${analysisId}/states/${stateCode}`)
@@ -339,27 +277,6 @@ export function StateQuickViewModal({
                 </div>
               </div>
             )}
-
-            {/* Nexus Summary - WITH DARK MODE SUPPORT */}
-            {data && (() => {
-              const summary = generateNexusSummaryFacts(data)
-              return (
-                <div className="bg-accent/50 border border-border rounded-lg p-4">
-                  <h4 className="font-semibold text-foreground mb-2">
-                    {summary.title}
-                  </h4>
-                  <div className="bg-background border border-border rounded p-3">
-                    <ul className="space-y-1.5 text-sm text-foreground font-mono">
-                      {summary.bullets.map((bullet, idx) => (
-                        <li key={idx}>
-                          {bullet}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )
-            })()}
 
             {/* Key Metrics Grid */}
             {data.has_transactions && (
