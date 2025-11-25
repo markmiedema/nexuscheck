@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { listClients, deleteClient, createClientNote, type Client } from '@/lib/api/clients'
+import { listClients, deleteClient, type Client } from '@/lib/api/clients'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
@@ -20,29 +20,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TabsCustom } from '@/components/ui/tabs-custom'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Eye,
   Trash2,
   Search,
-  Clock,
-  LayoutGrid,
-  List as ListIcon,
-  MoreHorizontal,
   Building2,
-  Briefcase,
-  User,
-  Mail,
   Users,
-  FileText,
   Archive,
   Plus,
   FolderOpen,
@@ -51,26 +34,17 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 type SortConfig = {
   column: 'company_name' | 'contact_name' | 'industry' | 'created_at' | null
   direction: 'asc' | 'desc'
 }
 
-type ViewMode = 'grid' | 'list'
-
 export default function ClientsPage() {
   const router = useRouter()
 
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
@@ -78,13 +52,6 @@ export default function ClientsPage() {
 
   // NEW: Default to 'active' tab, but options are: 'active', 'prospects', 'archived'
   const [activeTab, setActiveTab] = useState('active')
-
-  // Note modal state
-  const [noteModalOpen, setNoteModalOpen] = useState(false)
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
-  const [newNote, setNewNote] = useState('')
-  const [noteType, setNoteType] = useState<string>('call')
-  const [savingNote, setSavingNote] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300)
@@ -120,34 +87,6 @@ export default function ClientsPage() {
       handleApiError(error, { userMessage: 'Failed to delete client' })
     } finally {
       setDeleteLoading(null)
-    }
-  }
-
-  function handleOpenNoteModal(client: Client, e?: React.MouseEvent) {
-    e?.stopPropagation()
-    setSelectedClient(client)
-    setNewNote('')
-    setNoteType('call')
-    setNoteModalOpen(true)
-  }
-
-  async function handleSaveNote() {
-    if (!newNote.trim() || !selectedClient) return
-
-    try {
-      setSavingNote(true)
-      await createClientNote(selectedClient.id, {
-        content: newNote,
-        note_type: noteType
-      })
-      showSuccess('Note saved successfully')
-      setNoteModalOpen(false)
-      setNewNote('')
-      setSelectedClient(null)
-    } catch (error) {
-      handleApiError(error, { userMessage: 'Failed to save note' })
-    } finally {
-      setSavingNote(false)
     }
   }
 
@@ -242,88 +181,6 @@ export default function ClientsPage() {
     }
   }
 
-  // --- CLIENT CARD COMPONENT ---
-  const ClientCard = ({ client }: { client: Client }) => {
-    const initial = client.company_name.charAt(0).toUpperCase()
-    const colors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700']
-    const avatarColor = colors[client.company_name.length % colors.length]
-
-    return (
-      <div
-        onClick={() => router.push(`/clients/${client.id}`)}
-        className="group relative flex flex-col bg-card hover:shadow-card border border-border/60 rounded-xl p-5 transition-all cursor-pointer hover:-translate-y-1"
-      >
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex items-center gap-3">
-            <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold ${avatarColor} border border-white/10 shadow-sm`}>
-              {initial}
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground line-clamp-1">{client.company_name}</h3>
-              <div className="flex items-center gap-2 mt-1">
-                 <span className="text-xs text-muted-foreground">{new Date(client.created_at).toLocaleDateString()}</span>
-                 <StatusBadge status={client.status} />
-              </div>
-            </div>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push(`/clients/${client.id}`)}>
-                <Eye className="mr-2 h-4 w-4" /> View Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive" onClick={(e) => handleDelete(client.id, client.company_name, e as any)}>
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        <div className="space-y-3 py-4 border-t border-b border-dashed border-border/60 my-2">
-          {client.industry && (
-            <div className="flex items-center gap-2 text-sm">
-              <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-muted-foreground">{client.industry}</span>
-            </div>
-          )}
-          {client.contact_name && (
-            <div className="flex items-center gap-2 text-sm">
-              <User className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-muted-foreground">{client.contact_name}</span>
-            </div>
-          )}
-          {client.contact_email && (
-            <div className="flex items-center gap-2 text-sm">
-              <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-muted-foreground truncate">{client.contact_email}</span>
-            </div>
-          )}
-          {!client.industry && !client.contact_name && !client.contact_email && (
-            <p className="text-xs text-muted-foreground italic">No additional details</p>
-          )}
-        </div>
-
-        <div className="mt-auto pt-2 flex items-center justify-between">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={(e) => handleOpenNoteModal(client, e)}
-          >
-            <FileText className="mr-1.5 h-3 w-3" />
-            Log Note
-          </Button>
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity text-xs font-medium text-primary flex items-center">
-            View Profile &rarr;
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <ProtectedRoute>
       <ErrorBoundary>
@@ -344,7 +201,7 @@ export default function ClientsPage() {
               { label: 'Pipeline (Prospects)', value: stats.prospectCount, icon: Target, color: 'text-blue-600' },
               { label: 'Active Clients', value: stats.activeCount, icon: Building2, color: 'text-emerald-600' },
               { label: 'Archived', value: stats.archivedCount, icon: Archive, color: 'text-gray-500' },
-              { label: 'Total Database', value: stats.totalClients, icon: Users, color: 'text-purple-600' },
+              { label: 'Total', value: stats.totalClients, icon: Users, color: 'text-purple-600' },
             ].map((stat, i) => (
               <Card key={i} className="p-4 bg-card/50 backdrop-blur-sm border-border/60 shadow-sm flex items-center justify-between">
                 <div>
@@ -383,35 +240,14 @@ export default function ClientsPage() {
                 ]}
              />
 
-             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                <div className="relative flex-1 sm:w-64">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                    placeholder="Search clients..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 bg-background/50"
-                    />
-                </div>
-
-                <div className="flex items-center bg-muted rounded-lg p-1 border border-border">
-                    <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                    title="Grid View"
-                    >
-                    <LayoutGrid className="h-4 w-4" />
-                    </button>
-                    <button
-                    onClick={() => setViewMode('list')}
-                    className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                    title="List View"
-                    >
-                    <ListIcon className="h-4 w-4" />
-                    </button>
-                </div>
-                </div>
+             <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search clients..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 bg-background/50"
+                />
              </div>
           </div>
 
@@ -452,97 +288,43 @@ export default function ClientsPage() {
               )}
             </div>
           ) : (
-            <>
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+            <div className="rounded-lg border border-border bg-card overflow-hidden shadow-sm animate-in fade-in duration-500">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <SortableHeader column="company_name" className="w-[30%]">Company</SortableHeader>
+                    <TableHead className="w-[10%]">Status</TableHead>
+                    <SortableHeader column="contact_name" className="w-[20%]">Contact</SortableHeader>
+                    <SortableHeader column="industry" className="w-[15%]">Industry</SortableHeader>
+                    <SortableHeader column="created_at" className="w-[15%]">Created</SortableHeader>
+                    <TableHead className="w-[5%]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {displayedClients.map((client) => (
-                    <ClientCard key={client.id} client={client} />
+                    <TableRow
+                      key={client.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => router.push(`/clients/${client.id}`)}
+                    >
+                      <TableCell className="font-medium">{client.company_name}</TableCell>
+                      <TableCell><StatusBadge status={client.status} /></TableCell>
+                      <TableCell className="text-muted-foreground">{client.contact_name || '-'}</TableCell>
+                      <TableCell className="text-muted-foreground">{client.industry || '-'}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{new Date(client.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" onClick={(e) => handleDelete(client.id, client.company_name, e as any)}>
+                          <Trash2 className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </div>
-              ) : (
-                <div className="rounded-lg border border-border bg-card overflow-hidden shadow-sm animate-in fade-in duration-500">
-                  <Table>
-                    <TableHeader className="bg-muted/30">
-                      <TableRow>
-                        <SortableHeader column="company_name" className="w-[30%]">Company</SortableHeader>
-                        <TableHead className="w-[10%]">Status</TableHead>
-                        <SortableHeader column="contact_name" className="w-[20%]">Contact</SortableHeader>
-                        <SortableHeader column="industry" className="w-[15%]">Industry</SortableHeader>
-                        <SortableHeader column="created_at" className="w-[15%]">Created</SortableHeader>
-                        <TableHead className="w-[5%]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {displayedClients.map((client) => {
-                        return (
-                          <TableRow
-                            key={client.id}
-                            className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => router.push(`/clients/${client.id}`)}
-                          >
-                            <TableCell className="font-medium">{client.company_name}</TableCell>
-                            <TableCell><StatusBadge status={client.status} /></TableCell>
-                            <TableCell className="text-muted-foreground">{client.contact_name || '-'}</TableCell>
-                            <TableCell className="text-muted-foreground">{client.industry || '-'}</TableCell>
-                            <TableCell className="text-muted-foreground text-sm">{new Date(client.created_at).toLocaleDateString()}</TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" onClick={(e) => handleDelete(client.id, client.company_name, e as any)}>
-                                <Trash2 className="h-4 w-4 text-muted-foreground" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </>
+                </TableBody>
+              </Table>
+            </div>
           )}
 
         </AppLayout>
-
-        {/* Log Note Modal (unchanged logic) */}
-        <Dialog open={noteModalOpen} onOpenChange={setNoteModalOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Log Note for {selectedClient?.company_name}</DialogTitle>
-              <DialogDescription>
-                Add a quick note about your interaction with this client
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <Textarea
-                placeholder="Log a call, meeting note, or thought..."
-                className="min-h-[120px]"
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-              />
-              <div className="flex items-center justify-between">
-                <div className="flex gap-2">
-                  {['discovery', 'call', 'email', 'meeting'].map((type) => (
-                      <Badge
-                        key={type}
-                        variant="outline"
-                        className={`cursor-pointer capitalize ${noteType === type ? 'bg-primary/10 border-primary text-primary' : 'hover:bg-muted'}`}
-                        onClick={() => setNoteType(type)}
-                      >
-                        {type}
-                      </Badge>
-                  ))}
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setNoteModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveNote} disabled={!newNote.trim() || savingNote}>
-                  {savingNote ? 'Saving...' : 'Save Note'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </ErrorBoundary>
     </ProtectedRoute>
   )
