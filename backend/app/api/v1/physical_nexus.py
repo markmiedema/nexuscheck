@@ -70,6 +70,7 @@ async def create_physical_nexus(
         'state_code': nexus_data.state_code,
         'nexus_date': nexus_data.nexus_date.isoformat(),
         'reason': nexus_data.reason,
+        'nexus_type': nexus_data.nexus_type,
         'registration_date': nexus_data.registration_date.isoformat() if nexus_data.registration_date else None,
         'permit_number': nexus_data.permit_number,
         'notes': nexus_data.notes
@@ -162,6 +163,8 @@ async def update_physical_nexus(
         update_data['nexus_date'] = nexus_data.nexus_date.isoformat()
     if nexus_data.reason is not None:
         update_data['reason'] = nexus_data.reason
+    if nexus_data.nexus_type is not None:
+        update_data['nexus_type'] = nexus_data.nexus_type
     if nexus_data.registration_date is not None:
         update_data['registration_date'] = nexus_data.registration_date.isoformat()
     if nexus_data.permit_number is not None:
@@ -304,6 +307,7 @@ async def import_physical_nexus(
                 'state_code': state_code_upper,
                 'nexus_date': config['nexus_date'],
                 'reason': config['reason'],
+                'nexus_type': config.get('nexus_type', 'other'),
                 'registration_date': config.get('registration_date'),
                 'permit_number': config.get('permit_number'),
                 'notes': config.get('notes')

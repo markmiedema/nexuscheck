@@ -3,10 +3,13 @@ import apiClient from '@/lib/api/client'
 import { toast } from '@/hooks/use-toast'
 import { createClientNote } from '@/lib/api/clients'
 
+export type PhysicalNexusType = 'remote_employee' | 'inventory_3pl' | 'office' | 'other'
+
 export interface PhysicalNexusConfig {
   state_code: string
   nexus_date: string
   reason: string
+  nexus_type?: PhysicalNexusType
   registration_date?: string
   permit_number?: string
   notes?: string
@@ -17,6 +20,7 @@ export interface PhysicalNexusFormData {
   state_code: string
   nexus_date: Date
   reason: string
+  nexus_type: PhysicalNexusType
   registration_date?: Date
   permit_number?: string
   notes?: string
@@ -82,6 +86,7 @@ export function usePhysicalNexusConfig(
         state_code: data.state_code,
         nexus_date: data.nexus_date.toISOString().split('T')[0],
         reason: data.reason,
+        nexus_type: data.nexus_type,
         registration_date: data.registration_date
           ? data.registration_date.toISOString().split('T')[0]
           : null,
@@ -122,7 +127,7 @@ export function usePhysicalNexusConfig(
       await triggerRecalculation()
 
       // Sync to client Discovery profile if clientId provided
-      await syncToClientProfile(stateCode!, payload.nexus_date, isUpdate ? 'update' : 'add')
+      await syncToClientProfile(stateCode!, payload.nexus_date, isUpdate ? 'update' : 'add', data.nexus_type)
 
       // Log activity note AFTER recalculation so summary reflects updated state
       const action = isUpdate ? 'Updated' : 'Added'
@@ -145,6 +150,7 @@ export function usePhysicalNexusConfig(
         state_code: config.state_code,
         nexus_date: new Date(config.nexus_date),
         reason: config.reason,
+        nexus_type: config.nexus_type || 'other',
         registration_date: config.registration_date
           ? new Date(config.registration_date)
           : undefined,
@@ -272,7 +278,7 @@ export function usePhysicalNexusConfig(
   }
 
   // Sync physical nexus state to client's Discovery profile
-  const syncToClientProfile = async (stateCode: string, nexusDate: string, action: 'add' | 'update' | 'delete') => {
+  const syncToClientProfile = async (stateCode: string, nexusDate: string, action: 'add' | 'update' | 'delete', nexusType: PhysicalNexusType = 'other') => {
     if (!options?.clientId) return
 
     try {
@@ -280,30 +286,66 @@ export function usePhysicalNexusConfig(
       const clientResponse = await apiClient.get(`/api/v1/clients/${options.clientId}`)
       const client = clientResponse.data
 
-      // Get current inventory states and dates
+      // Get current states and dates for each category
+      let employeeStates: string[] = client.remote_employee_states || []
+      let employeeStateDates: Record<string, string> = client.remote_employee_state_dates || {}
       let inventoryStates: string[] = client.inventory_3pl_states || []
       let inventoryStateDates: Record<string, string> = client.inventory_3pl_state_dates || {}
+      let officeStates: string[] = client.office_states || []
+      let officeStateDates: Record<string, string> = client.office_state_dates || {}
 
       if (action === 'delete') {
-        // Remove state from inventory_3pl_states
+        // Remove state from all categories
+        employeeStates = employeeStates.filter(s => s !== stateCode)
+        delete employeeStateDates[stateCode]
         inventoryStates = inventoryStates.filter(s => s !== stateCode)
         delete inventoryStateDates[stateCode]
+        officeStates = officeStates.filter(s => s !== stateCode)
+        delete officeStateDates[stateCode]
       } else {
-        // Add or update state in inventory_3pl_states
-        if (!inventoryStates.includes(stateCode)) {
-          inventoryStates = [...inventoryStates, stateCode]
+        // First remove from other categories if switching type
+        employeeStates = employeeStates.filter(s => s !== stateCode)
+        delete employeeStateDates[stateCode]
+        inventoryStates = inventoryStates.filter(s => s !== stateCode)
+        delete inventoryStateDates[stateCode]
+        officeStates = officeStates.filter(s => s !== stateCode)
+        delete officeStateDates[stateCode]
+
+        // Then add to appropriate category based on explicit nexus type
+        if (nexusType === 'remote_employee') {
+          if (!employeeStates.includes(stateCode)) {
+            employeeStates = [...employeeStates, stateCode]
+          }
+          employeeStateDates[stateCode] = nexusDate
+        } else if (nexusType === 'inventory_3pl') {
+          if (!inventoryStates.includes(stateCode)) {
+            inventoryStates = [...inventoryStates, stateCode]
+          }
+          inventoryStateDates[stateCode] = nexusDate
+        } else if (nexusType === 'office') {
+          if (!officeStates.includes(stateCode)) {
+            officeStates = [...officeStates, stateCode]
+          }
+          officeStateDates[stateCode] = nexusDate
         }
-        inventoryStateDates[stateCode] = nexusDate
+        // 'other' type doesn't sync to Discovery profile
       }
 
       // Update client with synced physical nexus info
       await apiClient.patch(`/api/v1/clients/${options.clientId}`, {
+        has_remote_employees: employeeStates.length > 0,
+        remote_employee_states: employeeStates,
+        remote_employee_state_dates: employeeStateDates,
         has_inventory_3pl: inventoryStates.length > 0,
         inventory_3pl_states: inventoryStates,
-        inventory_3pl_state_dates: inventoryStateDates
+        inventory_3pl_state_dates: inventoryStateDates,
+        has_office: officeStates.length > 0,
+        office_states: officeStates,
+        office_state_dates: officeStateDates
       })
 
-      console.log(`Synced physical nexus ${action} for ${stateCode} to client Discovery profile`)
+      const typeLabel = nexusType === 'remote_employee' ? 'employee' : nexusType === 'inventory_3pl' ? 'inventory' : nexusType === 'office' ? 'office' : 'other'
+      console.log(`Synced physical nexus ${action} for ${stateCode} (${typeLabel}) to client Discovery profile`)
     } catch (error) {
       // Non-critical - log but don't fail the main operation
       console.warn('Failed to sync physical nexus to client profile:', error)

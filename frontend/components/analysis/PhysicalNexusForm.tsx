@@ -19,8 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { PhysicalNexusFormData } from '@/hooks/usePhysicalNexusConfig'
+import { PhysicalNexusFormData, PhysicalNexusType } from '@/hooks/usePhysicalNexusConfig'
 import { US_STATES } from '@/lib/constants/states'
+
+const NEXUS_TYPE_OPTIONS: { value: PhysicalNexusType; label: string }[] = [
+  { value: 'remote_employee', label: 'Remote Employee' },
+  { value: 'inventory_3pl', label: '3PL / FBA Inventory' },
+  { value: 'office', label: 'Office / Physical Location' },
+  { value: 'other', label: 'Other' },
+]
 
 interface PhysicalNexusFormProps {
   open: boolean
@@ -41,6 +48,7 @@ export function PhysicalNexusForm({
     state_code: '',
     nexus_date: new Date(),
     reason: '',
+    nexus_type: 'other',
     registration_date: undefined,
     permit_number: '',
     notes: '',
@@ -56,6 +64,7 @@ export function PhysicalNexusForm({
         state_code: '',
         nexus_date: new Date(),
         reason: '',
+        nexus_type: 'other',
         registration_date: undefined,
         permit_number: '',
         notes: '',
@@ -66,7 +75,7 @@ export function PhysicalNexusForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formState.state_code || !formState.nexus_date || !formState.reason) {
+    if (!formState.state_code || !formState.nexus_date || !formState.reason || !formState.nexus_type) {
       return
     }
 
@@ -131,6 +140,31 @@ export function PhysicalNexusForm({
                   State cannot be changed. Delete and create new to change state.
                 </p>
               )}
+            </div>
+
+            {/* Nexus Type */}
+            <div className="grid gap-2">
+              <Label htmlFor="nexus_type">Nexus Type *</Label>
+              <Select
+                value={formState.nexus_type}
+                onValueChange={(value) =>
+                  setFormState({ ...formState, nexus_type: value as PhysicalNexusType })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select nexus type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {NEXUS_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground dark:text-slate-300">
+                What type of physical presence creates nexus?
+              </p>
             </div>
 
             {/* Nexus Date */}

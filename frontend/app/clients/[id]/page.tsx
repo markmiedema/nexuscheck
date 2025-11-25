@@ -71,6 +71,21 @@ export default function ClientCRMPage() {
       }
     }
     loadClient()
+
+    // Refresh client data when returning to the page (e.g., from analysis page)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Silently refresh client data without showing loading state
+        getClient(params.id as string)
+          .then(data => setClient(data))
+          .catch(() => {}) // Silently fail on background refresh
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [params.id])
 
   const handleSaveNote = async () => {
