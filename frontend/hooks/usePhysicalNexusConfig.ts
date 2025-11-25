@@ -8,8 +8,8 @@ export type PhysicalNexusType = 'remote_employee' | 'inventory_3pl' | 'office' |
 export interface PhysicalNexusConfig {
   state_code: string
   nexus_date: string
-  reason: string
   nexus_type?: PhysicalNexusType
+  reason?: string  // Deprecated - kept for backwards compatibility
   registration_date?: string
   permit_number?: string
   notes?: string
@@ -19,7 +19,6 @@ export interface PhysicalNexusConfig {
 export interface PhysicalNexusFormData {
   state_code: string
   nexus_date: Date
-  reason: string
   nexus_type: PhysicalNexusType
   registration_date?: Date
   permit_number?: string
@@ -85,7 +84,6 @@ export function usePhysicalNexusConfig(
       const payload = {
         state_code: data.state_code,
         nexus_date: data.nexus_date.toISOString().split('T')[0],
-        reason: data.reason,
         nexus_type: data.nexus_type,
         registration_date: data.registration_date
           ? data.registration_date.toISOString().split('T')[0]
@@ -131,7 +129,10 @@ export function usePhysicalNexusConfig(
 
       // Log activity note AFTER recalculation so summary reflects updated state
       const action = isUpdate ? 'Updated' : 'Added'
-      await logActivityNote(`${action} physical nexus for ${stateCode}: ${data.reason}`, true)
+      const typeLabel = data.nexus_type === 'remote_employee' ? 'Remote Employee' :
+                       data.nexus_type === 'inventory_3pl' ? '3PL/FBA Inventory' :
+                       data.nexus_type === 'office' ? 'Office/Physical Location' : 'Other'
+      await logActivityNote(`${action} physical nexus for ${stateCode} (${typeLabel})`, true)
     } catch (error: any) {
       console.error('Failed to save physical nexus:', error)
       toast({
@@ -149,7 +150,6 @@ export function usePhysicalNexusConfig(
       setFormData({
         state_code: config.state_code,
         nexus_date: new Date(config.nexus_date),
-        reason: config.reason,
         nexus_type: config.nexus_type || 'other',
         registration_date: config.registration_date
           ? new Date(config.registration_date)

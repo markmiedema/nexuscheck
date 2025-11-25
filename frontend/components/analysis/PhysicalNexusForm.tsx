@@ -47,7 +47,6 @@ export function PhysicalNexusForm({
   const [formState, setFormState] = useState<PhysicalNexusFormData>({
     state_code: '',
     nexus_date: new Date(),
-    reason: '',
     nexus_type: 'other',
     registration_date: undefined,
     permit_number: '',
@@ -63,7 +62,6 @@ export function PhysicalNexusForm({
       setFormState({
         state_code: '',
         nexus_date: new Date(),
-        reason: '',
         nexus_type: 'other',
         registration_date: undefined,
         permit_number: '',
@@ -75,7 +73,7 @@ export function PhysicalNexusForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formState.state_code || !formState.nexus_date || !formState.reason || !formState.nexus_type) {
+    if (!formState.state_code || !formState.nexus_date || !formState.nexus_type) {
       return
     }
 
@@ -184,23 +182,6 @@ export function PhysicalNexusForm({
               />
               <p className="text-xs text-muted-foreground dark:text-slate-300">
                 When did you establish physical presence?
-              </p>
-            </div>
-
-            {/* Reason */}
-            <div className="grid gap-2">
-              <Label htmlFor="reason">Reason *</Label>
-              <Input
-                id="reason"
-                value={formState.reason}
-                onChange={(e) =>
-                  setFormState({ ...formState, reason: e.target.value })
-                }
-                placeholder="e.g., Office opened in Los Angeles"
-                required
-              />
-              <p className="text-xs text-muted-foreground dark:text-slate-300">
-                Brief description of physical presence
               </p>
             </div>
 

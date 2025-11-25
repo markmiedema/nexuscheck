@@ -20,10 +20,6 @@ class PhysicalNexusCreate(BaseModel):
         ...,
         description="Date physical nexus was established"
     )
-    reason: str = Field(
-        ...,
-        description="Reason for physical nexus (e.g., 'Office opened', 'Warehouse established')"
-    )
     nexus_type: PhysicalNexusType = Field(
         default='other',
         description="Type of physical nexus (remote_employee, inventory_3pl, office, other)"
@@ -63,35 +59,15 @@ class PhysicalNexusCreate(BaseModel):
 
         return v
 
-    @field_validator('reason')
-    @classmethod
-    def validate_reason(cls, v: str) -> str:
-        """Ensure reason is not empty."""
-        v = v.strip()
-        if not v:
-            raise ValueError("Reason cannot be empty")
-        return v
-
 
 class PhysicalNexusUpdate(BaseModel):
     """Request schema for updating physical nexus configuration."""
 
     nexus_date: Optional[date] = None
-    reason: Optional[str] = None
     nexus_type: Optional[PhysicalNexusType] = None
     registration_date: Optional[date] = None
     permit_number: Optional[str] = None
     notes: Optional[str] = None
-
-    @field_validator('reason')
-    @classmethod
-    def validate_reason(cls, v: Optional[str]) -> Optional[str]:
-        """Ensure reason is not empty if provided."""
-        if v is not None:
-            v = v.strip()
-            if not v:
-                raise ValueError("Reason cannot be empty")
-        return v
 
 
 class PhysicalNexusResponse(BaseModel):
@@ -100,7 +76,6 @@ class PhysicalNexusResponse(BaseModel):
     analysis_id: str
     state_code: str
     nexus_date: date
-    reason: str
     nexus_type: Optional[PhysicalNexusType] = 'other'
     registration_date: Optional[date]
     permit_number: Optional[str]
@@ -133,9 +108,6 @@ class PhysicalNexusImportRequest(BaseModel):
 
             if 'nexus_date' not in config:
                 raise ValueError(f"Config for {state_code} missing required field: nexus_date")
-
-            if 'reason' not in config:
-                raise ValueError(f"Config for {state_code} missing required field: reason")
 
         return v
 
