@@ -310,7 +310,7 @@ export function StateQuickViewModal({
                   <div className="flex justify-between pt-2 border-t border-border font-semibold">
                     <span className="text-foreground">Total Exposure</span>
                     <span className="text-foreground">
-                      {formatCurrency(data.estimated_liability || 0)}
+                      {formatCurrency((data.base_tax || 0) + (data.interest || 0) + (data.penalties || 0))}
                     </span>
                   </div>
                 </div>
