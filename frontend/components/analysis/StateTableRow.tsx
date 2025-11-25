@@ -83,9 +83,9 @@ export const StateTableRow = memo(function StateTableRow({
         )}
       </TableCell>
 
-      {/* Threshold % */}
+      {/* Threshold */}
       <TableCell className="px-4 py-2 text-sm text-right">
-        {state.threshold_percent !== undefined && state.threshold_percent !== null ? (
+        {state.threshold ? (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -109,15 +109,14 @@ export const StateTableRow = memo(function StateTableRow({
                     } as React.CSSProperties & Record<string, string>}
                   />
                   <span className="font-medium text-foreground">
-                    {state.threshold_percent.toFixed(0)}%
+                    {formatCurrency(state.threshold)}
                   </span>
                 </div>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
-                  {state.state_name}: ${state.total_sales.toLocaleString()} of $
-                  {state.threshold?.toLocaleString() || 'N/A'} threshold (
-                  {state.threshold_percent.toFixed(0)}%)
+                  {state.threshold_percent.toFixed(0)}% of threshold reached
+                  ({formatCurrency(state.total_sales)} of {formatCurrency(state.threshold)})
                 </p>
               </TooltipContent>
             </Tooltip>

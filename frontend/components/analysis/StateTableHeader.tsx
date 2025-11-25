@@ -75,14 +75,14 @@ export const StateTableHeader = memo(function StateTableHeader({
         </TableHead>
         <TableHead className="w-28 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
           <div className="flex items-center justify-end gap-1">
-            Threshold %
+            Threshold
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Percentage of threshold reached</p>
+                  <p>Economic nexus threshold for this state</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
