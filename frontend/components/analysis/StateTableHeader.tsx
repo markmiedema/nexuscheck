@@ -97,6 +97,21 @@ export const StateTableHeader = memo(function StateTableHeader({
             {getSortIcon('nexus_status')}
           </button>
         </TableHead>
+        <TableHead className="w-28 px-4 py-2 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+          <div className="flex items-center justify-center gap-1">
+            Established
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Date nexus was first established</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </TableHead>
         <TableHead className="w-32 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
           <button
             onClick={() => onSort('liability')}

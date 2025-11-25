@@ -38,6 +38,30 @@ const getNexusStatusLabel = (status: string) => {
   }
 }
 
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+}
+
+// Extract the earliest nexus date from year_data
+const getNexusEstablishedDate = (state: StateResult): string | null => {
+  if (state.nexus_status !== 'has_nexus' || !state.year_data?.length) {
+    return null
+  }
+
+  // Find the earliest nexus_date from year_data
+  const nexusDates = state.year_data
+    .filter(yd => yd.nexus_date)
+    .map(yd => yd.nexus_date as string)
+    .sort()
+
+  return nexusDates.length > 0 ? nexusDates[0] : null
+}
+
 export const StateTableRow = memo(function StateTableRow({
   state,
   analysisId,
@@ -186,6 +210,18 @@ export const StateTableRow = memo(function StateTableRow({
               : getNexusStatusLabel(state.nexus_status)}
           </span>
         </div>
+      </TableCell>
+
+      {/* Nexus Established Date */}
+      <TableCell className={`px-4 text-sm text-center ${densityClasses[density]}`}>
+        {(() => {
+          const nexusDate = getNexusEstablishedDate(state)
+          return nexusDate ? (
+            <span className="text-foreground">{formatDate(nexusDate)}</span>
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )
+        })()}
       </TableCell>
 
       {/* Est. Liability */}
