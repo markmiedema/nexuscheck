@@ -1,7 +1,10 @@
 """Pydantic schemas for Physical Nexus API"""
 from pydantic import BaseModel, Field, field_validator
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, Literal
+
+# Valid physical nexus types
+PhysicalNexusType = Literal['remote_employee', 'inventory_3pl', 'office', 'other']
 
 
 class PhysicalNexusCreate(BaseModel):
@@ -20,6 +23,10 @@ class PhysicalNexusCreate(BaseModel):
     reason: str = Field(
         ...,
         description="Reason for physical nexus (e.g., 'Office opened', 'Warehouse established')"
+    )
+    nexus_type: PhysicalNexusType = Field(
+        default='other',
+        description="Type of physical nexus (remote_employee, inventory_3pl, office, other)"
     )
     registration_date: Optional[date] = Field(
         None,
@@ -71,6 +78,7 @@ class PhysicalNexusUpdate(BaseModel):
 
     nexus_date: Optional[date] = None
     reason: Optional[str] = None
+    nexus_type: Optional[PhysicalNexusType] = None
     registration_date: Optional[date] = None
     permit_number: Optional[str] = None
     notes: Optional[str] = None
@@ -93,6 +101,7 @@ class PhysicalNexusResponse(BaseModel):
     state_code: str
     nexus_date: date
     reason: str
+    nexus_type: Optional[PhysicalNexusType] = 'other'
     registration_date: Optional[date]
     permit_number: Optional[str]
     notes: Optional[str]

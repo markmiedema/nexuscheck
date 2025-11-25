@@ -121,6 +121,9 @@ interface DiscoveryProfileProps {
     has_inventory_3pl?: boolean
     inventory_3pl_states?: string[]
     inventory_3pl_state_dates?: Record<string, string>  // State code -> date
+    has_office?: boolean
+    office_states?: string[]
+    office_state_dates?: Record<string, string>  // State code -> date
     estimated_annual_revenue?: string
     transaction_volume?: string
     current_registration_count?: number
@@ -150,6 +153,9 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
   const [hasInventory3pl, setHasInventory3pl] = useState(initialData?.has_inventory_3pl || false)
   const [inventory3plStates, setInventory3plStates] = useState<string[]>(initialData?.inventory_3pl_states || [])
   const [inventory3plStateDates, setInventory3plStateDates] = useState<Record<string, string>>(initialData?.inventory_3pl_state_dates || {})
+  const [hasOffice, setHasOffice] = useState(initialData?.has_office || false)
+  const [officeStates, setOfficeStates] = useState<string[]>(initialData?.office_states || [])
+  const [officeStateDates, setOfficeStateDates] = useState<Record<string, string>>(initialData?.office_state_dates || {})
   const [estimatedRevenue, setEstimatedRevenue] = useState(initialData?.estimated_annual_revenue || '')
   const [transactionVolume, setTransactionVolume] = useState(initialData?.transaction_volume || '')
   const [registrationCount, setRegistrationCount] = useState(initialData?.current_registration_count || 0)
@@ -172,6 +178,9 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
     setHasInventory3pl(initialData?.has_inventory_3pl || false)
     setInventory3plStates(initialData?.inventory_3pl_states || [])
     setInventory3plStateDates(initialData?.inventory_3pl_state_dates || {})
+    setHasOffice(initialData?.has_office || false)
+    setOfficeStates(initialData?.office_states || [])
+    setOfficeStateDates(initialData?.office_state_dates || {})
     setEstimatedRevenue(initialData?.estimated_annual_revenue || '')
     setTransactionVolume(initialData?.transaction_volume || '')
     setRegistrationCount(initialData?.current_registration_count || 0)
@@ -302,6 +311,18 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
       if (removed.length) changes.push(`Removed inventory states: ${removed.join(', ')}`)
     }
 
+    // Check office locations
+    if (hasOffice !== (initialData?.has_office || false)) {
+      changes.push(hasOffice ? 'Enabled office/physical locations' : 'Disabled office/physical locations')
+    }
+    const prevOfficeStates = initialData?.office_states || []
+    if (JSON.stringify([...officeStates].sort()) !== JSON.stringify([...prevOfficeStates].sort())) {
+      const added = officeStates.filter(s => !prevOfficeStates.includes(s))
+      const removed = prevOfficeStates.filter(s => !officeStates.includes(s))
+      if (added.length) changes.push(`Added office states: ${added.join(', ')}`)
+      if (removed.length) changes.push(`Removed office states: ${removed.join(', ')}`)
+    }
+
     // Check registered states
     const prevRegistered = initialData?.registered_states || []
     if (JSON.stringify([...registeredStates].sort()) !== JSON.stringify([...prevRegistered].sort())) {
@@ -337,6 +358,9 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
         has_inventory_3pl: hasInventory3pl,
         inventory_3pl_states: inventory3plStates,
         inventory_3pl_state_dates: inventory3plStateDates,
+        has_office: hasOffice,
+        office_states: officeStates,
+        office_state_dates: officeStateDates,
         estimated_annual_revenue: estimatedRevenue || null,
         transaction_volume: transactionVolume || null,
         current_registration_count: registrationCount,
@@ -413,6 +437,9 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
         if (hasInventory3pl && inventory3plStates.length > 0) {
           nexusWarnings.push(`3PL/FBA inventory in: ${inventory3plStates.join(', ')}`)
         }
+        if (hasOffice && officeStates.length > 0) {
+          nexusWarnings.push(`Office/physical locations in: ${officeStates.join(', ')}`)
+        }
         if (nexusWarnings.length > 0) {
           summaryParts.push(`⚠️ Physical Nexus: ${nexusWarnings.join('; ')}`)
         }
@@ -465,7 +492,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
   }
 
   // Calculate physical nexus risk indicators
-  const hasPhysicalNexusRisk = hasRemoteEmployees || hasInventory3pl || channels.includes('amazon_fba')
+  const hasPhysicalNexusRisk = hasRemoteEmployees || hasInventory3pl || hasOffice || channels.includes('amazon_fba')
 
   return (
     <div className="space-y-6">
@@ -660,7 +687,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
             These factors create immediate physical nexus obligations regardless of sales thresholds.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Remote Employees */}
             <div className="space-y-3">
               <label className="flex items-center gap-3">
@@ -754,6 +781,58 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
                             value={inventory3plStateDates[state] || ''}
                             onChange={(e) => {
                               setInventory3plStateDates(prev => ({ ...prev, [state]: e.target.value }))
+                              setHasChanges(true)
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Office / Physical Location */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-3">
+                <Checkbox
+                  checked={hasOffice}
+                  onCheckedChange={(checked) => { setHasOffice(!!checked); setHasChanges(true) }}
+                />
+                <span className="font-medium">Has Office / Physical Location</span>
+              </label>
+              {hasOffice && (
+                <div className="ml-7 space-y-3">
+                  <Label className="text-xs text-muted-foreground">Select states with offices:</Label>
+                  <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 border rounded-md">
+                    {US_STATE_CODES.map(state => (
+                      <Badge
+                        key={state}
+                        variant="outline"
+                        className={`cursor-pointer text-xs ${
+                          officeStates.includes(state)
+                            ? 'bg-red-100 border-red-300 text-red-700 dark:bg-red-900/30 dark:border-red-700 dark:text-red-300'
+                            : 'hover:bg-muted'
+                        }`}
+                        onClick={() => toggleState(state, officeStates, setOfficeStates)}
+                      >
+                        {state}
+                      </Badge>
+                    ))}
+                  </div>
+                  {/* Date inputs for selected states */}
+                  {officeStates.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t">
+                      <Label className="text-xs text-muted-foreground">When was nexus established?</Label>
+                      {officeStates.map(state => (
+                        <div key={state} className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300 w-10 justify-center">{state}</Badge>
+                          <Input
+                            type="date"
+                            className="h-8 text-sm w-36"
+                            value={officeStateDates[state] || ''}
+                            onChange={(e) => {
+                              setOfficeStateDates(prev => ({ ...prev, [state]: e.target.value }))
                               setHasChanges(true)
                             }}
                           />
