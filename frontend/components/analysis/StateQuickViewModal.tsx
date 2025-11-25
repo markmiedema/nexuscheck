@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
 import { getStateDetail, StateDetailResponse } from '@/lib/api'
 import apiClient from '@/lib/api/client'
 import { ExternalLink, TrendingUp, DollarSign, Package, AlertCircle } from 'lucide-react'
@@ -114,68 +113,6 @@ export function StateQuickViewModal({
     return null
   }
 
-  const generateNexusSummaryFacts = (data: StateDetailResponse): {
-    title: string
-    bullets: string[]
-  } => {
-    const hasNexus = data.nexus_type && data.nexus_type !== 'none'
-    const totalSales = data.total_sales || 0
-    const directSales = data.direct_sales || 0  // ✅ Trust backend aggregate
-    const marketplaceSales = data.marketplace_sales || 0  // ✅ Trust backend aggregate
-    const taxableSales = data.taxable_sales || 0
-    const exemptSales = data.exempt_sales || 0
-    const exposureSales = data.exposure_sales || 0  // ✅ Trust backend aggregate
-    const threshold = data.year_data[0]?.threshold_info?.revenue_threshold || 0
-    const thresholdPercent = threshold > 0 ? ((totalSales / threshold) * 100).toFixed(0) : '0'
-
-    const facts: string[] = []
-
-    // Always show sales breakdown
-    facts.push(`Total Sales: $${totalSales.toLocaleString()} (${thresholdPercent}% of $${threshold.toLocaleString()} threshold)`)
-
-    if (directSales > 0 || marketplaceSales > 0) {
-      facts.push(`  • Direct: $${directSales.toLocaleString()} | Marketplace: $${marketplaceSales.toLocaleString()}`)
-    }
-
-    if (exemptSales > 0) {
-      facts.push(`  • Taxable: $${taxableSales.toLocaleString()} | Exempt: $${exemptSales.toLocaleString()}`)
-    }
-
-    // Show nexus determination
-    if (hasNexus) {
-      const nexusTypeLabel = data.nexus_type === 'both' ? 'Physical + Economic Nexus'
-        : data.nexus_type === 'physical' ? 'Physical Nexus'
-        : data.nexus_type === 'economic' ? 'Economic Nexus'
-        : 'Nexus Established'
-
-      facts.push(`Nexus: ${nexusTypeLabel}`)
-
-      // Show exposure sales if different from total
-      if (exposureSales > 0 && exposureSales !== totalSales) {
-        facts.push(`Exposure Sales: $${exposureSales.toLocaleString()} (sales during obligation period)`)
-      }
-
-      // Show liability
-      if (data.estimated_liability && data.estimated_liability > 0) {
-        facts.push(`Estimated Liability: $${data.estimated_liability.toLocaleString()}`)
-      } else if (taxableSales === 0 && exemptSales > 0) {
-        facts.push(`Liability: $0 (all sales are exempt)`)
-      }
-    } else {
-      facts.push(`Nexus: Not Established`)
-
-      if (threshold > 0 && totalSales < threshold) {
-        const shortfall = threshold - totalSales
-        facts.push(`  • Below threshold by $${shortfall.toLocaleString()}`)
-      }
-    }
-
-    return {
-      title: 'Nexus Summary',
-      bullets: facts
-    }
-  }
-
   const handleViewFullDetails = () => {
     onOpenChange(false)
     router.push(`/analysis/${analysisId}/states/${stateCode}`)
@@ -238,32 +175,18 @@ export function StateQuickViewModal({
             {/* Nexus Status Header */}
             {data.nexus_type && data.nexus_type !== 'none' && (
               <div className="bg-muted/50 border border-border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-foreground flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: getNexusStatusColor(data.nexus_type) }}
-                    />
-                    Nexus Status
-                  </h4>
-                  <Badge
-                    variant="outline"
-                    className="text-xs font-semibold"
-                    style={{
-                      backgroundColor: `${getNexusStatusColor(data.nexus_type)}15`,
-                      color: getNexusStatusColor(data.nexus_type),
-                      borderColor: `${getNexusStatusColor(data.nexus_type)}30`,
-                    }}
-                  >
-                    NEXUS TRIGGERED
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
+                <h4
+                  className="font-semibold mb-3"
+                  style={{ color: getNexusStatusColor(data.nexus_type) }}
+                >
+                  Nexus Triggered
+                </h4>
+                <div className="flex items-start justify-between gap-4 text-sm">
+                  <div className="text-center">
                     <div className="text-muted-foreground text-xs mb-1">Nexus Type</div>
                     <div className="font-medium text-foreground">{getNexusStatusLabel(data.nexus_type)}</div>
                   </div>
-                  <div>
+                  <div className="text-center">
                     <div className="text-muted-foreground text-xs mb-1">Total Liability</div>
                     <div className="font-bold text-foreground">{formatCurrency(data.estimated_liability || 0)}</div>
                   </div>
@@ -310,12 +233,12 @@ export function StateQuickViewModal({
                     }
 
                     return nexusDate ? (
-                      <div>
-                        <div className="text-muted-foreground text-xs mb-1">Nexus Triggered On</div>
+                      <div className="text-center">
+                        <div className="text-muted-foreground text-xs mb-1">Triggered On</div>
                         <div className="font-medium text-foreground">{formatDate(nexusDate)}</div>
                       </div>
                     ) : data.first_nexus_year ? (
-                      <div>
+                      <div className="text-center">
                         <div className="text-muted-foreground text-xs mb-1">First Nexus Year</div>
                         <div className="font-medium text-foreground">{data.first_nexus_year}</div>
                       </div>
@@ -324,13 +247,22 @@ export function StateQuickViewModal({
                   {(() => {
                     // Find registration deadline from year_data
                     const yearWithObligation = data.year_data.find(yr => yr.obligation_start_date)
-                    return yearWithObligation?.obligation_start_date ? (
-                      <div>
-                        <div className="text-muted-foreground text-xs mb-1">Register By</div>
-                        <div className="font-medium text-warning">{formatDate(yearWithObligation.obligation_start_date)}</div>
-                      </div>
-                    ) : data.compliance_info.registration_info?.registration_required ? (
-                      <div>
+                    if (yearWithObligation?.obligation_start_date) {
+                      const deadlineDate = new Date(yearWithObligation.obligation_start_date)
+                      const isOverdue = deadlineDate < new Date()
+                      return (
+                        <div className="text-center">
+                          <div className="text-muted-foreground text-xs mb-1">Register By</div>
+                          {isOverdue ? (
+                            <div className="font-medium text-destructive">{formatDate(yearWithObligation.obligation_start_date)}</div>
+                          ) : (
+                            <div className="font-medium text-warning">{formatDate(yearWithObligation.obligation_start_date)}</div>
+                          )}
+                        </div>
+                      )
+                    }
+                    return data.compliance_info.registration_info?.registration_required ? (
+                      <div className="text-center">
                         <div className="text-muted-foreground text-xs mb-1">Registration</div>
                         <div className="font-medium text-warning">Required</div>
                       </div>
@@ -340,26 +272,44 @@ export function StateQuickViewModal({
               </div>
             )}
 
-            {/* Nexus Summary - WITH DARK MODE SUPPORT */}
-            {data && (() => {
-              const summary = generateNexusSummaryFacts(data)
-              return (
-                <div className="bg-accent/50 border border-border rounded-lg p-4">
-                  <h4 className="font-semibold text-foreground mb-2">
-                    {summary.title}
-                  </h4>
-                  <div className="bg-background border border-border rounded p-3">
-                    <ul className="space-y-1.5 text-sm text-foreground font-mono">
-                      {summary.bullets.map((bullet, idx) => (
-                        <li key={idx}>
-                          {bullet}
-                        </li>
-                      ))}
-                    </ul>
+            {/* Tax Exposure Details */}
+            {data.nexus_type && data.nexus_type !== 'none' && data.estimated_liability > 0 && (
+              <div className="bg-muted/50 border border-border rounded-lg p-4">
+                <h4 className="font-semibold text-foreground mb-3">Tax Exposure Details</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Exposure Sales</span>
+                    <span className="font-medium text-foreground">
+                      {formatCurrency(data.exposure_sales || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Uncollected Tax</span>
+                    <span className="font-medium text-foreground">
+                      {formatCurrency(data.base_tax || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Interest</span>
+                    <span className="font-medium text-foreground">
+                      {formatCurrency(data.interest || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Penalties</span>
+                    <span className="font-medium text-foreground">
+                      {formatCurrency(data.penalties || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-border font-semibold">
+                    <span className="text-foreground">Total Exposure</span>
+                    <span className="text-foreground">
+                      {formatCurrency((data.base_tax || 0) + (data.interest || 0) + (data.penalties || 0))}
+                    </span>
                   </div>
                 </div>
-              )
-            })()}
+              </div>
+            )}
 
             {/* Key Metrics Grid */}
             {data.has_transactions && (
@@ -408,45 +358,6 @@ export function StateQuickViewModal({
                     {data.total_sales && data.total_sales > 0
                       ? `${(((data.marketplace_sales || 0) / data.total_sales) * 100).toFixed(0)}% of total`
                       : '0% of total'}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Tax Exposure Details */}
-            {data.nexus_type && data.nexus_type !== 'none' && data.estimated_liability > 0 && (
-              <div className="bg-muted/50 border border-border rounded-lg p-4">
-                <h4 className="font-semibold text-foreground mb-3">Tax Exposure Details</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Exposure Sales</span>
-                    <span className="font-medium text-foreground">
-                      {formatCurrency(data.exposure_sales || 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Uncollected Tax</span>
-                    <span className="font-medium text-foreground">
-                      {formatCurrency(data.base_tax || 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Interest</span>
-                    <span className="font-medium text-foreground">
-                      {formatCurrency(data.interest || 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Penalties</span>
-                    <span className="font-medium text-foreground">
-                      {formatCurrency(data.penalties || 0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-border font-semibold">
-                    <span className="text-foreground">Total Exposure</span>
-                    <span className="text-foreground">
-                      {formatCurrency(data.estimated_liability || 0)}
-                    </span>
                   </div>
                 </div>
               </div>

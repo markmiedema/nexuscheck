@@ -38,6 +38,30 @@ const getNexusStatusLabel = (status: string) => {
   }
 }
 
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+}
+
+// Extract the earliest nexus date from year_data
+const getNexusEstablishedDate = (state: StateResult): string | null => {
+  if (state.nexus_status !== 'has_nexus' || !state.year_data?.length) {
+    return null
+  }
+
+  // Find the earliest nexus_date from year_data
+  const nexusDates = state.year_data
+    .filter(yd => yd.nexus_date)
+    .map(yd => yd.nexus_date as string)
+    .sort()
+
+  return nexusDates.length > 0 ? nexusDates[0] : null
+}
+
 export const StateTableRow = memo(function StateTableRow({
   state,
   analysisId,
@@ -83,41 +107,20 @@ export const StateTableRow = memo(function StateTableRow({
         )}
       </TableCell>
 
-      {/* Threshold % */}
+      {/* Threshold */}
       <TableCell className="px-4 py-2 text-sm text-right">
-        {state.threshold_percent !== undefined && state.threshold_percent !== null ? (
+        {state.threshold ? (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center justify-end gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full transition-colors"
-                    style={{
-                      '--dot-color-light':
-                        state.threshold_percent >= 100
-                          ? 'hsl(0 84% 60%)'
-                          : state.threshold_percent >= 80
-                          ? 'hsl(38 92% 50%)'
-                          : 'hsl(142 71% 45%)',
-                      '--dot-color-dark':
-                        state.threshold_percent >= 100
-                          ? 'hsl(0 84% 65%)'
-                          : state.threshold_percent >= 80
-                          ? 'hsl(38 92% 60%)'
-                          : 'hsl(142 71% 55%)',
-                      backgroundColor: 'var(--dot-color-light)'
-                    } as React.CSSProperties & Record<string, string>}
-                  />
-                  <span className="font-medium text-foreground">
-                    {state.threshold_percent.toFixed(0)}%
-                  </span>
-                </div>
+                <span className="font-medium text-foreground cursor-help">
+                  {formatCurrency(state.threshold)}
+                </span>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
-                  {state.state_name}: ${state.total_sales.toLocaleString()} of $
-                  {state.threshold?.toLocaleString() || 'N/A'} threshold (
-                  {state.threshold_percent.toFixed(0)}%)
+                  {state.threshold_percent.toFixed(0)}% of threshold reached
+                  ({formatCurrency(state.total_sales)} of {formatCurrency(state.threshold)})
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -207,6 +210,18 @@ export const StateTableRow = memo(function StateTableRow({
               : getNexusStatusLabel(state.nexus_status)}
           </span>
         </div>
+      </TableCell>
+
+      {/* Nexus Established Date */}
+      <TableCell className={`px-4 text-sm text-center ${densityClasses[density]}`}>
+        {(() => {
+          const nexusDate = getNexusEstablishedDate(state)
+          return nexusDate ? (
+            <span className="text-foreground">{formatDate(nexusDate)}</span>
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )
+        })()}
       </TableCell>
 
       {/* Est. Liability */}

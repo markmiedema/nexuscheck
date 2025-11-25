@@ -121,6 +121,9 @@ export function usePhysicalNexusConfig(
       // Physical nexus changes should update state results immediately
       await triggerRecalculation()
 
+      // Sync to client Discovery profile if clientId provided
+      await syncToClientProfile(stateCode!, payload.nexus_date, isUpdate ? 'update' : 'add')
+
       // Log activity note AFTER recalculation so summary reflects updated state
       const action = isUpdate ? 'Updated' : 'Added'
       await logActivityNote(`${action} physical nexus for ${stateCode}: ${data.reason}`, true)
@@ -168,6 +171,9 @@ export function usePhysicalNexusConfig(
 
       // ENHANCEMENT: Trigger recalculation after deletion
       await triggerRecalculation()
+
+      // Sync deletion to client Discovery profile if clientId provided
+      await syncToClientProfile(stateCode, '', 'delete')
 
       // Log activity note AFTER recalculation so summary reflects updated state
       await logActivityNote(`Removed physical nexus for ${stateCode}`, true)
@@ -263,6 +269,45 @@ export function usePhysicalNexusConfig(
     setShowForm(false)
     setEditingState(null)
     setFormData(null)
+  }
+
+  // Sync physical nexus state to client's Discovery profile
+  const syncToClientProfile = async (stateCode: string, nexusDate: string, action: 'add' | 'update' | 'delete') => {
+    if (!options?.clientId) return
+
+    try {
+      // Fetch current client data
+      const clientResponse = await apiClient.get(`/api/v1/clients/${options.clientId}`)
+      const client = clientResponse.data
+
+      // Get current inventory states and dates
+      let inventoryStates: string[] = client.inventory_3pl_states || []
+      let inventoryStateDates: Record<string, string> = client.inventory_3pl_state_dates || {}
+
+      if (action === 'delete') {
+        // Remove state from inventory_3pl_states
+        inventoryStates = inventoryStates.filter(s => s !== stateCode)
+        delete inventoryStateDates[stateCode]
+      } else {
+        // Add or update state in inventory_3pl_states
+        if (!inventoryStates.includes(stateCode)) {
+          inventoryStates = [...inventoryStates, stateCode]
+        }
+        inventoryStateDates[stateCode] = nexusDate
+      }
+
+      // Update client with synced physical nexus info
+      await apiClient.patch(`/api/v1/clients/${options.clientId}`, {
+        has_inventory_3pl: inventoryStates.length > 0,
+        inventory_3pl_states: inventoryStates,
+        inventory_3pl_state_dates: inventoryStateDates
+      })
+
+      console.log(`Synced physical nexus ${action} for ${stateCode} to client Discovery profile`)
+    } catch (error) {
+      // Non-critical - log but don't fail the main operation
+      console.warn('Failed to sync physical nexus to client profile:', error)
+    }
   }
 
   // Log activity note to client timeline with optional results summary
