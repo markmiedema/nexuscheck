@@ -89,29 +89,9 @@ export const StateTableRow = memo(function StateTableRow({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center justify-end gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full transition-colors"
-                    style={{
-                      '--dot-color-light':
-                        state.threshold_percent >= 100
-                          ? 'hsl(0 84% 60%)'
-                          : state.threshold_percent >= 80
-                          ? 'hsl(38 92% 50%)'
-                          : 'hsl(142 71% 45%)',
-                      '--dot-color-dark':
-                        state.threshold_percent >= 100
-                          ? 'hsl(0 84% 65%)'
-                          : state.threshold_percent >= 80
-                          ? 'hsl(38 92% 60%)'
-                          : 'hsl(142 71% 55%)',
-                      backgroundColor: 'var(--dot-color-light)'
-                    } as React.CSSProperties & Record<string, string>}
-                  />
-                  <span className="font-medium text-foreground">
-                    {formatCurrency(state.threshold)}
-                  </span>
-                </div>
+                <span className="font-medium text-foreground cursor-help">
+                  {formatCurrency(state.threshold)}
+                </span>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
