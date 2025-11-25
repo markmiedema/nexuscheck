@@ -177,11 +177,7 @@ export function StateQuickViewModal({
             {data.nexus_type && data.nexus_type !== 'none' && (
               <div className="bg-muted/50 border border-border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-foreground flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: getNexusStatusColor(data.nexus_type) }}
-                    />
+                  <h4 className="font-semibold text-foreground">
                     Nexus Status
                   </h4>
                   <Badge
