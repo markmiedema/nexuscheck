@@ -265,12 +265,7 @@ export function StateQuickViewModal({
                         <div className="text-center">
                           <div className="text-muted-foreground text-xs mb-1">Register By</div>
                           {isOverdue ? (
-                            <div className="flex flex-col items-center gap-1">
-                              <span className="font-medium text-destructive">{formatDate(yearWithObligation.obligation_start_date)}</span>
-                              <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
-                                OVERDUE
-                              </Badge>
-                            </div>
+                            <div className="font-medium text-destructive">{formatDate(yearWithObligation.obligation_start_date)}</div>
                           ) : (
                             <div className="font-medium text-warning">{formatDate(yearWithObligation.obligation_start_date)}</div>
                           )}
