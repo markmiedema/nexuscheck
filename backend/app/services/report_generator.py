@@ -2,27 +2,47 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
-from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML, CSS
-from weasyprint.text.fonts import FontConfiguration
-import io
+from typing import Any, Optional, TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
 # Template directory
 TEMPLATE_DIR = Path(__file__).parent.parent / "templates"
 
+# Lazy imports to avoid loading WeasyPrint at module import time
+# WeasyPrint has heavy system dependencies that may not be available in all environments
+_jinja_env = None
+_font_config = None
+
+
+def _get_jinja_env():
+    """Lazily initialize Jinja2 environment"""
+    global _jinja_env
+    if _jinja_env is None:
+        from jinja2 import Environment, FileSystemLoader
+        _jinja_env = Environment(
+            loader=FileSystemLoader(TEMPLATE_DIR),
+            autoescape=True
+        )
+    return _jinja_env
+
+
+def _get_font_config():
+    """Lazily initialize WeasyPrint font configuration"""
+    global _font_config
+    if _font_config is None:
+        from weasyprint.text.fonts import FontConfiguration
+        _font_config = FontConfiguration()
+    return _font_config
+
 
 class ReportGenerator:
     """Generates PDF reports for nexus analysis"""
 
     def __init__(self):
-        self.env = Environment(
-            loader=FileSystemLoader(TEMPLATE_DIR),
-            autoescape=True
-        )
-        self.font_config = FontConfiguration()
+        # Don't initialize anything heavy in __init__
+        # All heavy dependencies are loaded lazily when needed
+        pass
 
     def generate_nexus_report(
         self,
@@ -60,7 +80,13 @@ class ReportGenerator:
             PDF file as bytes
         """
         try:
-            template = self.env.get_template("report_template.html")
+            # Lazy import WeasyPrint only when actually generating a report
+            from weasyprint import HTML
+
+            env = _get_jinja_env()
+            font_config = _get_font_config()
+
+            template = env.get_template("report_template.html")
 
             # Format dates for display
             generated_date = datetime.now().strftime("%B %d, %Y at %I:%M %p")
@@ -84,7 +110,7 @@ class ReportGenerator:
 
             # Convert to PDF
             html = HTML(string=html_content)
-            pdf_bytes = html.write_pdf(font_config=self.font_config)
+            pdf_bytes = html.write_pdf(font_config=font_config)
 
             logger.info(f"Generated PDF report for analysis {analysis_id}, size: {len(pdf_bytes)} bytes")
             return pdf_bytes
