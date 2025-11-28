@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
 import StateTable from '@/components/analysis/StateTable'
 import { PhysicalNexusManager } from '@/components/analysis/PhysicalNexusManager'
+import { ReportDownload } from '@/components/analysis/ReportDownload'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { StateResult as StateResultMap } from '@/types/states'
 import { handleApiError, showError } from '@/lib/utils/errorHandler'
@@ -272,11 +273,21 @@ export default function ResultsPage() {
           <div className="bg-card rounded-lg shadow-md border border-border p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-bold text-card-foreground">
-                {calculationStatus === 'calculated' ? 'Analysis Complete ✓' : 'Data Processed - Ready to Calculate'}
+                {calculationStatus === 'calculated' ? 'Analysis Complete' : 'Data Processed - Ready to Calculate'}
               </h2>
-              <span className="text-sm text-muted-foreground">
-                {summary && new Date(summary.completed_at).toLocaleString()}
-              </span>
+              <div className="flex items-center gap-4">
+                <ReportDownload
+                  analysisId={analysisId}
+                  companyName={summary?.company_name || 'Analysis'}
+                  hasResults={calculationStatus === 'calculated'}
+                  statesWithNexus={stateResults
+                    .filter(s => s.nexus_status === 'has_nexus')
+                    .map(s => s.state_code)}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {summary && new Date(summary.completed_at).toLocaleString()}
+                </span>
+              </div>
             </div>
             {summary && (
               <div className="text-muted-foreground">
