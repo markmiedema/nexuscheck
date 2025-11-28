@@ -12,6 +12,21 @@ from .physical_nexus import (
     PhysicalNexusUpdate,
     PhysicalNexusResponse,
 )
+from .exemption import (
+    ExemptionReason,
+    ExemptionAuditAction,
+    ExemptionUpdate,
+    BulkExemptionUpdate,
+    ExemptionResponse,
+    BulkExemptionResponse,
+    ExemptionRemoveResponse,
+    ExemptionAuditEntry,
+    ExemptionAuditResponse,
+    ExemptionSummaryByReason,
+    ExemptionSummaryResponse,
+    SaveExemptionsRequest,
+    SaveExemptionsResponse,
+)
 from .responses import (
     # Enums
     AnalysisStatus,

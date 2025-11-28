@@ -230,6 +230,75 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     setQuickViewOpen(true)
   }, [])
 
+  // Export state results to CSV
+  const handleExportCSV = useCallback(() => {
+    // Combine all displayed states in priority order
+    const allDisplayed = [
+      ...displayedStates.hasNexus,
+      ...displayedStates.approaching,
+      ...displayedStates.salesNoNexus,
+      ...displayedStates.noSales
+    ]
+
+    if (allDisplayed.length === 0) {
+      return
+    }
+
+    // CSV headers
+    const headers = [
+      'State',
+      'State Code',
+      'Nexus Status',
+      'Nexus Type',
+      'Gross Sales',
+      'Taxable Sales',
+      'Exempt Sales',
+      'Direct Sales',
+      'Marketplace Sales',
+      'Threshold',
+      'Threshold %',
+      'Estimated Liability',
+      'Confidence Level'
+    ]
+
+    // Build CSV rows
+    const rows = allDisplayed.map(state => [
+      state.state_name,
+      state.state_code,
+      state.nexus_status === 'has_nexus' ? 'Has Nexus' :
+        state.nexus_status === 'approaching' ? 'Approaching' : 'No Nexus',
+      state.nexus_type === 'none' ? 'None' :
+        state.nexus_type === 'physical' ? 'Physical' :
+        state.nexus_type === 'economic' ? 'Economic' : 'Both',
+      state.total_sales.toFixed(2),
+      state.taxable_sales.toFixed(2),
+      state.exempt_sales.toFixed(2),
+      state.direct_sales.toFixed(2),
+      state.marketplace_sales.toFixed(2),
+      state.threshold.toFixed(2),
+      state.threshold_percent.toFixed(1),
+      state.estimated_liability.toFixed(2),
+      state.confidence_level
+    ])
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n')
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `nexus-analysis-${analysisId}-state-results.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }, [displayedStates, analysisId])
+
   if (loading) {
     return <SkeletonTable rows={10} columns={9} />
   }
@@ -300,7 +369,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
             </SelectContent>
           </Select>
 
-          <Button variant="outline" size="sm" className="border-border">
+          <Button variant="outline" size="sm" className="border-border" onClick={handleExportCSV}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>

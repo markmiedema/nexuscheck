@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { FixedSizeList as List } from 'react-window'
 import type { ListChildComponentProps } from 'react-window'
 import {
@@ -11,6 +11,12 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  MoreHorizontal,
+  ShieldCheck,
+  ShieldX,
+  CheckSquare,
+  Square,
+  Save,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,7 +35,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { useToast } from '@/hooks/use-toast'
+import { ExemptionModal, ExemptionData, ExemptionReason } from './ExemptionModal'
 
 interface Transaction {
   transaction_id: string
@@ -40,6 +57,20 @@ interface Transaction {
   is_taxable: boolean
   sales_channel: 'direct' | 'marketplace'
   running_total: number
+  exemption_reason?: string
+  exemption_reason_other?: string
+  exemption_note?: string
+  exemption_marked_at?: string
+}
+
+// Pending change to be saved
+interface PendingExemptionChange {
+  transactionId: string
+  action: 'created' | 'updated' | 'removed'
+  exemptAmount: number
+  reason?: string
+  reasonOther?: string
+  note?: string
 }
 
 interface TransactionTableProps {
@@ -48,6 +79,8 @@ interface TransactionTableProps {
   initiallyExpanded?: boolean
   stateCode?: string
   year?: number // undefined = "All Years"
+  analysisId?: string
+  onExemptionsChanged?: () => void // Callback when exemptions are saved
 }
 
 type SortField = 'date' | 'amount'
@@ -59,19 +92,52 @@ export default function TransactionTable({
   initiallyExpanded = false,
   stateCode = 'STATE',
   year, // Can be undefined for "All Years"
+  analysisId,
+  onExemptionsChanged,
 }: TransactionTableProps) {
+  const { toast } = useToast()
+
   // State management
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded)
   const [searchTerm, setSearchTerm] = useState('')
   const [channelFilter, setChannelFilter] = useState<'all' | 'direct' | 'marketplace'>('all')
+  const [exemptFilter, setExemptFilter] = useState<'all' | 'exempt' | 'taxable'>('all')
   const [sortField, setSortField] = useState<SortField>('date')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(25)
 
+  // Exemption management state
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [pendingChanges, setPendingChanges] = useState<Map<string, PendingExemptionChange>>(new Map())
+  const [exemptionModalOpen, setExemptionModalOpen] = useState(false)
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
+  const [exemptionModalMode, setExemptionModalMode] = useState<'create' | 'edit'>('create')
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Get transaction with pending changes applied
+  const getEffectiveTransaction = useCallback((txn: Transaction): Transaction => {
+    const pending = pendingChanges.get(txn.transaction_id)
+    if (!pending) return txn
+
+    if (pending.action === 'removed') {
+      return { ...txn, exempt_amount: 0, taxable_amount: txn.sales_amount }
+    }
+
+    return {
+      ...txn,
+      exempt_amount: pending.exemptAmount,
+      taxable_amount: txn.sales_amount - pending.exemptAmount,
+      exemption_reason: pending.reason,
+      exemption_reason_other: pending.reasonOther,
+      exemption_note: pending.note,
+    }
+  }, [pendingChanges])
+
   // Filter and sort logic
   const filteredAndSortedTransactions = useMemo(() => {
-    let filtered = [...transactions]
+    let filtered = transactions.map(t => getEffectiveTransaction(t))
 
     // Apply search filter (transaction_id)
     if (searchTerm) {
@@ -86,6 +152,15 @@ export default function TransactionTable({
       filtered = filtered.filter((t) => t.sales_channel === channelFilter)
     }
 
+    // Apply exempt filter
+    if (exemptFilter !== 'all') {
+      if (exemptFilter === 'exempt') {
+        filtered = filtered.filter((t) => t.exempt_amount > 0)
+      } else {
+        filtered = filtered.filter((t) => t.exempt_amount === 0)
+      }
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
       let comparison = 0
@@ -98,7 +173,7 @@ export default function TransactionTable({
     })
 
     return filtered
-  }, [transactions, searchTerm, channelFilter, sortField, sortDirection])
+  }, [transactions, searchTerm, channelFilter, exemptFilter, sortField, sortDirection, getEffectiveTransaction])
 
   // Pagination logic
   const totalPages = Math.ceil(filteredAndSortedTransactions.length / itemsPerPage)
@@ -151,7 +226,7 @@ export default function TransactionTable({
 
   // CSV export functionality
   const handleExportCSV = () => {
-    const headers = ['Date', 'Transaction ID', 'Gross Sales', 'Taxable', 'Exempt', 'Channel', 'Running Total']
+    const headers = ['Date', 'Transaction ID', 'Gross Sales', 'Taxable', 'Exempt', 'Channel', 'Running Total', 'Exemption Reason']
     const rows = filteredAndSortedTransactions.map((t) => [
       t.transaction_date,
       t.transaction_id,
@@ -160,6 +235,7 @@ export default function TransactionTable({
       t.exempt_amount.toFixed(2),
       t.sales_channel,
       t.running_total.toFixed(2),
+      t.exemption_reason || '',
     ])
 
     const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n')
@@ -175,6 +251,159 @@ export default function TransactionTable({
     link.click()
     document.body.removeChild(link)
   }
+
+  // Exemption handlers
+  const handleExemptFilterChange = (value: string) => {
+    setExemptFilter(value as 'all' | 'exempt' | 'taxable')
+    setCurrentPage(1)
+  }
+
+  const handleToggleSelectionMode = () => {
+    setSelectionMode(!selectionMode)
+    setSelectedIds(new Set())
+  }
+
+  const handleToggleSelection = (transactionId: string) => {
+    const newSelected = new Set(selectedIds)
+    if (newSelected.has(transactionId)) {
+      newSelected.delete(transactionId)
+    } else {
+      newSelected.add(transactionId)
+    }
+    setSelectedIds(newSelected)
+  }
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === paginatedTransactions.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(paginatedTransactions.map(t => t.transaction_id)))
+    }
+  }
+
+  const handleOpenExemptionModal = (transaction: Transaction, mode: 'create' | 'edit') => {
+    setSelectedTransaction(transaction)
+    setExemptionModalMode(mode)
+    setExemptionModalOpen(true)
+  }
+
+  const handleExemptionSave = (data: ExemptionData) => {
+    const wasExempt = data.currentExemptAmount > 0
+    const change: PendingExemptionChange = {
+      transactionId: data.transactionId,
+      action: wasExempt ? 'updated' : 'created',
+      exemptAmount: data.exemptAmount,
+      reason: data.reason || undefined,
+      reasonOther: data.reasonOther || undefined,
+      note: data.note || undefined,
+    }
+
+    setPendingChanges(prev => {
+      const newMap = new Map(prev)
+      newMap.set(data.transactionId, change)
+      return newMap
+    })
+
+    toast({
+      title: 'Exemption added',
+      description: `Transaction ${data.transactionId} marked as exempt. Click "Save Changes" to apply.`,
+    })
+  }
+
+  const handleRemoveExemption = (transactionId: string) => {
+    const change: PendingExemptionChange = {
+      transactionId,
+      action: 'removed',
+      exemptAmount: 0,
+    }
+
+    setPendingChanges(prev => {
+      const newMap = new Map(prev)
+      newMap.set(transactionId, change)
+      return newMap
+    })
+
+    toast({
+      title: 'Exemption removed',
+      description: `Transaction ${transactionId} will be taxable. Click "Save Changes" to apply.`,
+    })
+  }
+
+  const handleSaveChanges = async () => {
+    if (!analysisId || pendingChanges.size === 0) return
+
+    setIsSaving(true)
+    try {
+      const changes = Array.from(pendingChanges.values()).map(change => ({
+        transaction_id: change.transactionId,
+        action: change.action,
+        exempt_amount: change.exemptAmount,
+        reason: change.reason,
+        reason_other: change.reasonOther,
+        note: change.note,
+      }))
+
+      const response = await fetch(`/api/v1/analyses/${analysisId}/exemptions/save-and-recalculate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          changes,
+          trigger_recalculation: true,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save exemptions')
+      }
+
+      const result = await response.json()
+
+      setPendingChanges(new Map())
+      setSelectedIds(new Set())
+      setSelectionMode(false)
+
+      toast({
+        title: 'Changes saved',
+        description: `${result.saved_count} exemption(s) saved. ${result.recalculation_status === 'completed' ? 'Liability recalculated.' : ''}`,
+      })
+
+      onExemptionsChanged?.()
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to save exemption changes. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleDiscardChanges = () => {
+    setPendingChanges(new Map())
+    setSelectedIds(new Set())
+    toast({
+      title: 'Changes discarded',
+      description: 'All pending exemption changes have been discarded.',
+    })
+  }
+
+  // Calculate pending changes summary
+  const pendingChangesSummary = useMemo(() => {
+    let added = 0
+    let updated = 0
+    let removed = 0
+    let totalAmount = 0
+
+    pendingChanges.forEach(change => {
+      if (change.action === 'created') added++
+      else if (change.action === 'updated') updated++
+      else if (change.action === 'removed') removed++
+      totalAmount += change.exemptAmount
+    })
+
+    return { added, updated, removed, total: pendingChanges.size, totalAmount }
+  }, [pendingChanges])
 
   // Find threshold crossing row
   const thresholdCrossingIndex = useMemo(() => {
@@ -224,20 +453,57 @@ export default function TransactionTable({
           </Button>
 
           {isExpanded && (
-            <Button onClick={handleExportCSV} variant="outline" className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Export CSV
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handleExportCSV} variant="outline" className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Export CSV
+              </Button>
+              {analysisId && (
+                <Button
+                  variant={selectionMode ? 'secondary' : 'outline'}
+                  onClick={handleToggleSelectionMode}
+                  className="flex items-center gap-2"
+                >
+                  {selectionMode ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                  {selectionMode ? 'Exit Selection' : 'Select'}
+                </Button>
+              )}
+            </div>
           )}
         </div>
       </div>
+
+      {/* Pending changes banner */}
+      {pendingChanges.size > 0 && (
+        <div className="mx-4 mb-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="bg-warning/20">
+              {pendingChangesSummary.total} pending change{pendingChangesSummary.total !== 1 ? 's' : ''}
+            </Badge>
+            <span className="text-sm text-muted-foreground">
+              {pendingChangesSummary.added > 0 && `${pendingChangesSummary.added} added`}
+              {pendingChangesSummary.updated > 0 && `, ${pendingChangesSummary.updated} updated`}
+              {pendingChangesSummary.removed > 0 && `, ${pendingChangesSummary.removed} removed`}
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={handleDiscardChanges}>
+              Discard
+            </Button>
+            <Button size="sm" onClick={handleSaveChanges} disabled={isSaving}>
+              <Save className="h-4 w-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save & Recalculate'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Expanded content */}
       {isExpanded && (
         <div className="px-4 pb-4">
           {/* Filters */}
-          <div className="mb-4 flex gap-4">
-            <div className="relative flex-1">
+          <div className="mb-4 flex gap-4 flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search by Transaction ID..."
@@ -247,13 +513,23 @@ export default function TransactionTable({
               />
             </div>
             <Select value={channelFilter} onValueChange={handleChannelFilterChange}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Channel" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Channels</SelectItem>
                 <SelectItem value="direct">Direct</SelectItem>
                 <SelectItem value="marketplace">Marketplace</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={exemptFilter} onValueChange={handleExemptFilterChange}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Exempt Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="exempt">Exempt Only</SelectItem>
+                <SelectItem value="taxable">Taxable Only</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -263,6 +539,14 @@ export default function TransactionTable({
             <Table>
               <TableHeader className="bg-muted/80 border-b-2 border-border">
                 <TableRow className="hover:bg-muted/80">
+                  {selectionMode && (
+                    <TableHead className="px-4 py-3 w-[50px]">
+                      <Checkbox
+                        checked={selectedIds.size === paginatedTransactions.length && paginatedTransactions.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
+                  )}
                   <TableHead
                     className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider cursor-pointer select-none"
                     onClick={() => handleSort('date')}
@@ -286,19 +570,22 @@ export default function TransactionTable({
                   <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">Exempt</TableHead>
                   <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">Channel</TableHead>
                   <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">Running Total</TableHead>
+                  {analysisId && (
+                    <TableHead className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider w-[80px]">Actions</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={selectionMode ? 9 : (analysisId ? 8 : 7)} className="h-24 text-center">
                       No transactions found.
                     </TableCell>
                   </TableRow>
                 ) : itemsPerPage === -1 && paginatedTransactions.length > 50 ? (
                   // Virtual scrolling for "All" with 50+ transactions
                   <TableRow>
-                    <TableCell colSpan={7} className="p-0">
+                    <TableCell colSpan={selectionMode ? 9 : (analysisId ? 8 : 7)} className="p-0">
                       <List
                         height={600}
                         itemCount={paginatedTransactions.length}
@@ -354,18 +641,41 @@ export default function TransactionTable({
                   // Regular rendering for paginated views or small "All" lists
                   paginatedTransactions.map((transaction, index) => {
                     const isThresholdCrossing = index === thresholdCrossingIndex
+                    const isExempt = transaction.exempt_amount > 0
+                    const hasPendingChange = pendingChanges.has(transaction.transaction_id)
                     return (
                       <TableRow
                         key={transaction.transaction_id}
-                        className={
-                          isThresholdCrossing
-                            ? 'bg-warning/10 border-l-4 border-l-warning border-b border-border hover:bg-warning/20 transition-colors'
-                            : 'border-b border-border hover:bg-muted/30 transition-colors'
-                        }
+                        className={`
+                          ${isThresholdCrossing ? 'bg-warning/10 border-l-4 border-l-warning' : ''}
+                          ${hasPendingChange ? 'bg-blue-50 dark:bg-blue-950/20' : ''}
+                          border-b border-border hover:bg-muted/30 transition-colors
+                        `}
                       >
+                        {selectionMode && (
+                          <TableCell className="px-4 py-3">
+                            <Checkbox
+                              checked={selectedIds.has(transaction.transaction_id)}
+                              onCheckedChange={() => handleToggleSelection(transaction.transaction_id)}
+                            />
+                          </TableCell>
+                        )}
                         <TableCell className="px-4 py-3 text-sm text-foreground">{formatDate(transaction.transaction_date)}</TableCell>
                         <TableCell className="px-4 py-3 text-sm text-foreground font-mono">
-                          {transaction.transaction_id}
+                          <div className="flex items-center gap-2">
+                            {transaction.transaction_id}
+                            {isExempt && (
+                              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">
+                                <ShieldCheck className="h-3 w-3 mr-1" />
+                                Exempt
+                              </Badge>
+                            )}
+                            {hasPendingChange && (
+                              <Badge variant="outline" className="text-xs">
+                                Pending
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-right font-medium text-foreground">
                           {formatCurrency(transaction.sales_amount)}
@@ -374,7 +684,13 @@ export default function TransactionTable({
                           {transaction.taxable_amount !== 0 ? formatCurrency(transaction.taxable_amount) : <span className="text-muted-foreground">-</span>}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-right text-foreground">
-                          {transaction.exempt_amount !== 0 ? formatCurrency(transaction.exempt_amount) : <span className="text-muted-foreground">-</span>}
+                          {transaction.exempt_amount !== 0 ? (
+                            <span className="text-green-600 dark:text-green-400 font-medium">
+                              {formatCurrency(transaction.exempt_amount)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-center text-foreground">
                           <span
@@ -390,6 +706,40 @@ export default function TransactionTable({
                         <TableCell className="px-4 py-3 text-sm text-right font-semibold text-foreground">
                           {formatCurrency(transaction.running_total)}
                         </TableCell>
+                        {analysisId && (
+                          <TableCell className="px-4 py-3 text-center">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {isExempt ? (
+                                  <>
+                                    <DropdownMenuItem onClick={() => handleOpenExemptionModal(transaction, 'edit')}>
+                                      <ShieldCheck className="h-4 w-4 mr-2" />
+                                      Edit Exemption
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() => handleRemoveExemption(transaction.transaction_id)}
+                                      className="text-destructive"
+                                    >
+                                      <ShieldX className="h-4 w-4 mr-2" />
+                                      Remove Exemption
+                                    </DropdownMenuItem>
+                                  </>
+                                ) : (
+                                  <DropdownMenuItem onClick={() => handleOpenExemptionModal(transaction, 'create')}>
+                                    <ShieldCheck className="h-4 w-4 mr-2" />
+                                    Mark as Exempt
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        )}
                       </TableRow>
                     )
                   })
@@ -459,6 +809,15 @@ export default function TransactionTable({
           </div>
         </div>
       )}
+
+      {/* Exemption Modal */}
+      <ExemptionModal
+        open={exemptionModalOpen}
+        onOpenChange={setExemptionModalOpen}
+        transaction={selectedTransaction}
+        onSave={handleExemptionSave}
+        mode={exemptionModalMode}
+      />
     </Card>
   )
 }
