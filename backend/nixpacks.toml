@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["python311", "gcc", "pango", "cairo", "gdk-pixbuf", "libffi", "zlib", "fontconfig", "freetype"]
+nixPkgs = ["python311", "gcc", "pango", "cairo", "gdk-pixbuf", "glib", "gobject-introspection", "libffi", "zlib", "fontconfig", "freetype", "harfbuzz"]
 
 [phases.install]
 cmds = ["python -m venv --copies /opt/venv && . /opt/venv/bin/activate && pip install -r requirements.txt"]
