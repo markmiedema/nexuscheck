@@ -285,10 +285,12 @@ async def generate_report(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error generating report: {str(e)}")
+        import traceback
+        error_traceback = traceback.format_exc()
+        logger.error(f"Error generating report: {str(e)}\n{error_traceback}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to generate report. Please try again."
+            detail=f"Failed to generate report: {str(e)}"
         )
 
 
