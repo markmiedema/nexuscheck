@@ -69,9 +69,7 @@ async def root():
     }
 
 # Include API routers
-from app.api.v1 import analyses, physical_nexus, vda, clients, engagements, exemptions
-# Temporarily disabled for debugging - reports
-# from app.api.v1 import reports
+from app.api.v1 import analyses, physical_nexus, vda, clients, engagements, exemptions, reports
 
 app.include_router(
     analyses.router,
@@ -109,12 +107,11 @@ app.include_router(
     tags=["exemptions"]
 )
 
-# Temporarily disabled for debugging
-# app.include_router(
-#     reports.router,
-#     prefix=f"{settings.API_V1_PREFIX}/analyses",
-#     tags=["reports"]
-# )
+app.include_router(
+    reports.router,
+    prefix=f"{settings.API_V1_PREFIX}/analyses",
+    tags=["reports"]
+)
 
 # TODO: Add more routers as they are implemented
 # from app.api.v1 import upload, validation, processing, results, reports, users
