@@ -171,7 +171,7 @@ async def generate_report(
 
                 threshold_result = supabase.table('economic_nexus_thresholds') \
                     .select('*') \
-                    .eq('state_code', state_code) \
+                    .eq('state', state_code) \
                     .execute()
 
                 compliance_info = None
