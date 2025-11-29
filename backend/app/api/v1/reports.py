@@ -100,7 +100,7 @@ async def generate_report(
             )
 
         # Get state names
-        state_codes = list(set(s['state_code'] for s in states_result.data))
+        state_codes = list(set(s['state'] for s in states_result.data))
         states_info = supabase.table('states') \
             .select('code, name') \
             .in_('code', state_codes) \
@@ -116,7 +116,7 @@ async def generate_report(
 
         # Get year data for each state
         for state in states_result.data:
-            state_code = state['state_code']
+            state_code = state['state']
             state_name = state_names.get(state_code, state_code)
 
             # Determine nexus status
@@ -340,7 +340,7 @@ async def preview_report_data(
             }
 
         # Get state names
-        state_codes = list(set(s['state_code'] for s in states_result.data))
+        state_codes = list(set(s['state'] for s in states_result.data))
         states_info = supabase.table('states') \
             .select('code, name') \
             .in_('code', state_codes) \
@@ -353,7 +353,7 @@ async def preview_report_data(
         states_approaching = []
 
         for state in states_result.data:
-            state_code = state['state_code']
+            state_code = state['state']
             state_name = state_names.get(state_code, state_code)
 
             nexus_status = 'no_nexus'
