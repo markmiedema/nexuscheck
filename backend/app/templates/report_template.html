@@ -546,7 +546,7 @@
             <div class="mini-grid">
                 <div class="mini-card">
                     <div class="label">Total Sales</div>
-                    <div class="value">${{ "{:,.0f}".format(year.total_sales) }}</div>
+                    <div class="value">${{ "{:,.0f}".format(year.total_sales or 0) }}</div>
                 </div>
                 <div class="mini-card">
                     <div class="label">Transactions</div>
@@ -554,11 +554,11 @@
                 </div>
                 <div class="mini-card">
                     <div class="label">Taxable</div>
-                    <div class="value">${{ "{:,.0f}".format(year.taxable_sales) }}</div>
+                    <div class="value">${{ "{:,.0f}".format(year.taxable_sales or 0) }}</div>
                 </div>
                 <div class="mini-card">
                     <div class="label">Liability</div>
-                    <div class="value" style="color: #dc2626;">${{ "{:,.0f}".format(year.estimated_liability) }}</div>
+                    <div class="value" style="color: #dc2626;">${{ "{:,.0f}".format(year.estimated_liability or 0) }}</div>
                 </div>
             </div>
         </div>
@@ -570,12 +570,12 @@
         <div style="margin-top: 12px; padding: 10px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px;">
             <div style="font-weight: 600; font-size: 10px; color: #0369a1; margin-bottom: 6px;">Compliance Information</div>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 9px;">
-                <div><strong>Combined Tax Rate:</strong> {{ "{:.2f}".format(detail.compliance_info.tax_rates.combined_rate) }}%</div>
-                <div><strong>Filing Frequency:</strong> {{ detail.compliance_info.filing_frequency|title }}</div>
+                <div><strong>Combined Tax Rate:</strong> {{ "{:.2f}".format(detail.compliance_info.tax_rates.combined_rate or 0) }}%</div>
+                <div><strong>Filing Frequency:</strong> {{ (detail.compliance_info.filing_frequency or 'monthly')|title }}</div>
                 <div><strong>Revenue Threshold:</strong> ${{ "{:,.0f}".format(detail.compliance_info.threshold_info.revenue_threshold or 0) }}</div>
                 <div><strong>SSTM Member:</strong> {{ "Yes" if detail.compliance_info.sstm_member else "No" }}</div>
             </div>
-            {% if detail.compliance_info.registration_info.registration_url %}
+            {% if detail.compliance_info.registration_info and detail.compliance_info.registration_info.registration_url %}
             <div style="margin-top: 6px; font-size: 9px;">
                 <strong>Registration URL:</strong> {{ detail.compliance_info.registration_info.registration_url }}
             </div>
