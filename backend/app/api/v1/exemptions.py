@@ -11,8 +11,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel
 
-from ...core.auth import get_current_user
-from ...core.supabase import get_supabase_client
+from app.core.auth import require_auth
+from app.core.supabase import get_supabase
 from ...schemas.exemption import (
     ExemptionReason,
     ExemptionAuditAction,
@@ -120,11 +120,10 @@ async def update_transaction_exemption(
     analysis_id: str,
     transaction_id: str,
     exemption: ExemptionUpdate,
-    current_user: dict = Depends(get_current_user),
+    user_id: str = Depends(require_auth),
 ):
     """Mark a single transaction as exempt"""
-    supabase = get_supabase_client()
-    user_id = current_user["id"]
+    supabase = get_supabase()
 
     # Verify ownership
     await verify_analysis_ownership(supabase, analysis_id, user_id)
@@ -187,11 +186,10 @@ async def update_transaction_exemption(
 async def remove_transaction_exemption(
     analysis_id: str,
     transaction_id: str,
-    current_user: dict = Depends(get_current_user),
+    user_id: str = Depends(require_auth),
 ):
     """Remove exemption from a transaction"""
-    supabase = get_supabase_client()
-    user_id = current_user["id"]
+    supabase = get_supabase()
 
     # Verify ownership
     await verify_analysis_ownership(supabase, analysis_id, user_id)
@@ -245,11 +243,10 @@ async def remove_transaction_exemption(
 async def bulk_update_exemptions(
     analysis_id: str,
     bulk_update: BulkExemptionUpdate,
-    current_user: dict = Depends(get_current_user),
+    user_id: str = Depends(require_auth),
 ):
     """Mark multiple transactions as exempt"""
-    supabase = get_supabase_client()
-    user_id = current_user["id"]
+    supabase = get_supabase()
 
     # Verify ownership
     await verify_analysis_ownership(supabase, analysis_id, user_id)
@@ -327,11 +324,10 @@ async def bulk_update_exemptions(
 )
 async def get_exemption_summary(
     analysis_id: str,
-    current_user: dict = Depends(get_current_user),
+    user_id: str = Depends(require_auth),
 ):
     """Get summary of exemptions by reason"""
-    supabase = get_supabase_client()
-    user_id = current_user["id"]
+    supabase = get_supabase()
 
     # Verify ownership
     await verify_analysis_ownership(supabase, analysis_id, user_id)
@@ -395,11 +391,10 @@ async def get_exemption_audit(
     transaction_id: Optional[str] = Query(None, description="Filter by specific transaction"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-    current_user: dict = Depends(get_current_user),
+    user_id: str = Depends(require_auth),
 ):
     """Get audit history for exemption changes"""
-    supabase = get_supabase_client()
-    user_id = current_user["id"]
+    supabase = get_supabase()
 
     # Verify ownership
     await verify_analysis_ownership(supabase, analysis_id, user_id)
@@ -449,11 +444,10 @@ async def get_exemption_audit(
 async def save_exemptions_and_recalculate(
     analysis_id: str,
     request: SaveExemptionsRequest,
-    current_user: dict = Depends(get_current_user),
+    user_id: str = Depends(require_auth),
 ):
     """Save batch of exemption changes and trigger recalculation"""
-    supabase = get_supabase_client()
-    user_id = current_user["id"]
+    supabase = get_supabase()
 
     # Verify ownership
     await verify_analysis_ownership(supabase, analysis_id, user_id)
