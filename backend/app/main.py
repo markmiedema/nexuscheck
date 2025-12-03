@@ -69,7 +69,9 @@ async def root():
     }
 
 # Include API routers
-from app.api.v1 import analyses, physical_nexus, vda, clients, engagements, exemptions, reports
+from app.api.v1 import analyses, physical_nexus, clients, engagements, exemptions, reports
+# VDA module disabled for now - will be added later
+# from app.api.v1 import vda
 
 app.include_router(
     analyses.router,
@@ -83,11 +85,12 @@ app.include_router(
     tags=["physical_nexus"]
 )
 
-app.include_router(
-    vda.router,
-    prefix=f"{settings.API_V1_PREFIX}/analyses",
-    tags=["vda"]
-)
+# VDA router disabled for now - will be added later
+# app.include_router(
+#     vda.router,
+#     prefix=f"{settings.API_V1_PREFIX}/analyses",
+#     tags=["vda"]
+# )
 
 app.include_router(
     clients.router,

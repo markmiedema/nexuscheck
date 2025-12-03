@@ -289,9 +289,10 @@ class InterestCalculator:
         Returns current (effective_to IS NULL) config.
         """
         try:
-            result = self.supabase.from_('interest_penalty_rates_v2_compat') \
+            result = self.supabase.table('interest_penalty_rates') \
                 .select('*') \
-                .eq('state_code', state_code) \
+                .eq('state', state_code) \
+                .is_('effective_to', 'null') \
                 .limit(1) \
                 .execute()
 
