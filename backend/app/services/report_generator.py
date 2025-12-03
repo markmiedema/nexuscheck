@@ -274,30 +274,52 @@ class ReportGeneratorV2:
         analysis_id: str,
         state_results: List[Dict]
     ) -> Dict[str, Dict]:
-        """Calculate VDA savings for all states with nexus automatically."""
-        from app.services.vda_calculator import VDACalculator
+        """
+        Calculate VDA savings for all states with nexus.
 
-        vda_calc = VDACalculator(self.supabase)
-
-        # Find states with nexus
+        VDA typically waives penalties entirely and sometimes reduces interest.
+        Most states waive penalties through VDA programs.
+        """
+        # Aggregate results by state
         aggregates = self._aggregate_by_state(state_results)
-        nexus_states = [
-            state_code for state_code, data in aggregates.items()
-            if data.get('nexus_status') == 'has_nexus'
-        ]
 
-        if not nexus_states:
-            return {}
+        vda_results = {}
 
-        try:
-            vda_result = vda_calc.calculate_vda_scenario(analysis_id, nexus_states)
-            return {
-                s['state_code']: s
-                for s in vda_result.get('state_breakdown', [])
-            }
-        except Exception as e:
-            logger.warning(f"VDA calculation failed: {e}")
-            return {}
+        for state_code, data in aggregates.items():
+            if data.get('nexus_status') != 'has_nexus':
+                continue
+
+            base_tax = data.get('base_tax', 0)
+            interest = data.get('interest', 0)
+            penalties = data.get('penalties', 0)
+
+            # Total liability before VDA
+            before_vda = base_tax + interest + penalties
+
+            if before_vda == 0:
+                continue
+
+            # VDA typically waives all penalties
+            # Most states waive penalties but keep interest
+            penalty_waived = penalties
+            interest_waived = 0  # Conservative: don't assume interest waiver
+
+            savings = penalty_waived + interest_waived
+            with_vda = before_vda - savings
+
+            if savings > 0:
+                vda_results[state_code] = {
+                    'state_code': state_code,
+                    'state_name': STATE_NAMES.get(state_code, state_code),
+                    'before_vda': before_vda,
+                    'with_vda': with_vda,
+                    'savings': savings,
+                    'penalty_waived': penalty_waived,
+                    'interest_waived': interest_waived,
+                }
+                logger.info(f"VDA for {state_code}: penalties=${penalties:.2f}, savings=${savings:.2f}")
+
+        return vda_results
 
     def _aggregate_by_state(self, state_results: List[Dict]) -> Dict[str, Dict]:
         """Aggregate multi-year state results into single state summaries."""
@@ -492,7 +514,7 @@ class ReportGeneratorV2:
         states_approaching = sum(1 for d in aggregates.values() if d['nexus_status'] == 'approaching')
 
         return {
-            'total_states_analyzed': 50,
+            'total_states_analyzed': len(aggregates),  # States with actual sales activity
             'states_with_activity': len(aggregates),
             'states_with_nexus': states_with_nexus,
             'states_approaching': states_approaching,

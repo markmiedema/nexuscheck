@@ -51,30 +51,6 @@
         </tbody>
     </table>
 
-    <h3 class="mt-2">Methodology</h3>
-    <div class="data-card">
-        <h4>Nexus Determination</h4>
-        <p class="text-small">
-            Economic nexus is determined based on each state's revenue and/or transaction thresholds.
-            Physical nexus is determined based on reported physical presence (employees, property, etc.)
-            in each state.
-        </p>
-
-        <h4 class="mt-1">Liability Estimation</h4>
-        <p class="text-small">
-            Estimated tax liability is calculated using each state's combined state and average local tax rates
-            applied to taxable sales. Interest and penalties are calculated from the estimated nexus date
-            using state-specific rates and methods.
-        </p>
-
-        <h4 class="mt-1">VDA Savings Calculation</h4>
-        <p class="text-small">
-            VDA (Voluntary Disclosure Agreement) savings are estimated based on typical penalty waivers
-            offered by each state. Most states waive penalties entirely through VDA programs; some also
-            offer reduced or waived interest.
-        </p>
-    </div>
-
     <h3 class="mt-2">Data Period</h3>
     <div class="data-card">
         <div class="data-row">
@@ -100,6 +76,45 @@
             <span class="data-value">{{ report_date }}</span>
         </div>
     </div>
+</div>
+
+<!-- Methodology on its own page -->
+<div class="page">
+    <h2>Methodology</h2>
+
+    <div class="data-card">
+        <h4>Nexus Determination</h4>
+        <p class="text-small">
+            Economic nexus is determined based on each state's revenue and/or transaction thresholds.
+            Physical nexus is determined based on reported physical presence (employees, property, etc.)
+            in each state. Once nexus is established, it typically remains in effect until the business
+            formally withdraws from the state.
+        </p>
+
+        <h4 class="mt-1">Liability Estimation</h4>
+        <p class="text-small">
+            Estimated tax liability is calculated using each state's combined state and average local tax rates
+            applied to taxable sales. Interest is calculated from the estimated nexus date using state-specific
+            rates and compounding methods. Penalties are calculated based on each state's late filing and
+            late payment penalty structures.
+        </p>
+
+        <h4 class="mt-1">VDA Savings Calculation</h4>
+        <p class="text-small">
+            VDA (Voluntary Disclosure Agreement) savings are estimated based on typical penalty waivers
+            offered by each state. Most states waive penalties entirely through VDA programs; some also
+            offer reduced or waived interest. The savings shown represent the estimated penalty amounts
+            that would be waived through a VDA.
+        </p>
+
+        <h4 class="mt-1">Filing Frequency</h4>
+        <p class="text-small">
+            Recommended filing frequency is based on typical state requirements for sellers with similar
+            sales volumes. Actual requirements may vary based on state-specific rules and thresholds.
+            Monthly filing is typically required for high-volume sellers ($1M+ annual taxable sales),
+            quarterly for mid-volume ($100K-$1M), and annual for lower-volume sellers.
+        </p>
+    </div>
 
     <h3 class="mt-2">Disclaimers</h3>
     <div class="text-small text-muted">
@@ -115,8 +130,17 @@
         </p>
         <p class="mt-1">
             Estimated liabilities are approximations based on available data and may differ from actual
-            amounts due to various factors including exemptions, credits, and rate variations.
+            amounts due to various factors including exemptions, credits, rate variations, and local
+            jurisdiction requirements.
         </p>
+        {% if preparer_name or preparer_firm %}
+        <p class="mt-2">
+            <strong>Prepared by:</strong>
+            {% if preparer_name %}{{ preparer_name }}{% endif %}
+            {% if preparer_name and preparer_firm %}, {% endif %}
+            {% if preparer_firm %}{{ preparer_firm }}{% endif %}
+        </p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
