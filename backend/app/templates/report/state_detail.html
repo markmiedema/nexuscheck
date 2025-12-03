@@ -137,15 +137,15 @@
             <h4>Registration & Filing</h4>
             <div class="data-row">
                 <span class="data-label">State Tax Rate</span>
-                <span class="data-value">{{ "{:.2%}".format(state_rate / 100) }}</span>
+                <span class="data-value">{{ "{:.2f}%".format(state_rate) }}</span>
             </div>
             <div class="data-row">
                 <span class="data-label">Avg. Local Rate</span>
-                <span class="data-value">{{ "{:.2%}".format(avg_local_rate / 100) }}</span>
+                <span class="data-value">{{ "{:.2f}%".format(avg_local_rate) }}</span>
             </div>
             <div class="data-row">
                 <span class="data-label">Combined Rate</span>
-                <span class="data-value highlight">{{ "{:.2%}".format(combined_rate / 100) }}</span>
+                <span class="data-value highlight">{{ "{:.2f}%".format(combined_rate) }}</span>
             </div>
             <div class="data-row">
                 <span class="data-label">Filing Frequency</span>

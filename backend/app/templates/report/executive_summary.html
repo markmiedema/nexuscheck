@@ -74,9 +74,12 @@
             </div>
         </div>
     </div>
+</div>
 
-    {% if states_with_nexus > 0 %}
-    <h3 class="mt-2">Top States by Liability</h3>
+<!-- Top States on a new page -->
+{% if states_with_nexus > 0 %}
+<div class="page">
+    <h2>Top States by Liability</h2>
     <table>
         <thead>
             <tr>
@@ -100,6 +103,6 @@
             {% endfor %}
         </tbody>
     </table>
-    {% endif %}
 </div>
+{% endif %}
 {% endblock %}

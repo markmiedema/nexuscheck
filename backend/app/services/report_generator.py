@@ -155,6 +155,10 @@ class ReportGeneratorV2:
         # Get state results
         state_results = self._get_state_results(analysis_id)
 
+        # Get tax rates and threshold info from database
+        tax_rates = self._get_tax_rates()
+        threshold_info = self._get_threshold_info()
+
         # Calculate VDA for all nexus states automatically
         vda_results = self._calculate_vda_for_all_nexus_states(analysis_id, state_results)
 
@@ -196,7 +200,7 @@ class ReportGeneratorV2:
             'total_vda_savings': totals['total_vda_savings'],
 
             # State details (only nexus and approaching states)
-            'state_details': self._build_state_details(state_results, vda_results, categorized),
+            'state_details': self._build_state_details(state_results, vda_results, categorized, tax_rates, threshold_info),
 
             # Appendix
             'all_states': self._build_all_states_summary(state_results),
@@ -223,6 +227,47 @@ class ReportGeneratorV2:
             .execute()
 
         return result.data or []
+
+    def _get_tax_rates(self) -> Dict[str, Dict]:
+        """Get tax rates for all states from database."""
+        try:
+            result = self.supabase.table('tax_rates') \
+                .select('*') \
+                .execute()
+
+            rates = {}
+            for row in result.data or []:
+                state_rate = float(row.get('state_rate', 0) or 0)
+                avg_local_rate = float(row.get('avg_local_rate', 0) or 0)
+                rates[row['state']] = {
+                    'state_rate': state_rate,
+                    'avg_local_rate': avg_local_rate,
+                    'combined_rate': state_rate + avg_local_rate
+                }
+            return rates
+        except Exception as e:
+            logger.warning(f"Failed to fetch tax rates: {e}")
+            return {}
+
+    def _get_threshold_info(self) -> Dict[str, Dict]:
+        """Get threshold information for all states from database."""
+        try:
+            result = self.supabase.table('state_nexus_rules') \
+                .select('*') \
+                .execute()
+
+            thresholds = {}
+            for row in result.data or []:
+                thresholds[row['state']] = {
+                    'revenue_threshold': float(row.get('revenue_threshold', 100000) or 100000),
+                    'transaction_threshold': row.get('transaction_threshold'),
+                    'threshold_operator': row.get('threshold_operator', 'OR'),
+                    'effective_date': row.get('effective_date'),
+                }
+            return thresholds
+        except Exception as e:
+            logger.warning(f"Failed to fetch threshold info: {e}")
+            return {}
 
     def _calculate_vda_for_all_nexus_states(
         self,
@@ -465,7 +510,9 @@ class ReportGeneratorV2:
         self,
         state_results: List[Dict],
         vda_results: Dict[str, Dict],
-        categorized: Dict[str, List]
+        categorized: Dict[str, List],
+        tax_rates: Dict[str, Dict],
+        threshold_info: Dict[str, Dict]
     ) -> List[Dict]:
         """Build detailed data for each state page."""
         details = []
@@ -481,6 +528,14 @@ class ReportGeneratorV2:
         for state_code in include_states:
             data = aggregates.get(state_code, {})
             vda = vda_results.get(state_code, {})
+            rates = tax_rates.get(state_code, {})
+            thresholds = threshold_info.get(state_code, {})
+
+            # Tax rates are stored as decimals (e.g., 0.0625 for 6.25%)
+            # Template expects percentages (e.g., 6.25)
+            state_rate = rates.get('state_rate', 0) * 100
+            avg_local_rate = rates.get('avg_local_rate', 0) * 100
+            combined_rate = rates.get('combined_rate', 0) * 100
 
             detail = {
                 'state_code': state_code,
@@ -496,16 +551,16 @@ class ReportGeneratorV2:
                 'interest': data.get('interest', 0),
                 'penalties': data.get('penalties', 0),
                 'estimated_liability': data.get('estimated_liability', 0),
-                'threshold': data.get('threshold', 100000),
+                'threshold': thresholds.get('revenue_threshold', data.get('threshold', 100000)),
                 'threshold_percent': data.get('threshold_percent', 0),
                 'amount_until_nexus': max(0, data.get('threshold', 100000) - data.get('total_sales', 0)),
-                'transaction_threshold': None,
-                'threshold_operator': 'OR',
+                'transaction_threshold': thresholds.get('transaction_threshold'),
+                'threshold_operator': thresholds.get('threshold_operator', 'OR'),
                 'first_nexus_year': None,
-                'state_rate': 0,
-                'avg_local_rate': 0,
-                'combined_rate': 0,
-                'filing_frequency': 'Monthly',
+                'state_rate': state_rate,
+                'avg_local_rate': avg_local_rate,
+                'combined_rate': combined_rate,
+                'filing_frequency': self._get_filing_frequency(data.get('taxable_sales', 0)),
                 'registration_fee': None,
                 'year_data': self._format_year_data(data.get('year_data', [])),
                 'vda_savings': vda.get('savings', 0),
@@ -516,6 +571,15 @@ class ReportGeneratorV2:
 
         details.sort(key=lambda x: x['estimated_liability'], reverse=True)
         return details
+
+    def _get_filing_frequency(self, taxable_sales: float) -> str:
+        """Determine likely filing frequency based on sales volume."""
+        if taxable_sales >= 1000000:
+            return 'Monthly'
+        elif taxable_sales >= 100000:
+            return 'Quarterly'
+        else:
+            return 'Annual'
 
     def _format_year_data(self, year_data: List[Dict]) -> List[Dict]:
         """Format year data for state detail template."""
