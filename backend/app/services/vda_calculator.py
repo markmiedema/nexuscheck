@@ -143,7 +143,7 @@ class VDACalculator:
 
     def _get_vda_rules(self, state_code: str) -> Dict:
         """
-        Get VDA rules for a state from vda_programs table.
+        Get VDA rules for a state from interest_penalty_rates table.
 
         Returns:
             Dict with:
@@ -151,16 +151,17 @@ class VDACalculator:
             - interest_waived: Whether interest is waived (default False)
             - lookback_months: Lookback period in months
         """
-        response = self.supabase.table('vda_programs')\
-            .select('*')\
-            .eq('state_code', state_code)\
+        response = self.supabase.table('interest_penalty_rates')\
+            .select('vda_penalties_waived, vda_interest_waived, vda_lookback_period_months')\
+            .eq('state', state_code)\
+            .is_('effective_to', 'null')\
             .execute()
 
         if response.data:
             return {
-                'penalties_waived': response.data[0].get('penalties_waived', True),
-                'interest_waived': response.data[0].get('interest_waived', False),
-                'lookback_months': response.data[0].get('lookback_period_months', 48)
+                'penalties_waived': response.data[0].get('vda_penalties_waived', True),
+                'interest_waived': response.data[0].get('vda_interest_waived', False),
+                'lookback_months': response.data[0].get('vda_lookback_period_months', 48)
             }
 
         # Default VDA rules (most common scenario)

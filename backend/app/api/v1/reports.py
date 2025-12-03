@@ -163,43 +163,57 @@ async def generate_report(
                 # Get year-specific data from the state result
                 year_data = state.get('year_data', [])
 
-                # Get compliance info
+                # Get compliance info from states table
                 compliance_result = supabase.table('states') \
                     .select('*') \
                     .eq('code', state_code) \
                     .execute()
 
+                # Get threshold info from economic_nexus_thresholds table
                 threshold_result = supabase.table('economic_nexus_thresholds') \
                     .select('*') \
                     .eq('state', state_code) \
+                    .execute()
+
+                # Get tax rate info from tax_rates table
+                tax_rate_result = supabase.table('tax_rates') \
+                    .select('state_rate, avg_local_rate, combined_avg_rate') \
+                    .eq('state', state_code) \
+                    .is_('effective_to', 'null') \
                     .execute()
 
                 compliance_info = None
                 if compliance_result.data:
                     state_info = compliance_result.data[0]
                     threshold_info = threshold_result.data[0] if threshold_result.data else {}
+                    tax_rate_info = tax_rate_result.data[0] if tax_rate_result.data else {}
+
+                    # Get tax rates (stored as decimals like 0.0825 for 8.25%)
+                    state_rate = float(tax_rate_info.get('state_rate', 0) or 0) * 100
+                    avg_local_rate = float(tax_rate_info.get('avg_local_rate', 0) or 0) * 100
+                    combined_rate = state_rate + avg_local_rate
 
                     compliance_info = {
                         'tax_rates': {
-                            'state_rate': state_info.get('state_tax_rate', 0) or 0,
-                            'avg_local_rate': state_info.get('avg_local_rate', 0) or 0,
-                            'combined_rate': (state_info.get('state_tax_rate', 0) or 0) + (state_info.get('avg_local_rate', 0) or 0),
-                            'max_local_rate': state_info.get('max_local_rate', 0) or 0,
+                            'state_rate': round(state_rate, 2),
+                            'avg_local_rate': round(avg_local_rate, 2),
+                            'combined_rate': round(combined_rate, 2),
+                            'max_local_rate': 0,  # Not tracked in database
                         },
                         'threshold_info': {
                             'revenue_threshold': threshold_info.get('revenue_threshold'),
                             'transaction_threshold': threshold_info.get('transaction_threshold'),
                             'threshold_operator': threshold_info.get('threshold_operator', 'or'),
                         },
-                        'filing_frequency': state_info.get('filing_frequency', 'monthly'),
-                        'filing_method': state_info.get('filing_method', 'online'),
-                        'sstm_member': state_info.get('sstm_member', False),
+                        'filing_frequency': 'monthly',  # Default - not tracked per state
+                        'filing_method': 'online',  # Default - not tracked per state
+                        'sstm_member': False,  # Default - not tracked per state
                         'registration_info': {
                             'registration_required': True,
-                            'registration_fee': state_info.get('registration_fee', 0) or 0,
-                            'filing_frequencies': [state_info.get('filing_frequency', 'monthly')],
+                            'registration_fee': 0,  # Not tracked in database
+                            'filing_frequencies': ['monthly'],
                             'registration_url': state_info.get('registration_url'),
-                            'dor_website': state_info.get('dor_website'),
+                            'dor_website': state_info.get('state_tax_website'),
                         }
                     }
 

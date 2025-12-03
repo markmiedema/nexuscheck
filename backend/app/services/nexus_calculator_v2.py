@@ -1390,7 +1390,7 @@ class NexusCalculatorV2:
         try:
             result = self.supabase.table('interest_penalty_rates') \
                 .select('*') \
-                .eq('state_code', state_code) \
+                .eq('state', state_code) \
                 .is_('effective_to', 'null') \
                 .limit(1) \
                 .execute()
