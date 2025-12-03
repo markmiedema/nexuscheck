@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title | default('Nexus Analysis Report') }}</title>
+    <style>
+        /* Page Setup */
+        @page {
+            size: letter;
+            margin: 0.75in;
+            @bottom-center {
+                content: counter(page);
+                font-size: 10px;
+                color: #6b7280;
+            }
+        }
+
+        @page :first {
+            @bottom-center {
+                content: "";
+            }
+        }
+
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Typography */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #1f2937;
+        }
+
+        h1 {
+            font-size: 24pt;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5em;
+        }
+
+        h2 {
+            font-size: 16pt;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5em;
+            padding-bottom: 0.25em;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        h3 {
+            font-size: 13pt;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.4em;
+        }
+
+        h4 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 0.3em;
+        }
+
+        p {
+            margin-bottom: 0.75em;
+        }
+
+        /* Layout */
+        .page {
+            page-break-after: always;
+            min-height: 100%;
+        }
+
+        .page:last-child {
+            page-break-after: avoid;
+        }
+
+        /* Cover Page */
+        .cover-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100vh;
+        }
+
+        .cover-logo {
+            font-size: 36pt;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 0.5em;
+        }
+
+        .cover-title {
+            font-size: 28pt;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.25em;
+        }
+
+        .cover-subtitle {
+            font-size: 14pt;
+            color: #6b7280;
+            margin-bottom: 2em;
+        }
+
+        .cover-client {
+            font-size: 20pt;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5em;
+        }
+
+        .cover-period {
+            font-size: 12pt;
+            color: #6b7280;
+            margin-bottom: 3em;
+        }
+
+        .cover-meta {
+            font-size: 10pt;
+            color: #9ca3af;
+        }
+
+        /* Big Numbers Section */
+        .big-numbers {
+            display: flex;
+            justify-content: space-between;
+            gap: 1em;
+            margin: 1.5em 0;
+        }
+
+        .big-number-card {
+            flex: 1;
+            text-align: center;
+            padding: 1em;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .big-number-value {
+            font-size: 28pt;
+            font-weight: 700;
+            color: #2563eb;
+            line-height: 1.2;
+        }
+
+        .big-number-value.danger {
+            color: #dc2626;
+        }
+
+        .big-number-value.warning {
+            color: #d97706;
+        }
+
+        .big-number-value.success {
+            color: #059669;
+        }
+
+        .big-number-label {
+            font-size: 10pt;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Narrative Box */
+        .narrative-box {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 1em 1.25em;
+            margin: 1.5em 0;
+            font-size: 12pt;
+            line-height: 1.6;
+        }
+
+        /* Action Items */
+        .action-section {
+            margin-bottom: 1.5em;
+        }
+
+        .action-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            margin-bottom: 0.75em;
+        }
+
+        .action-badge {
+            display: inline-block;
+            padding: 0.25em 0.75em;
+            border-radius: 4px;
+            font-size: 9pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-badge.urgent {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .action-badge.caution {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+
+        .action-badge.monitor {
+            background: #f0fdf4;
+            color: #059669;
+            border: 1px solid #bbf7d0;
+        }
+
+        .action-count {
+            font-size: 10pt;
+            color: #6b7280;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+            font-size: 10pt;
+        }
+
+        th {
+            background: #f3f4f6;
+            padding: 0.5em 0.75em;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #d1d5db;
+        }
+
+        td {
+            padding: 0.5em 0.75em;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .currency {
+            font-family: 'Consolas', monospace;
+        }
+
+        /* State Detail Page */
+        .state-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1em;
+        }
+
+        .state-name {
+            font-size: 20pt;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .nexus-badge {
+            display: inline-block;
+            padding: 0.35em 1em;
+            border-radius: 4px;
+            font-size: 10pt;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .nexus-badge.has-nexus {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .nexus-badge.approaching {
+            background: #fffbeb;
+            color: #d97706;
+        }
+
+        .nexus-badge.no-nexus {
+            background: #f0fdf4;
+            color: #059669;
+        }
+
+        /* Data Grid */
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5em;
+            margin: 1em 0;
+        }
+
+        .data-card {
+            padding: 1em;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .data-card h4 {
+            margin-bottom: 0.75em;
+            padding-bottom: 0.5em;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.35em 0;
+            font-size: 10pt;
+        }
+
+        .data-label {
+            color: #6b7280;
+        }
+
+        .data-value {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .data-value.highlight {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        /* VDA Savings Box */
+        .vda-savings-box {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            padding: 1em;
+            margin: 1em 0;
+        }
+
+        .vda-savings-title {
+            font-weight: 600;
+            color: #047857;
+            margin-bottom: 0.5em;
+        }
+
+        .vda-savings-amount {
+            font-size: 20pt;
+            font-weight: 700;
+            color: #059669;
+        }
+
+        /* Threshold Progress */
+        .threshold-bar-container {
+            margin: 1em 0;
+        }
+
+        .threshold-bar {
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .threshold-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s;
+        }
+
+        .threshold-fill.safe {
+            background: #10b981;
+        }
+
+        .threshold-fill.warning {
+            background: #f59e0b;
+        }
+
+        .threshold-fill.danger {
+            background: #ef4444;
+        }
+
+        .threshold-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9pt;
+            color: #6b7280;
+            margin-top: 0.25em;
+        }
+
+        /* Appendix */
+        .appendix-table {
+            font-size: 9pt;
+        }
+
+        .appendix-table th,
+        .appendix-table td {
+            padding: 0.35em 0.5em;
+        }
+
+        /* Status Dots */
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5em;
+        }
+
+        .status-dot.red {
+            background: #ef4444;
+        }
+
+        .status-dot.yellow {
+            background: #f59e0b;
+        }
+
+        .status-dot.green {
+            background: #10b981;
+        }
+
+        .status-dot.gray {
+            background: #9ca3af;
+        }
+
+        /* Utilities */
+        .mt-1 { margin-top: 0.5em; }
+        .mt-2 { margin-top: 1em; }
+        .mb-1 { margin-bottom: 0.5em; }
+        .mb-2 { margin-bottom: 1em; }
+
+        .text-muted {
+            color: #6b7280;
+        }
+
+        .text-small {
+            font-size: 9pt;
+        }
+
+        .font-mono {
+            font-family: 'Consolas', monospace;
+        }
+    </style>
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>

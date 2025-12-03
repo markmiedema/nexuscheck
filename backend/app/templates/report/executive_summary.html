@@ -1,0 +1,105 @@
+{% extends "report/base.html" %}
+
+{% block content %}
+<div class="page">
+    <h2>Executive Summary</h2>
+
+    <div class="big-numbers">
+        <div class="big-number-card">
+            <div class="big-number-value {% if states_with_nexus > 0 %}danger{% else %}success{% endif %}">
+                {{ states_with_nexus }}
+            </div>
+            <div class="big-number-label">States with Nexus</div>
+        </div>
+
+        <div class="big-number-card">
+            <div class="big-number-value {% if total_exposure > 0 %}danger{% else %}success{% endif %}">
+                ${{ "{:,.0f}".format(total_exposure) }}
+            </div>
+            <div class="big-number-label">Total Estimated Exposure</div>
+        </div>
+
+        <div class="big-number-card">
+            <div class="big-number-value success">
+                ${{ "{:,.0f}".format(vda_savings) }}
+            </div>
+            <div class="big-number-label">Potential VDA Savings</div>
+        </div>
+    </div>
+
+    <div class="narrative-box">
+        {{ narrative }}
+    </div>
+
+    <h3 class="mt-2">Overview</h3>
+
+    <div class="data-grid">
+        <div class="data-card">
+            <h4>Analysis Summary</h4>
+            <div class="data-row">
+                <span class="data-label">Total States Analyzed</span>
+                <span class="data-value">{{ total_states_analyzed }}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">States with Sales Activity</span>
+                <span class="data-value">{{ states_with_activity }}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">States with Nexus</span>
+                <span class="data-value highlight">{{ states_with_nexus }}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">States Approaching Threshold</span>
+                <span class="data-value">{{ states_approaching }}</span>
+            </div>
+        </div>
+
+        <div class="data-card">
+            <h4>Financial Summary</h4>
+            <div class="data-row">
+                <span class="data-label">Total Sales</span>
+                <span class="data-value">${{ "{:,.0f}".format(total_sales) }}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Taxable Sales (Exposure)</span>
+                <span class="data-value">${{ "{:,.0f}".format(taxable_sales) }}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Estimated Tax Liability</span>
+                <span class="data-value highlight">${{ "{:,.0f}".format(total_liability) }}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Interest & Penalties</span>
+                <span class="data-value">${{ "{:,.0f}".format(interest_and_penalties) }}</span>
+            </div>
+        </div>
+    </div>
+
+    {% if states_with_nexus > 0 %}
+    <h3 class="mt-2">Top States by Liability</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>State</th>
+                <th class="text-right">Total Sales</th>
+                <th class="text-right">Taxable Sales</th>
+                <th class="text-right">Estimated Liability</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for state in top_states %}
+            <tr>
+                <td>
+                    <span class="status-dot red"></span>
+                    {{ state.state_name }}
+                </td>
+                <td class="text-right currency">${{ "{:,.0f}".format(state.total_sales) }}</td>
+                <td class="text-right currency">${{ "{:,.0f}".format(state.taxable_sales) }}</td>
+                <td class="text-right currency">${{ "{:,.0f}".format(state.estimated_liability) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endblock %}

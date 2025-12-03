@@ -1,0 +1,141 @@
+{% extends "report/base.html" %}
+
+{% block content %}
+<div class="page">
+    <h2>Action Items</h2>
+
+    <!-- Register Now Section -->
+    <div class="action-section">
+        <div class="action-header">
+            <span class="action-badge urgent">Register Now</span>
+            <span class="action-count">{{ register_now | length }} state{% if register_now | length != 1 %}s{% endif %}</span>
+        </div>
+
+        {% if register_now %}
+        <p class="text-muted text-small mb-1">
+            These states have confirmed nexus. Immediate registration is recommended to avoid additional penalties.
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th class="text-center">Nexus Type</th>
+                    <th class="text-right">Taxable Sales</th>
+                    <th class="text-right">Estimated Liability</th>
+                    <th class="text-right">Filing Frequency</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for state in register_now %}
+                <tr>
+                    <td>
+                        <span class="status-dot red"></span>
+                        <strong>{{ state.state_name }}</strong>
+                    </td>
+                    <td class="text-center">{{ state.nexus_type | title }}</td>
+                    <td class="text-right currency">${{ "{:,.0f}".format(state.taxable_sales) }}</td>
+                    <td class="text-right currency">${{ "{:,.0f}".format(state.estimated_liability) }}</td>
+                    <td class="text-right">{{ state.filing_frequency | default('Monthly') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">No states require immediate registration.</p>
+        {% endif %}
+    </div>
+
+    <!-- Consider VDA Section -->
+    <div class="action-section">
+        <div class="action-header">
+            <span class="action-badge caution">Consider VDA</span>
+            <span class="action-count">{{ consider_vda | length }} state{% if consider_vda | length != 1 %}s{% endif %} - Save up to ${{ "{:,.0f}".format(total_vda_savings) }}</span>
+        </div>
+
+        {% if consider_vda %}
+        <p class="text-muted text-small mb-1">
+            Voluntary Disclosure Agreements can reduce or eliminate penalties. Consider VDA before registering with these states.
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th class="text-right">Without VDA</th>
+                    <th class="text-right">With VDA</th>
+                    <th class="text-right">Potential Savings</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for state in consider_vda %}
+                <tr>
+                    <td>
+                        <span class="status-dot yellow"></span>
+                        <strong>{{ state.state_name }}</strong>
+                    </td>
+                    <td class="text-right currency">${{ "{:,.0f}".format(state.before_vda) }}</td>
+                    <td class="text-right currency">${{ "{:,.0f}".format(state.with_vda) }}</td>
+                    <td class="text-right currency" style="color: #059669; font-weight: 600;">
+                        ${{ "{:,.0f}".format(state.savings) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="vda-savings-box">
+            <div class="vda-savings-title">Total Potential VDA Savings</div>
+            <div class="vda-savings-amount">${{ "{:,.0f}".format(total_vda_savings) }}</div>
+            <p class="text-small text-muted mt-1">
+                VDA programs typically waive penalties and may reduce interest. Contact a tax professional to initiate VDA applications.
+            </p>
+        </div>
+        {% else %}
+        <p class="text-muted">No VDA opportunities identified.</p>
+        {% endif %}
+    </div>
+
+    <!-- Monitor Section -->
+    <div class="action-section">
+        <div class="action-header">
+            <span class="action-badge monitor">Monitor</span>
+            <span class="action-count">{{ monitor | length }} state{% if monitor | length != 1 %}s{% endif %}</span>
+        </div>
+
+        {% if monitor %}
+        <p class="text-muted text-small mb-1">
+            These states are approaching economic nexus thresholds. Continue monitoring sales activity.
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th class="text-right">Current Sales</th>
+                    <th class="text-right">Threshold</th>
+                    <th class="text-center">Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for state in monitor %}
+                <tr>
+                    <td>
+                        <span class="status-dot yellow"></span>
+                        {{ state.state_name }}
+                    </td>
+                    <td class="text-right currency">${{ "{:,.0f}".format(state.current_sales) }}</td>
+                    <td class="text-right currency">${{ "{:,.0f}".format(state.threshold) }}</td>
+                    <td class="text-center">
+                        <div class="threshold-bar" style="width: 100px; display: inline-block;">
+                            <div class="threshold-fill warning" style="width: {{ state.threshold_percent }}%;"></div>
+                        </div>
+                        <span class="text-small text-muted" style="margin-left: 0.5em;">{{ state.threshold_percent | round(0) | int }}%</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">No states are currently approaching threshold.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

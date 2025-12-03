@@ -1,0 +1,28 @@
+{% extends "report/base.html" %}
+
+{% block content %}
+<div class="page cover-page">
+    <div class="cover-logo">NexusCheck</div>
+    <div class="cover-title">Nexus Analysis Report</div>
+    <div class="cover-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+
+    <div class="cover-client">{{ client_name }}</div>
+    <div class="cover-period">
+        {% if period_start and period_end %}
+        Analysis Period: {{ period_start }} - {{ period_end }}
+        {% else %}
+        Analysis as of {{ report_date }}
+        {% endif %}
+    </div>
+
+    <div class="cover-meta">
+        <p>Report Generated: {{ report_date }}</p>
+        {% if preparer_name %}
+        <p>Prepared by: {{ preparer_name }}</p>
+        {% endif %}
+        {% if preparer_firm %}
+        <p>{{ preparer_firm }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
