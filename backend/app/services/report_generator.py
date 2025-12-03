@@ -204,7 +204,7 @@ class ReportGeneratorV2:
 
             # Appendix
             'all_states': self._build_all_states_summary(state_results),
-            'total_transactions': analysis.get('total_transactions', 0),
+            'total_transactions': totals['total_transactions'],
         }
 
     def _get_analysis(self, analysis_id: str) -> Dict:
@@ -333,6 +333,7 @@ class ReportGeneratorV2:
             'interest': 0,
             'penalties': 0,
             'estimated_liability': 0,
+            'transaction_count': 0,
             'nexus_status': 'no_nexus',
             'nexus_type': None,
             'threshold': 100000,
@@ -354,6 +355,7 @@ class ReportGeneratorV2:
             agg['interest'] += float(result.get('interest', 0) or 0)
             agg['penalties'] += float(result.get('penalties', 0) or 0)
             agg['estimated_liability'] += float(result.get('estimated_liability', 0) or 0)
+            agg['transaction_count'] += int(result.get('transaction_count', 0) or 0)
 
             # Determine nexus status from nexus_type field
             # nexus_type in ['economic', 'physical', 'both'] means has nexus
@@ -526,6 +528,7 @@ class ReportGeneratorV2:
             'penalties': sum(d['penalties'] for d in aggregates.values()),
             'interest_and_penalties': sum(d['interest'] + d['penalties'] for d in aggregates.values()),
             'total_vda_savings': sum(v.get('savings', 0) for v in vda_results.values()),
+            'total_transactions': sum(d['transaction_count'] for d in aggregates.values()),
         }
 
     def _build_state_details(
