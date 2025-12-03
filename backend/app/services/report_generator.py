@@ -288,17 +288,22 @@ class ReportGeneratorV2:
             agg['penalties'] += float(result.get('penalties', 0) or 0)
             agg['estimated_liability'] += float(result.get('estimated_liability', 0) or 0)
 
-            # Determine nexus status - check both has_nexus field and nexus_status
-            if result.get('has_nexus') or result.get('nexus_status') == 'has_nexus':
+            # Determine nexus status from nexus_type field
+            # nexus_type in ['economic', 'physical', 'both'] means has nexus
+            nexus_type = result.get('nexus_type')
+            if nexus_type in ['economic', 'physical', 'both']:
+                agg['nexus_status'] = 'has_nexus'
+                agg['nexus_type'] = nexus_type
+            elif result.get('has_nexus') or result.get('nexus_status') == 'has_nexus':
                 agg['nexus_status'] = 'has_nexus'
             elif (result.get('nexus_status') == 'approaching' or
                   float(result.get('threshold_percent', 0) or 0) >= self.APPROACHING_THRESHOLD):
                 if agg['nexus_status'] != 'has_nexus':
                     agg['nexus_status'] = 'approaching'
 
-            # Take nexus type
-            if result.get('nexus_type'):
-                agg['nexus_type'] = result['nexus_type']
+            # Take nexus type if not already set
+            if nexus_type and not agg['nexus_type']:
+                agg['nexus_type'] = nexus_type
 
             # Threshold info
             if result.get('revenue_threshold') or result.get('threshold'):
