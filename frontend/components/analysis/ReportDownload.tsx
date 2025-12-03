@@ -20,37 +20,36 @@ import {
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { FileDown, ChevronDown, FileText, Loader2 } from 'lucide-react'
-import { generateAndDownloadReport, ReportType } from '@/lib/api/reports'
+import { generateAndDownloadReport } from '@/lib/api/reports'
 import { handleApiError } from '@/lib/utils/errorHandler'
+import { Input } from '@/components/ui/input'
 
 interface ReportDownloadProps {
   analysisId: string
   companyName: string
   hasResults: boolean
-  statesWithNexus?: string[] // For state-specific report options
 }
 
 export function ReportDownload({
   analysisId,
   companyName,
   hasResults,
-  statesWithNexus = [],
 }: ReportDownloadProps) {
   const [generating, setGenerating] = useState(false)
   const [showOptions, setShowOptions] = useState(false)
-  const [includeAllStates, setIncludeAllStates] = useState(true)
   const [includeStateDetails, setIncludeStateDetails] = useState(true)
+  const [preparerName, setPreparerName] = useState('')
+  const [preparerFirm, setPreparerFirm] = useState('')
 
-  const handleGenerateReport = async (reportType: ReportType, stateCode?: string) => {
+  const handleGenerateReport = async () => {
     if (!hasResults) return
 
     try {
       setGenerating(true)
       await generateAndDownloadReport(analysisId, companyName, {
-        reportType,
-        stateCode,
-        includeAllStates,
         includeStateDetails,
+        preparerName: preparerName || undefined,
+        preparerFirm: preparerFirm || undefined,
       })
     } catch (error) {
       handleApiError(error, {
@@ -63,7 +62,7 @@ export function ReportDownload({
   }
 
   const handleQuickDownload = () => {
-    handleGenerateReport('detailed')
+    handleGenerateReport()
   }
 
   if (!hasResults) {
@@ -94,36 +93,10 @@ export function ReportDownload({
             <FileText className="h-4 w-4 mr-2" />
             Full Report (PDF)
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleGenerateReport('summary')}>
-            <FileText className="h-4 w-4 mr-2" />
-            Executive Summary
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setShowOptions(true)}>
-            Custom Report Options...
+            Customize Report...
           </DropdownMenuItem>
-          {statesWithNexus.length > 0 && (
-            <>
-              <DropdownMenuSeparator />
-              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                State-Specific Reports
-              </div>
-              {statesWithNexus.slice(0, 5).map((stateCode) => (
-                <DropdownMenuItem
-                  key={stateCode}
-                  onClick={() => handleGenerateReport('state', stateCode)}
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  {stateCode} Detailed Report
-                </DropdownMenuItem>
-              ))}
-              {statesWithNexus.length > 5 && (
-                <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                  +{statesWithNexus.length - 5} more states...
-                </div>
-              )}
-            </>
-          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -131,37 +104,46 @@ export function ReportDownload({
       <Dialog open={showOptions} onOpenChange={setShowOptions}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Report Options</DialogTitle>
+            <DialogTitle>Customize Report</DialogTitle>
             <DialogDescription>
-              Customize what to include in your PDF report.
+              Add preparer information and customize report options.
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="includeAllStates"
-                checked={includeAllStates}
-                onCheckedChange={(checked) => setIncludeAllStates(checked as boolean)}
+            <div className="grid gap-2">
+              <Label htmlFor="preparerName">Preparer Name (optional)</Label>
+              <Input
+                id="preparerName"
+                placeholder="e.g., John Smith, CPA"
+                value={preparerName}
+                onChange={(e) => setPreparerName(e.target.value)}
               />
-              <Label htmlFor="includeAllStates" className="text-sm font-normal">
-                Include complete state-by-state summary table
-              </Label>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="grid gap-2">
+              <Label htmlFor="preparerFirm">Firm Name (optional)</Label>
+              <Input
+                id="preparerFirm"
+                placeholder="e.g., Smith Tax Advisory LLC"
+                value={preparerFirm}
+                onChange={(e) => setPreparerFirm(e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2 pt-2">
               <Checkbox
                 id="includeStateDetails"
                 checked={includeStateDetails}
                 onCheckedChange={(checked) => setIncludeStateDetails(checked as boolean)}
               />
               <Label htmlFor="includeStateDetails" className="text-sm font-normal">
-                Include detailed year-by-year breakdowns for each state
+                Include detailed state-by-state pages
               </Label>
             </div>
 
-            <div className="text-xs text-muted-foreground mt-2">
-              Note: More detailed reports will be larger and take longer to generate.
+            <div className="text-xs text-muted-foreground">
+              The report includes automatic VDA savings calculations for all nexus states.
             </div>
           </div>
 
@@ -170,7 +152,7 @@ export function ReportDownload({
               Cancel
             </Button>
             <Button
-              onClick={() => handleGenerateReport('detailed')}
+              onClick={handleGenerateReport}
               disabled={generating}
             >
               {generating ? (

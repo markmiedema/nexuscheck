@@ -1,15 +1,12 @@
 /**
- * API functions for report generation
+ * API functions for report generation (V2 - modular templates with auto VDA)
  */
 import apiClient from './client'
 
-export type ReportType = 'summary' | 'detailed' | 'state'
-
 export interface GenerateReportOptions {
-  reportType?: ReportType
-  stateCode?: string
-  includeAllStates?: boolean
   includeStateDetails?: boolean
+  preparerName?: string
+  preparerFirm?: string
 }
 
 export interface ReportPreview {
@@ -50,19 +47,18 @@ export interface ReportPreview {
 }
 
 /**
- * Generate and download a PDF report
+ * Generate and download a PDF report (V2 with auto VDA calculation)
  */
 export async function generateReport(
   analysisId: string,
   options: GenerateReportOptions = {}
 ): Promise<Blob> {
   const response = await apiClient.post(
-    `/api/v1/analyses/${analysisId}/reports/generate`,
+    `/api/v1/analyses/${analysisId}/reports/v2/generate`,
     {
-      report_type: options.reportType || 'detailed',
-      state_code: options.stateCode,
-      include_all_states: options.includeAllStates ?? true,
       include_state_details: options.includeStateDetails ?? true,
+      preparer_name: options.preparerName,
+      preparer_firm: options.preparerFirm,
     },
     {
       responseType: 'blob',
@@ -106,10 +102,8 @@ export async function generateAndDownloadReport(
 
   // Generate filename
   const sanitizedName = companyName.replace(/[^a-zA-Z0-9]/g, '_')
-  const reportType = options.reportType || 'detailed'
-  const stateCode = options.stateCode ? `_${options.stateCode}` : ''
   const timestamp = new Date().toISOString().split('T')[0]
-  const filename = `nexus_report_${sanitizedName}${stateCode}_${reportType}_${timestamp}.pdf`
+  const filename = `Nexus_Report_${sanitizedName}_${timestamp}.pdf`
 
   downloadReport(blob, filename)
 }

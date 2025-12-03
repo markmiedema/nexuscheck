@@ -280,9 +280,6 @@ export default function ResultsPage() {
                   analysisId={analysisId}
                   companyName={summary?.company_name || 'Analysis'}
                   hasResults={calculationStatus === 'calculated'}
-                  statesWithNexus={stateResults
-                    .filter(s => s.nexus_status === 'has_nexus')
-                    .map(s => s.state_code)}
                 />
                 <span className="text-sm text-muted-foreground">
                   {summary && new Date(summary.completed_at).toLocaleString()}
