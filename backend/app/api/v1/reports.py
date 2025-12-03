@@ -9,7 +9,7 @@ from slowapi.util import get_remote_address
 from app.core.auth import require_auth
 from app.core.supabase import get_supabase
 from app.config import settings
-from app.services.report_generator import get_report_generator
+from app.services.report_generator import get_report_generator, get_report_generator_v2
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,13 @@ class GenerateReportRequest(BaseModel):
     state_code: Optional[str] = None  # Required for state-specific reports
     include_all_states: bool = True
     include_state_details: bool = True
+
+
+class GenerateReportV2Request(BaseModel):
+    """Request body for V2 report generation (new modular templates with VDA)"""
+    include_state_details: bool = True
+    preparer_name: Optional[str] = None
+    preparer_firm: Optional[str] = None
 
 
 class ReportMetadata(BaseModel):
@@ -423,4 +430,94 @@ async def preview_report_data(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get report preview"
+        )
+
+
+@router.post("/{analysis_id}/reports/v2/generate")
+@limiter.limit("10/minute")
+async def generate_report_v2(
+    request: Request,
+    analysis_id: str,
+    body: Optional[GenerateReportV2Request] = None,
+    user_id: str = Depends(require_auth)
+):
+    """
+    Generate a PDF report using the new modular template system (V2).
+
+    Features:
+    - Professional multi-section layout (cover, executive summary, action items, state details, appendix)
+    - Automatic VDA calculation for all nexus states
+    - Priority categorization (Register Now / Consider VDA / Monitor)
+    - Dynamic narrative generation
+
+    Args:
+        analysis_id: The analysis to generate a report for
+        body: Report generation options
+            - include_state_details: Include detailed state pages (default: true)
+            - preparer_name: Name to show as report preparer
+            - preparer_firm: Firm name to show on cover page
+    """
+    supabase = get_supabase()
+
+    try:
+        # Verify analysis exists and belongs to user
+        analysis_result = supabase.table('analyses') \
+            .select('id, client_company_name, status') \
+            .eq('id', analysis_id) \
+            .eq('user_id', user_id) \
+            .is_('deleted_at', 'null') \
+            .execute()
+
+        if not analysis_result.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Analysis not found"
+            )
+
+        analysis = analysis_result.data[0]
+
+        # Check analysis has results
+        states_result = supabase.table('state_results') \
+            .select('id') \
+            .eq('analysis_id', analysis_id) \
+            .limit(1) \
+            .execute()
+
+        if not states_result.data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No results found. Please run the analysis calculation first."
+            )
+
+        # Generate the report using V2 generator
+        report_generator = get_report_generator_v2(supabase)
+        options = body.model_dump() if body else {}
+        pdf_bytes = report_generator.generate_report(analysis_id, options)
+
+        # Create filename from client name
+        client_name = analysis.get('client_company_name', 'Unknown')
+        safe_name = "".join(c for c in client_name if c.isalnum() or c in ' -_')
+        safe_name = safe_name.replace(' ', '_')
+        filename = f"Nexus_Report_{safe_name}.pdf"
+
+        logger.info(f"Generated V2 report for analysis {analysis_id}, size: {len(pdf_bytes)} bytes")
+
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Length": str(len(pdf_bytes))
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_traceback = traceback.format_exc()
+        logger.error(f"Error generating V2 report: {str(e)}\n{error_traceback}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate report: {str(e)}"
         )
