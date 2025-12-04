@@ -2,24 +2,20 @@
 
 {% block content %}
 <div class="page">
-    <!-- Page Header -->
+    <!-- Navy Header Bar -->
     <div class="page-header">
-        <div class="page-header-left">
-            {% if logo_data_uri %}
-            <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
-            {% else %}
-            <svg width="80" height="32" viewBox="0 0 180 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 60L30 12L55 60H45L40 50H20L15 60H5Z" fill="#c8102e"/>
-                <path d="M30 22L37 40H23L30 22Z" fill="white"/>
-                <text x="60" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">S</text>
-                <text x="95" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">T</text>
-            </svg>
-            {% endif %}
-            <div class="page-header-title">
-                <h1>NEXUS ANALYSIS REPORT</h1>
-                <div class="subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
-            </div>
-        </div>
+        <table>
+            <tr>
+                <td style="width: 100pt;">
+                    <span class="header-logo"><span class="header-logo-a">A</span>ST</span>
+                </td>
+                <td>
+                    <span class="header-divider"></span>
+                    <span class="header-title">NEXUS ANALYSIS REPORT</span>
+                    <div class="header-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="page-content">
@@ -28,16 +24,24 @@
         <!-- Register Now Section -->
         <div class="action-section">
             <div class="action-header urgent">
-                <div class="action-icon">!</div>
-                <span class="action-title">Register Now</span>
-                <span class="action-count">{{ register_now | length }} state{% if register_now | length != 1 %}s{% endif %}</span>
+                <table>
+                    <tr>
+                        <td style="width: 35pt;">
+                            <span class="action-icon">!</span>
+                        </td>
+                        <td>
+                            <span class="action-title">Register Now</span>
+                        </td>
+                        <td class="action-count">{{ register_now | length }} state{% if register_now | length != 1 %}s{% endif %}</td>
+                    </tr>
+                </table>
             </div>
             <div class="action-body">
                 {% if register_now %}
-                <p class="text-muted text-small mb-1">
+                <p class="action-description">
                     These states have confirmed nexus. Immediate registration is recommended to avoid additional penalties.
                 </p>
-                <table>
+                <table class="data-table">
                     <thead>
                         <tr>
                             <th>State</th>
@@ -62,7 +66,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                <p class="text-small text-muted">[source: 28]</p>
+                <p class="source-ref">[source: 28]</p>
                 {% else %}
                 <p class="text-muted">No states require immediate registration.</p>
                 {% endif %}
@@ -72,16 +76,24 @@
         <!-- Consider VDA Section -->
         <div class="action-section">
             <div class="action-header caution">
-                <div class="action-icon">$</div>
-                <span class="action-title">Consider VDA</span>
-                <span class="action-count">Save up to ${{ "{:,.0f}".format(total_vda_savings) }}</span>
+                <table>
+                    <tr>
+                        <td style="width: 35pt;">
+                            <span class="action-icon">$</span>
+                        </td>
+                        <td>
+                            <span class="action-title">Consider VDA</span>
+                        </td>
+                        <td class="action-count">Save up to ${{ "{:,.0f}".format(total_vda_savings) }}</td>
+                    </tr>
+                </table>
             </div>
             <div class="action-body">
                 {% if consider_vda %}
-                <p class="text-muted text-small mb-1">
+                <p class="action-description">
                     Voluntary Disclosure Agreements can reduce or eliminate penalties. Consider VDA before registering.
                 </p>
-                <table>
+                <table class="data-table">
                     <thead>
                         <tr>
                             <th>State</th>
@@ -106,7 +118,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                <p class="text-small text-muted">[source: 32]</p>
+                <p class="source-ref">[source: 32]</p>
 
                 <div class="vda-box mt-2">
                     <div class="vda-title">Total Potential VDA Savings</div>
@@ -121,16 +133,24 @@
         <!-- Monitor Section -->
         <div class="action-section">
             <div class="action-header monitor">
-                <div class="action-icon">~</div>
-                <span class="action-title">Monitor</span>
-                <span class="action-count">{{ monitor | length }} state{% if monitor | length != 1 %}s{% endif %}</span>
+                <table>
+                    <tr>
+                        <td style="width: 35pt;">
+                            <span class="action-icon">~</span>
+                        </td>
+                        <td>
+                            <span class="action-title">Monitor</span>
+                        </td>
+                        <td class="action-count">{{ monitor | length }} state{% if monitor | length != 1 %}s{% endif %}</td>
+                    </tr>
+                </table>
             </div>
             <div class="action-body">
                 {% if monitor %}
-                <p class="text-muted text-small mb-1">
+                <p class="action-description">
                     These states are approaching economic nexus thresholds. Continue monitoring sales activity.
                 </p>
-                <table>
+                <table class="data-table">
                     <thead>
                         <tr>
                             <th>State</th>
@@ -148,14 +168,7 @@
                             </td>
                             <td class="text-right currency">${{ "{:,.0f}".format(state.current_sales) }}</td>
                             <td class="text-right currency">${{ "{:,.0f}".format(state.threshold) }}</td>
-                            <td>
-                                <div class="progress-container" style="width: 120px; display: inline-block;">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill warning" style="width: {{ [state.threshold_percent, 100] | min }}%;"></div>
-                                    </div>
-                                </div>
-                                <span class="text-small" style="margin-left: 0.1in;">{{ state.threshold_percent | round(0) | int }}%</span>
-                            </td>
+                            <td class="text-center">{{ state.threshold_percent | round(0) | int }}%</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -167,10 +180,14 @@
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Red Footer Bar -->
     <div class="page-footer">
-        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
-        <span class="page-number">PAGE 4</span>
+        <table>
+            <tr>
+                <td>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</td>
+                <td style="text-align: right;"><span class="page-number">PAGE 4</span></td>
+            </tr>
+        </table>
     </div>
 </div>
 {% endblock %}

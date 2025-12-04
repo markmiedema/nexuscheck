@@ -2,226 +2,168 @@
 
 {% block content %}
 <div class="page">
-    <!-- State Header with Navy-to-Red Gradient -->
+    <!-- State Header -->
     <div class="state-header">
-        <div>
-            <span class="state-name">{{ state_name }}</span>
-            <span class="state-code">({{ state_code }})</span>
-        </div>
-        <div class="nexus-badge {% if nexus_status == 'approaching' %}approaching{% elif nexus_status == 'no_nexus' %}no-nexus{% endif %}">
-            {% if nexus_status == 'has_nexus' %}HAS NEXUS{% elif nexus_status == 'approaching' %}APPROACHING{% else %}NO NEXUS{% endif %}
-        </div>
+        <table>
+            <tr>
+                <td>
+                    <span class="state-name">{{ state_name }}</span>
+                    <span class="state-code">({{ state_code }})</span>
+                </td>
+                <td style="text-align: right;">
+                    <span class="nexus-badge">
+                        {% if nexus_status == 'has_nexus' %}HAS NEXUS{% elif nexus_status == 'approaching' %}APPROACHING{% else %}NO NEXUS{% endif %}
+                    </span>
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <div class="page-content" style="padding-top: 0.35in;">
-        <!-- Threshold Progress Bar (for approaching states) -->
-        {% if nexus_status == 'approaching' %}
-        <div class="progress-container mb-2">
-            <div class="data-row" style="margin-bottom: 0.08in;">
-                <span class="data-label">Progress to Nexus Threshold</span>
-                <span class="data-value">{{ threshold_percent | round(0) | int }}%</span>
-            </div>
-            <div class="progress-bar" style="height: 12px;">
-                <div class="progress-fill warning" style="width: {{ [threshold_percent, 100] | min }}%;"></div>
-            </div>
-            <div class="progress-labels">
-                <span>Current: ${{ "{:,.0f}".format(total_sales) }}</span>
-                <span>Threshold: ${{ "{:,.0f}".format(threshold) }}</span>
-            </div>
-            {% if amount_until_nexus > 0 %}
-            <p class="text-small text-muted text-center mt-1">
-                ${{ "{:,.0f}".format(amount_until_nexus) }} remaining until nexus threshold
-            </p>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        <div class="data-grid">
-            <!-- Sales Summary -->
-            <div class="data-card">
-                <h4>Sales Summary</h4>
-                <div class="data-row">
-                    <span class="data-label">Total Sales</span>
-                    <span class="data-value currency">${{ "{:,.0f}".format(total_sales) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Direct Sales</span>
-                    <span class="data-value currency">${{ "{:,.0f}".format(direct_sales) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Marketplace Sales</span>
-                    <span class="data-value currency">${{ "{:,.0f}".format(marketplace_sales) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Taxable Sales</span>
-                    <span class="data-value highlight currency">${{ "{:,.0f}".format(taxable_sales) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Exempt Sales</span>
-                    <span class="data-value currency">${{ "{:,.0f}".format(exempt_sales) }}</span>
-                </div>
-            </div>
-
-            <!-- Liability Predictions -->
-            <div class="data-card">
-                <h4>Liability Predictions</h4>
-                <div class="data-row">
-                    <span class="data-label">Base Tax</span>
-                    <span class="data-value currency">${{ "{:,.2f}".format(base_tax) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Totales Risk:</span>
-                    <span class="data-value currency">${{ "{:,.2f}".format(estimated_liability) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Interest</span>
-                    <span class="data-value currency">${{ "{:,.2f}".format(interest) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Avg. Legf. C-BTC:</span>
-                    <span class="data-value currency">${{ "{:,.2f}".format(base_tax + interest) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Penalties</span>
-                    <span class="data-value currency">${{ "{:,.2f}".format(penalties) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Diar Staces:</span>
-                    <span class="data-value currency">${{ "{:,.2f}".format(direct_sales) }}</span>
-                </div>
-                <div class="data-row" style="border-top: 2px solid #dee2e6; margin-top: 0.08in; padding-top: 0.08in;">
-                    <span class="data-label"><strong>Est. Remittance</strong></span>
-                    <span class="data-value highlight currency"><strong>${{ "{:,.2f}".format(estimated_liability) }}</strong></span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Total Reves:</span>
-                    <span class="data-value currency">${{ "{:,.2f}".format(penalties) }}</span>
-                </div>
-            </div>
-        </div>
+    <div class="page-content">
+        <!-- Data Cards using table -->
+        <table class="data-cards-table">
+            <tr>
+                <td>
+                    <div class="data-card-title">SALES SUMMARY</div>
+                    <table class="data-row-table">
+                        <tr>
+                            <td class="label">Total Sales</td>
+                            <td class="value currency">${{ "{:,.0f}".format(total_sales) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Direct Sales</td>
+                            <td class="value currency">${{ "{:,.0f}".format(direct_sales) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Marketplace Sales</td>
+                            <td class="value currency">${{ "{:,.0f}".format(marketplace_sales) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Taxable Sales</td>
+                            <td class="value highlight currency">${{ "{:,.0f}".format(taxable_sales) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Exempt Sales</td>
+                            <td class="value currency">${{ "{:,.0f}".format(exempt_sales) }}</td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <div class="data-card-title">LIABILITY PREDICTIONS</div>
+                    <table class="data-row-table">
+                        <tr>
+                            <td class="label">Base Tax</td>
+                            <td class="value currency">${{ "{:,.2f}".format(base_tax) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Interest</td>
+                            <td class="value currency">${{ "{:,.2f}".format(interest) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Penalties</td>
+                            <td class="value currency">${{ "{:,.2f}".format(penalties) }}</td>
+                        </tr>
+                        <tr style="border-top: 2px solid #dee2e6;">
+                            <td class="label"><strong>Est. Liability</strong></td>
+                            <td class="value highlight currency"><strong>${{ "{:,.2f}".format(estimated_liability) }}</strong></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
         <!-- VDA Savings Box -->
         {% if vda_savings and vda_savings > 0 %}
         <div class="vda-box">
             <div class="vda-title">Voluntary Disclosure Agreement Opportunity</div>
-            <div class="data-grid" style="margin: 0.08in 0 0 0; gap: 0.4in;">
-                <div>
-                    <div class="data-row">
-                        <span class="data-label">Liability Without VDA</span>
-                        <span class="data-value currency">${{ "{:,.2f}".format(before_vda) }}</span>
-                    </div>
-                    <div class="data-row">
-                        <span class="data-label">Liability With VDA</span>
-                        <span class="data-value currency">${{ "{:,.2f}".format(with_vda) }}</span>
-                    </div>
-                </div>
-                <div style="text-align: center;">
-                    <div class="text-small text-muted">Potential Savings</div>
-                    <div class="vda-amount">${{ "{:,.0f}".format(vda_savings) }}</div>
-                </div>
-            </div>
+            <table style="width: 100%;">
+                <tr>
+                    <td style="width: 60%;">
+                        <table class="data-row-table">
+                            <tr>
+                                <td class="label">Liability Without VDA</td>
+                                <td class="value currency">${{ "{:,.2f}".format(before_vda) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label">Liability With VDA</td>
+                                <td class="value currency">${{ "{:,.2f}".format(with_vda) }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="text-align: center;">
+                        <div class="text-small text-muted">Potential Savings</div>
+                        <div class="vda-amount">${{ "{:,.0f}".format(vda_savings) }}</div>
+                    </td>
+                </tr>
+            </table>
         </div>
         {% endif %}
 
-        <div class="data-grid">
-            <!-- Threshold Requirements -->
-            <div class="data-card">
-                <h4>Visibility Respective Opertainment Department</h4>
-                <div class="data-row">
-                    <span class="data-label">Bassus Results</span>
-                    <span class="data-value">CHGOOBN</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Key Rllt:</span>
-                    <span class="data-value">0.00%</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Texsant Prefdient:</span>
-                    <span class="data-value">{{ "{:.2f}%".format(state_rate) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Avg. Legf. C-BTC:</span>
-                    <span class="data-value">{{ "{:.2f}%".format(avg_local_rate) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Best Pres:</span>
-                    <span class="data-value currency">${{ "{:,.0f}".format(threshold) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Bist Sales:</span>
-                    <span class="data-value">{{ "{:.2f}%".format(threshold_percent) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Baynon Fies:</span>
-                    <span class="data-value currency">${{ "{:,.2f}".format(penalties) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Tax Panality:</span>
-                    <span class="data-value">{{ "{:.2f}%".format(combined_rate) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Baynon Hyps:</span>
-                    <span class="data-value">{{ "{:.2f}%".format(interest / (estimated_liability + 0.01) * 100) }}</span>
-                </div>
-            </div>
-
-            <!-- Tax Rates & Filing -->
-            <div class="data-card">
-                <h4>Tax Rates & Filing</h4>
-                <div class="data-row">
-                    <span class="data-label">State Rate</span>
-                    <span class="data-value">{{ "{:.3f}%".format(state_rate) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Avg. Local C-STC</span>
-                    <span class="data-value">{{ "{:.3f}%".format(avg_local_rate) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Combined Rate</span>
-                    <span class="data-value highlight">{{ "{:.3f}%".format(combined_rate) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Weability:</span>
-                    <span class="data-value">17.315</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Tonal Frequency:</span>
-                    <span class="data-value currency">${{ "{:,.2f}".format(base_tax) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Filing Frequency</span>
-                    <span class="data-value">{{ filing_frequency | default('Monthly') }}</span>
-                </div>
-            </div>
-        </div>
+        <!-- Second Row of Data Cards -->
+        <table class="data-cards-table">
+            <tr>
+                <td>
+                    <div class="data-card-title">THRESHOLD REQUIREMENTS</div>
+                    <table class="data-row-table">
+                        <tr>
+                            <td class="label">Revenue Threshold</td>
+                            <td class="value currency">${{ "{:,.0f}".format(threshold) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Current Progress</td>
+                            <td class="value">{{ "{:.1f}%".format(threshold_percent) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Transaction Threshold</td>
+                            <td class="value">200 transactions</td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <div class="data-card-title">TAX RATES & FILING</div>
+                    <table class="data-row-table">
+                        <tr>
+                            <td class="label">State Rate</td>
+                            <td class="value">{{ "{:.3f}%".format(state_rate) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Avg. Local Rate</td>
+                            <td class="value">{{ "{:.3f}%".format(avg_local_rate) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Combined Rate</td>
+                            <td class="value highlight">{{ "{:.3f}%".format(combined_rate) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Filing Frequency</td>
+                            <td class="value">{{ filing_frequency | default('Monthly') }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
         <!-- Year-by-Year Breakdown -->
         {% if year_data and year_data | length > 0 %}
         <h3 class="mt-2">Year-by-Year Breakdown</h3>
-        <table>
+        <table class="data-table">
             <thead>
                 <tr>
-                    <th>Store</th>
-                    <th>Discation</th>
-                    <th class="text-right">Toal Sex</th>
-                    <th class="text-center">Bon</th>
-                    <th class="text-center">Tax</th>
-                    <th class="text-center">Texan</th>
-                    <th class="text-right">Tax Total</th>
-                    <th class="text-right">Nilk Value</th>
+                    <th>Year</th>
+                    <th class="text-right">Total Sales</th>
+                    <th class="text-right">Taxable Sales</th>
+                    <th class="text-right">Base Tax</th>
+                    <th class="text-right">Est. Liability</th>
                 </tr>
             </thead>
             <tbody>
                 {% for year in year_data %}
                 <tr>
                     <td><strong>{{ year.year }}</strong></td>
-                    <td>{{ "%08d" | format((year.year * 1000 + 100) | int) }}am</td>
-                    <td class="text-right currency">{{ "%08d" | format(year.total_sales | int) }}</td>
-                    <td class="text-center">{{ (year.base_tax / 100) | round(0) | int }}</td>
-                    <td class="text-center">10</td>
-                    <td class="text-center">M</td>
-                    <td class="text-right">{{ (year.total_sales / 100) | round(0) | int }}</td>
-                    <td class="text-right currency">${{ "{:,.0f}".format(year.estimated_liability) }}</td>
+                    <td class="text-right currency">${{ "{:,.0f}".format(year.total_sales) }}</td>
+                    <td class="text-right currency">${{ "{:,.0f}".format(year.taxable_sales) }}</td>
+                    <td class="text-right currency">${{ "{:,.2f}".format(year.base_tax) }}</td>
+                    <td class="text-right currency font-bold">${{ "{:,.0f}".format(year.estimated_liability) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -229,10 +171,14 @@
         {% endif %}
     </div>
 
-    <!-- Footer -->
+    <!-- Red Footer Bar -->
     <div class="page-footer">
-        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
-        <span class="page-number">PAGE</span>
+        <table>
+            <tr>
+                <td>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</td>
+                <td style="text-align: right;"><span class="page-number">PAGE</span></td>
+            </tr>
+        </table>
     </div>
 </div>
 {% endblock %}
