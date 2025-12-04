@@ -3,24 +3,20 @@
 {% block content %}
 <!-- Complete State Summary Page -->
 <div class="page">
-    <!-- Page Header -->
+    <!-- Navy Header Bar -->
     <div class="page-header">
-        <div class="page-header-left">
-            {% if logo_data_uri %}
-            <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
-            {% else %}
-            <svg width="80" height="32" viewBox="0 0 180 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 60L30 12L55 60H45L40 50H20L15 60H5Z" fill="#c8102e"/>
-                <path d="M30 22L37 40H23L30 22Z" fill="white"/>
-                <text x="60" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">S</text>
-                <text x="95" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">T</text>
-            </svg>
-            {% endif %}
-            <div class="page-header-title">
-                <h1>NEXUS ANALYSIS REPORT</h1>
-                <div class="subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
-            </div>
-        </div>
+        <table>
+            <tr>
+                <td style="width: 100pt;">
+                    <span class="header-logo"><span class="header-logo-a">A</span>ST</span>
+                </td>
+                <td>
+                    <span class="header-divider"></span>
+                    <span class="header-title">NEXUS ANALYSIS REPORT</span>
+                    <div class="header-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="page-content">
@@ -29,7 +25,7 @@
             Full list of all states with sales activity during the analysis period.
         </p>
 
-        <table class="summary-table">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>State</th>
@@ -71,60 +67,66 @@
             </tbody>
         </table>
 
-        <div class="data-card mt-2">
-            <h4>Data Period Summary</h4>
-            <div class="data-row">
-                <span class="data-label">Analysis Period</span>
-                <span class="data-value">
-                    {% if period_start and period_end %}
-                    {{ period_start }} - {{ period_end }}
-                    {% else %}
-                    As of {{ report_date }}
-                    {% endif %}
-                </span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">Total Transactions Analyzed</span>
-                <span class="data-value">{{ "{:,}".format(total_transactions) }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">States with Activity</span>
-                <span class="data-value">{{ states_with_activity }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">Report Generated</span>
-                <span class="data-value">{{ report_date }}</span>
-            </div>
-        </div>
+        <table class="data-cards-table mt-2">
+            <tr>
+                <td>
+                    <div class="data-card-title">DATA PERIOD SUMMARY</div>
+                    <table class="data-row-table">
+                        <tr>
+                            <td class="label">Analysis Period</td>
+                            <td class="value">
+                                {% if period_start and period_end %}
+                                {{ period_start }} - {{ period_end }}
+                                {% else %}
+                                As of {{ report_date }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">Total Transactions Analyzed</td>
+                            <td class="value">{{ "{:,}".format(total_transactions) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">States with Activity</td>
+                            <td class="value">{{ states_with_activity }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Report Generated</td>
+                            <td class="value">{{ report_date }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <!-- Footer -->
+    <!-- Red Footer Bar -->
     <div class="page-footer">
-        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
-        <span class="page-number">PAGE</span>
+        <table>
+            <tr>
+                <td>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</td>
+                <td style="text-align: right;"><span class="page-number">PAGE</span></td>
+            </tr>
+        </table>
     </div>
 </div>
 
 <!-- Methodology Page -->
 <div class="page">
-    <!-- Page Header -->
+    <!-- Navy Header Bar -->
     <div class="page-header">
-        <div class="page-header-left">
-            {% if logo_data_uri %}
-            <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
-            {% else %}
-            <svg width="80" height="32" viewBox="0 0 180 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 60L30 12L55 60H45L40 50H20L15 60H5Z" fill="#c8102e"/>
-                <path d="M30 22L37 40H23L30 22Z" fill="white"/>
-                <text x="60" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">S</text>
-                <text x="95" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">T</text>
-            </svg>
-            {% endif %}
-            <div class="page-header-title">
-                <h1>NEXUS ANALYSIS REPORT</h1>
-                <div class="subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
-            </div>
-        </div>
+        <table>
+            <tr>
+                <td style="width: 100pt;">
+                    <span class="header-logo"><span class="header-logo-a">A</span>ST</span>
+                </td>
+                <td>
+                    <span class="header-divider"></span>
+                    <span class="header-title">NEXUS ANALYSIS REPORT</span>
+                    <div class="header-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="page-content">
@@ -133,92 +135,97 @@
         <div class="methodology-section">
             <h4>Nexus Determination</h4>
             <p>
-                Nexus Determination is the states enroot research over nexus ans regoomasisevowed
-                nexus duo mimitation rasurus coloures or callnao nest in rliaib ofl anotmlies,
-                aqrises, econviens to tnow, codersmatime, isas poop wranshas the manpet
-                poeiment in navvelne mondref orvesespmlon of seccilsling obfhone,
-                Assessment answers. [source: 156].
+                Economic nexus is determined by analyzing sales volume and transaction count against
+                each state's established thresholds. Following the South Dakota v. Wayfair decision (2018),
+                most states have adopted economic nexus standards, typically requiring sellers to collect
+                and remit sales tax once they exceed $100,000 in sales or 200 transactions within the state.
             </p>
         </div>
 
         <div class="methodology-section">
             <h4>Liability Estimation</h4>
             <p>
-                Liability Estimation is established foal oderos onere mx taxoro assess liability
-                Estimation to nesol price that the amnuaoref mimntory doctiatr seacilsling obfhone,
-                econowooded in r riecent mondrefeon & liability requests. [source: 156-151].
+                Tax liability estimates are calculated using state and local tax rates applied to taxable
+                sales. Interest is computed from the estimated nexus date using each state's statutory
+                interest rate. Penalties are estimated based on typical late filing and payment penalty
+                structures, which vary by state.
             </p>
         </div>
 
         <div class="methodology-section">
             <h4>VDA Savings Calculation</h4>
             <p>
-                VDA Savings Calculation is the calculaorator average number of coloente traoles
-                penalties. Consider management colivent whory development in bon, VDA
-                savings calculart and anmtend and convvert savinos procedures. [source: 130-151].
+                Voluntary Disclosure Agreement (VDA) savings represent the potential reduction in penalties
+                and interest that may be available through state VDA programs. Most states offer penalty
+                abatement and limited lookback periods for sellers who proactively come forward to register
+                and remit back taxes.
             </p>
         </div>
 
         <div class="methodology-section">
             <h4>Filing Frequency</h4>
             <p>
-                Filing Frequency is siminical nexus determnings the commony bis-pear liability
-                commenationald and filing frequency, as the corren ned-simiesdatislosucalve filing
-                mubosces al oci tke soving interrop or orap-anep, aftermath-stin filing frequency.
-                [source: 136-151].
+                Filing frequency recommendations are based on each state's filing requirements, which are
+                typically determined by annual tax liability. Common frequencies include monthly, quarterly,
+                and annual filing. Higher liability generally corresponds to more frequent filing requirements.
             </p>
         </div>
 
-        <div class="section-divider"></div>
-
-        <h2>Disclaimers</h2>
+        <h2 class="mt-2">Disclaimers</h2>
 
         <div class="disclaimer-box">
             <h4>Important Notice</h4>
             <p>
-                This grotes ocomotor documents and errors of occomeration, and c.est vesus
-                determnings artual imusremants and extinity purposes. By isternationsons on concept
-                difficly er generahos, with y antomoents, dociuments. 0 sensotrenal ans impone
-                encudes an ocardontons on voluosomaintonat narinwost ilusteclure econnanets and
-                additonal teisourees. [sources: 153-157]
+                This report is provided for informational purposes only and does not constitute legal,
+                tax, or professional advice. The analysis is based on the transaction data provided and
+                current state nexus laws as of the report date. Tax laws and thresholds are subject to
+                change, and actual liability may differ from estimates presented herein.
             </p>
             <p class="mt-1">
-                This Diclatoner is pinvideto to the compllevatilons enconderton are most
-                underscoatable cver ensmisslanents and macirataciuve of tis fvl
-                envousaballetect cver enshissments. Sources. All thise dependonos are mouphtd
-                moreve, we Foroldter dociuments rainly estnvatded at adrbon and ssoline florpotions
-                and liability sortration and ratio exitivation provitied massasrenuret in this
-                chainuines. [source: 153-157]
+                Liability estimates are approximations based on available data and standard tax rates.
+                Actual tax liability may vary based on product taxability, customer exemptions, and
+                jurisdiction-specific rules. We recommend consulting with a qualified tax professional
+                before making registration or filing decisions based on this analysis.
             </p>
         </div>
 
         {% if preparer_name or preparer_firm %}
-        <div class="data-card mt-2">
-            <h4>Report Prepared By</h4>
-            <div class="data-row">
-                {% if preparer_name %}
-                <span class="data-label">Preparer</span>
-                <span class="data-value">{{ preparer_name }}</span>
-                {% endif %}
-            </div>
-            {% if preparer_firm %}
-            <div class="data-row">
-                <span class="data-label">Firm</span>
-                <span class="data-value">{{ preparer_firm }}</span>
-            </div>
-            {% endif %}
-            <div class="data-row">
-                <span class="data-label">Date</span>
-                <span class="data-value">{{ report_date }}</span>
-            </div>
-        </div>
+        <table class="data-cards-table mt-2">
+            <tr>
+                <td>
+                    <div class="data-card-title">REPORT PREPARED BY</div>
+                    <table class="data-row-table">
+                        {% if preparer_name %}
+                        <tr>
+                            <td class="label">Preparer</td>
+                            <td class="value">{{ preparer_name }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if preparer_firm %}
+                        <tr>
+                            <td class="label">Firm</td>
+                            <td class="value">{{ preparer_firm }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td class="label">Date</td>
+                            <td class="value">{{ report_date }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
         {% endif %}
     </div>
 
-    <!-- Footer -->
+    <!-- Red Footer Bar -->
     <div class="page-footer">
-        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
-        <span class="page-number">PAGE</span>
+        <table>
+            <tr>
+                <td>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</td>
+                <td style="text-align: right;"><span class="page-number">PAGE</span></td>
+            </tr>
+        </table>
     </div>
 </div>
 {% endblock %}

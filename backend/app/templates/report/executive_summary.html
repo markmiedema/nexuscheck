@@ -3,130 +3,131 @@
 {% block content %}
 <!-- Executive Summary Page -->
 <div class="page">
-    <!-- Page Header -->
+    <!-- Navy Header Bar -->
     <div class="page-header">
-        <div class="page-header-left">
-            {% if logo_data_uri %}
-            <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
-            {% else %}
-            <svg width="80" height="32" viewBox="0 0 180 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 60L30 12L55 60H45L40 50H20L15 60H5Z" fill="#c8102e"/>
-                <path d="M30 22L37 40H23L30 22Z" fill="white"/>
-                <text x="60" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">S</text>
-                <text x="95" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">T</text>
-            </svg>
-            {% endif %}
-            <div class="page-header-title">
-                <h1>NEXUS ANALYSIS REPORT</h1>
-                <div class="subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
-            </div>
-        </div>
+        <table>
+            <tr>
+                <td style="width: 100pt;">
+                    <span class="header-logo"><span class="header-logo-a">A</span>ST</span>
+                </td>
+                <td>
+                    <span class="header-divider"></span>
+                    <span class="header-title">NEXUS ANALYSIS REPORT</span>
+                    <div class="header-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="page-content">
         <h2>Executive Summary</h2>
 
-        <!-- Key Metrics -->
-        <div class="metrics-row">
-            <div class="metric-card {% if states_with_nexus > 0 %}danger{% else %}success{% endif %}">
-                <div class="metric-value">{{ states_with_nexus }}</div>
-                <div class="metric-label">States with Nexus</div>
-            </div>
+        <!-- Three Metric Cards using table -->
+        <table class="metrics-table">
+            <tr>
+                <td class="{% if states_with_nexus > 0 %}metric-red{% else %}metric-navy{% endif %}">
+                    <div class="metric-value">{{ states_with_nexus }}</div>
+                    <div class="metric-label">States with Nexus</div>
+                </td>
+                <td class="{% if total_exposure > 0 %}metric-red{% else %}metric-navy{% endif %}">
+                    <div class="metric-value">${{ "{:,.0f}".format(total_exposure) }}</div>
+                    <div class="metric-label">Total Exposure</div>
+                </td>
+                <td class="metric-green">
+                    <div class="metric-value">${{ "{:,.0f}".format(vda_savings) }}</div>
+                    <div class="metric-label">VDA Savings</div>
+                </td>
+            </tr>
+        </table>
 
-            <div class="metric-card {% if total_exposure > 0 %}danger{% endif %}">
-                <div class="metric-value">${{ "{:,.0f}".format(total_exposure) }}</div>
-                <div class="metric-label">Total Exposure</div>
-            </div>
-
-            <div class="metric-card success">
-                <div class="metric-value">${{ "{:,.0f}".format(vda_savings) }}</div>
-                <div class="metric-label">VDA Savings</div>
-            </div>
-        </div>
-
-        <!-- Narrative -->
+        <!-- Narrative Box -->
         <div class="narrative-box">
             {{ narrative }}
         </div>
 
-        <!-- Overview Data -->
-        <div class="data-grid">
-            <div class="data-card">
-                <h4>Analysis Summary</h4>
-                <div class="data-row">
-                    <span class="data-label">Total States Analyzed</span>
-                    <span class="data-value">{{ total_states_analyzed }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">States with Sales Activity</span>
-                    <span class="data-value">{{ states_with_activity }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">States with Nexus</span>
-                    <span class="data-value highlight">{{ states_with_nexus }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">States Approaching</span>
-                    <span class="data-value" style="color: #d97706;">{{ states_approaching }}</span>
-                </div>
-            </div>
-
-            <div class="data-card">
-                <h4>Financial Summary</h4>
-                <div class="data-row">
-                    <span class="data-label">Total Sales</span>
-                    <span class="data-value currency">${{ "{:,.0f}".format(total_sales) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Taxable Sales</span>
-                    <span class="data-value currency">${{ "{:,.0f}".format(taxable_sales) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Estimated Tax Liability</span>
-                    <span class="data-value highlight currency">${{ "{:,.0f}".format(total_liability) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Interest & Penalties</span>
-                    <span class="data-value currency">${{ "{:,.0f}".format(interest_and_penalties) }}</span>
-                </div>
-            </div>
-        </div>
+        <!-- Data Cards using table -->
+        <table class="data-cards-table">
+            <tr>
+                <td>
+                    <div class="data-card-title">ANALYSIS SUMMARY</div>
+                    <table class="data-row-table">
+                        <tr>
+                            <td class="label">Total States Analyzed</td>
+                            <td class="value">{{ total_states_analyzed }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">States with Sales Activity</td>
+                            <td class="value">{{ states_with_activity }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">States with Nexus</td>
+                            <td class="value highlight">{{ states_with_nexus }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">States Approaching</td>
+                            <td class="value warning">{{ states_approaching }}</td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <div class="data-card-title">FINANCIAL SUMMARY</div>
+                    <table class="data-row-table">
+                        <tr>
+                            <td class="label">Total Sales</td>
+                            <td class="value currency">${{ "{:,.0f}".format(total_sales) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Taxable Sales</td>
+                            <td class="value currency">${{ "{:,.0f}".format(taxable_sales) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Estimated Tax Liability</td>
+                            <td class="value highlight currency">${{ "{:,.0f}".format(total_liability) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Interest & Penalties</td>
+                            <td class="value currency">${{ "{:,.0f}".format(interest_and_penalties) }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <!-- Footer -->
+    <!-- Red Footer Bar -->
     <div class="page-footer">
-        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
-        <span class="page-number">PAGE 2</span>
+        <table>
+            <tr>
+                <td>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</td>
+                <td style="text-align: right;"><span class="page-number">PAGE 2</span></td>
+            </tr>
+        </table>
     </div>
 </div>
 
 <!-- Top States by Liability Page -->
 {% if states_with_nexus > 0 %}
 <div class="page">
-    <!-- Page Header -->
+    <!-- Navy Header Bar -->
     <div class="page-header">
-        <div class="page-header-left">
-            {% if logo_data_uri %}
-            <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
-            {% else %}
-            <svg width="80" height="32" viewBox="0 0 180 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 60L30 12L55 60H45L40 50H20L15 60H5Z" fill="#c8102e"/>
-                <path d="M30 22L37 40H23L30 22Z" fill="white"/>
-                <text x="60" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">S</text>
-                <text x="95" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">T</text>
-            </svg>
-            {% endif %}
-            <div class="page-header-title">
-                <h1>NEXUS ANALYSIS REPORT</h1>
-                <div class="subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
-            </div>
-        </div>
+        <table>
+            <tr>
+                <td style="width: 100pt;">
+                    <span class="header-logo"><span class="header-logo-a">A</span>ST</span>
+                </td>
+                <td>
+                    <span class="header-divider"></span>
+                    <span class="header-title">NEXUS ANALYSIS REPORT</span>
+                    <div class="header-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="page-content">
         <h2>Top States by Liability</h2>
 
-        <table>
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>State</th>
@@ -149,30 +150,27 @@
                 {% endfor %}
             </tbody>
         </table>
-        <p class="text-small text-muted">[source: 28]</p>
+        <p class="source-ref">[source: 28]</p>
 
         {% if total_vda_savings > 0 %}
         <div class="vda-box">
-            <div class="vda-title">Consider VDA {{ consider_vda | length }} states &nbsp; Save up to ${{ "{:,.0f}".format(total_vda_savings) }}</div>
-            <p style="font-size: 8.5pt; color: #047857; margin-bottom: 0.15in;">
+            <div class="vda-title">CONSIDER VDA {{ consider_vda | length }} STATES &nbsp;&nbsp;&nbsp; SAVE UP TO ${{ "{:,.0f}".format(total_vda_savings) }}</div>
+            <p style="font-size: 8pt; color: #047857; margin-bottom: 12pt;">
                 Voluntary Disclosure Agreements can reduce or eliminate penalties. Consider VDA before registering.
             </p>
-            <table style="margin: 0.1in 0;">
+            <table class="data-table vda-table">
                 <thead>
                     <tr>
-                        <th>State</th>
-                        <th class="text-right">Without VDA</th>
-                        <th class="text-right">With VDA</th>
-                        <th class="text-right">Potential Savings</th>
+                        <th>STATE</th>
+                        <th class="text-right">WITHOUT VDA</th>
+                        <th class="text-right">WITH VDA</th>
+                        <th class="text-right">POTENTIAL SAVINGS</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for state in consider_vda %}
                     <tr>
-                        <td>
-                            <span class="status-dot yellow"></span>
-                            <strong>{{ state.state_name }}</strong>
-                        </td>
+                        <td><strong>{{ state.state_name }}</strong></td>
                         <td class="text-right currency">${{ "{:,.0f}".format(state.before_vda) }}</td>
                         <td class="text-right currency">${{ "{:,.0f}".format(state.with_vda) }}</td>
                         <td class="text-right currency" style="color: #059669; font-weight: 700;">
@@ -182,8 +180,8 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <p class="text-small text-muted">[source: 32]</p>
-            <div style="text-align: center; margin-top: 0.15in;">
+            <p class="source-ref">[source: 32]</p>
+            <div style="text-align: center; margin-top: 12pt;">
                 <span style="font-size: 10pt; color: #047857; font-weight: 600;">Total Potential VDA Savings: </span>
                 <span class="vda-amount">${{ "{:,.0f}".format(total_vda_savings) }}</span>
             </div>
@@ -191,23 +189,35 @@
         {% endif %}
 
         {% if monitor | length > 0 %}
-        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; border-radius: 4px; padding: 0.15in 0.2in; margin-top: 0.2in;">
-            <div style="display: flex; align-items: center; gap: 0.1in;">
-                <span style="width: 0.25in; height: 0.25in; background: #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 9pt;">~</span>
-                <span style="font-size: 10pt; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 1px;">MONITOR</span>
-                <span style="margin-left: auto; font-size: 9pt; color: #059669;">{{ monitor | length }} state{% if monitor | length != 1 %}s{% endif %}</span>
-            </div>
-            <p style="font-size: 8pt; color: #047857; margin: 0.1in 0 0 0;">
+        <div style="background: #f0fdf4; border: 1px solid #86efac; padding: 12pt 15pt; margin-top: 15pt;">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="width: 30pt;">
+                        <span style="display: inline-block; width: 20pt; height: 20pt; background: #059669; border-radius: 50%; text-align: center; line-height: 20pt; color: white; font-weight: 700;">~</span>
+                    </td>
+                    <td>
+                        <span style="font-size: 10pt; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 1px;">MONITOR</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <span style="font-size: 9pt; color: #059669;">{{ monitor | length }} state{% if monitor | length != 1 %}s{% endif %}</span>
+                    </td>
+                </tr>
+            </table>
+            <p style="font-size: 8pt; color: #047857; margin: 8pt 0 0 0;">
                 No states are currently approaching threshold.
             </p>
         </div>
         {% endif %}
     </div>
 
-    <!-- Footer -->
+    <!-- Red Footer Bar -->
     <div class="page-footer">
-        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
-        <span class="page-number">PAGE 3</span>
+        <table>
+            <tr>
+                <td>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</td>
+                <td style="text-align: right;"><span class="page-number">PAGE 3</span></td>
+            </tr>
+        </table>
     </div>
 </div>
 {% endif %}
