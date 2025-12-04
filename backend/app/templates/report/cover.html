@@ -2,12 +2,23 @@
 
 {% block content %}
 <div class="page cover-page">
-    <!-- Header with Logo -->
+    <!-- Header with AST Logo -->
     <div class="cover-header">
         {% if logo_data_uri %}
         <img src="{{ logo_data_uri }}" alt="Company Logo" class="cover-logo" />
         {% else %}
-        <div style="font-size: 48pt; font-weight: 700; color: white;">AST</div>
+        <!-- AST Logo - Stylized Design -->
+        <div class="cover-logo-container">
+            <svg width="180" height="72" viewBox="0 0 180 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Stylized A with Red Accent -->
+                <path d="M5 60L30 12L55 60H45L40 50H20L15 60H5Z" fill="#c8102e"/>
+                <path d="M30 22L37 40H23L30 22Z" fill="white"/>
+                <!-- S -->
+                <text x="60" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">S</text>
+                <!-- T -->
+                <text x="95" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">T</text>
+            </svg>
+        </div>
         {% endif %}
     </div>
 
@@ -48,7 +59,8 @@
 
     <!-- Footer -->
     <div class="cover-footer">
-        <span>PREPARED BY: AST | Advisory & Compliance</span>
+        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
+        <span style="background: white; color: #c8102e; padding: 0.04in 0.12in; border-radius: 2px; font-weight: 700;">PAGE 1</span>
     </div>
 </div>
 {% endblock %}
