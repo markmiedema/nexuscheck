@@ -2,27 +2,53 @@
 
 {% block content %}
 <div class="page cover-page">
-    <div class="cover-logo">NexusCheck</div>
-    <div class="cover-title">Nexus Analysis Report</div>
-    <div class="cover-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
-
-    <div class="cover-client">{{ client_name }}</div>
-    <div class="cover-period">
-        {% if period_start and period_end %}
-        Analysis Period: {{ period_start }} - {{ period_end }}
+    <!-- Header with Logo -->
+    <div class="cover-header">
+        {% if logo_data_uri %}
+        <img src="{{ logo_data_uri }}" alt="Company Logo" class="cover-logo" />
         {% else %}
-        Analysis as of {{ report_date }}
+        <div style="font-size: 48pt; font-weight: 700; color: white;">AST</div>
         {% endif %}
     </div>
 
-    <div class="cover-meta">
-        <p>Report Generated: {{ report_date }}</p>
-        {% if preparer_name %}
-        <p>Prepared by: {{ preparer_name }}</p>
-        {% endif %}
-        {% if preparer_firm %}
-        <p>{{ preparer_firm }}</p>
-        {% endif %}
+    <!-- Main Content -->
+    <div class="cover-main">
+        <div class="cover-title">NEXUS ANALYSIS<br>REPORT</div>
+        <div class="cover-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+
+        <div class="cover-divider"></div>
+
+        <div class="cover-meta">
+            <div class="cover-meta-item">
+                <span class="cover-meta-label">PREPARED FOR:</span>
+                <span class="cover-meta-value">{{ client_name }}</span>
+            </div>
+            <div class="cover-meta-item">
+                <span class="cover-meta-label">ANALYSIS PERIOD:</span>
+                <span class="cover-meta-value">
+                    {% if period_start and period_end %}
+                    {{ period_start }} - {{ period_end }}
+                    {% else %}
+                    As of {{ report_date }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="cover-meta-item">
+                <span class="cover-meta-label">REPORT DATE:</span>
+                <span class="cover-meta-value">{{ report_date }}</span>
+            </div>
+            {% if preparer_name %}
+            <div class="cover-meta-item">
+                <span class="cover-meta-label">PREPARED BY:</span>
+                <span class="cover-meta-value">{{ preparer_name }}{% if preparer_firm %}, {{ preparer_firm }}{% endif %}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="cover-footer">
+        <span>PREPARED BY: AST | Advisory & Compliance</span>
     </div>
 </div>
 {% endblock %}

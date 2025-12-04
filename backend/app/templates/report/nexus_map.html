@@ -1,0 +1,87 @@
+{% extends "report/base.html" %}
+
+{% block content %}
+<div class="page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-left">
+            {% if logo_data_uri %}
+            <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
+            {% endif %}
+            <div class="page-header-title">
+                <h1>NEXUS ANALYSIS REPORT</h1>
+                <div class="subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <h2>Nexus Map Overview</h2>
+        <p class="text-muted text-small mb-1">
+            Visual representation of sales tax nexus status across all U.S. states based on the analysis period.
+        </p>
+
+        <div class="map-container">
+            {{ nexus_map_svg | safe }}
+        </div>
+
+        <div class="data-grid">
+            <div class="data-card">
+                <h4>Nexus Summary</h4>
+                <div class="data-row">
+                    <span class="data-label">
+                        <span class="status-dot red"></span>
+                        States with Nexus
+                    </span>
+                    <span class="data-value highlight">{{ states_with_nexus }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">
+                        <span class="status-dot yellow"></span>
+                        States Approaching
+                    </span>
+                    <span class="data-value" style="color: #d97706;">{{ states_approaching }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">
+                        <span class="status-dot green"></span>
+                        States with Activity (No Nexus)
+                    </span>
+                    <span class="data-value">{{ states_with_activity - states_with_nexus - states_approaching }}</span>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <h4>Nexus Types Breakdown</h4>
+                <div class="data-row">
+                    <span class="data-label">
+                        <span class="status-dot" style="background: #b83030;"></span>
+                        Economic Nexus
+                    </span>
+                    <span class="data-value">{{ economic_nexus_count | default(0) }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">
+                        <span class="status-dot" style="background: #5a6d8a;"></span>
+                        Physical Nexus
+                    </span>
+                    <span class="data-value">{{ physical_nexus_count | default(0) }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">
+                        <span class="status-dot" style="background: #9144a3;"></span>
+                        Both Types
+                    </span>
+                    <span class="data-value">{{ both_nexus_count | default(0) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
+        <span class="page-number">PAGE 2</span>
+    </div>
+</div>
+{% endblock %}

@@ -2,107 +2,156 @@
 
 {% block content %}
 <div class="page">
-    <h2>Executive Summary</h2>
-
-    <div class="big-numbers">
-        <div class="big-number-card">
-            <div class="big-number-value {% if states_with_nexus > 0 %}danger{% else %}success{% endif %}">
-                {{ states_with_nexus }}
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-left">
+            {% if logo_data_uri %}
+            <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
+            {% endif %}
+            <div class="page-header-title">
+                <h1>NEXUS ANALYSIS REPORT</h1>
+                <div class="subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
             </div>
-            <div class="big-number-label">States with Nexus</div>
-        </div>
-
-        <div class="big-number-card">
-            <div class="big-number-value {% if total_exposure > 0 %}danger{% else %}success{% endif %}">
-                ${{ "{:,.0f}".format(total_exposure) }}
-            </div>
-            <div class="big-number-label">Total Estimated Exposure</div>
-        </div>
-
-        <div class="big-number-card">
-            <div class="big-number-value success">
-                ${{ "{:,.0f}".format(vda_savings) }}
-            </div>
-            <div class="big-number-label">Potential VDA Savings</div>
         </div>
     </div>
 
-    <div class="narrative-box">
-        {{ narrative }}
+    <div class="page-content">
+        <h2>Executive Summary</h2>
+
+        <!-- Key Metrics -->
+        <div class="metrics-row">
+            <div class="metric-card {% if states_with_nexus > 0 %}danger{% else %}success{% endif %}">
+                <div class="metric-value">{{ states_with_nexus }}</div>
+                <div class="metric-label">States with Nexus</div>
+            </div>
+
+            <div class="metric-card {% if total_exposure > 0 %}danger{% endif %}">
+                <div class="metric-value">${{ "{:,.0f}".format(total_exposure) }}</div>
+                <div class="metric-label">Total Exposure</div>
+            </div>
+
+            <div class="metric-card success">
+                <div class="metric-value">${{ "{:,.0f}".format(vda_savings) }}</div>
+                <div class="metric-label">VDA Savings</div>
+            </div>
+        </div>
+
+        <!-- Narrative -->
+        <div class="narrative-box">
+            {{ narrative }}
+        </div>
+
+        <!-- Overview Data -->
+        <div class="data-grid">
+            <div class="data-card">
+                <h4>Analysis Summary</h4>
+                <div class="data-row">
+                    <span class="data-label">Total States Analyzed</span>
+                    <span class="data-value">{{ total_states_analyzed }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">States with Sales Activity</span>
+                    <span class="data-value">{{ states_with_activity }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">States with Nexus</span>
+                    <span class="data-value highlight">{{ states_with_nexus }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">States Approaching</span>
+                    <span class="data-value" style="color: #d97706;">{{ states_approaching }}</span>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <h4>Financial Summary</h4>
+                <div class="data-row">
+                    <span class="data-label">Total Sales</span>
+                    <span class="data-value currency">${{ "{:,.0f}".format(total_sales) }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Taxable Sales</span>
+                    <span class="data-value currency">${{ "{:,.0f}".format(taxable_sales) }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Estimated Tax Liability</span>
+                    <span class="data-value highlight currency">${{ "{:,.0f}".format(total_liability) }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Interest & Penalties</span>
+                    <span class="data-value currency">${{ "{:,.0f}".format(interest_and_penalties) }}</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <h3 class="mt-2">Overview</h3>
-
-    <div class="data-grid">
-        <div class="data-card">
-            <h4>Analysis Summary</h4>
-            <div class="data-row">
-                <span class="data-label">Total States Analyzed</span>
-                <span class="data-value">{{ total_states_analyzed }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">States with Sales Activity</span>
-                <span class="data-value">{{ states_with_activity }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">States with Nexus</span>
-                <span class="data-value highlight">{{ states_with_nexus }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">States Approaching Threshold</span>
-                <span class="data-value">{{ states_approaching }}</span>
-            </div>
-        </div>
-
-        <div class="data-card">
-            <h4>Financial Summary</h4>
-            <div class="data-row">
-                <span class="data-label">Total Sales</span>
-                <span class="data-value">${{ "{:,.0f}".format(total_sales) }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">Taxable Sales (Exposure)</span>
-                <span class="data-value">${{ "{:,.0f}".format(taxable_sales) }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">Estimated Tax Liability</span>
-                <span class="data-value highlight">${{ "{:,.0f}".format(total_liability) }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">Interest & Penalties</span>
-                <span class="data-value">${{ "{:,.0f}".format(interest_and_penalties) }}</span>
-            </div>
-        </div>
+    <!-- Footer -->
+    <div class="page-footer">
+        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
+        <span class="page-number">PAGE 2</span>
     </div>
 </div>
 
-<!-- Top States on a new page -->
+<!-- Top States by Liability Page -->
 {% if states_with_nexus > 0 %}
 <div class="page">
-    <h2>Top States by Liability</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>State</th>
-                <th class="text-right">Total Sales</th>
-                <th class="text-right">Taxable Sales</th>
-                <th class="text-right">Estimated Liability</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for state in top_states %}
-            <tr>
-                <td>
-                    <span class="status-dot red"></span>
-                    {{ state.state_name }}
-                </td>
-                <td class="text-right currency">${{ "{:,.0f}".format(state.total_sales) }}</td>
-                <td class="text-right currency">${{ "{:,.0f}".format(state.taxable_sales) }}</td>
-                <td class="text-right currency">${{ "{:,.0f}".format(state.estimated_liability) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-left">
+            {% if logo_data_uri %}
+            <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
+            {% endif %}
+            <div class="page-header-title">
+                <h1>NEXUS ANALYSIS REPORT</h1>
+                <div class="subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <h2>Top States by Liability</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th class="text-right">Total Sales</th>
+                    <th class="text-right">Taxable Sales</th>
+                    <th class="text-right">Estimated Liability</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for state in top_states %}
+                <tr>
+                    <td>
+                        <span class="status-dot red"></span>
+                        <strong>{{ state.state_name }}</strong>
+                    </td>
+                    <td class="text-right currency">${{ "{:,.0f}".format(state.total_sales) }}</td>
+                    <td class="text-right currency">${{ "{:,.0f}".format(state.taxable_sales) }}</td>
+                    <td class="text-right currency font-bold">${{ "{:,.0f}".format(state.estimated_liability) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if total_vda_savings > 0 %}
+        <div class="vda-box">
+            <div class="vda-title">Total Potential VDA Savings</div>
+            <div class="vda-amount">${{ "{:,.0f}".format(total_vda_savings) }}</div>
+            <p class="text-small text-muted mt-1">
+                Voluntary Disclosure Agreements can significantly reduce your tax burden by eliminating penalties
+                and potentially reducing lookback periods.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
+        <span class="page-number">PAGE 3</span>
+    </div>
 </div>
 {% endif %}
 {% endblock %}
