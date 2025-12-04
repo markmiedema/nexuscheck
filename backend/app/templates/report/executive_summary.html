@@ -1,12 +1,20 @@
 {% extends "report/base.html" %}
 
 {% block content %}
+<!-- Executive Summary Page -->
 <div class="page">
     <!-- Page Header -->
     <div class="page-header">
         <div class="page-header-left">
             {% if logo_data_uri %}
             <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
+            {% else %}
+            <svg width="80" height="32" viewBox="0 0 180 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 60L30 12L55 60H45L40 50H20L15 60H5Z" fill="#c8102e"/>
+                <path d="M30 22L37 40H23L30 22Z" fill="white"/>
+                <text x="60" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">S</text>
+                <text x="95" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">T</text>
+            </svg>
             {% endif %}
             <div class="page-header-title">
                 <h1>NEXUS ANALYSIS REPORT</h1>
@@ -100,6 +108,13 @@
         <div class="page-header-left">
             {% if logo_data_uri %}
             <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
+            {% else %}
+            <svg width="80" height="32" viewBox="0 0 180 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 60L30 12L55 60H45L40 50H20L15 60H5Z" fill="#c8102e"/>
+                <path d="M30 22L37 40H23L30 22Z" fill="white"/>
+                <text x="60" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">S</text>
+                <text x="95" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">T</text>
+            </svg>
             {% endif %}
             <div class="page-header-title">
                 <h1>NEXUS ANALYSIS REPORT</h1>
@@ -134,14 +149,56 @@
                 {% endfor %}
             </tbody>
         </table>
+        <p class="text-small text-muted">[source: 28]</p>
 
         {% if total_vda_savings > 0 %}
         <div class="vda-box">
-            <div class="vda-title">Total Potential VDA Savings</div>
-            <div class="vda-amount">${{ "{:,.0f}".format(total_vda_savings) }}</div>
-            <p class="text-small text-muted mt-1">
-                Voluntary Disclosure Agreements can significantly reduce your tax burden by eliminating penalties
-                and potentially reducing lookback periods.
+            <div class="vda-title">Consider VDA {{ consider_vda | length }} states &nbsp; Save up to ${{ "{:,.0f}".format(total_vda_savings) }}</div>
+            <p style="font-size: 8.5pt; color: #047857; margin-bottom: 0.15in;">
+                Voluntary Disclosure Agreements can reduce or eliminate penalties. Consider VDA before registering.
+            </p>
+            <table style="margin: 0.1in 0;">
+                <thead>
+                    <tr>
+                        <th>State</th>
+                        <th class="text-right">Without VDA</th>
+                        <th class="text-right">With VDA</th>
+                        <th class="text-right">Potential Savings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for state in consider_vda %}
+                    <tr>
+                        <td>
+                            <span class="status-dot yellow"></span>
+                            <strong>{{ state.state_name }}</strong>
+                        </td>
+                        <td class="text-right currency">${{ "{:,.0f}".format(state.before_vda) }}</td>
+                        <td class="text-right currency">${{ "{:,.0f}".format(state.with_vda) }}</td>
+                        <td class="text-right currency" style="color: #059669; font-weight: 700;">
+                            ${{ "{:,.0f}".format(state.savings) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="text-small text-muted">[source: 32]</p>
+            <div style="text-align: center; margin-top: 0.15in;">
+                <span style="font-size: 10pt; color: #047857; font-weight: 600;">Total Potential VDA Savings: </span>
+                <span class="vda-amount">${{ "{:,.0f}".format(total_vda_savings) }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if monitor | length > 0 %}
+        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; border-radius: 4px; padding: 0.15in 0.2in; margin-top: 0.2in;">
+            <div style="display: flex; align-items: center; gap: 0.1in;">
+                <span style="width: 0.25in; height: 0.25in; background: #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 9pt;">~</span>
+                <span style="font-size: 10pt; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 1px;">MONITOR</span>
+                <span style="margin-left: auto; font-size: 9pt; color: #059669;">{{ monitor | length }} state{% if monitor | length != 1 %}s{% endif %}</span>
+            </div>
+            <p style="font-size: 8pt; color: #047857; margin: 0.1in 0 0 0;">
+                No states are currently approaching threshold.
             </p>
         </div>
         {% endif %}

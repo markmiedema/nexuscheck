@@ -7,6 +7,13 @@
         <div class="page-header-left">
             {% if logo_data_uri %}
             <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
+            {% else %}
+            <svg width="80" height="32" viewBox="0 0 180 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 60L30 12L55 60H45L40 50H20L15 60H5Z" fill="#c8102e"/>
+                <path d="M30 22L37 40H23L30 22Z" fill="white"/>
+                <text x="60" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">S</text>
+                <text x="95" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="800" font-style="italic" fill="white">T</text>
+            </svg>
             {% endif %}
             <div class="page-header-title">
                 <h1>NEXUS ANALYSIS REPORT</h1>
@@ -37,7 +44,7 @@
                             <th class="text-center">Nexus Type</th>
                             <th class="text-right">Taxable Sales</th>
                             <th class="text-right">Estimated Liability</th>
-                            <th class="text-center">Frequency</th>
+                            <th class="text-center">Filing Frequency</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -55,6 +62,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                <p class="text-small text-muted">[source: 28]</p>
                 {% else %}
                 <p class="text-muted">No states require immediate registration.</p>
                 {% endif %}
@@ -98,6 +106,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                <p class="text-small text-muted">[source: 32]</p>
 
                 <div class="vda-box mt-2">
                     <div class="vda-title">Total Potential VDA Savings</div>
