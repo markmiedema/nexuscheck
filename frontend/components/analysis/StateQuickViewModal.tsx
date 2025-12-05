@@ -131,6 +131,19 @@ export function StateQuickViewModal({
     }
   }
 
+  const getNexusStatusLabel = (nexusType?: string) => {
+    switch (nexusType) {
+      case 'both':
+        return 'Physical + Economic Nexus'
+      case 'physical':
+        return 'Physical Nexus'
+      case 'economic':
+        return 'Economic Nexus'
+      default:
+        return 'No Nexus'
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -140,10 +153,10 @@ export function StateQuickViewModal({
             <span className="text-muted-foreground">({stateCode})</span>
             {data?.nexus_type && data.nexus_type !== 'none' && (
               <span
-                className="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full text-white"
-                style={{ backgroundColor: getNexusStatusColor(data.nexus_type) }}
+                className="font-semibold"
+                style={{ color: getNexusStatusColor(data.nexus_type) }}
               >
-                Nexus Triggered
+                — Nexus Triggered
               </span>
             )}
           </DialogTitle>
@@ -171,6 +184,10 @@ export function StateQuickViewModal({
             {data.nexus_type && data.nexus_type !== 'none' && (
               <div className="bg-muted/50 border border-border rounded-lg p-4">
                 <div className="flex items-start justify-between gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="text-muted-foreground text-xs mb-1">Nexus Type</div>
+                    <div className="font-medium text-foreground">{getNexusStatusLabel(data.nexus_type)}</div>
+                  </div>
                   <div className="text-center">
                     <div className="text-muted-foreground text-xs mb-1">Total Liability</div>
                     <div className="font-bold text-foreground">{formatCurrency(data.estimated_liability || 0)}</div>
