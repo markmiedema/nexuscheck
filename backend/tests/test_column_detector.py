@@ -255,3 +255,27 @@ def test_get_channel_mapping_preview():
     # FBA, Wholesale should be unrecognized
     assert 'FBA' in result['unrecognized']
     assert 'Wholesale' in result['unrecognized']
+
+
+def test_get_state_mapping_preview():
+    """Test state mapping preview categorizes values correctly."""
+    import pandas as pd
+
+    df = pd.DataFrame({
+        'state': ['California', 'TX', 'new york', 'XX', 'Unknown']
+    })
+
+    result = ColumnDetector.get_state_mapping_preview(df, 'state')
+
+    # California, new york should be in normalized
+    normalized_originals = [r['original'] for r in result['normalized']]
+    assert 'California' in normalized_originals
+    assert 'new york' in normalized_originals
+
+    # TX should be unchanged
+    unchanged_originals = [r['original'] for r in result['unchanged']]
+    assert 'TX' in unchanged_originals
+
+    # XX, Unknown should be unrecognized
+    assert 'XX' in result['unrecognized']
+    assert 'Unknown' in result['unrecognized']

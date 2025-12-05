@@ -519,6 +519,59 @@ class ColumnDetector:
             'unrecognized': unrecognized
         }
 
+    @classmethod
+    def get_state_mapping_preview(cls, df, state_column: str) -> dict:
+        """
+        Return preview of how state values will be normalized.
+
+        Returns:
+            {
+                'normalized': [{'original': 'California', 'normalized': 'CA'}, ...],
+                'unchanged': [{'original': 'TX', 'normalized': 'TX'}, ...],
+                'unrecognized': ['XX', 'Unknown', ...]
+            }
+        """
+        if state_column not in df.columns:
+            return {'normalized': [], 'unchanged': [], 'unrecognized': []}
+
+        unique_values = df[state_column].dropna().unique()
+        normalized_list = []
+        unchanged_list = []
+        unrecognized_list = []
+
+        valid_states = {
+            'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+            'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+            'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+            'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+            'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
+            'DC', 'PR', 'VI', 'GU', 'AS', 'MP'
+        }
+
+        for val in unique_values:
+            val_str = str(val).strip()
+            normalized = cls.normalize_state_code(val_str)
+
+            if normalized in valid_states:
+                if val_str.upper() == normalized:
+                    unchanged_list.append({
+                        'original': val_str,
+                        'normalized': normalized
+                    })
+                else:
+                    normalized_list.append({
+                        'original': val_str,
+                        'normalized': normalized
+                    })
+            else:
+                unrecognized_list.append(val_str)
+
+        return {
+            'normalized': normalized_list,
+            'unchanged': unchanged_list,
+            'unrecognized': unrecognized_list
+        }
+
     @staticmethod
     def calculate_taxable_amount(
         revenue_amount: float,
