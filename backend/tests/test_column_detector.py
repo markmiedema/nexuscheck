@@ -69,7 +69,7 @@ def test_case_insensitive_matching():
 
 def test_normalize_taxability():
     """Test taxability code normalization."""
-    # Valid codes (case insensitive)
+    # Valid short codes (case insensitive)
     assert ColumnDetector.normalize_taxability('T') == 'T'
     assert ColumnDetector.normalize_taxability('t') == 'T'
     assert ColumnDetector.normalize_taxability('NT') == 'NT'
@@ -79,9 +79,36 @@ def test_normalize_taxability():
     assert ColumnDetector.normalize_taxability('ec') == 'EC'
     assert ColumnDetector.normalize_taxability('P') == 'P'
 
+    # Long-form values -> T (Taxable)
+    assert ColumnDetector.normalize_taxability('Taxable') == 'T'
+    assert ColumnDetector.normalize_taxability('taxable') == 'T'
+    assert ColumnDetector.normalize_taxability('Yes') == 'T'
+    assert ColumnDetector.normalize_taxability('True') == 'T'
+
+    # Long-form values -> NT (Non-Taxable)
+    assert ColumnDetector.normalize_taxability('Not Taxable') == 'NT'
+    assert ColumnDetector.normalize_taxability('Non-Taxable') == 'NT'
+    assert ColumnDetector.normalize_taxability('nontaxable') == 'NT'
+    assert ColumnDetector.normalize_taxability('No') == 'NT'
+    assert ColumnDetector.normalize_taxability('False') == 'NT'
+
+    # Long-form values -> E (Exempt)
+    assert ColumnDetector.normalize_taxability('Exempt') == 'E'
+    assert ColumnDetector.normalize_taxability('Tax Exempt') == 'E'
+    assert ColumnDetector.normalize_taxability('tax-exempt') == 'E'
+
+    # Long-form values -> EC (Exempt w/ Certificate)
+    assert ColumnDetector.normalize_taxability('Exempt with Certificate') == 'EC'
+    assert ColumnDetector.normalize_taxability('Resale') == 'EC'
+    assert ColumnDetector.normalize_taxability('resale certificate') == 'EC'
+
+    # Long-form values -> P (Partial)
+    assert ColumnDetector.normalize_taxability('Partial') == 'P'
+    assert ColumnDetector.normalize_taxability('Partially Taxable') == 'P'
+
     # Invalid codes return None
     assert ColumnDetector.normalize_taxability('X') is None
-    assert ColumnDetector.normalize_taxability('taxable') is None
+    assert ColumnDetector.normalize_taxability('unknown') is None
     assert ColumnDetector.normalize_taxability('') is None
     assert ColumnDetector.normalize_taxability(None) is None
 

@@ -40,6 +40,47 @@ DATE_FORMATS = [
 # Valid taxability codes
 VALID_TAXABILITY_CODES = {'T', 'NT', 'E', 'EC', 'P'}
 
+# Long-form taxability mappings
+TAXABILITY_MAPPING = {
+    # Taxable variants
+    'taxable': 'T',
+    'tax': 'T',
+    'yes': 'T',
+    'y': 'T',
+    'true': 'T',
+    '1': 'T',
+
+    # Non-Taxable variants
+    'not taxable': 'NT',
+    'non-taxable': 'NT',
+    'non taxable': 'NT',
+    'nontaxable': 'NT',
+    'no tax': 'NT',
+    'no': 'NT',
+    'n': 'NT',
+    'false': 'NT',
+    '0': 'NT',
+
+    # Exempt variants
+    'exempt': 'E',
+    'exemption': 'E',
+    'tax exempt': 'E',
+    'tax-exempt': 'E',
+
+    # Exempt with Certificate variants
+    'exempt with certificate': 'EC',
+    'exempt w/ certificate': 'EC',
+    'exempt w/certificate': 'EC',
+    'certificate': 'EC',
+    'resale': 'EC',
+    'resale certificate': 'EC',
+
+    # Partial variants
+    'partial': 'P',
+    'partially taxable': 'P',
+    'partial exemption': 'P',
+}
+
 # Sales channel normalization mapping
 CHANNEL_MAPPING = {
     # Marketplace variants
@@ -152,6 +193,14 @@ class ColumnDetector:
             'exemption_amount', 'exemption amount',
             'exempt_amt', 'tax_exempt_amount',
             'nontaxable_amount'
+        ],
+        'transaction_id': [
+            'transaction_id', 'transaction id', 'txn_id',
+            'order_id', 'order id', 'order_number', 'order number',
+            'invoice_id', 'invoice id', 'invoice_number', 'invoice number',
+            'sale_id', 'sale id', 'record_id', 'record id',
+            'reference_id', 'reference id', 'ref_id', 'ref id',
+            'id', 'unique_id', 'unique id'
         ]
     }
 
@@ -461,18 +510,32 @@ class ColumnDetector:
         Valid codes: T (Taxable), NT (Non-Taxable), E (Exempt),
                      EC (Exempt w/ Certificate), P (Partial)
 
+        Also accepts long-form values like:
+        - "Taxable", "Yes", "True" -> T
+        - "Not Taxable", "Non-Taxable", "No", "False" -> NT
+        - "Exempt", "Tax Exempt" -> E
+        - "Exempt with Certificate", "Resale" -> EC
+        - "Partial", "Partially Taxable" -> P
+
         Returns None for invalid values.
         """
         if value is None:
             return None
 
-        cleaned = str(value).strip().upper()
+        cleaned = str(value).strip()
 
         if cleaned == '':
             return None
 
-        if cleaned in VALID_TAXABILITY_CODES:
-            return cleaned
+        # First check if it's already a valid short code (case-insensitive)
+        upper = cleaned.upper()
+        if upper in VALID_TAXABILITY_CODES:
+            return upper
+
+        # Then check the long-form mapping (case-insensitive)
+        lower = cleaned.lower()
+        if lower in TAXABILITY_MAPPING:
+            return TAXABILITY_MAPPING[lower]
 
         return None
 

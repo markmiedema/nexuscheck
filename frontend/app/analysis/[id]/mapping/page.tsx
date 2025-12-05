@@ -147,12 +147,16 @@ export default function MappingPage() {
       setColumns(data.columns)
       setDataSummary(data.summary)
 
-      // Auto-detect mappings
+      // Auto-detect mappings (required fields)
       const autoMappings: MappingConfig = {
         transaction_date: findColumn(data.columns, ['transaction_date', 'date', 'order_date', 'sale_date']),
         customer_state: findColumn(data.columns, ['customer_state', 'state', 'buyer_state', 'ship_to_state']),
         revenue_amount: findColumn(data.columns, ['revenue_amount', 'amount', 'sales_amount', 'total', 'price']),
         sales_channel: findColumn(data.columns, ['sales_channel', 'channel', 'source', 'marketplace']),
+        // Optional fields - auto-map if detected
+        taxability: findColumn(data.columns, ['taxability', 'is_taxable', 'taxable', 'tax_status', 'tax_type']),
+        exempt_amount: findColumn(data.columns, ['exempt_amount', 'exemption_amount', 'exemption', 'non_taxable_amount', 'nontaxable_amount']),
+        transaction_id: findColumn(data.columns, ['transaction_id', 'txn_id', 'order_id', 'order_number', 'invoice_id', 'invoice_number', 'sale_id', 'record_id', 'reference_id', 'ref_id']),
       }
 
       setMappings(autoMappings)
@@ -884,6 +888,15 @@ export default function MappingPage() {
               message: e.message || ''
             })) || []}
             dateRange={previewData?.date_range || { start: '', end: '' }}
+            columnMappings={[
+              ...(mappings.transaction_date ? [{ sourceColumn: mappings.transaction_date, targetField: 'Transaction Date', isOptional: false }] : []),
+              ...(mappings.customer_state ? [{ sourceColumn: mappings.customer_state, targetField: 'Customer State', isOptional: false }] : []),
+              ...(mappings.revenue_amount ? [{ sourceColumn: mappings.revenue_amount, targetField: 'Revenue Amount', isOptional: false }] : []),
+              ...(mappings.sales_channel ? [{ sourceColumn: mappings.sales_channel, targetField: 'Sales Channel', isOptional: false }] : []),
+              ...(mappings.taxability ? [{ sourceColumn: mappings.taxability, targetField: 'Taxability', isOptional: true }] : []),
+              ...(mappings.exempt_amount ? [{ sourceColumn: mappings.exempt_amount, targetField: 'Exempt Amount', isOptional: true }] : []),
+              ...(mappings.transaction_id ? [{ sourceColumn: mappings.transaction_id, targetField: 'Transaction ID', isOptional: true }] : []),
+            ]}
           />
       </AppLayout>
       </ErrorBoundary>
