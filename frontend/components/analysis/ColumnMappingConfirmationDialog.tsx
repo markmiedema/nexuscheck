@@ -24,6 +24,9 @@ interface ColumnMappingConfirmationDialogProps {
     customer_state?: string
     revenue_amount?: string
     sales_channel?: string
+    taxability?: string
+    exempt_amount?: string
+    transaction_id?: string
   }
   samplesByColumn: Record<string, string[]>
   dataSummary?: {
@@ -38,6 +41,12 @@ const REQUIRED_FIELDS = {
   customer_state: 'Customer State',
   revenue_amount: 'Revenue Amount',
   sales_channel: 'Sales Channel',
+}
+
+const OPTIONAL_FIELDS = {
+  taxability: 'Taxability',
+  exempt_amount: 'Exempt Amount',
+  transaction_id: 'Transaction ID',
 }
 
 export default function ColumnMappingConfirmationDialog({
@@ -93,7 +102,7 @@ export default function ColumnMappingConfirmationDialog({
           We've automatically detected your column mappings. Please verify they look correct.
         </DialogDescription>
 
-        {/* Mappings Grid */}
+        {/* Required Mappings Grid */}
         <div className="space-y-3 py-4">
           {Object.entries(REQUIRED_FIELDS).map(([key, label]) => {
             const detectedColumn = detectedMappings[key as keyof typeof detectedMappings]
@@ -123,6 +132,45 @@ export default function ColumnMappingConfirmationDialog({
               </div>
             )
           })}
+
+          {/* Optional Mappings - only show if any are detected */}
+          {Object.entries(OPTIONAL_FIELDS).some(([key]) => detectedMappings[key as keyof typeof detectedMappings]) && (
+            <>
+              <div className="flex items-center gap-2 pt-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Optional Fields</span>
+                <Badge variant="secondary" className="text-xs">Auto-detected</Badge>
+              </div>
+              {Object.entries(OPTIONAL_FIELDS).map(([key, label]) => {
+                const detectedColumn = detectedMappings[key as keyof typeof detectedMappings]
+                if (!detectedColumn) return null
+                const samples = samplesByColumn[detectedColumn] || []
+
+                return (
+                  <div
+                    key={key}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-border bg-card/50"
+                  >
+                    <CheckCircle2 className="h-5 w-5 text-muted-foreground dark:text-slate-400 flex-shrink-0" />
+
+                    <div className="flex-1 grid grid-cols-[120px_auto_1fr] gap-3 items-center">
+                      <span className="text-sm font-medium text-muted-foreground dark:text-slate-300">{label}</span>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground dark:text-slate-400" />
+                      <div>
+                        <span className="text-sm font-semibold text-foreground">{detectedColumn}</span>
+                        <div className="flex gap-1 mt-1 flex-wrap">
+                          {samples.slice(0, 3).map((val, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {val}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </>
+          )}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">

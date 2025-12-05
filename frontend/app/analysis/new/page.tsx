@@ -298,21 +298,38 @@ function AnalysisFormContent() {
       setCalculating(true)
       setShowConfirmDialog(false)
 
-      // Step 1: Save mappings
+      // Step 1: Save mappings (include optional fields if detected)
+      const detectedMappings = uploadResponse.auto_detected_mappings.mappings
       const mappingPayload = {
         column_mappings: {
           transaction_date: {
-            source_column: uploadResponse.auto_detected_mappings.mappings.transaction_date
+            source_column: detectedMappings.transaction_date
           },
           customer_state: {
-            source_column: uploadResponse.auto_detected_mappings.mappings.customer_state
+            source_column: detectedMappings.customer_state
           },
           revenue_amount: {
-            source_column: uploadResponse.auto_detected_mappings.mappings.revenue_amount
+            source_column: detectedMappings.revenue_amount
           },
           sales_channel: {
-            source_column: uploadResponse.auto_detected_mappings.mappings.sales_channel
-          }
+            source_column: detectedMappings.sales_channel
+          },
+          // Include optional fields if they were detected
+          ...(detectedMappings.taxability && {
+            taxability: {
+              source_column: detectedMappings.taxability
+            }
+          }),
+          ...(detectedMappings.exempt_amount && {
+            exempt_amount: {
+              source_column: detectedMappings.exempt_amount
+            }
+          }),
+          ...(detectedMappings.transaction_id && {
+            transaction_id: {
+              source_column: detectedMappings.transaction_id
+            }
+          }),
         }
       }
 
