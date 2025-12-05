@@ -102,3 +102,60 @@ def test_taxability_detection_patterns():
     # taxability column should be detected if we add it to patterns
     # For now, verify the detection works with existing 'is_taxable' pattern
     assert 'transaction_date' in result['mappings']
+
+
+def test_normalize_data_with_taxability():
+    """Test that normalize_data processes taxability column."""
+    import pandas as pd
+
+    df = pd.DataFrame({
+        'transaction_date': ['2024-01-15', '2024-01-16'],
+        'customer_state': ['TX', 'CA'],
+        'revenue_amount': [100.00, 200.00],
+        'sales_channel': ['direct', 'marketplace'],
+        'taxability': ['T', 'NT'],
+    })
+
+    mappings = {
+        'transaction_date': 'transaction_date',
+        'customer_state': 'customer_state',
+        'revenue_amount': 'revenue_amount',
+        'sales_channel': 'sales_channel',
+        'taxability': 'taxability',
+    }
+
+    detector = ColumnDetector(list(df.columns))
+    result = detector.normalize_data(df, mappings)
+    result_df = result['df']
+
+    assert 'taxability' in result_df.columns
+    assert result_df['taxability'].tolist() == ['T', 'NT']
+
+
+def test_normalize_data_taxability_validation():
+    """Test that invalid taxability codes remain but can be detected."""
+    import pandas as pd
+
+    df = pd.DataFrame({
+        'transaction_date': ['2024-01-15', '2024-01-16'],
+        'customer_state': ['TX', 'CA'],
+        'revenue_amount': [100.00, 200.00],
+        'sales_channel': ['direct', 'marketplace'],
+        'taxability': ['T', 'INVALID'],
+    })
+
+    mappings = {
+        'transaction_date': 'transaction_date',
+        'customer_state': 'customer_state',
+        'revenue_amount': 'revenue_amount',
+        'sales_channel': 'sales_channel',
+        'taxability': 'taxability',
+    }
+
+    detector = ColumnDetector(list(df.columns))
+    result = detector.normalize_data(df, mappings)
+    result_df = result['df']
+
+    # First should be valid, second should be None (invalid)
+    assert result_df['taxability'].tolist()[0] == 'T'
+    assert result_df['taxability'].tolist()[1] is None

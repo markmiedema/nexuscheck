@@ -604,7 +604,17 @@ class ColumnDetector:
             # Default to 'direct' if column not present
             df['sales_channel'] = 'direct'
 
-        # 4. Normalize revenue streams
+        # 4. Normalize taxability if mapped
+        if 'taxability' in mappings and mappings['taxability']:
+            source_col = mappings['taxability']
+            if 'taxability' in df.columns:
+                df['taxability'] = df['taxability'].apply(self.normalize_taxability)
+                transformations.append('Normalized taxability codes to T/NT/E/EC/P')
+        else:
+            # Default to taxable if not mapped
+            df['taxability'] = 'T'
+
+        # 5. Normalize revenue streams
         if 'revenue_stream' in df.columns:
             df['revenue_stream'] = df['revenue_stream'].apply(self.normalize_revenue_stream)
             transformations.append('Normalized revenue streams to standard categories')
