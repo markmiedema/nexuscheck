@@ -151,6 +151,14 @@ export function StateQuickViewModal({
           <DialogTitle className="text-xl flex items-center gap-2">
             {stateName}
             <span className="text-muted-foreground">({stateCode})</span>
+            {data?.nexus_type && data.nexus_type !== 'none' && (
+              <span
+                className="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full text-white"
+                style={{ backgroundColor: getNexusStatusColor(data.nexus_type) }}
+              >
+                Nexus Triggered
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -172,15 +180,9 @@ export function StateQuickViewModal({
           </div>
         ) : data ? (
           <div className="space-y-4 py-4">
-            {/* Nexus Status Header */}
+            {/* Nexus Status Details */}
             {data.nexus_type && data.nexus_type !== 'none' && (
               <div className="bg-muted/50 border border-border rounded-lg p-4">
-                <h4
-                  className="font-semibold mb-3"
-                  style={{ color: getNexusStatusColor(data.nexus_type) }}
-                >
-                  Nexus Triggered
-                </h4>
                 <div className="flex items-start justify-between gap-4 text-sm">
                   <div className="text-center">
                     <div className="text-muted-foreground text-xs mb-1">Nexus Type</div>
