@@ -744,6 +744,34 @@ class ColumnDetector:
                     'severity': 'warning'
                 })
 
+        # 5. Validate taxability codes
+        if 'taxability' in df.columns:
+            # Check for invalid codes (None values from failed normalization)
+            invalid_taxability = df[df['taxability'].isna()]
+            if len(invalid_taxability) > 0:
+                errors.append({
+                    'field': 'taxability',
+                    'message': f'{len(invalid_taxability)} transactions have invalid taxability codes (use T, NT, E, EC, or P)',
+                    'count': len(invalid_taxability),
+                    'severity': 'error',
+                    'rows': invalid_taxability.index.tolist()[:10]
+                })
+
+            # Check P (partial) requires exempt_amount > 0
+            if 'exempt_amount_calc' in df.columns:
+                partial_no_exempt = df[
+                    (df['taxability'] == 'P') &
+                    ((df['exempt_amount_calc'].isna()) | (df['exempt_amount_calc'] <= 0))
+                ]
+                if len(partial_no_exempt) > 0:
+                    errors.append({
+                        'field': 'taxability',
+                        'message': f'{len(partial_no_exempt)} transactions have Partial (P) taxability but no exempt amount',
+                        'count': len(partial_no_exempt),
+                        'severity': 'error',
+                        'rows': partial_no_exempt.index.tolist()[:10]
+                    })
+
         return {
             'valid': len(errors) == 0,
             'errors': errors,

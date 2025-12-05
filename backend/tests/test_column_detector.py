@@ -159,3 +159,39 @@ def test_normalize_data_taxability_validation():
     # First should be valid, second should be None (invalid)
     assert result_df['taxability'].tolist()[0] == 'T'
     assert result_df['taxability'].tolist()[1] is None
+
+
+def test_validate_taxability_partial_requires_exempt_amount():
+    """Test that P (partial) taxability requires exempt_amount > 0."""
+    import pandas as pd
+
+    # P with no exempt_amount should generate error
+    df_invalid = pd.DataFrame({
+        'transaction_date': [pd.Timestamp('2024-01-15')],
+        'customer_state': ['TX'],
+        'revenue_amount': [100.00],
+        'sales_channel': ['direct'],
+        'taxability': ['P'],
+        'exempt_amount_calc': [0],
+    })
+
+    detector = ColumnDetector([])
+    result = detector.validate_normalized_data(df_invalid)
+
+    # Should have validation error
+    taxability_errors = [e for e in result['errors'] if e.get('field') == 'taxability']
+    assert len(taxability_errors) > 0
+
+    # P with exempt_amount should be valid
+    df_valid = pd.DataFrame({
+        'transaction_date': [pd.Timestamp('2024-01-15')],
+        'customer_state': ['TX'],
+        'revenue_amount': [100.00],
+        'sales_channel': ['direct'],
+        'taxability': ['P'],
+        'exempt_amount_calc': [30.00],
+    })
+
+    result = detector.validate_normalized_data(df_valid)
+    taxability_errors = [e for e in result['errors'] if e.get('field') == 'taxability']
+    assert len(taxability_errors) == 0
