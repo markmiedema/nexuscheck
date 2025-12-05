@@ -17,25 +17,14 @@ import ColumnMappingConfirmationDialog from '@/components/analysis/ColumnMapping
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { isValidFileSize, formatFileSize } from '@/lib/utils/validation'
 
-// Validation schema for standalone mode (no client)
-const standaloneSchema = z.object({
-  companyName: z.string()
-    .min(1, 'Company name is required')
-    .max(200, 'Company name must be less than 200 characters'),
-  businessType: z.enum(['product_sales', 'digital_products', 'mixed'], {
-    required_error: 'Please select a business type',
-  }),
-})
-
-// Validation schema for client-linked mode (simplified)
-const clientLinkedSchema = z.object({
+// Validation schema for analysis form
+const analysisSchema = z.object({
   companyName: z.string()
     .min(1, 'Company name is required')
     .max(200, 'Company name must be less than 200 characters'),
 })
 
-type StandaloneForm = z.infer<typeof standaloneSchema>
-type ClientLinkedForm = z.infer<typeof clientLinkedSchema>
+type AnalysisForm = z.infer<typeof analysisSchema>
 
 // Placeholder component for engagement types not yet implemented
 function ComingSoonPlaceholder({
@@ -163,11 +152,10 @@ function AnalysisFormContent() {
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<StandaloneForm>({
-    resolver: zodResolver(isClientLinked ? clientLinkedSchema : standaloneSchema),
+  } = useForm<AnalysisForm>({
+    resolver: zodResolver(analysisSchema),
     defaultValues: {
       companyName: clientName || '',
-      businessType: isClientLinked ? 'mixed' : undefined,
     }
   })
 
@@ -178,17 +166,16 @@ function AnalysisFormContent() {
     }
   }, [clientName, setValue])
 
-  const onSubmit = async (data: StandaloneForm) => {
+  const onSubmit = async (data: AnalysisForm) => {
     setLoading(true)
     setError('')
 
     try {
       // Create analysis in backend
-      // For client-linked mode, default to 'mixed' business type
       const response = await apiClient.post('/api/v1/analyses', {
         company_name: data.companyName,
         // Dates will be auto-detected from CSV upload
-        business_type: isClientLinked ? 'mixed' : data.businessType,
+        business_type: 'mixed',  // Default to mixed until business type logic is implemented
         client_id: clientId || null,  // Link to client if provided
       })
 
@@ -462,63 +449,6 @@ function AnalysisFormContent() {
                   )}
                 </div>
               </div>
-
-              {/* Business Type - Only shown in standalone mode */}
-              {!isClientLinked && (
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-card-foreground border-b border-border pb-2">
-                    Business Type <span className="text-destructive">*</span>
-                  </h3>
-
-                  <div className="space-y-3">
-                    <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
-                      <input
-                        {...register('businessType')}
-                        type="radio"
-                        value="product_sales"
-                        className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
-                      />
-                      <span className="ml-3">
-                        <span className="block text-sm font-medium text-foreground">
-                          Product Sales (Physical goods)
-                        </span>
-                      </span>
-                    </label>
-
-                    <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
-                      <input
-                        {...register('businessType')}
-                        type="radio"
-                        value="digital_products"
-                        className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
-                      />
-                      <span className="ml-3">
-                        <span className="block text-sm font-medium text-foreground">
-                          Digital Products/Services
-                        </span>
-                      </span>
-                    </label>
-
-                    <label className="flex items-center p-4 border border-input rounded-md hover:bg-muted/50 cursor-pointer transition-colors">
-                      <input
-                        {...register('businessType')}
-                        type="radio"
-                        value="mixed"
-                        className="h-4 w-4 text-primary focus:ring-2 focus:ring-ring border-input transition-all"
-                      />
-                      <span className="ml-3">
-                        <span className="block text-sm font-medium text-foreground">
-                          Mixed (Products + Services)
-                        </span>
-                      </span>
-                    </label>
-                  </div>
-
-                  {errors.businessType && (
-                    <p className="text-sm text-destructive">{errors.businessType.message}</p>
-                  )}
-                </div>
-              )}
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-4 pt-6 border-t">
