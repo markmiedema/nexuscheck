@@ -282,16 +282,14 @@ function AnalysisFormContent() {
         // Call preview-normalization to get full preview data
         try {
           const detectedMappings = response.data.auto_detected_mappings.mappings
-          // Check for both 'taxability' and 'is_taxable' since backend may detect either
-          const taxabilityColumn = detectedMappings.taxability || detectedMappings.is_taxable
           const mappingPayload = {
             column_mappings: {
               transaction_date: { source_column: detectedMappings.transaction_date },
               customer_state: { source_column: detectedMappings.customer_state },
               revenue_amount: { source_column: detectedMappings.revenue_amount },
               sales_channel: { source_column: detectedMappings.sales_channel },
-              ...(taxabilityColumn && {
-                taxability: { source_column: taxabilityColumn }
+              ...(detectedMappings.taxability && {
+                taxability: { source_column: detectedMappings.taxability }
               }),
               ...(detectedMappings.exempt_amount && {
                 exempt_amount: { source_column: detectedMappings.exempt_amount }
@@ -334,8 +332,6 @@ function AnalysisFormContent() {
 
       // Step 1: Save mappings (include optional fields if detected)
       const detectedMappings = uploadResponse.auto_detected_mappings.mappings
-      // Check for both 'taxability' and 'is_taxable' since backend may detect either
-      const taxabilityColumn = detectedMappings.taxability || detectedMappings.is_taxable
       const mappingPayload = {
         column_mappings: {
           transaction_date: {
@@ -352,9 +348,9 @@ function AnalysisFormContent() {
             value_mappings: channelMappings,
           },
           // Include optional fields if they were detected
-          ...(taxabilityColumn && {
+          ...(detectedMappings.taxability && {
             taxability: {
-              source_column: taxabilityColumn
+              source_column: detectedMappings.taxability
             }
           }),
           ...(detectedMappings.exempt_amount && {
@@ -609,14 +605,12 @@ function AnalysisFormContent() {
               dateRange={previewData?.date_range || { start: '', end: '' }}
               columnMappings={(() => {
                 const mappings = uploadResponse.auto_detected_mappings.mappings
-                // Check for both 'taxability' and 'is_taxable' since backend may detect either
-                const taxabilityColumn = mappings.taxability || mappings.is_taxable
                 return [
                   ...(mappings.transaction_date ? [{ sourceColumn: mappings.transaction_date, targetField: 'Transaction Date', isOptional: false }] : []),
                   ...(mappings.customer_state ? [{ sourceColumn: mappings.customer_state, targetField: 'Customer State', isOptional: false }] : []),
                   ...(mappings.revenue_amount ? [{ sourceColumn: mappings.revenue_amount, targetField: 'Revenue Amount', isOptional: false }] : []),
                   ...(mappings.sales_channel ? [{ sourceColumn: mappings.sales_channel, targetField: 'Sales Channel', isOptional: false }] : []),
-                  ...(taxabilityColumn ? [{ sourceColumn: taxabilityColumn, targetField: 'Taxability', isOptional: true }] : []),
+                  ...(mappings.taxability ? [{ sourceColumn: mappings.taxability, targetField: 'Taxability', isOptional: true }] : []),
                   ...(mappings.exempt_amount ? [{ sourceColumn: mappings.exempt_amount, targetField: 'Exempt Amount', isOptional: true }] : []),
                   ...(mappings.transaction_id ? [{ sourceColumn: mappings.transaction_id, targetField: 'Transaction ID', isOptional: true }] : []),
                 ]

@@ -162,9 +162,15 @@ class ColumnDetector:
             'order_channel', 'channel_name', 'sales_platform'
         ],
         'taxability': [
+            # Primary patterns (most specific)
             'taxability', 'tax_status', 'tax status',
-            'taxable', 'tax_code', 'tax code',
-            'exempt_status', 'exempt status',
+            'is_taxable', 'is taxable', 'taxable',
+            'tax_code', 'tax code',
+            # Exemption-related patterns
+            'exempt_status', 'exempt status', 'exemption_status',
+            'exempt', 'is_exempt', 'is exempt',
+            'taxable_flag', 'tax_exempt', 'tax exempt',
+            'subject_to_tax'
         ],
         'revenue_stream': [
             'revenue_stream', 'revenue stream',
@@ -177,14 +183,6 @@ class ColumnDetector:
             'goods_type', 'service_type',
             'line_of_business', 'sku_category',
             'business_line'
-        ],
-        # Optional columns for exempt sales
-        'is_taxable': [
-            'is_taxable', 'is taxable', 'taxable',
-            'tax_status', 'tax status', 'taxability',
-            'exempt', 'is_exempt', 'is exempt',
-            'taxable_flag', 'tax_exempt', 'tax exempt',
-            'exemption_status', 'subject_to_tax'
         ],
         'exempt_amount': [
             'exempt_amount', 'exempt amount', 'exempt',
