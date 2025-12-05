@@ -1202,6 +1202,9 @@ class NexusCalculatorV2:
     ) -> Dict:
         """
         Create result for a year with no nexus.
+
+        Note: taxable_sales still reflects actual taxable amount (for threshold tracking).
+        Only exposure_sales is 0 (no nexus = no tax liability).
         """
         total_sales = sum(float(t['sales_amount']) for t in transactions)
         transaction_count = len(transactions)
@@ -1212,8 +1215,9 @@ class NexusCalculatorV2:
         )
         marketplace_sales = total_sales - direct_sales
 
-        # Calculate exempt sales using hybrid logic
+        # Calculate exempt and taxable sales using hybrid logic
         exempt_sales = 0
+        taxable_sales = 0
         for txn in transactions:
             amount = float(txn['sales_amount'])
             exempt_amount = float(txn.get('exempt_amount', 0))
@@ -1222,10 +1226,14 @@ class NexusCalculatorV2:
             if exempt_amount != 0:
                 # Priority 1: Use explicit exempt_amount (handles both positive and negative)
                 exempt_sales += exempt_amount
+                taxable_sales += (amount - exempt_amount)
             elif not is_taxable:
                 # Priority 2: is_taxable=False means full amount is exempt
                 exempt_sales += amount
-            # Priority 3: Default - no exempt amount (exempt_sales += 0)
+                # taxable_sales += 0 (fully exempt)
+            else:
+                # Priority 3: Default - full amount is taxable
+                taxable_sales += amount
 
         return {
             'state': state_code,
@@ -1239,8 +1247,8 @@ class NexusCalculatorV2:
             'exempt_sales': exempt_sales,  # Exempt sales informational
             'direct_sales': direct_sales,
             'marketplace_sales': marketplace_sales,
-            'taxable_sales': 0,  # No nexus = no taxable sales counted
-            'exposure_sales': 0,  # No nexus = no exposure
+            'taxable_sales': taxable_sales,  # Actual taxable sales (for threshold tracking)
+            'exposure_sales': 0,  # No nexus = no exposure/liability
             'transaction_count': transaction_count,
             'estimated_liability': 0,
             'base_tax': 0,

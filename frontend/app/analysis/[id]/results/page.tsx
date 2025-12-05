@@ -14,6 +14,17 @@ import { ErrorBoundary } from '@/components/error-boundary'
 import { StateResult as StateResultMap } from '@/types/states'
 import { handleApiError, showError } from '@/lib/utils/errorHandler'
 
+// Format ISO date to US format (MM/DD/YYYY)
+const formatDateUS = (isoDate: string): string => {
+  if (!isoDate) return ''
+  const date = new Date(isoDate)
+  return date.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric'
+  })
+}
+
 // Lazy load USMap to reduce initial bundle size (saves ~200KB from react-simple-maps)
 const USMap = dynamic(() => import('@/components/dashboard/USMap'), {
   loading: () => (
@@ -290,7 +301,7 @@ export default function ResultsPage() {
               <div className="text-muted-foreground">
                 <p className="text-lg font-medium">{summary.company_name}</p>
                 <p className="text-sm">
-                  {summary.period_start} to {summary.period_end}
+                  {formatDateUS(summary.period_start)} to {formatDateUS(summary.period_end)}
                 </p>
                 <p className="text-sm mt-2">
                   Processed {summary.total_transactions} transactions across {summary.unique_states} states
