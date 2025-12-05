@@ -197,13 +197,13 @@ export function EngagementManager({
           client_id: clientId,
           status: 'draft',
         })
-        showSuccess('Engagement created')
+        showSuccess('Engagement letter created')
 
-        // Log activity note for new engagement
+        // Log activity note for new engagement letter
         const serviceLabels = selectedServices.map(s => SERVICE_OPTIONS.find(o => o.id === s)?.label || s).join(', ')
         try {
           await createClientNote(clientId, {
-            content: `New engagement created: "${title}"\n\nServices: ${serviceLabels || 'None specified'}`,
+            content: `Engagement letter created: "${title}"\n\nServices: ${serviceLabels || 'None specified'}${estimatedFee ? `\nEstimated Fee: $${parseFloat(estimatedFee).toLocaleString()}` : ''}`,
             note_type: 'engagement'
           })
         } catch {
@@ -226,13 +226,13 @@ export function EngagementManager({
   const updateStatus = async (engagementId: string, newStatus: string, engagementTitle?: string) => {
     try {
       await apiClient.patch(`/api/v1/engagements/${engagementId}`, { status: newStatus })
-      showSuccess(`Engagement marked as ${newStatus}`)
+      showSuccess(`Engagement letter marked as ${newStatus}`)
 
       // Log activity note for sent/signed status changes
       if (newStatus === 'sent' || newStatus === 'signed') {
         const noteContent = newStatus === 'sent'
-          ? `Engagement sent to client: "${engagementTitle || 'Untitled'}"`
-          : `Engagement signed: "${engagementTitle || 'Untitled'}"\n\nClient is now ready for project work.`
+          ? `Engagement letter sent to client: "${engagementTitle || 'Untitled'}"`
+          : `Engagement letter signed: "${engagementTitle || 'Untitled'}"\n\nClient is now ready for project work.`
 
         try {
           await createClientNote(clientId, {
@@ -303,21 +303,21 @@ export function EngagementManager({
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Engagements</h3>
+        <h3 className="text-lg font-semibold">Engagement Letters</h3>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={handleNewEngagement} disabled={!discoveryCompleted}>
               <Plus className="h-4 w-4 mr-2" />
-              New Engagement
+              New Engagement Letter
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingEngagement ? 'Edit Engagement' : 'Create New Engagement'}
+                {editingEngagement ? 'Edit Engagement Letter' : 'Create Engagement Letter'}
               </DialogTitle>
               <DialogDescription>
-                Define the scope of services for {clientName}
+                Configure the engagement letter for {clientName}. These details will populate the document.
               </DialogDescription>
             </DialogHeader>
 
@@ -420,10 +420,16 @@ export function EngagementManager({
               </div>
             </div>
 
+            {/* Document Preview Note */}
+            <div className="bg-muted/50 rounded-md p-3 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground mb-1">Document Generation</p>
+              <p>The details above will automatically populate your engagement letter template including client name, services, pricing, and effective date.</p>
+            </div>
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
               <Button onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : editingEngagement ? 'Update' : 'Create Engagement'}
+                {saving ? 'Saving...' : editingEngagement ? 'Update Letter' : 'Create Engagement Letter'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -434,11 +440,11 @@ export function EngagementManager({
       {engagements.length === 0 ? (
         <Card className="p-8 text-center">
           <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <p className="text-muted-foreground mb-4">No engagements yet</p>
+          <p className="text-muted-foreground mb-4">No engagement letters yet</p>
           {discoveryCompleted ? (
             <Button onClick={handleNewEngagement}>
               <Plus className="h-4 w-4 mr-2" />
-              Create First Engagement
+              Create First Engagement Letter
             </Button>
           ) : (
             <p className="text-sm text-muted-foreground">Complete discovery profile first</p>

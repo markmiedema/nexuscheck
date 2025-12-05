@@ -715,7 +715,7 @@ export default function ClientCRMPage() {
                 },
                 {
                   id: 'engagements',
-                  label: 'Engagements',
+                  label: 'Engagement Letters',
                   content: (
                     <div className="pt-4">
                       <EngagementManager
