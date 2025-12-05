@@ -60,6 +60,7 @@ interface ReviewNormalizationsModalProps {
     end: string
   }
   columnMappings?: ColumnMappingInfo[]
+  onAdjust?: () => void
 }
 
 // Format ISO date to US format
@@ -83,7 +84,8 @@ export default function ReviewNormalizationsModal({
   validCount,
   problems,
   dateRange,
-  columnMappings = []
+  columnMappings = [],
+  onAdjust
 }: ReviewNormalizationsModalProps) {
   const [userChannelMappings, setUserChannelMappings] = useState<Record<string, string>>({})
 
@@ -160,7 +162,12 @@ export default function ReviewNormalizationsModal({
           />
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-0">
+          {onAdjust && (
+            <Button variant="outline" onClick={onAdjust} disabled={isLoading} className="mr-auto">
+              Adjust Mappings
+            </Button>
+          )}
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>

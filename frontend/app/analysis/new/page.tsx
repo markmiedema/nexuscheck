@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
 import { createClientNote } from '@/lib/api/clients'
 import { UploadCloud, CheckCircle2, FileText, ShieldAlert, FileCheck, RefreshCw, ArrowLeft } from 'lucide-react'
-import ColumnMappingConfirmationDialog from '@/components/analysis/ColumnMappingConfirmationDialog'
+import ReviewNormalizationsModal from '@/components/analysis/ReviewNormalizationsModal'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { isValidFileSize, formatFileSize } from '@/lib/utils/validation'
 
@@ -145,6 +145,7 @@ function AnalysisFormContent() {
   const [uploadResponse, setUploadResponse] = useState<any>(null)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [calculating, setCalculating] = useState(false)
+  const [previewData, setPreviewData] = useState<any>(null)
 
   // Use different schemas based on mode
   const {
@@ -278,7 +279,38 @@ function AnalysisFormContent() {
 
       // Show confirmation dialog if all columns detected
       if (response.data.all_required_detected) {
-        setShowConfirmDialog(true)
+        // Call preview-normalization to get full preview data
+        try {
+          const detectedMappings = response.data.auto_detected_mappings.mappings
+          const mappingPayload = {
+            column_mappings: {
+              transaction_date: { source_column: detectedMappings.transaction_date },
+              customer_state: { source_column: detectedMappings.customer_state },
+              revenue_amount: { source_column: detectedMappings.revenue_amount },
+              sales_channel: { source_column: detectedMappings.sales_channel },
+              ...(detectedMappings.taxability && {
+                taxability: { source_column: detectedMappings.taxability }
+              }),
+              ...(detectedMappings.exempt_amount && {
+                exempt_amount: { source_column: detectedMappings.exempt_amount }
+              }),
+              ...(detectedMappings.transaction_id && {
+                transaction_id: { source_column: detectedMappings.transaction_id }
+              }),
+            }
+          }
+
+          const previewResponse = await apiClient.post(
+            `/api/v1/analyses/${analysisId}/preview-normalization`,
+            mappingPayload
+          )
+          setPreviewData(previewResponse.data)
+          setShowConfirmDialog(true)
+        } catch (previewErr) {
+          // If preview fails, redirect to mapping page
+          console.error('Preview failed:', previewErr)
+          router.push(`/analysis/${analysisId}/mapping`)
+        }
       } else {
         // Redirect to mapping page for manual mapping
         router.push(`/analysis/${analysisId}/mapping`)
@@ -291,7 +323,7 @@ function AnalysisFormContent() {
     }
   }
 
-  const handleConfirmCalculation = async () => {
+  const handleConfirmCalculation = async (channelMappings: Record<string, string> = {}) => {
     if (!analysisId || !uploadResponse) return
 
     try {
@@ -312,7 +344,8 @@ function AnalysisFormContent() {
             source_column: detectedMappings.revenue_amount
           },
           sales_channel: {
-            source_column: detectedMappings.sales_channel
+            source_column: detectedMappings.sales_channel,
+            value_mappings: channelMappings,
           },
           // Include optional fields if they were detected
           ...(detectedMappings.taxability && {
@@ -553,16 +586,36 @@ function AnalysisFormContent() {
             </Card>
           )}
 
-          {/* Confirmation Dialog */}
-          {showConfirmDialog && uploadResponse?.auto_detected_mappings && (
-            <ColumnMappingConfirmationDialog
+          {/* Review Normalizations Modal */}
+          {showConfirmDialog && previewData && uploadResponse?.auto_detected_mappings && (
+            <ReviewNormalizationsModal
               isOpen={showConfirmDialog}
               onClose={() => setShowConfirmDialog(false)}
               onConfirm={handleConfirmCalculation}
+              isLoading={calculating}
+              channelPreview={previewData?.channel_preview || { recognized: [], unrecognized: [] }}
+              statePreview={previewData?.state_preview || { normalized: [], unchanged: [], unrecognized: [] }}
+              validCount={previewData?.summary?.valid_rows || 0}
+              problems={previewData?.validation?.errors?.map((e: any) => ({
+                row: e.rows?.[0] || 0,
+                field: e.field || '',
+                value: '',
+                message: e.message || ''
+              })) || []}
+              dateRange={previewData?.date_range || { start: '', end: '' }}
+              columnMappings={(() => {
+                const mappings = uploadResponse.auto_detected_mappings.mappings
+                return [
+                  ...(mappings.transaction_date ? [{ sourceColumn: mappings.transaction_date, targetField: 'Transaction Date', isOptional: false }] : []),
+                  ...(mappings.customer_state ? [{ sourceColumn: mappings.customer_state, targetField: 'Customer State', isOptional: false }] : []),
+                  ...(mappings.revenue_amount ? [{ sourceColumn: mappings.revenue_amount, targetField: 'Revenue Amount', isOptional: false }] : []),
+                  ...(mappings.sales_channel ? [{ sourceColumn: mappings.sales_channel, targetField: 'Sales Channel', isOptional: false }] : []),
+                  ...(mappings.taxability ? [{ sourceColumn: mappings.taxability, targetField: 'Taxability', isOptional: true }] : []),
+                  ...(mappings.exempt_amount ? [{ sourceColumn: mappings.exempt_amount, targetField: 'Exempt Amount', isOptional: true }] : []),
+                  ...(mappings.transaction_id ? [{ sourceColumn: mappings.transaction_id, targetField: 'Transaction ID', isOptional: true }] : []),
+                ]
+              })()}
               onAdjust={handleAdjustMappings}
-              detectedMappings={uploadResponse.auto_detected_mappings.mappings}
-              samplesByColumn={uploadResponse.auto_detected_mappings.samples}
-              dataSummary={uploadResponse.auto_detected_mappings.summary}
             />
           )}
 
