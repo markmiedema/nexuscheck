@@ -113,7 +113,7 @@ export default function MappingPage() {
     transaction_id: '',
   })
 
-  const [dateFormat, setDateFormat] = useState('YYYY-MM-DD')
+  const [dateFormat, setDateFormat] = useState('MM/DD/YYYY')
   const [valueMappings, setValueMappings] = useState<ValueMapping>({})
 
   // Validation state

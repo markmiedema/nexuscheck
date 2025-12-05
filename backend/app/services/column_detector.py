@@ -812,16 +812,17 @@ class ColumnDetector:
                 revenue = row.get('revenue_amount')
                 is_tax = row.get('is_taxable') if 'is_taxable' in df.columns else None
                 exempt = row.get('exempt_amount') if 'exempt_amount' in df.columns else None
+                taxability = row.get('taxability') if 'taxability' in df.columns else None
 
                 taxable, is_taxable_bool, exempt_calc = self.calculate_taxable_amount(
-                    revenue, is_tax, exempt
+                    revenue, is_tax, exempt, taxability
                 )
 
                 df.at[idx, 'taxable_amount'] = taxable
                 df.at[idx, 'is_taxable'] = is_taxable_bool
                 df.at[idx, 'exempt_amount_calc'] = exempt_calc
 
-            transformations.append('Calculated taxable amounts based on exempt sales data')
+            transformations.append('Calculated taxable amounts based on taxability and exempt sales data')
 
         return {
             'df': df,

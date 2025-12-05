@@ -132,15 +132,15 @@ def test_taxability_detection_patterns():
 
 
 def test_normalize_data_with_taxability():
-    """Test that normalize_data processes taxability column."""
+    """Test that normalize_data processes taxability column and calculates taxable amounts correctly."""
     import pandas as pd
 
     df = pd.DataFrame({
-        'transaction_date': ['2024-01-15', '2024-01-16'],
-        'customer_state': ['TX', 'CA'],
-        'revenue_amount': [100.00, 200.00],
-        'sales_channel': ['direct', 'marketplace'],
-        'taxability': ['T', 'NT'],
+        'transaction_date': ['2024-01-15', '2024-01-16', '2024-01-17', '2024-01-18'],
+        'customer_state': ['TX', 'CA', 'NY', 'FL'],
+        'revenue_amount': [100.00, 200.00, 150.00, 300.00],
+        'sales_channel': ['direct', 'marketplace', 'direct', 'direct'],
+        'taxability': ['T', 'NT', 'E', 'Exempt'],  # Test both short codes and long form
     })
 
     mappings = {
@@ -155,8 +155,15 @@ def test_normalize_data_with_taxability():
     result = detector.normalize_data(df, mappings)
     result_df = result['df']
 
+    # Taxability column should be normalized
     assert 'taxability' in result_df.columns
-    assert result_df['taxability'].tolist() == ['T', 'NT']
+    assert result_df['taxability'].tolist() == ['T', 'NT', 'E', 'E']  # 'Exempt' normalized to 'E'
+
+    # Taxable amounts should be correctly calculated based on taxability
+    # T = taxable (full amount), NT/E = not taxable (0)
+    assert result_df['taxable_amount'].tolist() == [100.00, 0.0, 0.0, 0.0]
+    assert result_df['is_taxable'].tolist() == [True, False, False, False]
+    assert result_df['exempt_amount_calc'].tolist() == [0.0, 200.0, 150.0, 300.0]
 
 
 def test_normalize_data_taxability_validation():
