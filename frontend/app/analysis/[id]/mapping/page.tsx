@@ -39,6 +39,7 @@ import {
   ArrowLeft,
   Loader2
 } from 'lucide-react'
+import ReviewNormalizationsModal from '@/components/analysis/ReviewNormalizationsModal'
 
 interface ColumnInfo {
   name: string
@@ -51,8 +52,9 @@ interface MappingConfig {
   customer_state: string
   revenue_amount: string
   sales_channel: string
-  product_type?: string
-  customer_type?: string
+  taxability?: string
+  exempt_amount?: string
+  transaction_id?: string
 }
 
 interface ValueMapping {
@@ -77,6 +79,17 @@ interface ValidationError {
   severity: string
 }
 
+// Format ISO date to US format (MM/DD/YYYY)
+const formatDateUS = (isoDate: string): string => {
+  if (!isoDate) return ''
+  const date = new Date(isoDate)
+  return date.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric'
+  })
+}
+
 export default function MappingPage() {
   const params = useParams()
   const router = useRouter()
@@ -95,15 +108,22 @@ export default function MappingPage() {
     customer_state: '',
     revenue_amount: '',
     sales_channel: '',
+    taxability: '',
+    exempt_amount: '',
+    transaction_id: '',
   })
 
-  const [dateFormat, setDateFormat] = useState('YYYY-MM-DD')
+  const [dateFormat, setDateFormat] = useState('MM/DD/YYYY')
   const [valueMappings, setValueMappings] = useState<ValueMapping>({})
 
   // Validation state
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
   const [validationStatus, setValidationStatus] = useState<'idle' | 'passed' | 'failed'>('idle')
   const [showErrors, setShowErrors] = useState(false)
+
+  // Review modal state
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [previewData, setPreviewData] = useState<any>(null)
 
   useEffect(() => {
     fetchColumnInfo()
@@ -127,12 +147,16 @@ export default function MappingPage() {
       setColumns(data.columns)
       setDataSummary(data.summary)
 
-      // Auto-detect mappings
+      // Auto-detect mappings (required fields)
       const autoMappings: MappingConfig = {
         transaction_date: findColumn(data.columns, ['transaction_date', 'date', 'order_date', 'sale_date']),
         customer_state: findColumn(data.columns, ['customer_state', 'state', 'buyer_state', 'ship_to_state']),
         revenue_amount: findColumn(data.columns, ['revenue_amount', 'amount', 'sales_amount', 'total', 'price']),
         sales_channel: findColumn(data.columns, ['sales_channel', 'channel', 'source', 'marketplace']),
+        // Optional fields - auto-map if detected
+        taxability: findColumn(data.columns, ['taxability', 'is_taxable', 'taxable', 'tax_status', 'tax_type']),
+        exempt_amount: findColumn(data.columns, ['exempt_amount', 'exemption_amount', 'exemption', 'non_taxable_amount', 'nontaxable_amount']),
+        transaction_id: findColumn(data.columns, ['transaction_id', 'txn_id', 'order_id', 'order_number', 'invoice_id', 'invoice_number', 'sale_id', 'record_id', 'reference_id', 'ref_id']),
       }
 
       setMappings(autoMappings)
@@ -185,8 +209,9 @@ export default function MappingPage() {
       mappings.customer_state,
       mappings.revenue_amount,
       mappings.sales_channel,
-      mappings.product_type,
-      mappings.customer_type,
+      mappings.taxability,
+      mappings.exempt_amount,
+      mappings.transaction_id,
     ].filter(Boolean) // Remove empty optional fields
 
     const duplicates = findDuplicates(mappedColumns)
@@ -198,6 +223,41 @@ export default function MappingPage() {
     return true
   }
 
+  // Build mapping payload
+  const buildMappingPayload = (channelMappings: Record<string, string> = {}) => ({
+    column_mappings: {
+      transaction_date: {
+        source_column: mappings.transaction_date,
+        date_format: dateFormat,
+      },
+      customer_state: {
+        source_column: mappings.customer_state,
+      },
+      revenue_amount: {
+        source_column: mappings.revenue_amount,
+      },
+      sales_channel: {
+        source_column: mappings.sales_channel,
+        value_mappings: { ...valueMappings, ...channelMappings },
+      },
+      ...(mappings.taxability && {
+        taxability: {
+          source_column: mappings.taxability,
+        },
+      }),
+      ...(mappings.exempt_amount && {
+        exempt_amount: {
+          source_column: mappings.exempt_amount,
+        },
+      }),
+      ...(mappings.transaction_id && {
+        transaction_id: {
+          source_column: mappings.transaction_id,
+        },
+      }),
+    },
+  })
+
   const handleValidateAndProcess = async () => {
     if (!validateMappings()) return
 
@@ -206,30 +266,31 @@ export default function MappingPage() {
       setValidationStatus('idle')
       setValidationErrors([])
 
-      // Prepare mapping payload for new endpoint
-      const mappingPayload = {
-        column_mappings: {
-          transaction_date: {
-            source_column: mappings.transaction_date,
-            date_format: dateFormat,
-          },
-          customer_state: {
-            source_column: mappings.customer_state,
-          },
-          revenue_amount: {
-            source_column: mappings.revenue_amount,
-          },
-          sales_channel: {
-            source_column: mappings.sales_channel,
-            value_mappings: valueMappings,
-          },
-        },
-      }
+      // First, call preview-normalization to get preview data
+      const previewResponse = await apiClient.post(
+        `/api/v1/analyses/${analysisId}/preview-normalization`,
+        buildMappingPayload()
+      )
 
-      // Call validate-and-save endpoint
+      setPreviewData(previewResponse.data)
+      setShowReviewModal(true)
+      setValidating(false)
+
+    } catch (error: any) {
+      handleApiError(error, { userMessage: 'Failed to preview data' })
+      setValidating(false)
+    }
+  }
+
+  const handleConfirmImport = async (channelMappings: Record<string, string>) => {
+    try {
+      setValidating(true)
+      setShowReviewModal(false)
+
+      // Call validate-and-save endpoint with any user-provided channel mappings
       const saveResponse = await apiClient.post(
         `/api/v1/analyses/${analysisId}/validate-and-save`,
-        mappingPayload
+        buildMappingPayload(channelMappings)
       )
 
       showSuccess(`Saved ${saveResponse.data.transactions_saved} transactions`)
@@ -589,7 +650,7 @@ export default function MappingPage() {
               </CardContent>
             </Card>
 
-            {/* Optional Fields - Lighter Treatment */}
+            {/* Optional Fields */}
             <Card className="mb-6 border-dashed">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
@@ -602,18 +663,19 @@ export default function MappingPage() {
               </CardHeader>
               <CardContent className="space-y-4">
 
-                {/* Product Type */}
+                {/* Taxability */}
                 <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Your Column</Label>
                     <Select
-                      value={mappings.product_type || undefined}
-                      onValueChange={(val) => handleMappingChange('product_type', val)}
+                      value={mappings.taxability || ''}
+                      onValueChange={(val) => handleMappingChange('taxability', val === '_not_mapped_' ? '' : val)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Not mapped" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="_not_mapped_">Not mapped</SelectItem>
                         {columns.map(col => (
                           <SelectItem key={col.name} value={col.name}>{col.name}</SelectItem>
                         ))}
@@ -626,25 +688,26 @@ export default function MappingPage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Maps To</Label>
                     <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
-                      <span className="text-sm">Product Type</span>
+                      <span className="text-sm">Taxability (T/NT/E/EC/P)</span>
                     </div>
                   </div>
                 </div>
 
                 <Separator className="my-2" />
 
-                {/* Customer Type */}
+                {/* Exempt Amount */}
                 <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Your Column</Label>
                     <Select
-                      value={mappings.customer_type || undefined}
-                      onValueChange={(val) => handleMappingChange('customer_type', val)}
+                      value={mappings.exempt_amount || ''}
+                      onValueChange={(val) => handleMappingChange('exempt_amount', val === '_not_mapped_' ? '' : val)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Not mapped" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="_not_mapped_">Not mapped</SelectItem>
                         {columns.map(col => (
                           <SelectItem key={col.name} value={col.name}>{col.name}</SelectItem>
                         ))}
@@ -657,7 +720,39 @@ export default function MappingPage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Maps To</Label>
                     <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
-                      <span className="text-sm">Customer Type</span>
+                      <span className="text-sm">Exempt Amount</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="my-2" />
+
+                {/* Transaction ID */}
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Your Column</Label>
+                    <Select
+                      value={mappings.transaction_id || ''}
+                      onValueChange={(val) => handleMappingChange('transaction_id', val === '_not_mapped_' ? '' : val)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Not mapped" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_not_mapped_">Not mapped</SelectItem>
+                        {columns.map(col => (
+                          <SelectItem key={col.name} value={col.name}>{col.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Maps To</Label>
+                    <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
+                      <span className="text-sm">Transaction ID</span>
                     </div>
                   </div>
                 </div>
@@ -696,10 +791,10 @@ export default function MappingPage() {
                         Date Range
                       </p>
                       <p className="text-sm font-semibold text-foreground">
-                        {dataSummary.date_range.start}
+                        {formatDateUS(dataSummary.date_range.start)}
                       </p>
                       <p className="text-sm font-semibold text-foreground">
-                        {dataSummary.date_range.end}
+                        {formatDateUS(dataSummary.date_range.end)}
                       </p>
                     </div>
 
@@ -776,6 +871,33 @@ export default function MappingPage() {
               </Button>
             </div>
           </div>
+
+          {/* Review Normalizations Modal */}
+          <ReviewNormalizationsModal
+            isOpen={showReviewModal}
+            onClose={() => setShowReviewModal(false)}
+            onConfirm={handleConfirmImport}
+            isLoading={validating}
+            channelPreview={previewData?.channel_preview || { recognized: [], unrecognized: [] }}
+            statePreview={previewData?.state_preview || { normalized: [], unchanged: [], unrecognized: [] }}
+            validCount={previewData?.summary?.valid_rows || 0}
+            problems={previewData?.validation?.errors?.map((e: any) => ({
+              row: e.rows?.[0] || 0,
+              field: e.field || '',
+              value: '',
+              message: e.message || ''
+            })) || []}
+            dateRange={previewData?.date_range || { start: '', end: '' }}
+            columnMappings={[
+              ...(mappings.transaction_date ? [{ sourceColumn: mappings.transaction_date, targetField: 'Transaction Date', isOptional: false }] : []),
+              ...(mappings.customer_state ? [{ sourceColumn: mappings.customer_state, targetField: 'Customer State', isOptional: false }] : []),
+              ...(mappings.revenue_amount ? [{ sourceColumn: mappings.revenue_amount, targetField: 'Revenue Amount', isOptional: false }] : []),
+              ...(mappings.sales_channel ? [{ sourceColumn: mappings.sales_channel, targetField: 'Sales Channel', isOptional: false }] : []),
+              ...(mappings.taxability ? [{ sourceColumn: mappings.taxability, targetField: 'Taxability', isOptional: true }] : []),
+              ...(mappings.exempt_amount ? [{ sourceColumn: mappings.exempt_amount, targetField: 'Exempt Amount', isOptional: true }] : []),
+              ...(mappings.transaction_id ? [{ sourceColumn: mappings.transaction_id, targetField: 'Transaction ID', isOptional: true }] : []),
+            ]}
+          />
       </AppLayout>
       </ErrorBoundary>
     </ProtectedRoute>

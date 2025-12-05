@@ -37,6 +37,50 @@ DATE_FORMATS = [
     '%b %d %Y',      # Feb 15 2024 (no comma)
 ]
 
+# Valid taxability codes
+VALID_TAXABILITY_CODES = {'T', 'NT', 'E', 'EC', 'P'}
+
+# Long-form taxability mappings
+TAXABILITY_MAPPING = {
+    # Taxable variants
+    'taxable': 'T',
+    'tax': 'T',
+    'yes': 'T',
+    'y': 'T',
+    'true': 'T',
+    '1': 'T',
+
+    # Non-Taxable variants
+    'not taxable': 'NT',
+    'non-taxable': 'NT',
+    'non taxable': 'NT',
+    'nontaxable': 'NT',
+    'no tax': 'NT',
+    'no': 'NT',
+    'n': 'NT',
+    'false': 'NT',
+    '0': 'NT',
+
+    # Exempt variants
+    'exempt': 'E',
+    'exemption': 'E',
+    'tax exempt': 'E',
+    'tax-exempt': 'E',
+
+    # Exempt with Certificate variants
+    'exempt with certificate': 'EC',
+    'exempt w/ certificate': 'EC',
+    'exempt w/certificate': 'EC',
+    'certificate': 'EC',
+    'resale': 'EC',
+    'resale certificate': 'EC',
+
+    # Partial variants
+    'partial': 'P',
+    'partially taxable': 'P',
+    'partial exemption': 'P',
+}
+
 # Sales channel normalization mapping
 CHANNEL_MAPPING = {
     # Marketplace variants
@@ -117,6 +161,17 @@ class ColumnDetector:
             'fulfillment_channel', 'fulfillment channel',
             'order_channel', 'channel_name', 'sales_platform'
         ],
+        'taxability': [
+            # Primary patterns (most specific)
+            'taxability', 'tax_status', 'tax status',
+            'is_taxable', 'is taxable', 'taxable',
+            'tax_code', 'tax code',
+            # Exemption-related patterns
+            'exempt_status', 'exempt status', 'exemption_status',
+            'exempt', 'is_exempt', 'is exempt',
+            'taxable_flag', 'tax_exempt', 'tax exempt',
+            'subject_to_tax'
+        ],
         'revenue_stream': [
             'revenue_stream', 'revenue stream',
             'product_type', 'product type',
@@ -129,14 +184,6 @@ class ColumnDetector:
             'line_of_business', 'sku_category',
             'business_line'
         ],
-        # Optional columns for exempt sales
-        'is_taxable': [
-            'is_taxable', 'is taxable', 'taxable',
-            'tax_status', 'tax status', 'taxability',
-            'exempt', 'is_exempt', 'is exempt',
-            'taxable_flag', 'tax_exempt', 'tax exempt',
-            'exemption_status', 'subject_to_tax'
-        ],
         'exempt_amount': [
             'exempt_amount', 'exempt amount', 'exempt',
             'exempt_sales', 'exempt sales',
@@ -144,6 +191,14 @@ class ColumnDetector:
             'exemption_amount', 'exemption amount',
             'exempt_amt', 'tax_exempt_amount',
             'nontaxable_amount'
+        ],
+        'transaction_id': [
+            'transaction_id', 'transaction id', 'txn_id',
+            'order_id', 'order id', 'order_number', 'order number',
+            'invoice_id', 'invoice id', 'invoice_number', 'invoice number',
+            'sale_id', 'sale id', 'record_id', 'record id',
+            'reference_id', 'reference id', 'ref_id', 'ref id',
+            'id', 'unique_id', 'unique id'
         ]
     }
 
@@ -446,30 +501,187 @@ class ColumnDetector:
         return CHANNEL_MAPPING.get(cleaned, 'direct')
 
     @staticmethod
+    def normalize_taxability(value) -> Optional[str]:
+        """
+        Normalize taxability value to standard code.
+
+        Valid codes: T (Taxable), NT (Non-Taxable), E (Exempt),
+                     EC (Exempt w/ Certificate), P (Partial)
+
+        Also accepts long-form values like:
+        - "Taxable", "Yes", "True" -> T
+        - "Not Taxable", "Non-Taxable", "No", "False" -> NT
+        - "Exempt", "Tax Exempt" -> E
+        - "Exempt with Certificate", "Resale" -> EC
+        - "Partial", "Partially Taxable" -> P
+
+        Returns None for invalid values.
+        """
+        if value is None:
+            return None
+
+        cleaned = str(value).strip()
+
+        if cleaned == '':
+            return None
+
+        # First check if it's already a valid short code (case-insensitive)
+        upper = cleaned.upper()
+        if upper in VALID_TAXABILITY_CODES:
+            return upper
+
+        # Then check the long-form mapping (case-insensitive)
+        lower = cleaned.lower()
+        if lower in TAXABILITY_MAPPING:
+            return TAXABILITY_MAPPING[lower]
+
+        return None
+
+    @classmethod
+    def get_channel_mapping_preview(cls, df, channel_column: str) -> dict:
+        """
+        Return preview of how channel values will be mapped.
+
+        Returns:
+            {
+                'recognized': [{'original': 'Amazon', 'normalized': 'marketplace'}, ...],
+                'unrecognized': ['FBA', 'Wholesale', ...]
+            }
+        """
+        if channel_column not in df.columns:
+            return {'recognized': [], 'unrecognized': []}
+
+        unique_values = df[channel_column].dropna().unique()
+        recognized = []
+        unrecognized = []
+
+        for val in unique_values:
+            val_str = str(val).strip()
+            normalized = cls.normalize_channel(val_str)
+            val_lower = val_str.lower()
+
+            # Check if it was actually recognized (not just defaulted to 'direct')
+            is_recognized = (
+                val_lower in CHANNEL_MAPPING or
+                normalized == 'marketplace' or
+                val_lower in ['direct', 'website', 'web', 'online', 'retail', 'store']
+            )
+
+            if is_recognized:
+                recognized.append({
+                    'original': val_str,
+                    'normalized': normalized
+                })
+            else:
+                unrecognized.append(val_str)
+
+        return {
+            'recognized': recognized,
+            'unrecognized': unrecognized
+        }
+
+    @classmethod
+    def get_state_mapping_preview(cls, df, state_column: str) -> dict:
+        """
+        Return preview of how state values will be normalized.
+
+        Returns:
+            {
+                'normalized': [{'original': 'California', 'normalized': 'CA'}, ...],
+                'unchanged': [{'original': 'TX', 'normalized': 'TX'}, ...],
+                'unrecognized': ['XX', 'Unknown', ...]
+            }
+        """
+        if state_column not in df.columns:
+            return {'normalized': [], 'unchanged': [], 'unrecognized': []}
+
+        unique_values = df[state_column].dropna().unique()
+        normalized_list = []
+        unchanged_list = []
+        unrecognized_list = []
+
+        valid_states = {
+            'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+            'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+            'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+            'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+            'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
+            'DC', 'PR', 'VI', 'GU', 'AS', 'MP'
+        }
+
+        for val in unique_values:
+            val_str = str(val).strip()
+            normalized = cls.normalize_state_code(val_str)
+
+            if normalized in valid_states:
+                if val_str.upper() == normalized:
+                    unchanged_list.append({
+                        'original': val_str,
+                        'normalized': normalized
+                    })
+                else:
+                    normalized_list.append({
+                        'original': val_str,
+                        'normalized': normalized
+                    })
+            else:
+                unrecognized_list.append(val_str)
+
+        return {
+            'normalized': normalized_list,
+            'unchanged': unchanged_list,
+            'unrecognized': unrecognized_list
+        }
+
+    @staticmethod
     def calculate_taxable_amount(
         revenue_amount: float,
         is_taxable: Optional[str] = None,
-        exempt_amount: Optional[float] = None
+        exempt_amount: Optional[float] = None,
+        taxability: Optional[str] = None
     ) -> tuple:
         """
-        Calculate taxable amount using hybrid logic.
+        Calculate taxable amount based on taxability code and exempt amount.
 
         Priority:
-        1. If exempt_amount specified, subtract from revenue
-        2. If is_taxable specified, use Y/N logic
-        3. Default to fully taxable
+        1. Taxability code (T/NT/E/EC/P) - if provided
+        2. exempt_amount - for partial exemptions
+        3. is_taxable_flag - legacy boolean support
+        4. Default to fully taxable
 
         Args:
-            revenue_amount: Gross revenue for transaction
-            is_taxable: Optional boolean string (Y/N, True/False, etc.)
+            revenue_amount: Total revenue amount
+            is_taxable: Optional legacy boolean flag
             exempt_amount: Optional exempt dollar amount
+            taxability: Optional taxability code (T/NT/E/EC/P)
 
         Returns:
             Tuple of (taxable_amount, is_taxable_bool, exempt_amount)
         """
         revenue = float(revenue_amount) if revenue_amount else 0.0
 
-        # Priority 1: exempt_amount specified
+        # Priority 1: Taxability code
+        if taxability:
+            taxability_upper = taxability.upper()
+            if taxability_upper in ('NT', 'E', 'EC'):
+                # Fully exempt
+                return (0.0, False, revenue)
+            elif taxability_upper == 'P':
+                # Partial - use exempt_amount
+                if exempt_amount is not None:
+                    exempt = min(float(exempt_amount), revenue)
+                    return (revenue - exempt, True, exempt)
+                else:
+                    # P without exempt_amount treated as fully taxable (validation should catch this)
+                    return (revenue, True, 0.0)
+            else:
+                # T or unknown = taxable
+                if exempt_amount is not None:
+                    exempt = min(float(exempt_amount), revenue)
+                    return (revenue - exempt, True, exempt)
+                return (revenue, True, 0.0)
+
+        # Priority 2: exempt_amount specified (legacy support)
         if exempt_amount is not None:
             try:
                 exempt = float(exempt_amount)
@@ -490,7 +702,7 @@ class ColumnDetector:
             except (ValueError, TypeError):
                 pass
 
-        # Priority 2: is_taxable specified
+        # Priority 3: is_taxable specified (legacy support)
         if is_taxable is not None and str(is_taxable).strip() != '':
             val_str = str(is_taxable).upper().strip()
             # Check for "false" values
@@ -500,7 +712,7 @@ class ColumnDetector:
             else:
                 return (revenue, True, 0.0)
 
-        # Priority 3: Default to fully taxable
+        # Priority 4: Default to fully taxable
         return (revenue, True, 0.0)
 
     def normalize_data(self, df, mappings: Dict) -> Dict:
@@ -573,7 +785,17 @@ class ColumnDetector:
             # Default to 'direct' if column not present
             df['sales_channel'] = 'direct'
 
-        # 4. Normalize revenue streams
+        # 4. Normalize taxability if mapped
+        if 'taxability' in mappings and mappings['taxability']:
+            source_col = mappings['taxability']
+            if 'taxability' in df.columns:
+                df['taxability'] = df['taxability'].apply(self.normalize_taxability)
+                transformations.append('Normalized taxability codes to T/NT/E/EC/P')
+        else:
+            # Default to taxable if not mapped
+            df['taxability'] = 'T'
+
+        # 5. Normalize revenue streams
         if 'revenue_stream' in df.columns:
             df['revenue_stream'] = df['revenue_stream'].apply(self.normalize_revenue_stream)
             transformations.append('Normalized revenue streams to standard categories')
@@ -588,16 +810,17 @@ class ColumnDetector:
                 revenue = row.get('revenue_amount')
                 is_tax = row.get('is_taxable') if 'is_taxable' in df.columns else None
                 exempt = row.get('exempt_amount') if 'exempt_amount' in df.columns else None
+                taxability = row.get('taxability') if 'taxability' in df.columns else None
 
                 taxable, is_taxable_bool, exempt_calc = self.calculate_taxable_amount(
-                    revenue, is_tax, exempt
+                    revenue, is_tax, exempt, taxability
                 )
 
                 df.at[idx, 'taxable_amount'] = taxable
                 df.at[idx, 'is_taxable'] = is_taxable_bool
                 df.at[idx, 'exempt_amount_calc'] = exempt_calc
 
-            transformations.append('Calculated taxable amounts based on exempt sales data')
+            transformations.append('Calculated taxable amounts based on taxability and exempt sales data')
 
         return {
             'df': df,
@@ -702,6 +925,34 @@ class ColumnDetector:
                     'count': len(over_exempt),
                     'severity': 'warning'
                 })
+
+        # 5. Validate taxability codes
+        if 'taxability' in df.columns:
+            # Check for invalid codes (None values from failed normalization)
+            invalid_taxability = df[df['taxability'].isna()]
+            if len(invalid_taxability) > 0:
+                errors.append({
+                    'field': 'taxability',
+                    'message': f'{len(invalid_taxability)} transactions have invalid taxability codes (use T, NT, E, EC, or P)',
+                    'count': len(invalid_taxability),
+                    'severity': 'error',
+                    'rows': invalid_taxability.index.tolist()[:10]
+                })
+
+            # Check P (partial) requires exempt_amount > 0
+            if 'exempt_amount_calc' in df.columns:
+                partial_no_exempt = df[
+                    (df['taxability'] == 'P') &
+                    ((df['exempt_amount_calc'].isna()) | (df['exempt_amount_calc'] <= 0))
+                ]
+                if len(partial_no_exempt) > 0:
+                    errors.append({
+                        'field': 'taxability',
+                        'message': f'{len(partial_no_exempt)} transactions have Partial (P) taxability but no exempt amount',
+                        'count': len(partial_no_exempt),
+                        'severity': 'error',
+                        'rows': partial_no_exempt.index.tolist()[:10]
+                    })
 
         return {
             'valid': len(errors) == 0,

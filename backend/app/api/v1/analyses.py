@@ -680,6 +680,31 @@ async def preview_normalization(
                 elif isinstance(val, (pd.Timestamp, datetime)):
                     row[key] = str(val)
 
+        # Get channel and state previews for UI
+        channel_preview = {}
+        state_preview = {}
+
+        if 'sales_channel' in mappings and mappings.get('sales_channel'):
+            channel_col = mappings['sales_channel']
+            channel_preview = ColumnDetector.get_channel_mapping_preview(df, channel_col)
+
+        if 'customer_state' in mappings and mappings.get('customer_state'):
+            state_col = mappings['customer_state']
+            state_preview = ColumnDetector.get_state_mapping_preview(df, state_col)
+
+        # Calculate date range for UI
+        date_range = {'start': None, 'end': None}
+        if 'transaction_date' in normalized_df.columns:
+            try:
+                dates = pd.to_datetime(normalized_df['transaction_date'].dropna())
+                if len(dates) > 0:
+                    date_range = {
+                        'start': str(dates.min().date()),
+                        'end': str(dates.max().date())
+                    }
+            except Exception:
+                pass
+
         return {
             "preview_data": preview_data,
             "transformations": transformations,
@@ -691,7 +716,10 @@ async def preview_normalization(
                 "invalid_rows": len(df) - validation_result['valid_rows'],
                 "columns_mapped": len(mappings),
                 "preview_rows_shown": preview_rows
-            }
+            },
+            "channel_preview": channel_preview,
+            "state_preview": state_preview,
+            "date_range": date_range
         }
 
     except HTTPException:
