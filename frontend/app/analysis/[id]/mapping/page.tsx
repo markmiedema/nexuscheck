@@ -51,8 +51,9 @@ interface MappingConfig {
   customer_state: string
   revenue_amount: string
   sales_channel: string
-  product_type?: string
-  customer_type?: string
+  taxability?: string
+  exempt_amount?: string
+  transaction_id?: string
 }
 
 interface ValueMapping {
@@ -95,6 +96,9 @@ export default function MappingPage() {
     customer_state: '',
     revenue_amount: '',
     sales_channel: '',
+    taxability: '',
+    exempt_amount: '',
+    transaction_id: '',
   })
 
   const [dateFormat, setDateFormat] = useState('YYYY-MM-DD')
@@ -185,8 +189,9 @@ export default function MappingPage() {
       mappings.customer_state,
       mappings.revenue_amount,
       mappings.sales_channel,
-      mappings.product_type,
-      mappings.customer_type,
+      mappings.taxability,
+      mappings.exempt_amount,
+      mappings.transaction_id,
     ].filter(Boolean) // Remove empty optional fields
 
     const duplicates = findDuplicates(mappedColumns)
@@ -589,7 +594,7 @@ export default function MappingPage() {
               </CardContent>
             </Card>
 
-            {/* Optional Fields - Lighter Treatment */}
+            {/* Optional Fields */}
             <Card className="mb-6 border-dashed">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
@@ -602,18 +607,19 @@ export default function MappingPage() {
               </CardHeader>
               <CardContent className="space-y-4">
 
-                {/* Product Type */}
+                {/* Taxability */}
                 <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Your Column</Label>
                     <Select
-                      value={mappings.product_type || undefined}
-                      onValueChange={(val) => handleMappingChange('product_type', val)}
+                      value={mappings.taxability || ''}
+                      onValueChange={(val) => handleMappingChange('taxability', val === '_not_mapped_' ? '' : val)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Not mapped" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="_not_mapped_">Not mapped</SelectItem>
                         {columns.map(col => (
                           <SelectItem key={col.name} value={col.name}>{col.name}</SelectItem>
                         ))}
@@ -626,25 +632,26 @@ export default function MappingPage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Maps To</Label>
                     <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
-                      <span className="text-sm">Product Type</span>
+                      <span className="text-sm">Taxability (T/NT/E/EC/P)</span>
                     </div>
                   </div>
                 </div>
 
                 <Separator className="my-2" />
 
-                {/* Customer Type */}
+                {/* Exempt Amount */}
                 <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Your Column</Label>
                     <Select
-                      value={mappings.customer_type || undefined}
-                      onValueChange={(val) => handleMappingChange('customer_type', val)}
+                      value={mappings.exempt_amount || ''}
+                      onValueChange={(val) => handleMappingChange('exempt_amount', val === '_not_mapped_' ? '' : val)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Not mapped" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="_not_mapped_">Not mapped</SelectItem>
                         {columns.map(col => (
                           <SelectItem key={col.name} value={col.name}>{col.name}</SelectItem>
                         ))}
@@ -657,7 +664,39 @@ export default function MappingPage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Maps To</Label>
                     <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
-                      <span className="text-sm">Customer Type</span>
+                      <span className="text-sm">Exempt Amount</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="my-2" />
+
+                {/* Transaction ID */}
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Your Column</Label>
+                    <Select
+                      value={mappings.transaction_id || ''}
+                      onValueChange={(val) => handleMappingChange('transaction_id', val === '_not_mapped_' ? '' : val)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Not mapped" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_not_mapped_">Not mapped</SelectItem>
+                        {columns.map(col => (
+                          <SelectItem key={col.name} value={col.name}>{col.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Maps To</Label>
+                    <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50">
+                      <span className="text-sm">Transaction ID</span>
                     </div>
                   </div>
                 </div>
