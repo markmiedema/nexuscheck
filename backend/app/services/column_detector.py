@@ -37,6 +37,9 @@ DATE_FORMATS = [
     '%b %d %Y',      # Feb 15 2024 (no comma)
 ]
 
+# Valid taxability codes
+VALID_TAXABILITY_CODES = {'T', 'NT', 'E', 'EC', 'P'}
+
 # Sales channel normalization mapping
 CHANNEL_MAPPING = {
     # Marketplace variants
@@ -116,6 +119,11 @@ class ColumnDetector:
             'sale_channel', 'sales_source',
             'fulfillment_channel', 'fulfillment channel',
             'order_channel', 'channel_name', 'sales_platform'
+        ],
+        'taxability': [
+            'taxability', 'tax_status', 'tax status',
+            'taxable', 'tax_code', 'tax code',
+            'exempt_status', 'exempt status',
         ],
         'revenue_stream': [
             'revenue_stream', 'revenue stream',
@@ -444,6 +452,29 @@ class ColumnDetector:
 
         # Look up in mapping
         return CHANNEL_MAPPING.get(cleaned, 'direct')
+
+    @staticmethod
+    def normalize_taxability(value) -> Optional[str]:
+        """
+        Normalize taxability value to standard code.
+
+        Valid codes: T (Taxable), NT (Non-Taxable), E (Exempt),
+                     EC (Exempt w/ Certificate), P (Partial)
+
+        Returns None for invalid values.
+        """
+        if value is None:
+            return None
+
+        cleaned = str(value).strip().upper()
+
+        if cleaned == '':
+            return None
+
+        if cleaned in VALID_TAXABILITY_CODES:
+            return cleaned
+
+        return None
 
     @staticmethod
     def calculate_taxable_amount(
