@@ -234,3 +234,24 @@ def test_calculate_taxable_amount_with_taxability():
     assert taxable == 70.00
     assert is_taxable == True
     assert exempt == 30.00
+
+
+def test_get_channel_mapping_preview():
+    """Test channel mapping preview identifies recognized vs unrecognized values."""
+    import pandas as pd
+
+    df = pd.DataFrame({
+        'channel': ['Amazon', 'Website', 'FBA', 'Wholesale', 'eBay']
+    })
+
+    result = ColumnDetector.get_channel_mapping_preview(df, 'channel')
+
+    # Amazon, Website, eBay should be recognized
+    recognized_originals = [r['original'] for r in result['recognized']]
+    assert 'Amazon' in recognized_originals
+    assert 'Website' in recognized_originals
+    assert 'eBay' in recognized_originals
+
+    # FBA, Wholesale should be unrecognized
+    assert 'FBA' in result['unrecognized']
+    assert 'Wholesale' in result['unrecognized']

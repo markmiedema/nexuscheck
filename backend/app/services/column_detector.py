@@ -476,6 +476,49 @@ class ColumnDetector:
 
         return None
 
+    @classmethod
+    def get_channel_mapping_preview(cls, df, channel_column: str) -> dict:
+        """
+        Return preview of how channel values will be mapped.
+
+        Returns:
+            {
+                'recognized': [{'original': 'Amazon', 'normalized': 'marketplace'}, ...],
+                'unrecognized': ['FBA', 'Wholesale', ...]
+            }
+        """
+        if channel_column not in df.columns:
+            return {'recognized': [], 'unrecognized': []}
+
+        unique_values = df[channel_column].dropna().unique()
+        recognized = []
+        unrecognized = []
+
+        for val in unique_values:
+            val_str = str(val).strip()
+            normalized = cls.normalize_channel(val_str)
+            val_lower = val_str.lower()
+
+            # Check if it was actually recognized (not just defaulted to 'direct')
+            is_recognized = (
+                val_lower in CHANNEL_MAPPING or
+                normalized == 'marketplace' or
+                val_lower in ['direct', 'website', 'web', 'online', 'retail', 'store']
+            )
+
+            if is_recognized:
+                recognized.append({
+                    'original': val_str,
+                    'normalized': normalized
+                })
+            else:
+                unrecognized.append(val_str)
+
+        return {
+            'recognized': recognized,
+            'unrecognized': unrecognized
+        }
+
     @staticmethod
     def calculate_taxable_amount(
         revenue_amount: float,
