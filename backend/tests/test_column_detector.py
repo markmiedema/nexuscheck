@@ -195,3 +195,42 @@ def test_validate_taxability_partial_requires_exempt_amount():
     result = detector.validate_normalized_data(df_valid)
     taxability_errors = [e for e in result['errors'] if e.get('field') == 'taxability']
     assert len(taxability_errors) == 0
+
+
+def test_calculate_taxable_amount_with_taxability():
+    """Test taxable amount calculation respects taxability codes."""
+    # T = full tax
+    taxable, is_taxable, exempt = ColumnDetector.calculate_taxable_amount(
+        revenue_amount=100.00, taxability='T'
+    )
+    assert taxable == 100.00
+    assert is_taxable == True
+
+    # NT = no tax
+    taxable, is_taxable, exempt = ColumnDetector.calculate_taxable_amount(
+        revenue_amount=100.00, taxability='NT'
+    )
+    assert taxable == 0.00
+    assert is_taxable == False
+
+    # E = no tax
+    taxable, is_taxable, exempt = ColumnDetector.calculate_taxable_amount(
+        revenue_amount=100.00, taxability='E'
+    )
+    assert taxable == 0.00
+    assert is_taxable == False
+
+    # EC = no tax
+    taxable, is_taxable, exempt = ColumnDetector.calculate_taxable_amount(
+        revenue_amount=100.00, taxability='EC'
+    )
+    assert taxable == 0.00
+    assert is_taxable == False
+
+    # P = partial (revenue - exempt_amount)
+    taxable, is_taxable, exempt = ColumnDetector.calculate_taxable_amount(
+        revenue_amount=100.00, taxability='P', exempt_amount=30.00
+    )
+    assert taxable == 70.00
+    assert is_taxable == True
+    assert exempt == 30.00

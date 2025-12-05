@@ -480,27 +480,51 @@ class ColumnDetector:
     def calculate_taxable_amount(
         revenue_amount: float,
         is_taxable: Optional[str] = None,
-        exempt_amount: Optional[float] = None
+        exempt_amount: Optional[float] = None,
+        taxability: Optional[str] = None
     ) -> tuple:
         """
-        Calculate taxable amount using hybrid logic.
+        Calculate taxable amount based on taxability code and exempt amount.
 
         Priority:
-        1. If exempt_amount specified, subtract from revenue
-        2. If is_taxable specified, use Y/N logic
-        3. Default to fully taxable
+        1. Taxability code (T/NT/E/EC/P) - if provided
+        2. exempt_amount - for partial exemptions
+        3. is_taxable_flag - legacy boolean support
+        4. Default to fully taxable
 
         Args:
-            revenue_amount: Gross revenue for transaction
-            is_taxable: Optional boolean string (Y/N, True/False, etc.)
+            revenue_amount: Total revenue amount
+            is_taxable: Optional legacy boolean flag
             exempt_amount: Optional exempt dollar amount
+            taxability: Optional taxability code (T/NT/E/EC/P)
 
         Returns:
             Tuple of (taxable_amount, is_taxable_bool, exempt_amount)
         """
         revenue = float(revenue_amount) if revenue_amount else 0.0
 
-        # Priority 1: exempt_amount specified
+        # Priority 1: Taxability code
+        if taxability:
+            taxability_upper = taxability.upper()
+            if taxability_upper in ('NT', 'E', 'EC'):
+                # Fully exempt
+                return (0.0, False, revenue)
+            elif taxability_upper == 'P':
+                # Partial - use exempt_amount
+                if exempt_amount is not None:
+                    exempt = min(float(exempt_amount), revenue)
+                    return (revenue - exempt, True, exempt)
+                else:
+                    # P without exempt_amount treated as fully taxable (validation should catch this)
+                    return (revenue, True, 0.0)
+            else:
+                # T or unknown = taxable
+                if exempt_amount is not None:
+                    exempt = min(float(exempt_amount), revenue)
+                    return (revenue - exempt, True, exempt)
+                return (revenue, True, 0.0)
+
+        # Priority 2: exempt_amount specified (legacy support)
         if exempt_amount is not None:
             try:
                 exempt = float(exempt_amount)
@@ -521,7 +545,7 @@ class ColumnDetector:
             except (ValueError, TypeError):
                 pass
 
-        # Priority 2: is_taxable specified
+        # Priority 3: is_taxable specified (legacy support)
         if is_taxable is not None and str(is_taxable).strip() != '':
             val_str = str(is_taxable).upper().strip()
             # Check for "false" values
@@ -531,7 +555,7 @@ class ColumnDetector:
             else:
                 return (revenue, True, 0.0)
 
-        # Priority 3: Default to fully taxable
+        # Priority 4: Default to fully taxable
         return (revenue, True, 0.0)
 
     def normalize_data(self, df, mappings: Dict) -> Dict:
