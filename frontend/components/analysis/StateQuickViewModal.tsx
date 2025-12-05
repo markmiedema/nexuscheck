@@ -244,30 +244,6 @@ export function StateQuickViewModal({
                       </div>
                     ) : null
                   })()}
-                  {(() => {
-                    // Find registration deadline from year_data
-                    const yearWithObligation = data.year_data.find(yr => yr.obligation_start_date)
-                    if (yearWithObligation?.obligation_start_date) {
-                      const deadlineDate = new Date(yearWithObligation.obligation_start_date)
-                      const isOverdue = deadlineDate < new Date()
-                      return (
-                        <div className="text-center">
-                          <div className="text-muted-foreground text-xs mb-1">Register By</div>
-                          {isOverdue ? (
-                            <div className="font-medium text-destructive">{formatDate(yearWithObligation.obligation_start_date)}</div>
-                          ) : (
-                            <div className="font-medium text-warning">{formatDate(yearWithObligation.obligation_start_date)}</div>
-                          )}
-                        </div>
-                      )
-                    }
-                    return data.compliance_info.registration_info?.registration_required ? (
-                      <div className="text-center">
-                        <div className="text-muted-foreground text-xs mb-1">Registration</div>
-                        <div className="font-medium text-warning">Required</div>
-                      </div>
-                    ) : null
-                  })()}
                 </div>
               </div>
             )}
