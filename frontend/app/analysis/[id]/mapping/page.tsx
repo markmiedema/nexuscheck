@@ -78,6 +78,17 @@ interface ValidationError {
   severity: string
 }
 
+// Format ISO date to US format (MM/DD/YYYY)
+const formatDateUS = (isoDate: string): string => {
+  if (!isoDate) return ''
+  const date = new Date(isoDate)
+  return date.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric'
+  })
+}
+
 export default function MappingPage() {
   const params = useParams()
   const router = useRouter()
@@ -735,10 +746,10 @@ export default function MappingPage() {
                         Date Range
                       </p>
                       <p className="text-sm font-semibold text-foreground">
-                        {dataSummary.date_range.start}
+                        {formatDateUS(dataSummary.date_range.start)}
                       </p>
                       <p className="text-sm font-semibold text-foreground">
-                        {dataSummary.date_range.end}
+                        {formatDateUS(dataSummary.date_range.end)}
                       </p>
                     </div>
 
