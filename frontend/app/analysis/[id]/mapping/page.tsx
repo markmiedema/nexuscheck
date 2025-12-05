@@ -39,6 +39,7 @@ import {
   ArrowLeft,
   Loader2
 } from 'lucide-react'
+import ReviewNormalizationsModal from '@/components/analysis/ReviewNormalizationsModal'
 
 interface ColumnInfo {
   name: string
@@ -119,6 +120,10 @@ export default function MappingPage() {
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
   const [validationStatus, setValidationStatus] = useState<'idle' | 'passed' | 'failed'>('idle')
   const [showErrors, setShowErrors] = useState(false)
+
+  // Review modal state
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [previewData, setPreviewData] = useState<any>(null)
 
   useEffect(() => {
     fetchColumnInfo()
@@ -214,6 +219,41 @@ export default function MappingPage() {
     return true
   }
 
+  // Build mapping payload
+  const buildMappingPayload = (channelMappings: Record<string, string> = {}) => ({
+    column_mappings: {
+      transaction_date: {
+        source_column: mappings.transaction_date,
+        date_format: dateFormat,
+      },
+      customer_state: {
+        source_column: mappings.customer_state,
+      },
+      revenue_amount: {
+        source_column: mappings.revenue_amount,
+      },
+      sales_channel: {
+        source_column: mappings.sales_channel,
+        value_mappings: { ...valueMappings, ...channelMappings },
+      },
+      ...(mappings.taxability && {
+        taxability: {
+          source_column: mappings.taxability,
+        },
+      }),
+      ...(mappings.exempt_amount && {
+        exempt_amount: {
+          source_column: mappings.exempt_amount,
+        },
+      }),
+      ...(mappings.transaction_id && {
+        transaction_id: {
+          source_column: mappings.transaction_id,
+        },
+      }),
+    },
+  })
+
   const handleValidateAndProcess = async () => {
     if (!validateMappings()) return
 
@@ -222,30 +262,31 @@ export default function MappingPage() {
       setValidationStatus('idle')
       setValidationErrors([])
 
-      // Prepare mapping payload for new endpoint
-      const mappingPayload = {
-        column_mappings: {
-          transaction_date: {
-            source_column: mappings.transaction_date,
-            date_format: dateFormat,
-          },
-          customer_state: {
-            source_column: mappings.customer_state,
-          },
-          revenue_amount: {
-            source_column: mappings.revenue_amount,
-          },
-          sales_channel: {
-            source_column: mappings.sales_channel,
-            value_mappings: valueMappings,
-          },
-        },
-      }
+      // First, call preview-normalization to get preview data
+      const previewResponse = await apiClient.post(
+        `/api/v1/analyses/${analysisId}/preview-normalization`,
+        buildMappingPayload()
+      )
 
-      // Call validate-and-save endpoint
+      setPreviewData(previewResponse.data)
+      setShowReviewModal(true)
+      setValidating(false)
+
+    } catch (error: any) {
+      handleApiError(error, { userMessage: 'Failed to preview data' })
+      setValidating(false)
+    }
+  }
+
+  const handleConfirmImport = async (channelMappings: Record<string, string>) => {
+    try {
+      setValidating(true)
+      setShowReviewModal(false)
+
+      // Call validate-and-save endpoint with any user-provided channel mappings
       const saveResponse = await apiClient.post(
         `/api/v1/analyses/${analysisId}/validate-and-save`,
-        mappingPayload
+        buildMappingPayload(channelMappings)
       )
 
       showSuccess(`Saved ${saveResponse.data.transactions_saved} transactions`)
@@ -826,6 +867,24 @@ export default function MappingPage() {
               </Button>
             </div>
           </div>
+
+          {/* Review Normalizations Modal */}
+          <ReviewNormalizationsModal
+            isOpen={showReviewModal}
+            onClose={() => setShowReviewModal(false)}
+            onConfirm={handleConfirmImport}
+            isLoading={validating}
+            channelPreview={previewData?.channel_preview || { recognized: [], unrecognized: [] }}
+            statePreview={previewData?.state_preview || { normalized: [], unchanged: [], unrecognized: [] }}
+            validCount={previewData?.summary?.valid_rows || 0}
+            problems={previewData?.validation?.errors?.map((e: any) => ({
+              row: e.rows?.[0] || 0,
+              field: e.field || '',
+              value: '',
+              message: e.message || ''
+            })) || []}
+            dateRange={previewData?.date_range || { start: '', end: '' }}
+          />
       </AppLayout>
       </ErrorBoundary>
     </ProtectedRoute>
