@@ -156,7 +156,7 @@ export function StateQuickViewModal({
                 className="font-semibold"
                 style={{ color: getNexusStatusColor(data.nexus_type) }}
               >
-                — Nexus Triggered
+                Nexus Triggered
               </span>
             )}
           </DialogTitle>
