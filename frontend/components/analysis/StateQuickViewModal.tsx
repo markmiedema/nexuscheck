@@ -151,6 +151,14 @@ export function StateQuickViewModal({
           <DialogTitle className="text-xl flex items-center gap-2">
             {stateName}
             <span className="text-muted-foreground">({stateCode})</span>
+            {data?.nexus_type && data.nexus_type !== 'none' && (
+              <span
+                className="font-semibold"
+                style={{ color: getNexusStatusColor(data.nexus_type) }}
+              >
+                Nexus Triggered
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -172,15 +180,9 @@ export function StateQuickViewModal({
           </div>
         ) : data ? (
           <div className="space-y-4 py-4">
-            {/* Nexus Status Header */}
+            {/* Nexus Status Details */}
             {data.nexus_type && data.nexus_type !== 'none' && (
               <div className="bg-muted/50 border border-border rounded-lg p-4">
-                <h4
-                  className="font-semibold mb-3"
-                  style={{ color: getNexusStatusColor(data.nexus_type) }}
-                >
-                  Nexus Triggered
-                </h4>
                 <div className="flex items-start justify-between gap-4 text-sm">
                   <div className="text-center">
                     <div className="text-muted-foreground text-xs mb-1">Nexus Type</div>
@@ -241,30 +243,6 @@ export function StateQuickViewModal({
                       <div className="text-center">
                         <div className="text-muted-foreground text-xs mb-1">First Nexus Year</div>
                         <div className="font-medium text-foreground">{data.first_nexus_year}</div>
-                      </div>
-                    ) : null
-                  })()}
-                  {(() => {
-                    // Find registration deadline from year_data
-                    const yearWithObligation = data.year_data.find(yr => yr.obligation_start_date)
-                    if (yearWithObligation?.obligation_start_date) {
-                      const deadlineDate = new Date(yearWithObligation.obligation_start_date)
-                      const isOverdue = deadlineDate < new Date()
-                      return (
-                        <div className="text-center">
-                          <div className="text-muted-foreground text-xs mb-1">Register By</div>
-                          {isOverdue ? (
-                            <div className="font-medium text-destructive">{formatDate(yearWithObligation.obligation_start_date)}</div>
-                          ) : (
-                            <div className="font-medium text-warning">{formatDate(yearWithObligation.obligation_start_date)}</div>
-                          )}
-                        </div>
-                      )
-                    }
-                    return data.compliance_info.registration_info?.registration_required ? (
-                      <div className="text-center">
-                        <div className="text-muted-foreground text-xs mb-1">Registration</div>
-                        <div className="font-medium text-warning">Required</div>
                       </div>
                     ) : null
                   })()}
