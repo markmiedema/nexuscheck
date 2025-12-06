@@ -186,6 +186,9 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
         case 'exempt_sales':
           comparison = (a.exempt_sales || 0) - (b.exempt_sales || 0)
           break
+        case 'exposure_sales':
+          comparison = (a.exposure_sales || 0) - (b.exposure_sales || 0)
+          break
         case 'tax_liability':
           comparison = (a.base_tax ?? a.estimated_liability) - (b.base_tax ?? b.estimated_liability)
           break

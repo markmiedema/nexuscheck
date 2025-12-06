@@ -1597,6 +1597,7 @@ async def get_state_results(
             marketplace_sales_all_years = sum(float(r.get('marketplace_sales', 0)) for r in year_results)
             exempt_sales_all_years = sum(float(r.get('exempt_sales', 0)) for r in year_results)
             taxable_sales_all_years = sum(float(r.get('taxable_sales', 0)) for r in year_results)
+            exposure_sales_all_years = sum(float(r.get('exposure_sales', 0)) for r in year_results)
             # Aggregate liability breakdown
             base_tax_all_years = sum(float(r.get('base_tax', 0)) for r in year_results)
             interest_all_years = sum(float(r.get('interest', 0)) for r in year_results)
@@ -1655,6 +1656,7 @@ async def get_state_results(
                 'total_sales': total_sales_all_years,
                 'exempt_sales': exempt_sales_all_years,
                 'taxable_sales': taxable_sales_all_years,
+                'exposure_sales': exposure_sales_all_years,
                 'direct_sales': direct_sales_all_years,
                 'marketplace_sales': marketplace_sales_all_years,
                 'threshold': float(threshold),

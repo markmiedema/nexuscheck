@@ -242,7 +242,16 @@ export const StateTableRow = memo(function StateTableRow({
         )}
       </TableCell>
 
-      {/* 7. Tax Liability (base tax only) */}
+      {/* 7. Exposure Sales */}
+      <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
+        {state.exposure_sales && state.exposure_sales > 0 ? (
+          formatCurrency(state.exposure_sales)
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        )}
+      </TableCell>
+
+      {/* 8. Tax Liability (base tax only) */}
       <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
         ${liability.baseTax.toLocaleString('en-US', {
           minimumFractionDigits: 2,
@@ -250,7 +259,7 @@ export const StateTableRow = memo(function StateTableRow({
         })}
       </TableCell>
 
-      {/* 8. Penalties & Interest (combined) */}
+      {/* 9. Penalties & Interest (combined) */}
       <TableCell className={`px-4 text-sm text-right ${densityClasses[density]}`}>
         {liability.penaltiesAndInterest !== null && liability.penaltiesAndInterest > 0 ? (
           <span className="font-medium text-card-foreground">
@@ -264,7 +273,7 @@ export const StateTableRow = memo(function StateTableRow({
         )}
       </TableCell>
 
-      {/* 9. Total Liability (tax + penalties + interest) */}
+      {/* 10. Total Liability (tax + penalties + interest) */}
       <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
         ${liability.totalLiability.toLocaleString('en-US', {
           minimumFractionDigits: 2,
