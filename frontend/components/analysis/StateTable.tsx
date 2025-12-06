@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import * as XLSX from 'xlsx'
 import apiClient from '@/lib/api/client'
 import { StateResult } from '@/types/states'
 import {
@@ -222,7 +223,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     setQuickViewOpen(true)
   }, [])
 
-  // Export state results to CSV
+  // Export state results to Excel with auto-width columns
   const handleExportCSV = useCallback(() => {
     // Combine all displayed states in priority order
     const allDisplayed = [
@@ -234,11 +235,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
 
     if (allDisplayed.length === 0) {
       return
-    }
-
-    // Helper to format currency with dollar sign and commas
-    const formatCurrency = (value: number): string => {
-      return `"$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"`
     }
 
     // Helper to format threshold percentage
@@ -270,62 +266,79 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       }
     }
 
-    // CSV headers - matching table order
-    const headers = [
-      'State',
-      'Status',
-      'Threshold',
-      'Threshold %',
-      'Gross Sales',
-      'Taxable Sales',
-      'Exempt Sales',
-      'Exposure Sales',
-      'Tax Liability',
-      'Penalties & Interest',
-      'Total Liability'
-    ]
-
-    // Build CSV rows - matching table column order
-    const rows = allDisplayed.map(state => {
+    // Build data rows for Excel - matching table column order
+    const data = allDisplayed.map(state => {
       const liability = getLiabilityValues(state)
-      return [
-        `"${state.state_name} (${state.state_code})"`,
-        getStatusLabel(state),
-        formatCurrency(state.threshold),
-        formatThresholdPercent(state.threshold_percent),
-        formatCurrency(state.total_sales),
-        formatCurrency(state.taxable_sales),
-        formatCurrency(state.exempt_sales),
-        formatCurrency(state.exposure_sales || 0),
-        formatCurrency(liability.taxLiability),
-        formatCurrency(liability.penaltiesAndInterest),
-        formatCurrency(liability.totalLiability)
-      ]
+      return {
+        'State': `${state.state_name} (${state.state_code})`,
+        'Status': getStatusLabel(state),
+        'Operator': (state.threshold_operator || 'or').toUpperCase(),
+        'Threshold': state.threshold,
+        'Threshold %': formatThresholdPercent(state.threshold_percent),
+        'Transactions': state.transaction_count || 0,
+        'Gross Sales': state.total_sales,
+        'Taxable Sales': state.taxable_sales,
+        'Exempt Sales': state.exempt_sales,
+        'Exposure Sales': state.exposure_sales || 0,
+        'Tax Liability': liability.taxLiability,
+        'Penalties & Interest': liability.penaltiesAndInterest,
+        'Total Liability': liability.totalLiability
+      }
     })
 
-    // Combine headers and rows
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n')
+    // Create worksheet from data
+    const worksheet = XLSX.utils.json_to_sheet(data)
+
+    // Define column widths based on content
+    const columnWidths = [
+      { wch: 25 },  // State
+      { wch: 18 },  // Status
+      { wch: 10 },  // Operator
+      { wch: 15 },  // Threshold
+      { wch: 12 },  // Threshold %
+      { wch: 14 },  // Transactions
+      { wch: 16 },  // Gross Sales
+      { wch: 16 },  // Taxable Sales
+      { wch: 16 },  // Exempt Sales
+      { wch: 16 },  // Exposure Sales
+      { wch: 16 },  // Tax Liability
+      { wch: 18 },  // Penalties & Interest
+      { wch: 16 },  // Total Liability
+    ]
+    worksheet['!cols'] = columnWidths
+
+    // Format currency columns (D, G-M are currency columns)
+    const currencyColumns = ['D', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1')
+
+    for (let row = range.s.r + 1; row <= range.e.r; row++) {
+      currencyColumns.forEach(col => {
+        const cellRef = `${col}${row + 1}`
+        const cell = worksheet[cellRef]
+        if (cell && typeof cell.v === 'number') {
+          cell.z = '$#,##0.00'
+        }
+      })
+      // Format Transactions column (F) as number with commas
+      const transactionsCell = worksheet[`F${row + 1}`]
+      if (transactionsCell && typeof transactionsCell.v === 'number') {
+        transactionsCell.z = '#,##0'
+      }
+    }
+
+    // Create workbook and add worksheet
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'State Results')
 
     // Generate filename with company name and current date
     const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
     const sanitizedCompanyName = companyName
       ? companyName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-')
       : 'Analysis'
-    const filename = `${sanitizedCompanyName}-State-Results-${currentDate}.csv`
+    const filename = `${sanitizedCompanyName}-State-Results-${currentDate}.xlsx`
 
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', filename)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    // Write and download file
+    XLSX.writeFile(workbook, filename)
   }, [displayedStates, companyName])
 
   if (loading) {

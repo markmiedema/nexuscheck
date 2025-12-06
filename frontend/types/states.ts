@@ -15,8 +15,10 @@ export interface StateResult {
   exposure_sales?: number
   direct_sales: number
   marketplace_sales: number
+  transaction_count?: number
   threshold: number
   threshold_percent: number
+  threshold_operator?: 'and' | 'or'
   estimated_liability: number
   // Liability breakdown fields (may be computed from year_data)
   base_tax?: number

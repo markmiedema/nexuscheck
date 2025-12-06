@@ -217,8 +217,10 @@ class StateResult(BaseModel):
     exposure_sales: Optional[float] = None
     direct_sales: float
     marketplace_sales: float
+    transaction_count: Optional[int] = None
     threshold: float
     threshold_percent: float
+    threshold_operator: Optional[str] = None
     estimated_liability: float
     base_tax: Optional[float] = None
     interest: Optional[float] = None
