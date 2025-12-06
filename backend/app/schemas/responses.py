@@ -219,6 +219,9 @@ class StateResult(BaseModel):
     threshold: float
     threshold_percent: float
     estimated_liability: float
+    base_tax: Optional[float] = None
+    interest: Optional[float] = None
+    penalties: Optional[float] = None
     confidence_level: ConfidenceLevel
     registration_status: Optional[RegistrationStatus] = None
     year_data: List[YearData]
