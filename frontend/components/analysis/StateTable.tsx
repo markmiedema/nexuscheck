@@ -396,7 +396,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                 <StateTableRow
                   key={state.state_code}
                   state={state}
-                  analysisId={analysisId}
                   density={density}
                   onStateClick={handleStateClick}
                 />
@@ -423,7 +422,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                 <StateTableRow
                   key={state.state_code}
                   state={state}
-                  analysisId={analysisId}
                   density={density}
                   onStateClick={handleStateClick}
                 />
@@ -450,7 +448,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                 <StateTableRow
                   key={state.state_code}
                   state={state}
-                  analysisId={analysisId}
                   density={density}
                   onStateClick={handleStateClick}
                 />
@@ -477,7 +474,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                 <StateTableRow
                   key={state.state_code}
                   state={state}
-                  analysisId={analysisId}
                   density={density}
                   onStateClick={handleStateClick}
                 />

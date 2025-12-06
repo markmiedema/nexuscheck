@@ -17,6 +17,10 @@ export interface StateResult {
   threshold: number
   threshold_percent: number
   estimated_liability: number
+  // Liability breakdown fields (may be computed from year_data)
+  base_tax?: number
+  interest?: number
+  penalties?: number
   confidence_level: 'high' | 'medium' | 'low'
   registration_status: 'registered' | 'not_registered' | null
   year_data: YearData[]  // ← Fixed: Backend returns this but was missing from type
