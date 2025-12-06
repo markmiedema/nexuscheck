@@ -1597,6 +1597,10 @@ async def get_state_results(
             marketplace_sales_all_years = sum(float(r.get('marketplace_sales', 0)) for r in year_results)
             exempt_sales_all_years = sum(float(r.get('exempt_sales', 0)) for r in year_results)
             taxable_sales_all_years = sum(float(r.get('taxable_sales', 0)) for r in year_results)
+            # Aggregate liability breakdown
+            base_tax_all_years = sum(float(r.get('base_tax', 0)) for r in year_results)
+            interest_all_years = sum(float(r.get('interest', 0)) for r in year_results)
+            penalties_all_years = sum(float(r.get('penalties', 0)) for r in year_results)
 
             # Use the most recent year's data for threshold and nexus status
             latest_year_result = year_results_sorted[-1]
@@ -1637,7 +1641,9 @@ async def get_state_results(
                     'direct_sales': float(yr.get('direct_sales', 0)),
                     'marketplace_sales': float(yr.get('marketplace_sales', 0)),
                     'estimated_liability': float(yr.get('estimated_liability', 0)),
-                    'base_tax': float(yr.get('base_tax', 0))
+                    'base_tax': float(yr.get('base_tax', 0)),
+                    'interest': float(yr.get('interest', 0)),
+                    'penalties': float(yr.get('penalties', 0))
                 })
 
             # Build state object with year_data
@@ -1654,6 +1660,9 @@ async def get_state_results(
                 'threshold': float(threshold),
                 'threshold_percent': threshold_percent,
                 'estimated_liability': total_liability_all_years,
+                'base_tax': base_tax_all_years,
+                'interest': interest_all_years,
+                'penalties': penalties_all_years,
                 'confidence_level': 'high',  # Using V2 calculator with full transaction data
                 'registration_status': (
                     'registered' if state_code in registered_states
