@@ -70,7 +70,8 @@ const formatCurrency = (value: number): string => {
 }
 
 // Helper function to group states by priority
-const groupStatesByPriority = (states: StateResult[]) => {
+// preserveOrder: if true, keeps the input order (for user-applied sorting)
+const groupStatesByPriority = (states: StateResult[], preserveOrder = false) => {
   const hasNexus: StateResult[] = []
   const approaching: StateResult[] = []
   const salesNoNexus: StateResult[] = []
@@ -90,11 +91,13 @@ const groupStatesByPriority = (states: StateResult[]) => {
     }
   })
 
-  // Sort each group
-  hasNexus.sort((a, b) => b.estimated_liability - a.estimated_liability)
-  approaching.sort((a, b) => b.threshold_percent - a.threshold_percent)
-  salesNoNexus.sort((a, b) => b.total_sales - a.total_sales)
-  noSales.sort((a, b) => a.state_name.localeCompare(b.state_name))
+  // Only apply default sorting if not preserving user's sort order
+  if (!preserveOrder) {
+    hasNexus.sort((a, b) => b.estimated_liability - a.estimated_liability)
+    approaching.sort((a, b) => b.threshold_percent - a.threshold_percent)
+    salesNoNexus.sort((a, b) => b.total_sales - a.total_sales)
+    noSales.sort((a, b) => a.state_name.localeCompare(b.state_name))
+  }
 
   return {
     hasNexus,
@@ -225,7 +228,8 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     })
 
     // Return grouped states instead of flat array
-    return groupStatesByPriority(filtered)
+    // Pass true to preserve the user's sort order
+    return groupStatesByPriority(filtered, true)
   }, [states, sortConfig, nexusFilter, exemptFilter, searchQuery])
 
   const handleSort = useCallback((column: SortColumn) => {
