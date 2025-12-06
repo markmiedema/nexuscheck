@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import apiClient from '@/lib/api/client'
 import { StateResult } from '@/types/states'
 import {
@@ -224,7 +224,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
   }, [])
 
   // Export state results to Excel with formatting
-  const handleExportCSV = useCallback(() => {
+  const handleExportCSV = useCallback(async () => {
     // Combine all displayed states in priority order
     const allDisplayed = [
       ...displayedStates.hasNexus,
@@ -281,84 +281,109 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       return 0
     }
 
-    // Build data rows for Excel - matching table column order
-    const data = allDisplayed.map(state => {
-      const liability = getLiabilityValues(state)
-      return {
-        'State': `${state.state_name} (${state.state_code})`,
-        'Status': getStatusLabel(state),
-        'Operator': (state.threshold_operator || 'or').toUpperCase(),
-        'Threshold': state.threshold,
-        'Threshold %': formatThresholdPercent(state.threshold_percent),
-        'Transactions': getTransactionCount(state),
-        'Gross Sales': state.total_sales,
-        'Taxable Sales': state.taxable_sales,
-        'Exempt Sales': state.exempt_sales,
-        'Exposure Sales': state.exposure_sales || 0,
-        'Tax Liability': liability.taxLiability,
-        'P&I': liability.penaltiesAndInterest,
-        'Total Liability': liability.totalLiability
+    // Create workbook and worksheet
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('State Results')
+
+    // Define columns with headers and widths
+    worksheet.columns = [
+      { header: 'State', key: 'state', width: 24 },
+      { header: 'Status', key: 'status', width: 18 },
+      { header: 'Operator', key: 'operator', width: 10 },
+      { header: 'Threshold', key: 'threshold', width: 14 },
+      { header: 'Threshold %', key: 'thresholdPct', width: 12 },
+      { header: 'Transactions', key: 'transactions', width: 13 },
+      { header: 'Gross Sales', key: 'grossSales', width: 14 },
+      { header: 'Taxable Sales', key: 'taxableSales', width: 14 },
+      { header: 'Exempt Sales', key: 'exemptSales', width: 14 },
+      { header: 'Exposure Sales', key: 'exposureSales', width: 15 },
+      { header: 'Tax Liability', key: 'taxLiability', width: 14 },
+      { header: 'P&I', key: 'pi', width: 12 },
+      { header: 'Total Liability', key: 'totalLiability', width: 15 },
+    ]
+
+    // Style header row - bold and centered
+    const headerRow = worksheet.getRow(1)
+    headerRow.font = { bold: true }
+    headerRow.alignment = { horizontal: 'center', vertical: 'middle' }
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      }
+      cell.border = {
+        bottom: { style: 'thin', color: { argb: 'FF000000' } }
       }
     })
 
-    // Create worksheet from data
-    const worksheet = XLSX.utils.json_to_sheet(data)
-
-    // Define optimized column widths
-    const columnWidths = [
-      { wch: 22 },  // State
-      { wch: 16 },  // Status
-      { wch: 9 },   // Operator
-      { wch: 12 },  // Threshold
-      { wch: 11 },  // Threshold %
-      { wch: 12 },  // Transactions
-      { wch: 14 },  // Gross Sales
-      { wch: 14 },  // Taxable Sales
-      { wch: 13 },  // Exempt Sales
-      { wch: 14 },  // Exposure Sales
-      { wch: 13 },  // Tax Liability
-      { wch: 10 },  // P&I
-      { wch: 14 },  // Total Liability
-    ]
-    worksheet['!cols'] = columnWidths
-
-    // Add auto-filter to header row (enables sort/filter dropdowns in Excel)
-    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1')
-    worksheet['!autofilter'] = { ref: XLSX.utils.encode_range(range) }
-
-    // Apply number formats to data cells
-    // Note: Cell styling (bold, alignment, fill) requires xlsx Pro version
-    const currencyColumns = ['D', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
-
-    for (let row = range.s.r + 1; row <= range.e.r; row++) {
-      // Apply currency format to currency columns
-      currencyColumns.forEach(colLetter => {
-        const cellRef = `${colLetter}${row + 1}`
-        const cell = worksheet[cellRef]
-        if (cell && typeof cell.v === 'number') {
-          cell.z = '$#,##0.00'
-        }
+    // Add data rows
+    allDisplayed.forEach(state => {
+      const liability = getLiabilityValues(state)
+      worksheet.addRow({
+        state: `${state.state_name} (${state.state_code})`,
+        status: getStatusLabel(state),
+        operator: (state.threshold_operator || 'or').toUpperCase(),
+        threshold: state.threshold,
+        thresholdPct: formatThresholdPercent(state.threshold_percent),
+        transactions: getTransactionCount(state),
+        grossSales: state.total_sales,
+        taxableSales: state.taxable_sales,
+        exemptSales: state.exempt_sales,
+        exposureSales: state.exposure_sales || 0,
+        taxLiability: liability.taxLiability,
+        pi: liability.penaltiesAndInterest,
+        totalLiability: liability.totalLiability
       })
-      // Format Transactions column (F) as number with commas
-      const transactionsCell = worksheet[`F${row + 1}`]
-      if (transactionsCell && typeof transactionsCell.v === 'number') {
-        transactionsCell.z = '#,##0'
+    })
+
+    // Apply formatting to data rows
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) {
+        // Center align all cells
+        row.alignment = { horizontal: 'center', vertical: 'middle' }
+
+        // Format currency columns (4=threshold, 7-13=sales/liability)
+        const currencyColumns = [4, 7, 8, 9, 10, 11, 12, 13]
+        currencyColumns.forEach(colNum => {
+          const cell = row.getCell(colNum)
+          if (typeof cell.value === 'number') {
+            cell.numFmt = '$#,##0.00'
+          }
+        })
+
+        // Format transactions column (6) with commas
+        const transCell = row.getCell(6)
+        if (typeof transCell.value === 'number') {
+          transCell.numFmt = '#,##0'
+        }
       }
+    })
+
+    // Add auto-filter to header row
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: allDisplayed.length + 1, column: 13 }
     }
 
-    // Create workbook and add worksheet
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'State Results')
-
     // Generate filename with company name and current date
-    const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+    const currentDate = new Date().toISOString().split('T')[0]
     const sanitizedCompanyName = companyName
       ? companyName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-')
       : 'Analysis'
     const filename = `${sanitizedCompanyName}-State-Results-${currentDate}.xlsx`
 
-    // Write and download file
-    XLSX.writeFile(workbook, filename)
+    // Write to buffer and download
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }, [displayedStates, companyName])
 
   if (loading) {
