@@ -12,13 +12,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -114,13 +107,11 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
 
   // Filters and sorting
   const [sortConfig, setSortConfig] = useState<SortConfig>({
-    column: 'nexus_status',
+    column: 'total_liability',
     direction: 'desc'
   })
-  const [nexusFilter, setNexusFilter] = useState('all')
-  const [exemptFilter, setExemptFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [density, setDensity] = useState<Density>('comfortable')
+  const density: Density = 'comfortable'
 
   // Quick view modal state
   const [quickViewOpen, setQuickViewOpen] = useState(false)
@@ -153,20 +144,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
   }>(() => {
     let filtered = [...states]
 
-    // Apply nexus filter
-    if (nexusFilter !== 'all') {
-      filtered = filtered.filter(state => state.nexus_status === nexusFilter)
-    }
-
-    // Apply exempt sales filter
-    if (exemptFilter !== 'all') {
-      if (exemptFilter === 'has_exempt') {
-        filtered = filtered.filter(state => state.exempt_sales > 0)
-      } else if (exemptFilter === 'no_exempt') {
-        filtered = filtered.filter(state => state.exempt_sales === 0)
-      }
-    }
-
     // Apply search
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
@@ -197,10 +174,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
         case 'state':
           comparison = a.state_name.localeCompare(b.state_name)
           break
-        case 'nexus_status':
-          const statusOrder = { has_nexus: 3, approaching: 2, no_nexus: 1 }
-          comparison = statusOrder[a.nexus_status] - statusOrder[b.nexus_status]
-          break
         case 'threshold':
           comparison = (a.threshold || 0) - (b.threshold || 0)
           break
@@ -230,7 +203,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     // Return grouped states instead of flat array
     // Pass true to preserve the user's sort order
     return groupStatesByPriority(filtered, true)
-  }, [states, sortConfig, nexusFilter, exemptFilter, searchQuery])
+  }, [states, sortConfig, searchQuery])
 
   const handleSort = useCallback((column: SortColumn) => {
     setSortConfig(prev => ({
@@ -348,42 +321,8 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
           />
         </div>
 
-        {/* Right side - Filters and Actions */}
+        {/* Right side - Actions */}
         <div className="flex gap-2">
-          <Select value={nexusFilter} onValueChange={setNexusFilter}>
-            <SelectTrigger className="w-40 border-border">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All States</SelectItem>
-              <SelectItem value="has_nexus">Has Nexus</SelectItem>
-              <SelectItem value="approaching">Approaching</SelectItem>
-              <SelectItem value="no_nexus">No Nexus</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={exemptFilter} onValueChange={setExemptFilter}>
-            <SelectTrigger className="w-44 border-border">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sales Types</SelectItem>
-              <SelectItem value="has_exempt">Has Exempt Sales</SelectItem>
-              <SelectItem value="no_exempt">No Exempt Sales</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={density} onValueChange={(v) => setDensity(v as Density)}>
-            <SelectTrigger className="w-36 border-border">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="compact">Compact</SelectItem>
-              <SelectItem value="comfortable">Comfortable</SelectItem>
-              <SelectItem value="spacious">Spacious</SelectItem>
-            </SelectContent>
-          </Select>
-
           <Button variant="outline" size="sm" className="border-border" onClick={handleExportCSV}>
             <Download className="h-4 w-4 mr-2" />
             Export
