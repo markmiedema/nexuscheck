@@ -334,13 +334,17 @@ export default function ResultsPage() {
               </p>
             </div>
 
-            {/* Confidence */}
+            {/* VDA Opportunity */}
             <div className="rounded-lg border border-border bg-card p-6 shadow-md hover:shadow-lg transition-all">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Confidence</h3>
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">VDA Opportunity</h3>
               <div className="text-4xl font-bold text-foreground mt-3">
-                High
+                {results && stateResults.length > 0
+                  ? `$${stateResults.reduce((sum, state) => sum + (state.penalties || 0), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : '—'}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Based on data quality</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {results ? 'Total penalties savings via VDA' : 'Run calculation to see results'}
+              </p>
             </div>
           </div>
 
