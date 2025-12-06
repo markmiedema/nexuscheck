@@ -37,11 +37,67 @@ const getNexusStatusLabel = (status: string) => {
   }
 }
 
+// Helper to compute liability breakdown from state data
+const getLiabilityBreakdown = (state: StateResult) => {
+  // First check if fields are directly available on state
+  if (state.base_tax !== undefined) {
+    const baseTax = state.base_tax
+    const interest = state.interest ?? 0
+    const penalties = state.penalties ?? 0
+    return {
+      baseTax,
+      penaltiesAndInterest: interest + penalties,
+      totalLiability: baseTax + interest + penalties
+    }
+  }
+
+  // Otherwise, try to compute from year_data
+  if (state.year_data?.length > 0) {
+    let baseTax = 0
+    let interest = 0
+    let penalties = 0
+
+    for (const yd of state.year_data) {
+      // Check for summary object structure (from StateDetailResponse)
+      if (yd.summary) {
+        baseTax += yd.summary.base_tax ?? 0
+        interest += yd.summary.interest ?? 0
+        penalties += yd.summary.penalties ?? 0
+      } else {
+        // Check for flat structure (from state results endpoint)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const yearAny = yd as any
+        baseTax += (yearAny.base_tax as number) ?? 0
+        interest += (yearAny.interest as number) ?? 0
+        penalties += (yearAny.penalties as number) ?? 0
+      }
+    }
+
+    // If we found base_tax data, return the breakdown
+    if (baseTax > 0 || interest > 0 || penalties > 0) {
+      return {
+        baseTax,
+        penaltiesAndInterest: interest + penalties,
+        totalLiability: baseTax + interest + penalties
+      }
+    }
+  }
+
+  // Fallback: use estimated_liability as the total, no breakdown available
+  return {
+    baseTax: state.estimated_liability,
+    penaltiesAndInterest: null, // null means "not available"
+    totalLiability: state.estimated_liability
+  }
+}
+
 export const StateTableRow = memo(function StateTableRow({
   state,
   density,
   onStateClick
 }: StateTableRowProps) {
+  const liability = getLiabilityBreakdown(state)
+
   return (
     <TableRow
       className="hover:bg-muted/50 cursor-pointer transition-colors"
@@ -186,22 +242,31 @@ export const StateTableRow = memo(function StateTableRow({
         )}
       </TableCell>
 
-      {/* 7. Tax Liability */}
+      {/* 7. Tax Liability (base tax only) */}
       <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
-        ${state.estimated_liability.toLocaleString('en-US', {
+        ${liability.baseTax.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })}
       </TableCell>
 
-      {/* 8. Penalties & Interest */}
+      {/* 8. Penalties & Interest (combined) */}
       <TableCell className={`px-4 text-sm text-right ${densityClasses[density]}`}>
-        <span className="text-muted-foreground">-</span>
+        {liability.penaltiesAndInterest !== null && liability.penaltiesAndInterest > 0 ? (
+          <span className="font-medium text-card-foreground">
+            ${liability.penaltiesAndInterest.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })}
+          </span>
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        )}
       </TableCell>
 
-      {/* 9. Total Liability */}
+      {/* 9. Total Liability (tax + penalties + interest) */}
       <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
-        ${state.estimated_liability.toLocaleString('en-US', {
+        ${liability.totalLiability.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })}
