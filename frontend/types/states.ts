@@ -12,6 +12,7 @@ export interface StateResult {
   total_sales: number
   exempt_sales: number
   taxable_sales: number
+  exposure_sales?: number
   direct_sales: number
   marketplace_sales: number
   threshold: number

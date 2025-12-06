@@ -5,7 +5,7 @@ import { TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Info, ChevronsUpDown, ChevronUp, ChevronDown } from 'lucide-react'
 
-export type SortColumn = 'state' | 'nexus_status' | 'threshold' | 'gross_sales' | 'taxable_sales' | 'exempt_sales' | 'tax_liability' | 'penalties_interest' | 'total_liability'
+export type SortColumn = 'state' | 'threshold' | 'gross_sales' | 'taxable_sales' | 'exempt_sales' | 'exposure_sales' | 'tax_liability' | 'penalties_interest' | 'total_liability'
 type SortDirection = 'asc' | 'desc'
 
 interface StateTableHeaderProps {
@@ -43,13 +43,7 @@ export const StateTableHeader = memo(function StateTableHeader({
         </TableHead>
         {/* 2. Status */}
         <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('nexus_status')}
-            className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
-          >
-            Status
-            {getSortIcon('nexus_status')}
-          </button>
+          Status
         </TableHead>
         {/* 3. Threshold */}
         <TableHead className="w-28 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
@@ -121,7 +115,27 @@ export const StateTableHeader = memo(function StateTableHeader({
             {getSortIcon('exempt_sales')}
           </button>
         </TableHead>
-        {/* 7. Tax Liability */}
+        {/* 7. Exposure Sales */}
+        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <button
+            onClick={() => onSort('exposure_sales')}
+            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
+          >
+            Exposure Sales
+            {getSortIcon('exposure_sales')}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
+                  <Info className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Taxable sales during obligation period (used for liability calculation)</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </button>
+        </TableHead>
+        {/* 8. Tax Liability */}
         <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
           <button
             onClick={() => onSort('tax_liability')}
@@ -131,7 +145,7 @@ export const StateTableHeader = memo(function StateTableHeader({
             {getSortIcon('tax_liability')}
           </button>
         </TableHead>
-        {/* 8. Penalties & Interest */}
+        {/* 9. Penalties & Interest */}
         <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
           <button
             onClick={() => onSort('penalties_interest')}
@@ -151,7 +165,7 @@ export const StateTableHeader = memo(function StateTableHeader({
             </TooltipProvider>
           </button>
         </TableHead>
-        {/* 9. Total Liability */}
+        {/* 10. Total Liability */}
         <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
           <button
             onClick={() => onSort('total_liability')}

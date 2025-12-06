@@ -214,6 +214,7 @@ class StateResult(BaseModel):
     total_sales: float
     exempt_sales: float
     taxable_sales: float
+    exposure_sales: Optional[float] = None
     direct_sales: float
     marketplace_sales: float
     threshold: float
