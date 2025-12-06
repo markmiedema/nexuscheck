@@ -223,7 +223,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     setQuickViewOpen(true)
   }, [])
 
-  // Export state results to Excel with auto-width columns
+  // Export state results to Excel with formatting
   const handleExportCSV = useCallback(() => {
     // Combine all displayed states in priority order
     const allDisplayed = [
@@ -266,6 +266,21 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       }
     }
 
+    // Helper to get transaction count with fallback to year_data
+    const getTransactionCount = (state: StateResult): number => {
+      if (state.transaction_count && state.transaction_count > 0) {
+        return state.transaction_count
+      }
+      // Fallback: sum from year_data if available
+      if (state.year_data && state.year_data.length > 0) {
+        return state.year_data.reduce((sum, yd) => {
+          const count = yd.summary?.transaction_count || 0
+          return sum + count
+        }, 0)
+      }
+      return 0
+    }
+
     // Build data rows for Excel - matching table column order
     const data = allDisplayed.map(state => {
       const liability = getLiabilityValues(state)
@@ -275,13 +290,13 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
         'Operator': (state.threshold_operator || 'or').toUpperCase(),
         'Threshold': state.threshold,
         'Threshold %': formatThresholdPercent(state.threshold_percent),
-        'Transactions': state.transaction_count || 0,
+        'Transactions': getTransactionCount(state),
         'Gross Sales': state.total_sales,
         'Taxable Sales': state.taxable_sales,
         'Exempt Sales': state.exempt_sales,
         'Exposure Sales': state.exposure_sales || 0,
         'Tax Liability': liability.taxLiability,
-        'Penalties & Interest': liability.penaltiesAndInterest,
+        'P&I': liability.penaltiesAndInterest,
         'Total Liability': liability.totalLiability
       }
     })
@@ -289,31 +304,36 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     // Create worksheet from data
     const worksheet = XLSX.utils.json_to_sheet(data)
 
-    // Define column widths based on content
+    // Define optimized column widths
     const columnWidths = [
-      { wch: 25 },  // State
-      { wch: 18 },  // Status
-      { wch: 10 },  // Operator
-      { wch: 15 },  // Threshold
-      { wch: 12 },  // Threshold %
-      { wch: 14 },  // Transactions
-      { wch: 16 },  // Gross Sales
-      { wch: 16 },  // Taxable Sales
-      { wch: 16 },  // Exempt Sales
-      { wch: 16 },  // Exposure Sales
-      { wch: 16 },  // Tax Liability
-      { wch: 18 },  // Penalties & Interest
-      { wch: 16 },  // Total Liability
+      { wch: 22 },  // State
+      { wch: 16 },  // Status
+      { wch: 9 },   // Operator
+      { wch: 12 },  // Threshold
+      { wch: 11 },  // Threshold %
+      { wch: 12 },  // Transactions
+      { wch: 14 },  // Gross Sales
+      { wch: 14 },  // Taxable Sales
+      { wch: 13 },  // Exempt Sales
+      { wch: 14 },  // Exposure Sales
+      { wch: 13 },  // Tax Liability
+      { wch: 10 },  // P&I
+      { wch: 14 },  // Total Liability
     ]
     worksheet['!cols'] = columnWidths
 
-    // Format currency columns (D, G-M are currency columns)
-    const currencyColumns = ['D', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
+    // Add auto-filter to header row (enables sort/filter dropdowns in Excel)
     const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1')
+    worksheet['!autofilter'] = { ref: XLSX.utils.encode_range(range) }
+
+    // Apply number formats to data cells
+    // Note: Cell styling (bold, alignment, fill) requires xlsx Pro version
+    const currencyColumns = ['D', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
 
     for (let row = range.s.r + 1; row <= range.e.r; row++) {
-      currencyColumns.forEach(col => {
-        const cellRef = `${col}${row + 1}`
+      // Apply currency format to currency columns
+      currencyColumns.forEach(colLetter => {
+        const cellRef = `${colLetter}${row + 1}`
         const cell = worksheet[cellRef]
         if (cell && typeof cell.v === 'number') {
           cell.z = '$#,##0.00'
