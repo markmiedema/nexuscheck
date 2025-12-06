@@ -31,6 +31,7 @@ export const StateTableHeader = memo(function StateTableHeader({
   return (
     <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
       <TableRow className="hover:bg-muted/80">
+        {/* 1. State */}
         <TableHead className="w-48 px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
           <button
             onClick={() => onSort('state')}
@@ -40,39 +41,17 @@ export const StateTableHeader = memo(function StateTableHeader({
             {getSortIcon('state')}
           </button>
         </TableHead>
-        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <div className="flex items-center justify-end gap-1">
-            Gross Sales
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="h-3 w-3 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Total revenue (used for nexus determination)</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+        {/* 2. Status */}
+        <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+          <button
+            onClick={() => onSort('nexus_status')}
+            className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
+          >
+            Status
+            {getSortIcon('nexus_status')}
+          </button>
         </TableHead>
-        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <div className="flex items-center justify-end gap-1">
-            Taxable Sales
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="h-3 w-3 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Sales subject to tax (used for liability)</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </TableHead>
-        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          Exempt
-        </TableHead>
+        {/* 3. Threshold */}
         <TableHead className="w-28 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
           <div className="flex items-center justify-end gap-1">
             Threshold
@@ -88,41 +67,83 @@ export const StateTableHeader = memo(function StateTableHeader({
             </TooltipProvider>
           </div>
         </TableHead>
-        <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('nexus_status')}
-            className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
-          >
-            Status
-            {getSortIcon('nexus_status')}
-          </button>
-        </TableHead>
-        <TableHead className="w-28 px-4 py-2 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
-          <div className="flex items-center justify-center gap-1">
-            Established
+        {/* 4. Gross Sales */}
+        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <div className="flex items-center justify-end gap-1">
+            Gross Sales
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Date nexus was first established</p>
+                  <p>Total revenue (used for nexus determination)</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
         </TableHead>
-        <TableHead className="w-32 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+        {/* 5. Taxable Sales */}
+        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <div className="flex items-center justify-end gap-1">
+            Taxable Sales
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Sales subject to tax (used for liability)</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </TableHead>
+        {/* 6. Exempt Sales */}
+        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          Exempt Sales
+        </TableHead>
+        {/* 7. Tax Liability */}
+        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
           <button
             onClick={() => onSort('liability')}
-            className="flex items-center gap-2 mx-auto hover:text-foreground transition-colors"
+            className="flex items-center gap-2 justify-end hover:text-foreground transition-colors"
           >
-            Est. Liability
+            Tax Liability
             {getSortIcon('liability')}
           </button>
         </TableHead>
-        <TableHead className="w-24 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
-          Actions
+        {/* 8. Penalties & Interest */}
+        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <div className="flex items-center justify-end gap-1">
+            Penalties & Interest
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Estimated penalties and interest (coming soon)</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </TableHead>
+        {/* 9. Total Liability */}
+        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <div className="flex items-center justify-end gap-1">
+            Total Liability
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Tax liability plus penalties and interest</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </TableHead>
       </TableRow>
     </TableHeader>

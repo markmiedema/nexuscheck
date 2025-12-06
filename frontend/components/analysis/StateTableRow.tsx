@@ -9,7 +9,6 @@ type Density = 'compact' | 'comfortable' | 'spacious'
 
 interface StateTableRowProps {
   state: StateResult
-  analysisId: string
   density: Density
   onStateClick: (code: string, name: string) => void
 }
@@ -38,33 +37,8 @@ const getNexusStatusLabel = (status: string) => {
   }
 }
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  })
-}
-
-// Extract the earliest nexus date from year_data
-const getNexusEstablishedDate = (state: StateResult): string | null => {
-  if (state.nexus_status !== 'has_nexus' || !state.year_data?.length) {
-    return null
-  }
-
-  // Find the earliest nexus_date from year_data
-  const nexusDates = state.year_data
-    .filter(yd => yd.nexus_date)
-    .map(yd => yd.nexus_date as string)
-    .sort()
-
-  return nexusDates.length > 0 ? nexusDates[0] : null
-}
-
 export const StateTableRow = memo(function StateTableRow({
   state,
-  analysisId,
   density,
   onStateClick
 }: StateTableRowProps) {
@@ -73,7 +47,7 @@ export const StateTableRow = memo(function StateTableRow({
       className="hover:bg-muted/50 cursor-pointer transition-colors"
       onClick={() => onStateClick(state.state_code, state.state_name)}
     >
-      {/* State Name */}
+      {/* 1. State Name */}
       <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
         <div className="font-medium text-foreground">
           {state.state_name}
@@ -83,54 +57,7 @@ export const StateTableRow = memo(function StateTableRow({
         </div>
       </TableCell>
 
-      {/* Gross Sales */}
-      <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
-        {formatCurrency(state.total_sales || 0)}
-      </TableCell>
-
-      {/* Taxable Sales */}
-      <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
-        {formatCurrency(state.taxable_sales || 0)}
-      </TableCell>
-
-      {/* Exempt */}
-      <TableCell className="px-4 py-2 text-sm text-right">
-        {state.exempt_sales > 0 ? (
-          <div>
-            <div className="font-medium text-foreground">{formatCurrency(state.exempt_sales)}</div>
-            <div className="text-xs text-muted-foreground">
-              ({((state.exempt_sales / state.total_sales) * 100).toFixed(0)}%)
-            </div>
-          </div>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )}
-      </TableCell>
-
-      {/* Threshold */}
-      <TableCell className="px-4 py-2 text-sm text-right">
-        {state.threshold ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="font-medium text-foreground cursor-help">
-                  {formatCurrency(state.threshold)}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>
-                  {state.threshold_percent.toFixed(0)}% of threshold reached
-                  ({formatCurrency(state.total_sales)} of {formatCurrency(state.threshold)})
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )}
-      </TableCell>
-
-      {/* Status Badge */}
+      {/* 2. Status Badge */}
       <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
         <div className="flex items-center justify-center">
           <span
@@ -212,39 +139,72 @@ export const StateTableRow = memo(function StateTableRow({
         </div>
       </TableCell>
 
-      {/* Nexus Established Date */}
-      <TableCell className={`px-4 text-sm text-center ${densityClasses[density]}`}>
-        {(() => {
-          const nexusDate = getNexusEstablishedDate(state)
-          return nexusDate ? (
-            <span className="text-foreground">{formatDate(nexusDate)}</span>
-          ) : (
-            <span className="text-muted-foreground">-</span>
-          )
-        })()}
+      {/* 3. Threshold */}
+      <TableCell className="px-4 py-2 text-sm text-right">
+        {state.threshold ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="font-medium text-foreground cursor-help">
+                  {formatCurrency(state.threshold)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>
+                  {state.threshold_percent.toFixed(0)}% of threshold reached
+                  ({formatCurrency(state.total_sales)} of {formatCurrency(state.threshold)})
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        )}
       </TableCell>
 
-      {/* Est. Liability */}
-      <TableCell className={`px-4 text-sm text-center text-card-foreground font-medium ${densityClasses[density]}`}>
+      {/* 4. Gross Sales */}
+      <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
+        {formatCurrency(state.total_sales || 0)}
+      </TableCell>
+
+      {/* 5. Taxable Sales */}
+      <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
+        {formatCurrency(state.taxable_sales || 0)}
+      </TableCell>
+
+      {/* 6. Exempt Sales */}
+      <TableCell className="px-4 py-2 text-sm text-right">
+        {state.exempt_sales > 0 ? (
+          <div>
+            <div className="font-medium text-foreground">{formatCurrency(state.exempt_sales)}</div>
+            <div className="text-xs text-muted-foreground">
+              ({((state.exempt_sales / state.total_sales) * 100).toFixed(0)}%)
+            </div>
+          </div>
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        )}
+      </TableCell>
+
+      {/* 7. Tax Liability */}
+      <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
         ${state.estimated_liability.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })}
       </TableCell>
 
-      {/* Actions */}
-      <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
-        <div className="flex gap-1 justify-center">
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              window.location.href = `/analysis/${analysisId}/states/${state.state_code}`
-            }}
-            className="text-foreground underline underline-offset-4 hover:text-foreground/80 transition-colors font-medium inline-flex items-center gap-1 text-sm"
-          >
-            View Details
-          </button>
-        </div>
+      {/* 8. Penalties & Interest */}
+      <TableCell className={`px-4 text-sm text-right ${densityClasses[density]}`}>
+        <span className="text-muted-foreground">-</span>
+      </TableCell>
+
+      {/* 9. Total Liability */}
+      <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
+        ${state.estimated_liability.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })}
       </TableCell>
     </TableRow>
   )
