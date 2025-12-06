@@ -5,7 +5,7 @@ import { TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Info, ChevronsUpDown, ChevronUp, ChevronDown } from 'lucide-react'
 
-type SortColumn = 'state' | 'sales' | 'nexus_status' | 'liability'
+export type SortColumn = 'state' | 'nexus_status' | 'threshold' | 'gross_sales' | 'taxable_sales' | 'exempt_sales' | 'tax_liability' | 'penalties_interest' | 'total_liability'
 type SortDirection = 'asc' | 'desc'
 
 interface StateTableHeaderProps {
@@ -52,12 +52,16 @@ export const StateTableHeader = memo(function StateTableHeader({
           </button>
         </TableHead>
         {/* 3. Threshold */}
-        <TableHead className="w-28 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <div className="flex items-center justify-end gap-1">
+        <TableHead className="w-28 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <button
+            onClick={() => onSort('threshold')}
+            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
+          >
             Threshold
+            {getSortIcon('threshold')}
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -65,15 +69,19 @@ export const StateTableHeader = memo(function StateTableHeader({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
+          </button>
         </TableHead>
         {/* 4. Gross Sales */}
-        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <div className="flex items-center justify-end gap-1">
+        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <button
+            onClick={() => onSort('gross_sales')}
+            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
+          >
             Gross Sales
+            {getSortIcon('gross_sales')}
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -81,15 +89,19 @@ export const StateTableHeader = memo(function StateTableHeader({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
+          </button>
         </TableHead>
         {/* 5. Taxable Sales */}
-        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <div className="flex items-center justify-end gap-1">
+        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <button
+            onClick={() => onSort('taxable_sales')}
+            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
+          >
             Taxable Sales
+            {getSortIcon('taxable_sales')}
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -97,45 +109,59 @@ export const StateTableHeader = memo(function StateTableHeader({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
+          </button>
         </TableHead>
         {/* 6. Exempt Sales */}
-        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          Exempt Sales
+        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <button
+            onClick={() => onSort('exempt_sales')}
+            className="flex items-center gap-2 justify-end hover:text-foreground transition-colors"
+          >
+            Exempt Sales
+            {getSortIcon('exempt_sales')}
+          </button>
         </TableHead>
         {/* 7. Tax Liability */}
         <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
           <button
-            onClick={() => onSort('liability')}
+            onClick={() => onSort('tax_liability')}
             className="flex items-center gap-2 justify-end hover:text-foreground transition-colors"
           >
             Tax Liability
-            {getSortIcon('liability')}
+            {getSortIcon('tax_liability')}
           </button>
         </TableHead>
         {/* 8. Penalties & Interest */}
-        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <div className="flex items-center justify-end gap-1">
-            Penalties & Interest
+        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <button
+            onClick={() => onSort('penalties_interest')}
+            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
+          >
+            P&I
+            {getSortIcon('penalties_interest')}
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Estimated penalties and interest (coming soon)</p>
+                  <p>Penalties and Interest</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
+          </button>
         </TableHead>
         {/* 9. Total Liability */}
-        <TableHead className="w-32 px-4 py-2 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <div className="flex items-center justify-end gap-1">
+        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <button
+            onClick={() => onSort('total_liability')}
+            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
+          >
             Total Liability
+            {getSortIcon('total_liability')}
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -143,7 +169,7 @@ export const StateTableHeader = memo(function StateTableHeader({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
+          </button>
         </TableHead>
       </TableRow>
     </TableHeader>

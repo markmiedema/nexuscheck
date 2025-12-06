@@ -30,15 +30,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
   Search,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   Download,
-  MoreHorizontal,
-  FileText,
-  Tag,
-  TrendingUp,
-  Info,
 } from 'lucide-react'
 import {
   getNexusStatusLabel,
@@ -46,7 +38,7 @@ import {
 import { StateQuickViewModal } from './StateQuickViewModal'
 import { StateTableSection } from './StateTableSection'
 import { StateTableRow } from './StateTableRow'
-import { StateTableHeader } from './StateTableHeader'
+import { StateTableHeader, SortColumn } from './StateTableHeader'
 import { Badge } from '@/components/ui/badge'
 import {
   Tooltip,
@@ -63,7 +55,7 @@ interface StateTableProps {
 }
 
 type SortConfig = {
-  column: 'state' | 'nexus_status' | 'sales' | 'liability'
+  column: SortColumn
   direction: 'asc' | 'desc'
 }
 
@@ -181,6 +173,19 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       )
     }
 
+    // Helper to get penalties + interest for sorting
+    const getPenaltiesAndInterest = (state: StateResult): number => {
+      return (state.interest ?? 0) + (state.penalties ?? 0)
+    }
+
+    // Helper to get total liability for sorting
+    const getTotalLiability = (state: StateResult): number => {
+      const baseTax = state.base_tax ?? state.estimated_liability
+      const interest = state.interest ?? 0
+      const penalties = state.penalties ?? 0
+      return baseTax + interest + penalties
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
       let comparison = 0
@@ -193,11 +198,26 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
           const statusOrder = { has_nexus: 3, approaching: 2, no_nexus: 1 }
           comparison = statusOrder[a.nexus_status] - statusOrder[b.nexus_status]
           break
-        case 'sales':
+        case 'threshold':
+          comparison = (a.threshold || 0) - (b.threshold || 0)
+          break
+        case 'gross_sales':
           comparison = a.total_sales - b.total_sales
           break
-        case 'liability':
-          comparison = a.estimated_liability - b.estimated_liability
+        case 'taxable_sales':
+          comparison = (a.taxable_sales || 0) - (b.taxable_sales || 0)
+          break
+        case 'exempt_sales':
+          comparison = (a.exempt_sales || 0) - (b.exempt_sales || 0)
+          break
+        case 'tax_liability':
+          comparison = (a.base_tax ?? a.estimated_liability) - (b.base_tax ?? b.estimated_liability)
+          break
+        case 'penalties_interest':
+          comparison = getPenaltiesAndInterest(a) - getPenaltiesAndInterest(b)
+          break
+        case 'total_liability':
+          comparison = getTotalLiability(a) - getTotalLiability(b)
           break
       }
 
@@ -208,21 +228,12 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     return groupStatesByPriority(filtered)
   }, [states, sortConfig, nexusFilter, exemptFilter, searchQuery])
 
-  const handleSort = useCallback((column: SortConfig['column']) => {
+  const handleSort = useCallback((column: SortColumn) => {
     setSortConfig(prev => ({
       column,
       direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
     }))
   }, [])
-
-  const getSortIcon = useCallback((column: SortConfig['column']) => {
-    if (sortConfig.column !== column) {
-      return <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
-    }
-    return sortConfig.direction === 'asc'
-      ? <ChevronUp className="h-4 w-4 text-foreground" />
-      : <ChevronDown className="h-4 w-4 text-foreground" />
-  }, [sortConfig])
 
   // Callback for when user clicks on a state row
   const handleStateClick = useCallback((code: string, name: string) => {
