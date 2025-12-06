@@ -345,20 +345,58 @@ export function StateQuickViewModal({
             {data.year_data.length > 0 && (
               <div className="bg-muted/50 border border-border rounded-lg p-4">
                 <h4 className="font-semibold text-foreground mb-3">Year-by-Year Breakdown</h4>
-                <div className="space-y-2">
-                  {data.year_data.map((yearItem) => (
-                    <div key={yearItem.year} className="flex justify-between items-center text-sm py-2 border-b border-border last:border-0">
-                      <div>
-                        <span className="font-medium text-foreground">{yearItem.year}</span>
-                        <span className="text-muted-foreground ml-2">
-                          ({yearItem.summary.transaction_count.toLocaleString()} transactions)
-                        </span>
-                      </div>
-                      <div className="font-medium text-foreground">
-                        {formatCurrency(yearItem.summary.total_sales)}
-                      </div>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 font-medium text-muted-foreground">Year</th>
+                        <th className="text-right py-2 font-medium text-muted-foreground">Gross Sales</th>
+                        <th className="text-right py-2 font-medium text-muted-foreground">Exposure Sales</th>
+                        <th className="text-right py-2 font-medium text-muted-foreground">Tax Liability</th>
+                        <th className="text-right py-2 font-medium text-muted-foreground">P&I</th>
+                        <th className="text-right py-2 font-medium text-muted-foreground">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.year_data.map((yearItem) => (
+                        <tr key={yearItem.year} className="border-b border-border last:border-0">
+                          <td className="py-2">
+                            <span className="font-medium text-foreground">{yearItem.year}</span>
+                            <span className="text-muted-foreground text-xs ml-1">
+                              ({yearItem.summary.transaction_count.toLocaleString()})
+                            </span>
+                          </td>
+                          <td className="text-right py-2 text-foreground">
+                            {formatCurrency(yearItem.summary.total_sales)}
+                          </td>
+                          <td className="text-right py-2 text-foreground">
+                            {yearItem.summary.exposure_sales > 0
+                              ? formatCurrency(yearItem.summary.exposure_sales)
+                              : <span className="text-muted-foreground">-</span>
+                            }
+                          </td>
+                          <td className="text-right py-2 text-foreground">
+                            {yearItem.summary.base_tax > 0
+                              ? formatCurrency(yearItem.summary.base_tax)
+                              : <span className="text-muted-foreground">-</span>
+                            }
+                          </td>
+                          <td className="text-right py-2 text-foreground">
+                            {(yearItem.summary.interest + yearItem.summary.penalties) > 0
+                              ? formatCurrency(yearItem.summary.interest + yearItem.summary.penalties)
+                              : <span className="text-muted-foreground">-</span>
+                            }
+                          </td>
+                          <td className="text-right py-2 font-medium text-foreground">
+                            {yearItem.summary.estimated_liability > 0
+                              ? formatCurrency(yearItem.summary.estimated_liability)
+                              : <span className="text-muted-foreground">-</span>
+                            }
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
