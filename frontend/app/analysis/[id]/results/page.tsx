@@ -501,7 +501,7 @@ export default function ResultsPage() {
           {/* Embedded State Table */}
           {calculationStatus === 'calculated' && (
             <div className="mb-6">
-              <StateTable analysisId={analysisId} embedded={true} refreshTrigger={refreshTrigger} />
+              <StateTable analysisId={analysisId} embedded={true} refreshTrigger={refreshTrigger} companyName={summary?.company_name} />
             </div>
           )}
         </ErrorBoundary>

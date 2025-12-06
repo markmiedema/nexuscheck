@@ -45,6 +45,7 @@ interface StateTableProps {
   analysisId: string
   embedded?: boolean
   refreshTrigger?: number
+  companyName?: string
 }
 
 type SortConfig = {
@@ -100,7 +101,7 @@ const groupStatesByPriority = (states: StateResult[], preserveOrder = false) => 
   }
 }
 
-export default function StateTable({ analysisId, embedded = false, refreshTrigger }: StateTableProps) {
+export default function StateTable({ analysisId, embedded = false, refreshTrigger, companyName }: StateTableProps) {
   const [states, setStates] = useState<StateResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -235,42 +236,72 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       return
     }
 
-    // CSV headers
+    // Helper to format currency with dollar sign and commas
+    const formatCurrency = (value: number): string => {
+      return `"$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"`
+    }
+
+    // Helper to format threshold percentage
+    const formatThresholdPercent = (percent: number): string => {
+      if (percent >= 100) {
+        return 'Met'
+      }
+      return `${percent.toFixed(1)}%`
+    }
+
+    // Helper to get status label
+    const getStatusLabel = (state: StateResult): string => {
+      if (state.nexus_type === 'both') return 'Physical + Economic'
+      if (state.nexus_type === 'physical') return 'Physical Nexus'
+      if (state.nexus_type === 'economic') return 'Economic Nexus'
+      if (state.nexus_status === 'approaching') return 'Approaching'
+      return 'No Nexus'
+    }
+
+    // Helper to calculate liability breakdown
+    const getLiabilityValues = (state: StateResult) => {
+      const baseTax = state.base_tax ?? state.estimated_liability
+      const interest = state.interest ?? 0
+      const penalties = state.penalties ?? 0
+      return {
+        taxLiability: baseTax,
+        penaltiesAndInterest: interest + penalties,
+        totalLiability: baseTax + interest + penalties
+      }
+    }
+
+    // CSV headers - matching table order
     const headers = [
       'State',
-      'State Code',
-      'Nexus Status',
-      'Nexus Type',
+      'Status',
+      'Threshold',
+      'Threshold %',
       'Gross Sales',
       'Taxable Sales',
       'Exempt Sales',
-      'Direct Sales',
-      'Marketplace Sales',
-      'Threshold',
-      'Threshold %',
-      'Estimated Liability',
-      'Confidence Level'
+      'Exposure Sales',
+      'Tax Liability',
+      'Penalties & Interest',
+      'Total Liability'
     ]
 
-    // Build CSV rows
-    const rows = allDisplayed.map(state => [
-      state.state_name,
-      state.state_code,
-      state.nexus_status === 'has_nexus' ? 'Has Nexus' :
-        state.nexus_status === 'approaching' ? 'Approaching' : 'No Nexus',
-      state.nexus_type === 'none' ? 'None' :
-        state.nexus_type === 'physical' ? 'Physical' :
-        state.nexus_type === 'economic' ? 'Economic' : 'Both',
-      state.total_sales.toFixed(2),
-      state.taxable_sales.toFixed(2),
-      state.exempt_sales.toFixed(2),
-      state.direct_sales.toFixed(2),
-      state.marketplace_sales.toFixed(2),
-      state.threshold.toFixed(2),
-      state.threshold_percent.toFixed(1),
-      state.estimated_liability.toFixed(2),
-      state.confidence_level
-    ])
+    // Build CSV rows - matching table column order
+    const rows = allDisplayed.map(state => {
+      const liability = getLiabilityValues(state)
+      return [
+        `"${state.state_name} (${state.state_code})"`,
+        getStatusLabel(state),
+        formatCurrency(state.threshold),
+        formatThresholdPercent(state.threshold_percent),
+        formatCurrency(state.total_sales),
+        formatCurrency(state.taxable_sales),
+        formatCurrency(state.exempt_sales),
+        formatCurrency(state.exposure_sales || 0),
+        formatCurrency(liability.taxLiability),
+        formatCurrency(liability.penaltiesAndInterest),
+        formatCurrency(liability.totalLiability)
+      ]
+    })
 
     // Combine headers and rows
     const csvContent = [
@@ -278,17 +309,24 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       ...rows.map(row => row.join(','))
     ].join('\n')
 
+    // Generate filename with company name and current date
+    const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+    const sanitizedCompanyName = companyName
+      ? companyName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-')
+      : 'Analysis'
+    const filename = `${sanitizedCompanyName}-State-Results-${currentDate}.csv`
+
     // Create and download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
     link.setAttribute('href', url)
-    link.setAttribute('download', `nexus-analysis-${analysisId}-state-results.csv`)
+    link.setAttribute('download', filename)
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-  }, [displayedStates, analysisId])
+  }, [displayedStates, companyName])
 
   if (loading) {
     return <SkeletonTable rows={10} columns={9} />
