@@ -29,7 +29,7 @@ interface LiabilityBreakdownProps {
   baseTax?: number; // Base tax amount (from Phase 2)
   interest?: number; // Interest amount (from Phase 2)
   penalties?: number; // Total penalties amount (legacy support)
-  penaltyBreakdown?: PenaltyBreakdown; // Detailed penalty breakdown (new)
+  penaltyBreakdown?: PenaltyBreakdown | null; // Detailed penalty breakdown (new)
   marketplaceSales: number;
   nexusStatus: 'has_nexus' | 'approaching' | 'none';
   // Calculation metadata for transparency
