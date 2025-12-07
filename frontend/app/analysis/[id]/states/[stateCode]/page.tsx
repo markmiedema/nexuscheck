@@ -550,6 +550,9 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
           amount_over_nexus: yearData?.threshold_info.amount_over_nexus || null,
         }}
         complianceInfo={data.compliance_info}
+        interestRate={isAllYearsView ? data.interest_rate : yearData?.summary.interest_rate}
+        interestMethod={isAllYearsView ? data.interest_method : yearData?.summary.interest_method}
+        penaltyBreakdown={isAllYearsView ? data.penalty_breakdown : yearData?.summary.penalty_breakdown}
       />
           </div>
         </ErrorBoundary>
