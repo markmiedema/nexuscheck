@@ -7,6 +7,8 @@
 --
 -- Data Source: State DOR websites, verified December 2025
 -- Excluded States: AK, DE, MT, NH, OR (no state sales tax)
+--
+-- NOTE: Uses INSERT ... ON CONFLICT to handle re-runs safely
 -- ============================================================================
 
 BEGIN;
@@ -34,7 +36,12 @@ VALUES ('AL', '2025-01-01', 0.0700, '{
     "type": "flat",
     "rate": 0.05
   }
-}', 'https://revenue.alabama.gov');
+}', 'https://revenue.alabama.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- ARIZONA
@@ -62,7 +69,12 @@ VALUES ('AZ', '2025-01-01', 0.0700, '{
     "rate": 0.05,
     "minimum_amount": 25
   }
-}', 'https://azdor.gov/legal-research/interest-rates');
+}', 'https://azdor.gov/legal-research/interest-rates')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- ARKANSAS
@@ -90,7 +102,12 @@ VALUES ('AR', '2025-01-01', 0.1000, '{
     "type": "flat",
     "rate": 0.10
   }
-}', 'https://www.dfa.arkansas.gov');
+}', 'https://www.dfa.arkansas.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- CALIFORNIA
@@ -116,7 +133,12 @@ VALUES ('CA', '2025-01-01', 0.1100, '{
     "type": "flat",
     "rate": 0.50
   }
-}', 'https://www.cdtfa.ca.gov/taxes-and-fees/interest-rates.htm');
+}', 'https://www.cdtfa.ca.gov/taxes-and-fees/interest-rates.htm')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- COLORADO
@@ -146,7 +168,13 @@ VALUES ('CO', '2025-01-01', 0.0600, '{
     "type": "flat",
     "rate": 1.00
   }
-}', 'https://tax.colorado.gov/interest-rates', 'Interest rate varies; calculated on deficiency');
+}', 'https://tax.colorado.gov/interest-rates', 'Interest rate varies; calculated on deficiency')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  notes = EXCLUDED.notes,
+  updated_at = NOW();
 
 -- ============================================================================
 -- CONNECTICUT
@@ -171,7 +199,12 @@ VALUES ('CT', '2025-01-01', 0.1200, '{
     "type": "flat",
     "rate": 0.10
   }
-}', 'https://portal.ct.gov/DRS');
+}', 'https://portal.ct.gov/DRS')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- DISTRICT OF COLUMBIA
@@ -194,7 +227,12 @@ VALUES ('DC', '2025-01-01', 0.1000, '{
     "period_type": "month",
     "max_rate": 0.25
   }
-}', 'https://otr.cfo.dc.gov');
+}', 'https://otr.cfo.dc.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- FLORIDA
@@ -215,7 +253,12 @@ VALUES ('FL', '2025-01-01', 0.1200, '{
     "rate": 0.10,
     "max_rate": 0.50
   }
-}', 'https://floridarevenue.com/taxes/taxesfees/Pages/interest_rates.aspx');
+}', 'https://floridarevenue.com/taxes/taxesfees/Pages/interest_rates.aspx')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- GEORGIA
@@ -244,7 +287,12 @@ VALUES ('GA', '2025-01-01', 0.1050, '{
     "max_combined_rate": 0.25,
     "applies_to": ["late_filing", "late_payment"]
   }
-}', 'https://dor.georgia.gov');
+}', 'https://dor.georgia.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- HAWAII
@@ -274,7 +322,12 @@ VALUES ('HI', '2025-01-01', 0.0800, '{
     "rate": 0.25
   },
   "notes": "Failure to pay 20% applies after 60 days"
-}', 'https://tax.hawaii.gov');
+}', 'https://tax.hawaii.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- IDAHO
@@ -298,7 +351,12 @@ VALUES ('ID', '2025-01-01', 0.0600, '{
     "period_type": "month",
     "max_rate": 0.25
   }
-}', 'https://tax.idaho.gov/interest');
+}', 'https://tax.idaho.gov/interest')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- ILLINOIS
@@ -322,7 +380,12 @@ VALUES ('IL', '2025-01-01', 0.0700, '{
     ]
   },
   "notes": "Failure to file after notice: 2% or $250, greater of (Tier 2)"
-}', 'https://tax.illinois.gov');
+}', 'https://tax.illinois.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- INDIANA
@@ -343,7 +406,12 @@ VALUES ('IN', '2025-01-01', 0.0600, '{
     "type": "flat",
     "rate": 0.10
   }
-}', 'https://www.in.gov/dor');
+}', 'https://www.in.gov/dor')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- IOWA
@@ -367,7 +435,13 @@ VALUES ('IA', '2025-01-01', 0.1000, '{
     "rate": 0.05
   },
   "notes": "Penalties apply if less than 90% of tax paid"
-}', 'https://tax.iowa.gov', 'Verify 2025 rate - based on 2024/2026 estimates');
+}', 'https://tax.iowa.gov', 'Verify 2025 rate - based on 2024/2026 estimates')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  notes = EXCLUDED.notes,
+  updated_at = NOW();
 
 -- ============================================================================
 -- KANSAS
@@ -394,7 +468,12 @@ VALUES ('KS', '2025-01-01', 0.0900, '{
     "type": "flat",
     "rate": 0.10
   }
-}', 'https://www.ksrevenue.gov');
+}', 'https://www.ksrevenue.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- KENTUCKY
@@ -420,7 +499,12 @@ VALUES ('KY', '2025-01-01', 0.0800, '{
     "minimum_amount": 10
   },
   "notes": "Failure to file: 5% per 30 days, max 50%, min $100"
-}', 'https://revenue.ky.gov');
+}', 'https://revenue.ky.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- LOUISIANA
@@ -451,7 +535,12 @@ VALUES ('LA', '2025-01-01', 0.1125, '{
     "type": "flat",
     "rate": 0.40
   }
-}', 'https://revenue.louisiana.gov');
+}', 'https://revenue.louisiana.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- MAINE
@@ -480,7 +569,12 @@ VALUES ('ME', '2025-01-01', 0.1000, '{
     "minimum_amount": 25,
     "use_greater_of": true
   }
-}', 'https://www.maine.gov/revenue');
+}', 'https://www.maine.gov/revenue')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- MARYLAND
@@ -505,7 +599,12 @@ VALUES ('MD', '2025-01-01', 0.114825, '{
     }
   },
   "notes": "Extended delinquency +25% if more than 30 days late"
-}', 'https://www.marylandtaxes.gov');
+}', 'https://www.marylandtaxes.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- MASSACHUSETTS
@@ -532,7 +631,12 @@ VALUES ('MA', '2025-01-01', 0.0800, '{
     "type": "flat",
     "rate": 0.20
   }
-}', 'https://www.mass.gov/info-details/department-of-revenue-interest-rates');
+}', 'https://www.mass.gov/info-details/department-of-revenue-interest-rates')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- MICHIGAN
@@ -558,7 +662,12 @@ VALUES ('MI', '2025-01-01', 0.0947, '{
     "period_type": "month",
     "max_rate": 0.25
   }
-}', 'https://www.michigan.gov/taxes');
+}', 'https://www.michigan.gov/taxes')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- MINNESOTA
@@ -583,7 +692,12 @@ VALUES ('MN', '2025-01-01', 0.0800, '{
     "rate": 0.25
   },
   "notes": "Late payment increases over time, max 15%. Repeated failure penalty 25% if warning ignored."
-}', 'https://www.revenue.state.mn.us');
+}', 'https://www.revenue.state.mn.us')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- MISSISSIPPI
@@ -610,7 +724,12 @@ VALUES ('MS', '2025-01-01', 0.1200, '{
     "max_combined_rate": 0.20,
     "applies_to": ["late_filing", "late_payment"]
   }
-}', 'https://www.dor.ms.gov');
+}', 'https://www.dor.ms.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- MISSOURI
@@ -631,7 +750,13 @@ VALUES ('MO', '2025-01-01', 0.0400, '{
     "type": "flat",
     "rate": 0.05
   }
-}', 'https://dor.mo.gov', 'Interest rate approximately 4% (3.2% refund rate Q2)');
+}', 'https://dor.mo.gov', 'Interest rate approximately 4% (3.2% refund rate Q2)')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  notes = EXCLUDED.notes,
+  updated_at = NOW();
 
 -- ============================================================================
 -- NEBRASKA
@@ -654,7 +779,12 @@ VALUES ('NE', '2025-01-01', 0.0300, '{
     "minimum_amount": 25,
     "use_greater_of": true
   }
-}', 'https://revenue.nebraska.gov');
+}', 'https://revenue.nebraska.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- NEVADA
@@ -679,7 +809,12 @@ VALUES ('NV', '2025-01-01', 0.0900, '{
     "rate": 0.10,
     "max_rate": 0.10
   }
-}', 'https://tax.nv.gov');
+}', 'https://tax.nv.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- NEW JERSEY
@@ -706,7 +841,12 @@ VALUES ('NJ', '2025-01-01', 0.1075, '{
     "rate": 0.11
   },
   "notes": "Interest rate is Prime + 3%"
-}', 'https://www.state.nj.us/treasury/taxation/');
+}', 'https://www.state.nj.us/treasury/taxation/')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- NEW MEXICO
@@ -731,7 +871,12 @@ VALUES ('NM', '2025-01-01', 0.0700, '{
     "max_rate": 0.20,
     "minimum_amount": 5
   }
-}', 'https://www.tax.newmexico.gov');
+}', 'https://www.tax.newmexico.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- NEW YORK
@@ -760,7 +905,12 @@ VALUES ('NY', '2025-01-01', 0.1450, '{
     "period_type": "month",
     "max_rate": 0.30
   }
-}', 'https://www.tax.ny.gov');
+}', 'https://www.tax.ny.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- NORTH CAROLINA
@@ -782,7 +932,12 @@ VALUES ('NC', '2025-01-01', 0.0700, '{
     "rate": 0.10,
     "minimum_amount": 5
   }
-}', 'https://www.ncdor.gov');
+}', 'https://www.ncdor.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- NORTH DAKOTA
@@ -806,7 +961,12 @@ VALUES ('ND', '2025-01-01', 0.1200, '{
     "minimum_amount": 5,
     "use_greater_of": true
   }
-}', 'https://www.nd.gov/tax');
+}', 'https://www.nd.gov/tax')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- OHIO
@@ -831,7 +991,12 @@ VALUES ('OH', '2025-01-01', 0.0800, '{
     "discretionary": true,
     "discretionary_note": "Failure to remit: up to 50% of tax due"
   }
-}', 'https://www.tax.ohio.gov');
+}', 'https://www.tax.ohio.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- OKLAHOMA
@@ -854,7 +1019,12 @@ VALUES ('OK', '2025-01-01', 0.1500, '{
     "type": "flat",
     "rate": 0.50
   }
-}', 'https://oklahoma.gov/tax.html');
+}', 'https://oklahoma.gov/tax.html')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- PENNSYLVANIA
@@ -878,7 +1048,12 @@ VALUES ('PA', '2025-01-01', 0.0700, '{
     "max_rate": 0.18
   },
   "notes": "Criminal penalties possible (misdemeanor with fine/imprisonment)"
-}', 'https://www.revenue.pa.gov');
+}', 'https://www.revenue.pa.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- RHODE ISLAND
@@ -903,7 +1078,12 @@ VALUES ('RI', '2025-01-01', 0.1800, '{
     "rate": 0.05
   },
   "notes": "18% interest rate applies to trust fund taxes (Sales Tax)"
-}', 'https://tax.ri.gov');
+}', 'https://tax.ri.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- SOUTH CAROLINA
@@ -931,7 +1111,12 @@ VALUES ('SC', '2025-01-01', 0.0700, '{
     "rate": 0.10
   },
   "notes": "Negligence penalty: 10% or 5% + 50% of interest, whichever applies"
-}', 'https://dor.sc.gov');
+}', 'https://dor.sc.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- SOUTH DAKOTA
@@ -953,7 +1138,12 @@ VALUES ('SD', '2025-01-01', 0.1200, '{
     "rate": 0.10,
     "minimum_amount": 10
   }
-}', 'https://dor.sd.gov');
+}', 'https://dor.sd.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- TENNESSEE
@@ -981,7 +1171,12 @@ VALUES ('TN', '2025-01-01', 0.1250, '{
     "max_rate": 0.25,
     "minimum_amount": 15
   }
-}', 'https://www.tn.gov/revenue/tax-resources/interest-rates.html');
+}', 'https://www.tn.gov/revenue/tax-resources/interest-rates.html')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- TEXAS
@@ -1008,7 +1203,12 @@ VALUES ('TX', '2025-01-01', 0.0850, '{
     "rate": 0.10
   },
   "notes": "Interest rate is Prime + 1%. Additional 10% penalty if after collection notice."
-}', 'https://comptroller.texas.gov');
+}', 'https://comptroller.texas.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- UTAH
@@ -1035,7 +1235,12 @@ VALUES ('UT', '2025-01-01', 0.0600, '{
     "type": "flat",
     "rate": 0.10
   }
-}', 'https://tax.utah.gov/interest');
+}', 'https://tax.utah.gov/interest')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- VERMONT
@@ -1064,7 +1269,12 @@ VALUES ('VT', '2025-01-01', 0.0850, '{
     "type": "flat",
     "rate": 1.00
   }
-}', 'https://tax.vermont.gov');
+}', 'https://tax.vermont.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- VIRGINIA
@@ -1086,7 +1296,12 @@ VALUES ('VA', '2025-01-01', 0.0900, '{
     "type": "flat",
     "rate": 0.10
   }
-}', 'https://www.tax.virginia.gov/interest');
+}', 'https://www.tax.virginia.gov/interest')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- WASHINGTON
@@ -1110,7 +1325,12 @@ VALUES ('WA', '2025-01-01', 0.0700, '{
     "type": "flat",
     "rate": 0.05
   }
-}', 'https://dor.wa.gov/taxes-rates/interest-penalties');
+}', 'https://dor.wa.gov/taxes-rates/interest-penalties')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- WEST VIRGINIA
@@ -1135,7 +1355,12 @@ VALUES ('WV', '2025-01-01', 0.1225, '{
     "period_type": "month",
     "max_rate": 0.25
   }
-}', 'https://tax.wv.gov/Documents/TSD/tsd445.pdf');
+}', 'https://tax.wv.gov/Documents/TSD/tsd445.pdf')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- WISCONSIN
@@ -1159,7 +1384,12 @@ VALUES ('WI', '2025-01-01', 0.1200, '{
     "rate": 0.25
   },
   "notes": "Delinquent interest rate is 18% (1.5% per month)"
-}', 'https://www.revenue.wi.gov');
+}', 'https://www.revenue.wi.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 -- ============================================================================
 -- WYOMING
@@ -1186,7 +1416,12 @@ VALUES ('WY', '2025-01-01', 0.1200, '{
     "type": "flat",
     "rate": 0.10
   }
-}', 'https://revenue.wyo.gov');
+}', 'https://revenue.wyo.gov')
+ON CONFLICT (state, effective_date) DO UPDATE SET
+  annual_interest_rate = EXCLUDED.annual_interest_rate,
+  config = EXCLUDED.config,
+  source_url = EXCLUDED.source_url,
+  updated_at = NOW();
 
 COMMIT;
 
@@ -1194,12 +1429,12 @@ COMMIT;
 -- VERIFICATION QUERIES
 -- ============================================================================
 
--- Check all states were inserted
+-- Check all states were inserted (should be 48: 47 states + DC)
 -- SELECT state, effective_date, annual_interest_rate
 -- FROM state_penalty_interest_configs
 -- ORDER BY state;
 
--- Check count (should be 48: 47 states + DC)
+-- Check count
 -- SELECT COUNT(*) FROM state_penalty_interest_configs;
 
 -- Test the lookup function
