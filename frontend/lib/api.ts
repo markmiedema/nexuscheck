@@ -27,6 +27,20 @@ export interface UploadResponse {
   } | null
 }
 
+export interface PenaltyBreakdown {
+  late_filing?: number
+  late_payment?: number
+  negligence?: number | null
+  e_filing_failure?: number | null
+  fraud?: number | null
+  operating_without_permit?: number | null
+  late_registration?: number | null
+  unregistered_business?: number | null
+  cost_of_collection?: number | null
+  extended_delinquency?: number | null
+  total: number
+}
+
 export interface StateDetailResponse {
   state_code: string
   state_name: string
@@ -50,6 +64,10 @@ export interface StateDetailResponse {
   base_tax: number
   interest: number
   penalties: number
+  penalty_breakdown?: PenaltyBreakdown | null  // Detailed penalty breakdown
+  interest_rate?: number | null  // Annual interest rate percentage
+  interest_method?: string | null  // Calculation method
+  days_outstanding?: number | null  // Days since obligation started
   nexus_type: 'physical' | 'economic' | 'both' | 'none'
   first_nexus_year: number | null  // Null if no nexus established
 }
@@ -72,6 +90,7 @@ export interface YearData {
     base_tax: number
     interest: number       // ← Fixed: Always returned (0 if none), not optional
     penalties: number      // ← Fixed: Always returned (0 if none), not optional
+    penalty_breakdown?: PenaltyBreakdown | null  // Detailed penalty breakdown
     // Metadata (correctly optional - can be null)
     interest_rate?: number
     interest_method?: string

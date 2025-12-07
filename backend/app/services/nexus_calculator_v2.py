@@ -16,7 +16,7 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from collections import defaultdict
-from .interest_calculator import InterestCalculator
+from .penalty_interest_calculator import PenaltyInterestCalculator
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class NexusCalculatorV2:
 
     def __init__(self, supabase_client):
         self.supabase = supabase_client
-        self.interest_calculator = InterestCalculator(supabase_client)
+        self.interest_calculator = PenaltyInterestCalculator(supabase_client)
 
     # ========================================================================
     # Main Entry Point
@@ -1102,6 +1102,7 @@ class NexusCalculatorV2:
         # Phase 2: Calculate interest and penalties
         interest = 0
         penalties = 0
+        penalty_breakdown = {}
         interest_rate = 0
         calculation_method = 'simple'
         days_outstanding = 0
@@ -1139,22 +1140,27 @@ class NexusCalculatorV2:
             interest_start_date = first_exposure_transaction_date if first_exposure_transaction_date else obligation_start_date
 
             try:
-                interest_result = self.interest_calculator.calculate_interest_and_penalties(
-                    base_tax=base_tax,
-                    obligation_start_date=interest_start_date,
-                    calculation_date=calculation_date,
+                # Convert datetime to date for the new calculator
+                start_date = interest_start_date.date() if hasattr(interest_start_date, 'date') else interest_start_date
+                calc_date = calculation_date.date() if hasattr(calculation_date, 'date') else calculation_date
+
+                interest_result = self.interest_calculator.calculate(
+                    base_tax=float(base_tax),
+                    obligation_start_date=start_date,
+                    calculation_date=calc_date,
                     state_code=state_code,
-                    interest_penalty_config=interest_penalty_config
+                    config=interest_penalty_config
                 )
                 interest = interest_result.get('interest', 0)
-                penalties = interest_result.get('penalties', 0)
+                penalties = interest_result.get('total_penalties', 0)
+                penalty_breakdown = interest_result.get('penalties', {})
 
                 # Capture calculation metadata for transparency
                 interest_rate = interest_result.get('interest_rate', 0)
-                calculation_method = interest_result.get('calculation_method', 'simple')
+                calculation_method = interest_result.get('interest_method', 'simple')
                 days_outstanding = interest_result.get('days_outstanding', 0)
-                # Calculate penalty rate: penalties / base_tax (if base_tax > 0)
-                penalty_rate = (penalties / base_tax) if base_tax > 0 else 0
+                # penalty_rate is now derived from breakdown, not a single rate
+                penalty_rate = (penalties / float(base_tax)) if base_tax > 0 else 0
 
                 logger.debug(
                     f"{state_code} {year}: Base tax ${base_tax:,.2f}, "
@@ -1185,6 +1191,7 @@ class NexusCalculatorV2:
             'base_tax': round(base_tax, 2),
             'interest': round(interest, 2),
             'penalties': round(penalties, 2),
+            'penalty_breakdown': penalty_breakdown,  # Detailed penalty breakdown
             'approaching_threshold': False,  # Set by threshold checking logic in parent method
             # Calculation metadata for transparency
             'interest_rate': round(interest_rate, 4) if interest_rate else None,
@@ -1254,6 +1261,7 @@ class NexusCalculatorV2:
             'base_tax': 0,
             'interest': 0,
             'penalties': 0,
+            'penalty_breakdown': {},  # Empty breakdown for no nexus
             'approaching_threshold': False,
             'threshold': threshold_config.get('revenue_threshold', 100000)
         }
@@ -1289,6 +1297,7 @@ class NexusCalculatorV2:
             'base_tax': 0,
             'interest': 0,
             'penalties': 0,
+            'penalty_breakdown': {},  # Empty breakdown for no sales
             'approaching_threshold': False,
             'threshold': threshold_config.get('revenue_threshold', 100000)
         }]
@@ -1482,6 +1491,7 @@ class NexusCalculatorV2:
                     'base_tax': result['base_tax'],
                     'interest': result['interest'],
                     'penalties': result['penalties'],
+                    'penalty_breakdown': result.get('penalty_breakdown'),  # Detailed penalty breakdown
                     'approaching_threshold': result.get('approaching_threshold', False),
                     'threshold': result.get('threshold', 100000),
                     # Calculation metadata for transparency

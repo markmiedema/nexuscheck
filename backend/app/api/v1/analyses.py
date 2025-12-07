@@ -1660,8 +1660,29 @@ async def get_state_results(
                     'estimated_liability': float(yr.get('estimated_liability', 0)),
                     'base_tax': float(yr.get('base_tax', 0)),
                     'interest': float(yr.get('interest', 0)),
-                    'penalties': float(yr.get('penalties', 0))
+                    'penalties': float(yr.get('penalties', 0)),
+                    'penalty_breakdown': yr.get('penalty_breakdown'),  # Detailed penalty breakdown
+                    'interest_rate': yr.get('interest_rate'),
+                    'interest_method': yr.get('interest_method'),
+                    'days_outstanding': yr.get('days_outstanding')
                 })
+
+            # Aggregate penalty breakdown across all years
+            aggregated_penalty_breakdown = {}
+            for yr in year_results:
+                pb = yr.get('penalty_breakdown') or {}
+                for key, value in pb.items():
+                    if value is not None and key != 'total':
+                        aggregated_penalty_breakdown[key] = aggregated_penalty_breakdown.get(key, 0) + float(value)
+            # Calculate total from components
+            if aggregated_penalty_breakdown:
+                aggregated_penalty_breakdown['total'] = sum(v for v in aggregated_penalty_breakdown.values())
+
+            # Get interest metadata from most recent year with liability
+            latest_with_interest = next(
+                (yr for yr in reversed(year_results_sorted) if yr.get('interest', 0) > 0),
+                latest_year_result
+            )
 
             # Build state object with year_data
             formatted_states.append({
@@ -1684,6 +1705,10 @@ async def get_state_results(
                 'base_tax': base_tax_all_years,
                 'interest': interest_all_years,
                 'penalties': penalties_all_years,
+                'penalty_breakdown': aggregated_penalty_breakdown if aggregated_penalty_breakdown else None,
+                'interest_rate': latest_with_interest.get('interest_rate'),
+                'interest_method': latest_with_interest.get('interest_method'),
+                'days_outstanding': latest_with_interest.get('days_outstanding'),
                 'confidence_level': 'high',  # Using V2 calculator with full transaction data
                 'registration_status': (
                     'registered' if state_code in registered_states
@@ -1960,6 +1985,7 @@ async def get_state_detail(
                 base_tax=float(year_result.get('base_tax', 0)),
                 interest=float(year_result.get('interest', 0)),
                 penalties=float(year_result.get('penalties', 0)),
+                penalty_breakdown=year_result.get('penalty_breakdown'),  # Detailed penalty breakdown
                 # Calculation metadata for transparency
                 interest_rate=float(year_result.get('interest_rate', 0)) * 100 if year_result.get('interest_rate') else None,  # Convert to percentage
                 interest_method=year_result.get('interest_method'),
@@ -2062,6 +2088,23 @@ async def get_state_detail(
         aggregate_nexus_type = agg.get('nexus_type', 'none')
         first_nexus_year = agg.get('first_nexus_year')
 
+        # Aggregate penalty breakdown across all years
+        aggregated_penalty_breakdown = {}
+        for yr in state_year_results:
+            pb = yr.get('penalty_breakdown') or {}
+            for key, value in pb.items():
+                if value is not None and key != 'total':
+                    aggregated_penalty_breakdown[key] = aggregated_penalty_breakdown.get(key, 0) + float(value)
+        # Calculate total from components
+        if aggregated_penalty_breakdown:
+            aggregated_penalty_breakdown['total'] = sum(v for v in aggregated_penalty_breakdown.values())
+
+        # Get interest metadata from most recent year with liability
+        latest_with_interest = next(
+            (yr for yr in reversed(state_year_results) if yr.get('interest', 0) > 0),
+            state_year_results[-1] if state_year_results else {}
+        )
+
         # Debug logging to check nexus_type values
         logger.debug(f"State detail API response for {state_code}:")
         logger.debug(f"  Aggregate nexus_type: {aggregate_nexus_type}")
@@ -2088,6 +2131,10 @@ async def get_state_detail(
             base_tax=total_base_tax_all_years,
             interest=total_interest_all_years,
             penalties=total_penalties_all_years,
+            penalty_breakdown=aggregated_penalty_breakdown if aggregated_penalty_breakdown else None,
+            interest_rate=float(latest_with_interest.get('interest_rate', 0)) * 100 if latest_with_interest.get('interest_rate') else None,
+            interest_method=latest_with_interest.get('interest_method'),
+            days_outstanding=latest_with_interest.get('days_outstanding'),
             nexus_type=aggregate_nexus_type,
             first_nexus_year=first_nexus_year
         )

@@ -120,6 +120,7 @@ class YearSummary(BaseModel):
     base_tax: float
     interest: float
     penalties: float
+    penalty_breakdown: Optional[Dict[str, Any]] = None  # Detailed penalty breakdown
     # Metadata
     interest_rate: Optional[float] = None
     interest_method: Optional[str] = None
@@ -153,6 +154,7 @@ class YearData(BaseModel):
     base_tax: float
     interest: Optional[float] = None
     penalties: Optional[float] = None
+    penalty_breakdown: Optional[Dict[str, Any]] = None  # Detailed penalty breakdown
     # Optional fields
     transaction_count: Optional[int] = None
     interest_rate: Optional[float] = None
@@ -226,6 +228,10 @@ class StateResult(BaseModel):
     base_tax: Optional[float] = None
     interest: Optional[float] = None
     penalties: Optional[float] = None
+    penalty_breakdown: Optional[Dict[str, Any]] = None  # Aggregated penalty breakdown
+    interest_rate: Optional[float] = None  # Annual interest rate percentage
+    interest_method: Optional[str] = None  # Calculation method (simple, compound)
+    days_outstanding: Optional[int] = None  # Days since obligation started
     confidence_level: ConfidenceLevel
     registration_status: Optional[RegistrationStatus] = None
     year_data: List[YearData]
@@ -307,6 +313,10 @@ class StateDetailResponse(BaseModel):
     base_tax: float
     interest: float
     penalties: float
+    penalty_breakdown: Optional[Dict[str, Any]] = None  # Aggregated penalty breakdown
+    interest_rate: Optional[float] = None  # Annual interest rate percentage
+    interest_method: Optional[str] = None  # Calculation method
+    days_outstanding: Optional[int] = None  # Days since obligation started
     nexus_type: str
     first_nexus_year: Optional[int] = None
 
