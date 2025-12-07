@@ -330,7 +330,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       worksheet.addRow({
         state: `${state.state_name} (${state.state_code})`,
         status: getStatusLabel(state),
-        operator: (state.threshold_operator || 'or').toUpperCase(),
+        operator: state.transaction_threshold ? (state.threshold_operator || 'or').toUpperCase() : '-',
         threshold: thresholdFormatted,
         thresholdPct: formatThresholdPercent(state.threshold_percent),
         transactions: getTransactionCount(state),
