@@ -403,8 +403,8 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
             }
             penaltyBreakdown={
               isAllYearsView
-                ? data.penalty_breakdown
-                : yearData?.summary.penalty_breakdown
+                ? data.penalty_breakdown ?? undefined
+                : yearData?.summary.penalty_breakdown ?? undefined
             }
             marketplaceSales={
               isAllYearsView
