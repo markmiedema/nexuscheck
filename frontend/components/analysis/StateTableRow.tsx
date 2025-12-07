@@ -229,17 +229,22 @@ export const StateTableRow = memo(function StateTableRow({
         )}
       </TableCell>
 
-      {/* 4. Gross Sales */}
+      {/* 4. Operator */}
+      <TableCell className="px-4 py-2 text-sm text-center font-medium text-foreground">
+        {state.threshold_operator?.toUpperCase() || 'OR'}
+      </TableCell>
+
+      {/* 5. Gross Sales */}
       <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
         {formatCurrency(state.total_sales || 0)}
       </TableCell>
 
-      {/* 5. Taxable Sales */}
+      {/* 6. Taxable Sales */}
       <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
         {formatCurrency(state.taxable_sales || 0)}
       </TableCell>
 
-      {/* 6. Exempt Sales */}
+      {/* 7. Exempt Sales */}
       <TableCell className="px-4 py-2 text-sm text-right">
         {state.exempt_sales > 0 ? (
           <div>
@@ -253,7 +258,7 @@ export const StateTableRow = memo(function StateTableRow({
         )}
       </TableCell>
 
-      {/* 7. Exposure Sales */}
+      {/* 8. Exposure Sales */}
       <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
         {state.exposure_sales && state.exposure_sales > 0 ? (
           formatCurrency(state.exposure_sales)
@@ -262,7 +267,7 @@ export const StateTableRow = memo(function StateTableRow({
         )}
       </TableCell>
 
-      {/* 8. Tax Liability (base tax only) */}
+      {/* 9. Tax Liability (base tax only) */}
       <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
         ${liability.baseTax.toLocaleString('en-US', {
           minimumFractionDigits: 2,
@@ -270,7 +275,7 @@ export const StateTableRow = memo(function StateTableRow({
         })}
       </TableCell>
 
-      {/* 9. Penalties & Interest (combined) */}
+      {/* 10. Penalties & Interest (combined) */}
       <TableCell className={`px-4 text-sm text-right ${densityClasses[density]}`}>
         {liability.penaltiesAndInterest !== null && liability.penaltiesAndInterest > 0 ? (
           <span className="font-medium text-card-foreground">
@@ -284,7 +289,7 @@ export const StateTableRow = memo(function StateTableRow({
         )}
       </TableCell>
 
-      {/* 10. Total Liability (tax + penalties + interest) */}
+      {/* 11. Total Liability (tax + penalties + interest) */}
       <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
         ${liability.totalLiability.toLocaleString('en-US', {
           minimumFractionDigits: 2,
