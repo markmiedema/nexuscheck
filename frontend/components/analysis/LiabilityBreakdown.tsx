@@ -4,23 +4,10 @@ import { memo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency, formatPercentage } from '@/lib/utils/formatting';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { PenaltyBreakdown } from '@/lib/api';
 
-/**
- * Detailed penalty breakdown from the new penalty/interest calculation system
- */
-export interface PenaltyBreakdown {
-  late_filing: number;
-  late_payment: number;
-  negligence?: number | null;
-  e_filing_failure?: number | null;
-  fraud?: number | null;
-  operating_without_permit?: number | null;
-  late_registration?: number | null;
-  unregistered_business?: number | null;
-  cost_of_collection?: number | null;
-  extended_delinquency?: number | null;
-  total: number;
-}
+// Re-export for backward compatibility
+export type { PenaltyBreakdown } from '@/lib/api';
 
 interface LiabilityBreakdownProps {
   taxableSales: number; // This is actually exposure_sales - sales during obligation period
