@@ -231,7 +231,13 @@ export const StateTableRow = memo(function StateTableRow({
 
       {/* 4. Operator */}
       <TableCell className="px-4 py-2 text-sm text-center font-medium text-foreground">
-        {state.threshold_operator?.toUpperCase() || 'OR'}
+        {state.threshold && state.transaction_threshold
+          ? (state.threshold_operator?.toUpperCase() || 'OR')
+          : state.threshold && !state.transaction_threshold
+            ? 'Sales only'
+            : !state.threshold && state.transaction_threshold
+              ? 'Txns only'
+              : '-'}
       </TableCell>
 
       {/* 5. Gross Sales */}
