@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import ExcelJS from 'exceljs'
 import apiClient from '@/lib/api/client'
 import { StateResult } from '@/types/states'
 import {
@@ -45,6 +46,7 @@ interface StateTableProps {
   analysisId: string
   embedded?: boolean
   refreshTrigger?: number
+  companyName?: string
 }
 
 type SortConfig = {
@@ -100,7 +102,7 @@ const groupStatesByPriority = (states: StateResult[], preserveOrder = false) => 
   }
 }
 
-export default function StateTable({ analysisId, embedded = false, refreshTrigger }: StateTableProps) {
+export default function StateTable({ analysisId, embedded = false, refreshTrigger, companyName }: StateTableProps) {
   const [states, setStates] = useState<StateResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -221,8 +223,8 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     setQuickViewOpen(true)
   }, [])
 
-  // Export state results to CSV
-  const handleExportCSV = useCallback(() => {
+  // Export state results to Excel with formatting
+  const handleExportCSV = useCallback(async () => {
     // Combine all displayed states in priority order
     const allDisplayed = [
       ...displayedStates.hasNexus,
@@ -235,60 +237,161 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       return
     }
 
-    // CSV headers
-    const headers = [
-      'State',
-      'State Code',
-      'Nexus Status',
-      'Nexus Type',
-      'Gross Sales',
-      'Taxable Sales',
-      'Exempt Sales',
-      'Direct Sales',
-      'Marketplace Sales',
-      'Threshold',
-      'Threshold %',
-      'Estimated Liability',
-      'Confidence Level'
+    // Helper to format threshold percentage
+    const formatThresholdPercent = (percent: number): string => {
+      if (percent >= 100) {
+        return 'Met'
+      }
+      return `${percent.toFixed(1)}%`
+    }
+
+    // Helper to get status label
+    const getStatusLabel = (state: StateResult): string => {
+      if (state.nexus_type === 'both') return 'Physical + Economic'
+      if (state.nexus_type === 'physical') return 'Physical Nexus'
+      if (state.nexus_type === 'economic') return 'Economic Nexus'
+      if (state.nexus_status === 'approaching') return 'Approaching'
+      return 'No Nexus'
+    }
+
+    // Helper to calculate liability breakdown
+    const getLiabilityValues = (state: StateResult) => {
+      const baseTax = state.base_tax ?? state.estimated_liability
+      const interest = state.interest ?? 0
+      const penalties = state.penalties ?? 0
+      return {
+        taxLiability: baseTax,
+        penaltiesAndInterest: interest + penalties,
+        totalLiability: baseTax + interest + penalties
+      }
+    }
+
+    // Helper to get transaction count with fallback to year_data
+    const getTransactionCount = (state: StateResult): number => {
+      if (state.transaction_count && state.transaction_count > 0) {
+        return state.transaction_count
+      }
+      // Fallback: sum from year_data if available
+      if (state.year_data && state.year_data.length > 0) {
+        return state.year_data.reduce((sum, yd) => {
+          const count = yd.summary?.transaction_count || 0
+          return sum + count
+        }, 0)
+      }
+      return 0
+    }
+
+    // Create workbook and worksheet
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('State Results')
+
+    // Define columns with headers and widths
+    worksheet.columns = [
+      { header: 'State', key: 'state', width: 24 },
+      { header: 'Status', key: 'status', width: 18 },
+      { header: 'Operator', key: 'operator', width: 10 },
+      { header: 'Threshold', key: 'threshold', width: 20 },
+      { header: 'Threshold %', key: 'thresholdPct', width: 12 },
+      { header: 'Transactions', key: 'transactions', width: 13 },
+      { header: 'Gross Sales', key: 'grossSales', width: 14 },
+      { header: 'Taxable Sales', key: 'taxableSales', width: 14 },
+      { header: 'Exempt Sales', key: 'exemptSales', width: 14 },
+      { header: 'Exposure Sales', key: 'exposureSales', width: 15 },
+      { header: 'Tax Liability', key: 'taxLiability', width: 14 },
+      { header: 'P&I', key: 'pi', width: 12 },
+      { header: 'Total Liability', key: 'totalLiability', width: 15 },
     ]
 
-    // Build CSV rows
-    const rows = allDisplayed.map(state => [
-      state.state_name,
-      state.state_code,
-      state.nexus_status === 'has_nexus' ? 'Has Nexus' :
-        state.nexus_status === 'approaching' ? 'Approaching' : 'No Nexus',
-      state.nexus_type === 'none' ? 'None' :
-        state.nexus_type === 'physical' ? 'Physical' :
-        state.nexus_type === 'economic' ? 'Economic' : 'Both',
-      state.total_sales.toFixed(2),
-      state.taxable_sales.toFixed(2),
-      state.exempt_sales.toFixed(2),
-      state.direct_sales.toFixed(2),
-      state.marketplace_sales.toFixed(2),
-      state.threshold.toFixed(2),
-      state.threshold_percent.toFixed(1),
-      state.estimated_liability.toFixed(2),
-      state.confidence_level
-    ])
+    // Style header row - bold and centered
+    const headerRow = worksheet.getRow(1)
+    headerRow.font = { bold: true }
+    headerRow.alignment = { horizontal: 'center', vertical: 'middle' }
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      }
+      cell.border = {
+        bottom: { style: 'thin', color: { argb: 'FF000000' } }
+      }
+    })
 
-    // Combine headers and rows
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n')
+    // Add data rows
+    allDisplayed.forEach(state => {
+      const liability = getLiabilityValues(state)
+      // Format threshold with transaction threshold if available
+      const thresholdFormatted = state.threshold
+        ? state.transaction_threshold
+          ? `$${state.threshold.toLocaleString()} / ${state.transaction_threshold.toLocaleString()}`
+          : `$${state.threshold.toLocaleString()}`
+        : '-'
 
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
+      worksheet.addRow({
+        state: `${state.state_name} (${state.state_code})`,
+        status: getStatusLabel(state),
+        operator: (state.threshold_operator || 'or').toUpperCase(),
+        threshold: thresholdFormatted,
+        thresholdPct: formatThresholdPercent(state.threshold_percent),
+        transactions: getTransactionCount(state),
+        grossSales: state.total_sales,
+        taxableSales: state.taxable_sales,
+        exemptSales: state.exempt_sales,
+        exposureSales: state.exposure_sales || 0,
+        taxLiability: liability.taxLiability,
+        pi: liability.penaltiesAndInterest,
+        totalLiability: liability.totalLiability
+      })
+    })
+
+    // Apply formatting to data rows
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) {
+        // Center align all cells
+        row.alignment = { horizontal: 'center', vertical: 'middle' }
+
+        // Format currency columns (7-13=sales/liability; threshold is now a formatted string)
+        const currencyColumns = [7, 8, 9, 10, 11, 12, 13]
+        currencyColumns.forEach(colNum => {
+          const cell = row.getCell(colNum)
+          if (typeof cell.value === 'number') {
+            cell.numFmt = '$#,##0.00'
+          }
+        })
+
+        // Format transactions column (6) with commas
+        const transCell = row.getCell(6)
+        if (typeof transCell.value === 'number') {
+          transCell.numFmt = '#,##0'
+        }
+      }
+    })
+
+    // Add auto-filter to header row
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: allDisplayed.length + 1, column: 13 }
+    }
+
+    // Generate filename with company name and current date
+    const currentDate = new Date().toISOString().split('T')[0]
+    const sanitizedCompanyName = companyName
+      ? companyName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-')
+      : 'Analysis'
+    const filename = `${sanitizedCompanyName}-State-Results-${currentDate}.xlsx`
+
+    // Write to buffer and download
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
     const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', `nexus-analysis-${analysisId}-state-results.csv`)
-    link.style.visibility = 'hidden'
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-  }, [displayedStates, analysisId])
+    URL.revokeObjectURL(url)
+  }, [displayedStates, companyName])
 
   if (loading) {
     return <SkeletonTable rows={10} columns={9} />

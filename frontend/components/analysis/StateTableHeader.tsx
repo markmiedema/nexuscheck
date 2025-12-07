@@ -29,163 +29,201 @@ export const StateTableHeader = memo(function StateTableHeader({
   }
 
   return (
-    <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
-      <TableRow className="hover:bg-muted/80">
-        {/* 1. State */}
-        <TableHead className="w-48 px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('state')}
-            className="flex items-center gap-2 hover:text-foreground transition-colors"
-          >
-            State
-            {getSortIcon('state')}
-          </button>
-        </TableHead>
-        {/* 2. Status */}
-        <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
-          Status
-        </TableHead>
-        {/* 3. Threshold */}
-        <TableHead className="w-28 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('threshold')}
-            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
-          >
-            Threshold
-            {getSortIcon('threshold')}
-            <TooltipProvider>
+    <TooltipProvider delayDuration={300}>
+      <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
+        <TableRow className="hover:bg-muted/80">
+          {/* 1. State */}
+          <TableHead className="w-48 px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+            <button
+              onClick={() => onSort('state')}
+              className="flex items-center gap-2 hover:text-foreground transition-colors"
+            >
+              State
+              {getSortIcon('state')}
+            </button>
+          </TableHead>
+          {/* 2. Status */}
+          <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+            Status
+          </TableHead>
+          {/* 3. Threshold */}
+          <TableHead className="w-28 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-1 justify-end">
+              <button
+                onClick={() => onSort('threshold')}
+                className="flex items-center gap-1 hover:text-foreground transition-colors"
+              >
+                Threshold
+                {getSortIcon('threshold')}
+              </button>
               <Tooltip>
-                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
-                  <Info className="h-3 w-3 text-muted-foreground" />
+                <TooltipTrigger asChild>
+                  <button type="button" className="cursor-help">
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="top">
                   <p>Economic nexus threshold for this state</p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          </button>
-        </TableHead>
-        {/* 4. Gross Sales */}
-        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('gross_sales')}
-            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
-          >
-            Gross Sales
-            {getSortIcon('gross_sales')}
-            <TooltipProvider>
+            </div>
+          </TableHead>
+          {/* 4. Gross Sales */}
+          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-1 justify-end">
+              <button
+                onClick={() => onSort('gross_sales')}
+                className="flex items-center gap-1 hover:text-foreground transition-colors"
+              >
+                Gross Sales
+                {getSortIcon('gross_sales')}
+              </button>
               <Tooltip>
-                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
-                  <Info className="h-3 w-3 text-muted-foreground" />
+                <TooltipTrigger asChild>
+                  <button type="button" className="cursor-help">
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="top">
                   <p>Total revenue (used for nexus determination)</p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          </button>
-        </TableHead>
-        {/* 5. Taxable Sales */}
-        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('taxable_sales')}
-            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
-          >
-            Taxable Sales
-            {getSortIcon('taxable_sales')}
-            <TooltipProvider>
+            </div>
+          </TableHead>
+          {/* 5. Taxable Sales */}
+          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-1 justify-end">
+              <button
+                onClick={() => onSort('taxable_sales')}
+                className="flex items-center gap-1 hover:text-foreground transition-colors"
+              >
+                Taxable Sales
+                {getSortIcon('taxable_sales')}
+              </button>
               <Tooltip>
-                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
-                  <Info className="h-3 w-3 text-muted-foreground" />
+                <TooltipTrigger asChild>
+                  <button type="button" className="cursor-help">
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="top">
                   <p>Sales subject to tax (used for liability)</p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          </button>
-        </TableHead>
-        {/* 6. Exempt Sales */}
-        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('exempt_sales')}
-            className="flex items-center gap-2 justify-end hover:text-foreground transition-colors"
-          >
-            Exempt Sales
-            {getSortIcon('exempt_sales')}
-          </button>
-        </TableHead>
-        {/* 7. Exposure Sales */}
-        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('exposure_sales')}
-            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
-          >
-            Exposure Sales
-            {getSortIcon('exposure_sales')}
-            <TooltipProvider>
+            </div>
+          </TableHead>
+          {/* 6. Exempt Sales */}
+          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-1 justify-end">
+              <button
+                onClick={() => onSort('exempt_sales')}
+                className="flex items-center gap-1 hover:text-foreground transition-colors"
+              >
+                Exempt Sales
+                {getSortIcon('exempt_sales')}
+              </button>
               <Tooltip>
-                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
-                  <Info className="h-3 w-3 text-muted-foreground" />
+                <TooltipTrigger asChild>
+                  <button type="button" className="cursor-help">
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="top">
+                  <p>Sales exempt from tax</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TableHead>
+          {/* 7. Exposure Sales */}
+          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-1 justify-end">
+              <button
+                onClick={() => onSort('exposure_sales')}
+                className="flex items-center gap-1 hover:text-foreground transition-colors"
+              >
+                Exposure Sales
+                {getSortIcon('exposure_sales')}
+              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="cursor-help">
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
                   <p>Taxable sales during obligation period (used for liability calculation)</p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          </button>
-        </TableHead>
-        {/* 8. Tax Liability */}
-        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('tax_liability')}
-            className="flex items-center gap-2 justify-end hover:text-foreground transition-colors"
-          >
-            Tax Liability
-            {getSortIcon('tax_liability')}
-          </button>
-        </TableHead>
-        {/* 9. Penalties & Interest */}
-        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('penalties_interest')}
-            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
-          >
-            P&I
-            {getSortIcon('penalties_interest')}
-            <TooltipProvider>
+            </div>
+          </TableHead>
+          {/* 8. Tax Liability */}
+          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-1 justify-end">
+              <button
+                onClick={() => onSort('tax_liability')}
+                className="flex items-center gap-1 hover:text-foreground transition-colors"
+              >
+                Tax Liability
+                {getSortIcon('tax_liability')}
+              </button>
               <Tooltip>
-                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
-                  <Info className="h-3 w-3 text-muted-foreground" />
+                <TooltipTrigger asChild>
+                  <button type="button" className="cursor-help">
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  <p>Penalties and Interest</p>
+                <TooltipContent side="top">
+                  <p>Base tax owed (excludes penalties and interest)</p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          </button>
-        </TableHead>
-        {/* 10. Total Liability */}
-        <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
-          <button
-            onClick={() => onSort('total_liability')}
-            className="flex items-center gap-1 justify-end hover:text-foreground transition-colors"
-          >
-            Total Liability
-            {getSortIcon('total_liability')}
-            <TooltipProvider>
+            </div>
+          </TableHead>
+          {/* 9. Penalties & Interest */}
+          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-1 justify-end">
+              <button
+                onClick={() => onSort('penalties_interest')}
+                className="flex items-center gap-1 hover:text-foreground transition-colors"
+              >
+                P&I
+                {getSortIcon('penalties_interest')}
+              </button>
               <Tooltip>
-                <TooltipTrigger onClick={(e) => e.stopPropagation()}>
-                  <Info className="h-3 w-3 text-muted-foreground" />
+                <TooltipTrigger asChild>
+                  <button type="button" className="cursor-help">
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="top">
+                  <p>Penalties and Interest combined</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TableHead>
+          {/* 10. Total Liability */}
+          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-1 justify-end">
+              <button
+                onClick={() => onSort('total_liability')}
+                className="flex items-center gap-1 hover:text-foreground transition-colors"
+              >
+                Total Liability
+                {getSortIcon('total_liability')}
+              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="cursor-help">
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
                   <p>Tax liability plus penalties and interest</p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          </button>
-        </TableHead>
-      </TableRow>
-    </TableHeader>
+            </div>
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+    </TooltipProvider>
   )
 });
