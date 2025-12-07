@@ -4,23 +4,10 @@ import { memo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency, formatPercentage } from '@/lib/utils/formatting';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { PenaltyBreakdown } from '@/lib/api';
 
-/**
- * Detailed penalty breakdown from the new penalty/interest calculation system
- */
-export interface PenaltyBreakdown {
-  late_filing: number;
-  late_payment: number;
-  negligence?: number | null;
-  e_filing_failure?: number | null;
-  fraud?: number | null;
-  operating_without_permit?: number | null;
-  late_registration?: number | null;
-  unregistered_business?: number | null;
-  cost_of_collection?: number | null;
-  extended_delinquency?: number | null;
-  total: number;
-}
+// Re-export for backward compatibility
+export type { PenaltyBreakdown } from '@/lib/api';
 
 interface LiabilityBreakdownProps {
   taxableSales: number; // This is actually exposure_sales - sales during obligation period
@@ -29,14 +16,14 @@ interface LiabilityBreakdownProps {
   baseTax?: number; // Base tax amount (from Phase 2)
   interest?: number; // Interest amount (from Phase 2)
   penalties?: number; // Total penalties amount (legacy support)
-  penaltyBreakdown?: PenaltyBreakdown; // Detailed penalty breakdown (new)
+  penaltyBreakdown?: PenaltyBreakdown | null; // Detailed penalty breakdown (new)
   marketplaceSales: number;
   nexusStatus: 'has_nexus' | 'approaching' | 'none';
-  // Calculation metadata for transparency
-  interestRate?: number; // Annual interest rate as percentage (e.g., 8.5)
-  interestMethod?: string; // Calculation method (e.g., "compound_monthly", "simple")
-  daysOutstanding?: number; // Number of days interest accrued
-  penaltyRate?: number; // Penalty rate as percentage (e.g., 20) - legacy
+  // Calculation metadata for transparency (can be null from API)
+  interestRate?: number | null; // Annual interest rate as percentage (e.g., 8.5)
+  interestMethod?: string | null; // Calculation method (e.g., "compound_monthly", "simple")
+  daysOutstanding?: number | null; // Number of days interest accrued
+  penaltyRate?: number | null; // Penalty rate as percentage (e.g., 20) - legacy
 }
 
 /**

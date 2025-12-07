@@ -401,15 +401,20 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
                 ? data.penalties || 0
                 : yearData?.summary.penalties
             }
+            penaltyBreakdown={
+              isAllYearsView
+                ? data.penalty_breakdown
+                : yearData?.summary.penalty_breakdown
+            }
             marketplaceSales={
               isAllYearsView
                 ? data.marketplace_sales || 0
                 : yearData?.summary.marketplace_sales || 0
             }
             nexusStatus={isAllYearsView ? aggregateNexusStatus : yearData?.nexus_status || 'none'}
-            interestRate={isAllYearsView ? latestYear?.summary.interest_rate : yearData?.summary.interest_rate}
-            interestMethod={isAllYearsView ? latestYear?.summary.interest_method : yearData?.summary.interest_method}
-            daysOutstanding={isAllYearsView ? earliestYearWithNexus?.summary.days_outstanding : yearData?.summary.days_outstanding}
+            interestRate={isAllYearsView ? data.interest_rate : yearData?.summary.interest_rate}
+            interestMethod={isAllYearsView ? data.interest_method : yearData?.summary.interest_method}
+            daysOutstanding={isAllYearsView ? data.days_outstanding : yearData?.summary.days_outstanding}
             penaltyRate={isAllYearsView ? latestYear?.summary.penalty_rate : yearData?.summary.penalty_rate}
           />
         );
