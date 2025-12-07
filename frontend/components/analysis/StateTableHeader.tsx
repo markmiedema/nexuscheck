@@ -68,7 +68,23 @@ export const StateTableHeader = memo(function StateTableHeader({
               </Tooltip>
             </div>
           </TableHead>
-          {/* 4. Gross Sales */}
+          {/* 4. Operator */}
+          <TableHead className="w-20 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+            <div className="flex items-center gap-1 justify-center">
+              <span>Operator</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="cursor-help">
+                    <Info className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>AND = must meet both thresholds; OR = meet either threshold</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TableHead>
+          {/* 5. Gross Sales */}
           <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
             <div className="flex items-center gap-1 justify-end">
               <button
@@ -90,7 +106,7 @@ export const StateTableHeader = memo(function StateTableHeader({
               </Tooltip>
             </div>
           </TableHead>
-          {/* 5. Taxable Sales */}
+          {/* 6. Taxable Sales */}
           <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
             <div className="flex items-center gap-1 justify-end">
               <button
@@ -112,7 +128,7 @@ export const StateTableHeader = memo(function StateTableHeader({
               </Tooltip>
             </div>
           </TableHead>
-          {/* 6. Exempt Sales */}
+          {/* 7. Exempt Sales */}
           <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
             <div className="flex items-center gap-1 justify-end">
               <button
@@ -134,7 +150,7 @@ export const StateTableHeader = memo(function StateTableHeader({
               </Tooltip>
             </div>
           </TableHead>
-          {/* 7. Exposure Sales */}
+          {/* 8. Exposure Sales */}
           <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
             <div className="flex items-center gap-1 justify-end">
               <button
@@ -156,7 +172,7 @@ export const StateTableHeader = memo(function StateTableHeader({
               </Tooltip>
             </div>
           </TableHead>
-          {/* 8. Tax Liability */}
+          {/* 9. Tax Liability */}
           <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
             <div className="flex items-center gap-1 justify-end">
               <button
@@ -178,7 +194,7 @@ export const StateTableHeader = memo(function StateTableHeader({
               </Tooltip>
             </div>
           </TableHead>
-          {/* 9. Penalties & Interest */}
+          {/* 10. Penalties & Interest */}
           <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
             <div className="flex items-center gap-1 justify-end">
               <button
@@ -200,7 +216,7 @@ export const StateTableHeader = memo(function StateTableHeader({
               </Tooltip>
             </div>
           </TableHead>
-          {/* 10. Total Liability */}
+          {/* 11. Total Liability */}
           <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
             <div className="flex items-center gap-1 justify-end">
               <button
