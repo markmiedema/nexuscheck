@@ -19,6 +19,7 @@ export interface StateResult {
   threshold: number
   threshold_percent: number
   threshold_operator?: 'and' | 'or'
+  transaction_threshold?: number
   estimated_liability: number
   // Liability breakdown fields (may be computed from year_data)
   base_tax?: number

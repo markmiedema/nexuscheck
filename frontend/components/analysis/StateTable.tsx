@@ -290,7 +290,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       { header: 'State', key: 'state', width: 24 },
       { header: 'Status', key: 'status', width: 18 },
       { header: 'Operator', key: 'operator', width: 10 },
-      { header: 'Threshold', key: 'threshold', width: 14 },
+      { header: 'Threshold', key: 'threshold', width: 20 },
       { header: 'Threshold %', key: 'thresholdPct', width: 12 },
       { header: 'Transactions', key: 'transactions', width: 13 },
       { header: 'Gross Sales', key: 'grossSales', width: 14 },
@@ -320,11 +320,18 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     // Add data rows
     allDisplayed.forEach(state => {
       const liability = getLiabilityValues(state)
+      // Format threshold with transaction threshold if available
+      const thresholdFormatted = state.threshold
+        ? state.transaction_threshold
+          ? `$${state.threshold.toLocaleString()} / ${state.transaction_threshold.toLocaleString()}`
+          : `$${state.threshold.toLocaleString()}`
+        : '-'
+
       worksheet.addRow({
         state: `${state.state_name} (${state.state_code})`,
         status: getStatusLabel(state),
         operator: (state.threshold_operator || 'or').toUpperCase(),
-        threshold: state.threshold,
+        threshold: thresholdFormatted,
         thresholdPct: formatThresholdPercent(state.threshold_percent),
         transactions: getTransactionCount(state),
         grossSales: state.total_sales,
@@ -343,8 +350,8 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
         // Center align all cells
         row.alignment = { horizontal: 'center', vertical: 'middle' }
 
-        // Format currency columns (4=threshold, 7-13=sales/liability)
-        const currencyColumns = [4, 7, 8, 9, 10, 11, 12, 13]
+        // Format currency columns (7-13=sales/liability; threshold is now a formatted string)
+        const currencyColumns = [7, 8, 9, 10, 11, 12, 13]
         currencyColumns.forEach(colNum => {
           const cell = row.getCell(colNum)
           if (typeof cell.value === 'number') {

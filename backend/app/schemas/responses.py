@@ -221,6 +221,7 @@ class StateResult(BaseModel):
     threshold: float
     threshold_percent: float
     threshold_operator: Optional[str] = None
+    transaction_threshold: Optional[int] = None
     estimated_liability: float
     base_tax: Optional[float] = None
     interest: Optional[float] = None

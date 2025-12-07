@@ -203,13 +203,24 @@ export const StateTableRow = memo(function StateTableRow({
               <TooltipTrigger asChild>
                 <span className="font-medium text-foreground cursor-help">
                   {formatCurrency(state.threshold)}
+                  {state.transaction_threshold && (
+                    <span className="text-muted-foreground"> / {state.transaction_threshold.toLocaleString()}</span>
+                  )}
                 </span>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
-                  {state.threshold_percent.toFixed(0)}% of threshold reached
+                  {state.threshold_percent.toFixed(0)}% of revenue threshold reached
                   ({formatCurrency(state.total_sales)} of {formatCurrency(state.threshold)})
                 </p>
+                {state.transaction_threshold && (
+                  <p className="mt-1">
+                    Transaction threshold: {state.transaction_threshold.toLocaleString()} transactions
+                    {state.transaction_count !== undefined && (
+                      <span> (you have {state.transaction_count.toLocaleString()})</span>
+                    )}
+                  </p>
+                )}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

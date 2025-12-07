@@ -1577,13 +1577,18 @@ async def get_state_results(
             for pn in physical_nexus_response.data
         }
 
-        # 4b. Fetch threshold operators from economic_nexus_thresholds table
+        # 4b. Fetch threshold operators and transaction thresholds from economic_nexus_thresholds table
         thresholds_response = supabase.table('economic_nexus_thresholds').select(
-            'state, threshold_operator'
+            'state, threshold_operator, transaction_threshold'
         ).execute()
 
         threshold_operators = {
             t['state']: t.get('threshold_operator', 'or')
+            for t in thresholds_response.data
+        }
+
+        transaction_thresholds = {
+            t['state']: t.get('transaction_threshold')
             for t in thresholds_response.data
         }
 
@@ -1674,6 +1679,7 @@ async def get_state_results(
                 'threshold': float(threshold),
                 'threshold_percent': threshold_percent,
                 'threshold_operator': threshold_operators.get(state_code, 'or'),
+                'transaction_threshold': transaction_thresholds.get(state_code),
                 'estimated_liability': total_liability_all_years,
                 'base_tax': base_tax_all_years,
                 'interest': interest_all_years,
