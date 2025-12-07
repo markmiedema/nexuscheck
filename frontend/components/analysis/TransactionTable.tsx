@@ -619,10 +619,10 @@ export default function TransactionTable({
                               </div>
                               <div className="px-4 py-3 text-sm text-center text-foreground w-[14%]">
                                 <span
-                                  className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                  className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold shadow-sm ${
                                     transaction.sales_channel === 'direct'
                                       ? 'bg-muted text-foreground'
-                                      : 'bg-accent text-foreground'
+                                      : 'bg-muted text-foreground'
                                   }`}
                                 >
                                   {transaction.sales_channel === 'direct' ? 'Direct' : 'Marketplace'}
@@ -694,10 +694,10 @@ export default function TransactionTable({
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm text-center text-foreground">
                           <span
-                            className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                            className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold shadow-sm ${
                               transaction.sales_channel === 'direct'
                                 ? 'bg-muted text-foreground'
-                                : 'bg-accent text-foreground'
+                                : 'bg-muted text-foreground'
                             }`}
                           >
                             {transaction.sales_channel === 'direct' ? 'Direct' : 'Marketplace'}
