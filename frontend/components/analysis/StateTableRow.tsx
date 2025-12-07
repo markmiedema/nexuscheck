@@ -104,7 +104,7 @@ export const StateTableRow = memo(function StateTableRow({
       onClick={() => onStateClick(state.state_code, state.state_name)}
     >
       {/* 1. State Name */}
-      <TableCell className={`px-4 text-sm text-foreground ${densityClasses[density]}`}>
+      <TableCell className={`px-3 text-sm text-foreground whitespace-nowrap ${densityClasses[density]}`}>
         <div className="font-medium text-foreground">
           {state.state_name}
         </div>
@@ -114,10 +114,10 @@ export const StateTableRow = memo(function StateTableRow({
       </TableCell>
 
       {/* 2. Status Badge */}
-      <TableCell className={`px-4 text-sm text-foreground text-center ${densityClasses[density]}`}>
+      <TableCell className={`px-3 text-sm text-foreground text-center whitespace-nowrap ${densityClasses[density]}`}>
         <div className="flex items-center justify-center">
           <span
-            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all border"
+            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium transition-all border"
             style={{
               '--badge-bg-light':
                 state.nexus_type === 'both'
@@ -185,18 +185,18 @@ export const StateTableRow = memo(function StateTableRow({
             } as React.CSSProperties & Record<string, string>}
           >
             {state.nexus_type === 'both'
-              ? 'Physical + Economic'
+              ? 'Phys + Econ'
               : state.nexus_type === 'physical'
-              ? 'Physical Nexus'
+              ? 'Physical'
               : state.nexus_type === 'economic'
-              ? 'Economic Nexus'
+              ? 'Economic'
               : getNexusStatusLabel(state.nexus_status)}
           </span>
         </div>
       </TableCell>
 
       {/* 3. Threshold */}
-      <TableCell className="px-4 py-2 text-sm text-right">
+      <TableCell className="px-3 py-2 text-sm text-right whitespace-nowrap">
         {state.threshold ? (
           <TooltipProvider>
             <Tooltip>
@@ -230,7 +230,7 @@ export const StateTableRow = memo(function StateTableRow({
       </TableCell>
 
       {/* 4. Operator */}
-      <TableCell className="px-4 py-2 text-sm text-center font-medium text-foreground">
+      <TableCell className="px-3 py-2 text-sm text-center font-medium text-foreground whitespace-nowrap">
         {state.threshold && state.transaction_threshold
           ? (state.threshold_operator?.toUpperCase() || 'OR')
           : state.threshold && !state.transaction_threshold
@@ -241,17 +241,17 @@ export const StateTableRow = memo(function StateTableRow({
       </TableCell>
 
       {/* 5. Gross Sales */}
-      <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
+      <TableCell className="px-3 py-2 text-sm text-right font-medium text-foreground whitespace-nowrap">
         {formatCurrency(state.total_sales || 0)}
       </TableCell>
 
       {/* 6. Taxable Sales */}
-      <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
+      <TableCell className="px-3 py-2 text-sm text-right font-medium text-foreground whitespace-nowrap">
         {formatCurrency(state.taxable_sales || 0)}
       </TableCell>
 
       {/* 7. Exempt Sales */}
-      <TableCell className="px-4 py-2 text-sm text-right">
+      <TableCell className="px-3 py-2 text-sm text-right whitespace-nowrap">
         {state.exempt_sales > 0 ? (
           <div>
             <div className="font-medium text-foreground">{formatCurrency(state.exempt_sales)}</div>
@@ -265,7 +265,7 @@ export const StateTableRow = memo(function StateTableRow({
       </TableCell>
 
       {/* 8. Exposure Sales */}
-      <TableCell className="px-4 py-2 text-sm text-right font-medium text-foreground">
+      <TableCell className="px-3 py-2 text-sm text-right font-medium text-foreground whitespace-nowrap">
         {state.exposure_sales && state.exposure_sales > 0 ? (
           formatCurrency(state.exposure_sales)
         ) : (
@@ -274,7 +274,7 @@ export const StateTableRow = memo(function StateTableRow({
       </TableCell>
 
       {/* 9. Tax Liability (base tax only) */}
-      <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
+      <TableCell className={`px-3 text-sm text-right text-card-foreground font-medium whitespace-nowrap ${densityClasses[density]}`}>
         ${liability.baseTax.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
@@ -282,7 +282,7 @@ export const StateTableRow = memo(function StateTableRow({
       </TableCell>
 
       {/* 10. Penalties & Interest (combined) */}
-      <TableCell className={`px-4 text-sm text-right ${densityClasses[density]}`}>
+      <TableCell className={`px-3 text-sm text-right whitespace-nowrap ${densityClasses[density]}`}>
         {liability.penaltiesAndInterest !== null && liability.penaltiesAndInterest > 0 ? (
           <span className="font-medium text-card-foreground">
             ${liability.penaltiesAndInterest.toLocaleString('en-US', {
@@ -296,7 +296,7 @@ export const StateTableRow = memo(function StateTableRow({
       </TableCell>
 
       {/* 11. Total Liability (tax + penalties + interest) */}
-      <TableCell className={`px-4 text-sm text-right text-card-foreground font-medium ${densityClasses[density]}`}>
+      <TableCell className={`px-3 text-sm text-right text-card-foreground font-medium whitespace-nowrap ${densityClasses[density]}`}>
         ${liability.totalLiability.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
