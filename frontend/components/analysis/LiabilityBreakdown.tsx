@@ -19,11 +19,11 @@ interface LiabilityBreakdownProps {
   penaltyBreakdown?: PenaltyBreakdown | null; // Detailed penalty breakdown (new)
   marketplaceSales: number;
   nexusStatus: 'has_nexus' | 'approaching' | 'none';
-  // Calculation metadata for transparency
-  interestRate?: number; // Annual interest rate as percentage (e.g., 8.5)
-  interestMethod?: string; // Calculation method (e.g., "compound_monthly", "simple")
-  daysOutstanding?: number; // Number of days interest accrued
-  penaltyRate?: number; // Penalty rate as percentage (e.g., 20) - legacy
+  // Calculation metadata for transparency (can be null from API)
+  interestRate?: number | null; // Annual interest rate as percentage (e.g., 8.5)
+  interestMethod?: string | null; // Calculation method (e.g., "compound_monthly", "simple")
+  daysOutstanding?: number | null; // Number of days interest accrued
+  penaltyRate?: number | null; // Penalty rate as percentage (e.g., 20) - legacy
 }
 
 /**
