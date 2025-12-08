@@ -128,10 +128,9 @@ export function PhysicalNexusManager({ analysisId, clientId, onRecalculated }: P
                   <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
                     <TableRow className="hover:bg-muted/80">
                       <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">State</TableHead>
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Type</TableHead>
                       <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Nexus Date</TableHead>
                       <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Reason</TableHead>
-                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Registration</TableHead>
-                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Permit Number</TableHead>
                       <TableHead className="px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -139,12 +138,15 @@ export function PhysicalNexusManager({ analysisId, clientId, onRecalculated }: P
                     {configs.map((config) => (
                       <TableRow key={config.state_code} className="hover:bg-muted/50 transition-colors border-b border-border last:border-0">
                         <TableCell className="px-4 py-4 font-medium">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{config.state_code}</Badge>
-                          </div>
+                          <Badge variant="outline">{config.state_code}</Badge>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-sm">
+                          {config.nexus_type === 'remote_employee' ? 'Remote Employee' :
+                           config.nexus_type === 'inventory_3pl' ? '3PL / FBA' :
+                           config.nexus_type === 'office' ? 'Office' : 'Other'}
                         </TableCell>
                         <TableCell className="px-4 py-4">{formatDate(config.nexus_date)}</TableCell>
-                        <TableCell className="px-4 py-4 max-w-[200px]">
+                        <TableCell className="px-4 py-4 max-w-[250px]">
                           <div className="flex items-center gap-2">
                             <span className="truncate">{config.reason}</span>
                             {config.notes?.includes('Auto-populated') && (
@@ -153,23 +155,6 @@ export function PhysicalNexusManager({ analysisId, clientId, onRecalculated }: P
                               </Badge>
                             )}
                           </div>
-                        </TableCell>
-                        <TableCell className="px-4 py-4">
-                          {config.registration_date ? (
-                            <div className="flex flex-col">
-                              <span className="text-sm">{formatDate(config.registration_date)}</span>
-                              {config.permit_number && (
-                                <span className="text-xs text-muted-foreground">
-                                  {config.permit_number}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">Not registered</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="px-4 py-4">
-                          {config.permit_number || <span className="text-muted-foreground">—</span>}
                         </TableCell>
                         <TableCell className="px-4 py-4 text-right">
                           <div className="flex justify-end gap-2">

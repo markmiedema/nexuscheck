@@ -216,7 +216,7 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
       <AppLayout
         maxWidth="7xl"
         breadcrumbs={[
-          { label: 'Analyses', href: '/analyses' },
+          { label: 'Clients', href: '/clients' },
           { label: 'Analysis Results', href: `/analysis/${params.id}/results` },
           { label: `${params.stateCode.toUpperCase()} - ${data.state_name}` },
         ]}

@@ -20,8 +20,8 @@ class PhysicalNexusCreate(BaseModel):
         ...,
         description="Date physical nexus was established"
     )
-    reason: str = Field(
-        ...,
+    reason: Optional[str] = Field(
+        None,
         description="Reason for physical nexus (e.g., 'Office opened', 'Warehouse established')"
     )
     nexus_type: PhysicalNexusType = Field(
@@ -65,11 +65,12 @@ class PhysicalNexusCreate(BaseModel):
 
     @field_validator('reason')
     @classmethod
-    def validate_reason(cls, v: str) -> str:
-        """Ensure reason is not empty."""
-        v = v.strip()
-        if not v:
-            raise ValueError("Reason cannot be empty")
+    def validate_reason(cls, v: Optional[str]) -> Optional[str]:
+        """Strip whitespace from reason if provided."""
+        if v is not None:
+            v = v.strip()
+            if not v:
+                return None
         return v
 
 
@@ -100,7 +101,7 @@ class PhysicalNexusResponse(BaseModel):
     analysis_id: str
     state_code: str
     nexus_date: date
-    reason: str
+    reason: Optional[str] = None
     nexus_type: Optional[PhysicalNexusType] = 'other'
     registration_date: Optional[date]
     permit_number: Optional[str]
@@ -133,9 +134,6 @@ class PhysicalNexusImportRequest(BaseModel):
 
             if 'nexus_date' not in config:
                 raise ValueError(f"Config for {state_code} missing required field: nexus_date")
-
-            if 'reason' not in config:
-                raise ValueError(f"Config for {state_code} missing required field: reason")
 
         return v
 

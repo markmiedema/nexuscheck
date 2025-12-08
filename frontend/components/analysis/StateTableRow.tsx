@@ -11,6 +11,7 @@ interface StateTableRowProps {
   state: StateResult
   density: Density
   onStateClick: (code: string, name: string) => void
+  isRegistered?: boolean
 }
 
 const densityClasses = {
@@ -94,7 +95,8 @@ const getLiabilityBreakdown = (state: StateResult) => {
 export const StateTableRow = memo(function StateTableRow({
   state,
   density,
-  onStateClick
+  onStateClick,
+  isRegistered = false
 }: StateTableRowProps) {
   const liability = getLiabilityBreakdown(state)
 
@@ -120,7 +122,9 @@ export const StateTableRow = memo(function StateTableRow({
             className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium transition-all border"
             style={{
               '--badge-bg-light':
-                state.nexus_type === 'both'
+                isRegistered
+                  ? 'hsl(215 15% 35% / 0.1)'
+                  : state.nexus_type === 'both'
                   ? 'hsl(289 46% 45% / 0.1)'
                   : state.nexus_type === 'physical'
                   ? 'hsl(217 32.6% 45% / 0.1)'
@@ -130,7 +134,9 @@ export const StateTableRow = memo(function StateTableRow({
                   ? 'hsl(38 92% 50% / 0.1)'
                   : 'hsl(142 71% 40% / 0.1)',
               '--badge-color-light':
-                state.nexus_type === 'both'
+                isRegistered
+                  ? 'hsl(215 15% 25%)'
+                  : state.nexus_type === 'both'
                   ? 'hsl(289 46% 35%)'
                   : state.nexus_type === 'physical'
                   ? 'hsl(217 32.6% 35%)'
@@ -140,7 +146,9 @@ export const StateTableRow = memo(function StateTableRow({
                   ? 'hsl(38 92% 40%)'
                   : 'hsl(142 71% 30%)',
               '--badge-border-light':
-                state.nexus_type === 'both'
+                isRegistered
+                  ? 'hsl(215 15% 35% / 0.4)'
+                  : state.nexus_type === 'both'
                   ? 'hsl(289 46% 45% / 0.3)'
                   : state.nexus_type === 'physical'
                   ? 'hsl(217 32.6% 45% / 0.3)'
@@ -150,7 +158,9 @@ export const StateTableRow = memo(function StateTableRow({
                   ? 'hsl(38 92% 50% / 0.3)'
                   : 'hsl(142 71% 40% / 0.3)',
               '--badge-bg-dark':
-                state.nexus_type === 'both'
+                isRegistered
+                  ? 'hsl(215 15% 35% / 0.2)'
+                  : state.nexus_type === 'both'
                   ? 'hsl(289 46% 45% / 0.15)'
                   : state.nexus_type === 'physical'
                   ? 'hsl(217 32.6% 45% / 0.15)'
@@ -160,7 +170,9 @@ export const StateTableRow = memo(function StateTableRow({
                   ? 'hsl(38 92% 50% / 0.15)'
                   : 'hsl(142 71% 40% / 0.15)',
               '--badge-color-dark':
-                state.nexus_type === 'both'
+                isRegistered
+                  ? 'hsl(215 15% 80%)'
+                  : state.nexus_type === 'both'
                   ? 'hsl(289 46% 75%)'
                   : state.nexus_type === 'physical'
                   ? 'hsl(217 32.6% 75%)'
@@ -170,7 +182,9 @@ export const StateTableRow = memo(function StateTableRow({
                   ? 'hsl(38 92% 70%)'
                   : 'hsl(142 71% 70%)',
               '--badge-border-dark':
-                state.nexus_type === 'both'
+                isRegistered
+                  ? 'hsl(215 15% 50% / 0.5)'
+                  : state.nexus_type === 'both'
                   ? 'hsl(289 46% 45% / 0.4)'
                   : state.nexus_type === 'physical'
                   ? 'hsl(217 32.6% 45% / 0.4)'
@@ -184,7 +198,9 @@ export const StateTableRow = memo(function StateTableRow({
               borderColor: 'var(--badge-border-light)',
             } as React.CSSProperties & Record<string, string>}
           >
-            {state.nexus_type === 'both'
+            {isRegistered
+              ? 'Registered'
+              : state.nexus_type === 'both'
               ? 'Phys + Econ'
               : state.nexus_type === 'physical'
               ? 'Physical'
