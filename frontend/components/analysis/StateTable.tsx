@@ -471,6 +471,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                   state={state}
                   density={density}
                   onStateClick={handleStateClick}
+                  isRegistered={true}
                 />
               ))}
             </TableBody>
