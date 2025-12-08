@@ -203,60 +203,6 @@ export function PhysicalNexusForm({
                 Brief description of physical presence
               </p>
             </div>
-
-            {/* Registration Date */}
-            <div className="grid gap-2">
-              <Label htmlFor="registration_date">Registration Date (Optional)</Label>
-              <Input
-                id="registration_date"
-                type="date"
-                value={formatDateForInput(formState.registration_date)}
-                onChange={(e) =>
-                  setFormState({
-                    ...formState,
-                    registration_date: e.target.value ? new Date(e.target.value) : undefined,
-                  })
-                }
-              />
-              <p className="text-xs text-muted-foreground dark:text-slate-300">
-                When did you register with the state?
-              </p>
-            </div>
-
-            {/* Permit Number */}
-            <div className="grid gap-2">
-              <Label htmlFor="permit_number">Permit Number (Optional)</Label>
-              <Input
-                id="permit_number"
-                value={formState.permit_number}
-                onChange={(e) =>
-                  setFormState({ ...formState, permit_number: e.target.value })
-                }
-                placeholder="e.g., CA-123456"
-                maxLength={50}
-              />
-              <p className="text-xs text-muted-foreground dark:text-slate-300">
-                State tax permit or registration number
-              </p>
-            </div>
-
-            {/* Notes */}
-            <div className="grid gap-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <textarea
-                id="notes"
-                value={formState.notes}
-                onChange={(e) =>
-                  setFormState({ ...formState, notes: e.target.value })
-                }
-                placeholder="Additional information about this physical nexus"
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                maxLength={500}
-              />
-              <p className="text-xs text-muted-foreground dark:text-slate-300 text-right">
-                {formState.notes?.length || 0} / 500
-              </p>
-            </div>
           </div>
 
           <DialogFooter>
