@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
 import StateTable from '@/components/analysis/StateTable'
 import { PhysicalNexusManager } from '@/components/analysis/PhysicalNexusManager'
-import { RegistrationsManager } from '@/components/analysis/RegistrationsManager'
 import { ReportDownload } from '@/components/analysis/ReportDownload'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { StateResult as StateResultMap } from '@/types/states'
@@ -488,15 +487,6 @@ export default function ResultsPage() {
             />
           </div>
 
-          {/* State Registrations */}
-          <div className="mb-6">
-            <RegistrationsManager
-              analysisId={analysisId}
-              clientId={summary?.client_id}
-              onUpdate={handleRegistrationsUpdate}
-            />
-          </div>
-
           {/* Calculate Button */}
           {calculationStatus === 'pending' && (
             <div className="bg-warning/10 rounded-lg border border-warning/20 p-6 mb-6">
@@ -542,7 +532,14 @@ export default function ResultsPage() {
           {/* Embedded State Table */}
           {calculationStatus === 'calculated' && (
             <div className="mb-6">
-              <StateTable analysisId={analysisId} embedded={true} refreshTrigger={refreshTrigger} companyName={summary?.company_name} registeredStates={registeredStates} />
+              <StateTable
+                analysisId={analysisId}
+                embedded={true}
+                refreshTrigger={refreshTrigger}
+                companyName={summary?.company_name}
+                clientId={summary?.client_id}
+                onRegistrationsChange={handleRegistrationsUpdate}
+              />
             </div>
           )}
         </ErrorBoundary>

@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button'
 import {
   Search,
   Download,
+  FileCheck,
 } from 'lucide-react'
 import {
   getNexusStatusLabel,
@@ -40,14 +41,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { SkeletonTable } from '@/components/ui/skeleton-table'
+import { useRegistrations } from '@/hooks/useRegistrations'
+import { US_STATE_CODES } from '@/lib/constants/states'
 
 interface StateTableProps {
   analysisId: string
   embedded?: boolean
   refreshTrigger?: number
   companyName?: string
-  registeredStates?: string[]  // States where client is registered
+  clientId?: string  // If provided, registrations are stored on client; otherwise on analysis
+  onRegistrationsChange?: () => void | Promise<void>  // Called when registrations change
 }
 
 type SortConfig = {
@@ -103,10 +112,18 @@ const groupStatesByPriority = (states: StateResult[], preserveOrder = false) => 
   }
 }
 
-export default function StateTable({ analysisId, embedded = false, refreshTrigger, companyName, registeredStates = [] }: StateTableProps) {
+export default function StateTable({ analysisId, embedded = false, refreshTrigger, companyName, clientId, onRegistrationsChange }: StateTableProps) {
   const [states, setStates] = useState<StateResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Use the registrations hook to manage registered states
+  const {
+    registeredStates,
+    loading: registrationsLoading,
+    saving: registrationsSaving,
+    toggleRegistration
+  } = useRegistrations(analysisId, clientId, { onUpdate: onRegistrationsChange })
 
   // Filters and sorting
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -442,6 +459,65 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
 
         {/* Right side - Actions */}
         <div className="flex gap-2">
+          {/* Registrations Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="border-border">
+                <FileCheck className="h-4 w-4 mr-2" />
+                Registrations
+                {registeredStates.length > 0 && (
+                  <Badge variant="secondary" className="ml-2 h-5 min-w-5 px-1.5">
+                    {registeredStates.length}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="end">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <h4 className="font-medium text-sm">State Registrations</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Select states where you are registered to collect sales tax
+                  </p>
+                </div>
+                {registrationsLoading ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto p-2 border rounded-md bg-muted/30">
+                      {US_STATE_CODES.map(state => (
+                        <Badge
+                          key={state}
+                          variant="outline"
+                          className={`cursor-pointer text-xs transition-all ${
+                            registeredStates.includes(state)
+                              ? 'bg-emerald-100 border-emerald-400 text-emerald-800 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-200 shadow-sm'
+                              : 'hover:bg-muted hover:border-muted-foreground/50'
+                          } ${registrationsSaving ? 'opacity-50 pointer-events-none' : ''}`}
+                          onClick={() => toggleRegistration(state)}
+                        >
+                          {state}
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {registeredStates.length === 0 ? (
+                        'No states registered'
+                      ) : (
+                        <>
+                          <span className="font-medium text-foreground">{registeredStates.length}</span>
+                          {' '}state{registeredStates.length !== 1 ? 's' : ''} registered
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+
           <Button variant="outline" size="sm" className="border-border" onClick={handleExportCSV}>
             <Download className="h-4 w-4 mr-2" />
             Export
