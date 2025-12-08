@@ -112,10 +112,8 @@ export default function ResultsPage() {
         client_id: data.client_id || undefined
       })
 
-      // Fetch registered states from client if linked
-      if (data.client_id) {
-        fetchRegisteredStates(data.client_id)
-      }
+      // Fetch registered states (from client if linked, otherwise from analysis)
+      fetchRegisteredStates(data.client_id || undefined)
 
       // Check if calculation has already been done
       if (data.status === 'complete') {
@@ -203,10 +201,17 @@ export default function ResultsPage() {
     }
   }
 
-  const fetchRegisteredStates = async (clientId: string) => {
+  const fetchRegisteredStates = async (clientId?: string) => {
     try {
-      const response = await apiClient.get(`/api/v1/clients/${clientId}`)
-      setRegisteredStates(response.data.registered_states || [])
+      if (clientId) {
+        // Fetch from client
+        const response = await apiClient.get(`/api/v1/clients/${clientId}`)
+        setRegisteredStates(response.data.registered_states || [])
+      } else {
+        // Fetch from analysis (for standalone analyses)
+        const response = await apiClient.get(`/api/v1/analyses/${analysisId}/registrations`)
+        setRegisteredStates(response.data.registered_states || [])
+      }
     } catch (error: any) {
       console.error('Failed to fetch registered states:', error)
       // Non-critical - don't show error toast
@@ -215,9 +220,7 @@ export default function ResultsPage() {
 
   const handleRegistrationsUpdate = async () => {
     // Refresh registered states when registrations change
-    if (summary?.client_id) {
-      await fetchRegisteredStates(summary.client_id)
-    }
+    await fetchRegisteredStates(summary?.client_id)
   }
 
   const handleBack = () => {

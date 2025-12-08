@@ -15,6 +15,9 @@ export function useRegistrations(
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
+  // Determine which storage mode to use
+  const useClientStorage = !!clientId
+
   // Load registered states on mount
   useEffect(() => {
     const controller = new AbortController()
@@ -26,29 +29,34 @@ export function useRegistrations(
   }, [analysisId, clientId])
 
   const loadRegistrations = async (signal?: AbortSignal) => {
-    if (!clientId) {
-      setLoading(false)
-      return
-    }
-
     try {
       setLoading(true)
-      const response = await apiClient.get(`/api/v1/clients/${clientId}`, { signal })
 
-      // Don't update state if request was aborted
-      if (signal?.aborted) return
-
-      setRegisteredStates(response.data.registered_states || [])
+      let response
+      if (useClientStorage) {
+        // Load from client
+        response = await apiClient.get(`/api/v1/clients/${clientId}`, { signal })
+        if (signal?.aborted) return
+        setRegisteredStates(response.data.registered_states || [])
+      } else {
+        // Load from analysis
+        response = await apiClient.get(`/api/v1/analyses/${analysisId}/registrations`, { signal })
+        if (signal?.aborted) return
+        setRegisteredStates(response.data.registered_states || [])
+      }
     } catch (error: any) {
       // Ignore abort errors - component unmounted
       if (error?.name === 'CanceledError' || signal?.aborted) return
 
       console.error('Failed to load registrations:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load state registrations',
-        variant: 'destructive'
-      })
+      // Don't show error toast for 404 (analysis might not have registrations yet)
+      if (error.response?.status !== 404) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load state registrations',
+          variant: 'destructive'
+        })
+      }
     } finally {
       if (!signal?.aborted) {
         setLoading(false)
@@ -57,15 +65,6 @@ export function useRegistrations(
   }
 
   const toggleRegistration = useCallback(async (stateCode: string) => {
-    if (!clientId) {
-      toast({
-        title: 'Error',
-        description: 'Cannot update registrations without a linked client',
-        variant: 'destructive'
-      })
-      return
-    }
-
     const isCurrentlyRegistered = registeredStates.includes(stateCode)
     const newRegisteredStates = isCurrentlyRegistered
       ? registeredStates.filter(s => s !== stateCode)
@@ -76,10 +75,19 @@ export function useRegistrations(
 
     try {
       setSaving(true)
-      await apiClient.patch(`/api/v1/clients/${clientId}`, {
-        registered_states: newRegisteredStates,
-        current_registration_count: newRegisteredStates.length
-      })
+
+      if (useClientStorage) {
+        // Save to client
+        await apiClient.patch(`/api/v1/clients/${clientId}`, {
+          registered_states: newRegisteredStates,
+          current_registration_count: newRegisteredStates.length
+        })
+      } else {
+        // Save to analysis
+        await apiClient.patch(`/api/v1/analyses/${analysisId}/registrations`, {
+          registered_states: newRegisteredStates
+        })
+      }
 
       toast({
         title: 'Success',
@@ -103,18 +111,9 @@ export function useRegistrations(
     } finally {
       setSaving(false)
     }
-  }, [clientId, registeredStates, options])
+  }, [analysisId, clientId, useClientStorage, registeredStates, options])
 
   const setMultipleRegistrations = useCallback(async (stateCodes: string[]) => {
-    if (!clientId) {
-      toast({
-        title: 'Error',
-        description: 'Cannot update registrations without a linked client',
-        variant: 'destructive'
-      })
-      return
-    }
-
     const sortedStates = [...stateCodes].sort()
 
     // Optimistic update
@@ -122,10 +121,19 @@ export function useRegistrations(
 
     try {
       setSaving(true)
-      await apiClient.patch(`/api/v1/clients/${clientId}`, {
-        registered_states: sortedStates,
-        current_registration_count: sortedStates.length
-      })
+
+      if (useClientStorage) {
+        // Save to client
+        await apiClient.patch(`/api/v1/clients/${clientId}`, {
+          registered_states: sortedStates,
+          current_registration_count: sortedStates.length
+        })
+      } else {
+        // Save to analysis
+        await apiClient.patch(`/api/v1/analyses/${analysisId}/registrations`, {
+          registered_states: sortedStates
+        })
+      }
 
       toast({
         title: 'Success',
@@ -147,11 +155,11 @@ export function useRegistrations(
     } finally {
       setSaving(false)
     }
-  }, [clientId, options])
+  }, [analysisId, clientId, useClientStorage, options])
 
   const refresh = useCallback(() => {
     loadRegistrations()
-  }, [clientId])
+  }, [analysisId, clientId])
 
   return {
     registeredStates,
@@ -159,6 +167,7 @@ export function useRegistrations(
     saving,
     toggleRegistration,
     setMultipleRegistrations,
-    refresh
+    refresh,
+    isClientLinked: useClientStorage
   }
 }

@@ -18,33 +18,9 @@ export function RegistrationsManager({ analysisId, clientId, onUpdate }: Registr
     registeredStates,
     loading,
     saving,
-    toggleRegistration
+    toggleRegistration,
+    isClientLinked
   } = useRegistrations(analysisId, clientId, { onUpdate })
-
-  if (!clientId) {
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <FileCheck className="h-5 w-5" />
-                State Registrations
-              </CardTitle>
-              <CardDescription>
-                Track states where you are registered to collect sales tax
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Link this analysis to a client to manage state registrations.</p>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <Card>

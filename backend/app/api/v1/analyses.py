@@ -2147,3 +2147,108 @@ async def get_state_detail(
             status_code=500,
             detail="Failed to fetch state detail. Please try again."
         )
+
+
+# ============================================================================
+# REGISTRATIONS ENDPOINTS (for standalone analyses without client)
+# ============================================================================
+
+@router.get("/{analysis_id}/registrations")
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
+async def get_analysis_registrations(
+    request: Request,
+    analysis_id: str,
+    user_id: str = Depends(require_auth)
+):
+    """
+    Get registered states for an analysis.
+
+    Returns the list of state codes where the client is registered to collect tax.
+    This is used for standalone analyses not linked to a client.
+    """
+    try:
+        supabase = get_supabase()
+
+        # Verify analysis exists and belongs to user
+        result = supabase.table('analyses')\
+            .select('registered_states')\
+            .eq('id', analysis_id)\
+            .eq('user_id', user_id)\
+            .execute()
+
+        if not result.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Analysis not found"
+            )
+
+        registered_states = result.data[0].get('registered_states') or []
+
+        return {
+            "registered_states": registered_states
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching analysis registrations: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch registrations"
+        )
+
+
+@router.patch("/{analysis_id}/registrations")
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
+async def update_analysis_registrations(
+    request: Request,
+    analysis_id: str,
+    user_id: str = Depends(require_auth)
+):
+    """
+    Update registered states for an analysis.
+
+    Accepts a JSON body with `registered_states` array of state codes.
+    This is used for standalone analyses not linked to a client.
+    """
+    try:
+        supabase = get_supabase()
+        body = await request.json()
+
+        registered_states = body.get('registered_states', [])
+
+        # Validate state codes (should be 2-letter uppercase)
+        valid_states = [s.upper() for s in registered_states if isinstance(s, str) and len(s) == 2]
+
+        # Verify analysis exists and belongs to user
+        result = supabase.table('analyses')\
+            .select('id')\
+            .eq('id', analysis_id)\
+            .eq('user_id', user_id)\
+            .execute()
+
+        if not result.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Analysis not found"
+            )
+
+        # Update registered_states
+        supabase.table('analyses').update({
+            'registered_states': valid_states,
+            'updated_at': datetime.utcnow().isoformat()
+        }).eq('id', analysis_id).execute()
+
+        return {
+            "registered_states": valid_states,
+            "message": f"Updated registrations ({len(valid_states)} states)"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating analysis registrations: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to update registrations"
+        )
