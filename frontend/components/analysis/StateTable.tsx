@@ -47,6 +47,7 @@ interface StateTableProps {
   embedded?: boolean
   refreshTrigger?: number
   companyName?: string
+  registeredStates?: string[]  // States where client is registered
 }
 
 type SortConfig = {
@@ -102,7 +103,7 @@ const groupStatesByPriority = (states: StateResult[], preserveOrder = false) => 
   }
 }
 
-export default function StateTable({ analysisId, embedded = false, refreshTrigger, companyName }: StateTableProps) {
+export default function StateTable({ analysisId, embedded = false, refreshTrigger, companyName, registeredStates = [] }: StateTableProps) {
   const [states, setStates] = useState<StateResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -137,8 +138,12 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     fetchStates()
   }, [analysisId, refreshTrigger])
 
+  // Create a Set for quick registered state lookup
+  const registeredSet = useMemo(() => new Set(registeredStates), [registeredStates])
+
   // Combined filtering and sorting logic
   const displayedStates = useMemo<{
+    registered: StateResult[]
     hasNexus: StateResult[]
     approaching: StateResult[]
     salesNoNexus: StateResult[]
@@ -205,10 +210,18 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       return sortConfig.direction === 'asc' ? comparison : -comparison
     })
 
-    // Return grouped states instead of flat array
-    // Pass true to preserve the user's sort order
-    return groupStatesByPriority(filtered, true)
-  }, [states, sortConfig, searchQuery])
+    // Separate registered states first, then group the rest
+    const registered = filtered.filter(state => registeredSet.has(state.state_code))
+    const unregistered = filtered.filter(state => !registeredSet.has(state.state_code))
+
+    // Group unregistered states by priority
+    const grouped = groupStatesByPriority(unregistered, true)
+
+    return {
+      registered,
+      ...grouped
+    }
+  }, [states, sortConfig, searchQuery, registeredSet])
 
   const handleSort = useCallback((column: SortColumn) => {
     setSortConfig(prev => ({
@@ -438,6 +451,32 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
 
       {/* Accordion Sections */}
       <div className="space-y-4">
+        {/* Section 0: Registered */}
+        <StateTableSection
+          title="Registered"
+          count={displayedStates.registered.length}
+          states={displayedStates.registered}
+          defaultExpanded={true}
+        >
+          <Table>
+            <StateTableHeader
+              sortColumn={sortConfig.column}
+              sortDirection={sortConfig.direction}
+              onSort={handleSort}
+            />
+            <TableBody>
+              {displayedStates.registered.map((state) => (
+                <StateTableRow
+                  key={state.state_code}
+                  state={state}
+                  density={density}
+                  onStateClick={handleStateClick}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </StateTableSection>
+
         {/* Section 1: Has Nexus */}
         <StateTableSection
           title="Has Nexus"
@@ -546,7 +585,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       {/* Footer */}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
         <p className="text-sm text-muted-foreground">
-          Showing <span className="font-medium text-foreground">{displayedStates.hasNexus.length + displayedStates.approaching.length + displayedStates.salesNoNexus.length + displayedStates.noSales.length}</span> of{' '}
+          Showing <span className="font-medium text-foreground">{displayedStates.registered.length + displayedStates.hasNexus.length + displayedStates.approaching.length + displayedStates.salesNoNexus.length + displayedStates.noSales.length}</span> of{' '}
           <span className="font-medium text-foreground">{states.length}</span> states
         </p>
       </div>
