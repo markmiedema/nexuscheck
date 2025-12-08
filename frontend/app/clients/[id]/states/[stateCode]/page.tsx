@@ -472,52 +472,6 @@ export default function StateDetailPage({ params }: StateDetailPageProps) {
         }
       })()}
 
-      {/* All Years Summary - show year breakdown when in aggregate view */}
-      {isAllYearsView && data.has_transactions && (
-        <Card className="border-border bg-card shadow-md">
-          <CardHeader>
-            <CardTitle>Year-by-Year Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 bg-muted/50 rounded-lg border border-border p-6">
-              {data.year_data.map((yearItem) => (
-                <div
-                  key={yearItem.year}
-                  className="flex items-center justify-between p-4 bg-background dark:bg-card border rounded-lg hover:bg-accent cursor-pointer transition-colors"
-                  onClick={() => setSelectedYear(yearItem.year)}
-                >
-                  <div>
-                    <div className="font-semibold">{yearItem.year}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {yearItem.nexus_status === 'has_nexus' ? 'Has Nexus' : 'No Nexus'}
-                      {yearItem.first_nexus_year && yearItem.first_nexus_year < yearItem.year && (
-                        <span className="ml-2 text-xs">(Sticky from {yearItem.first_nexus_year})</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium">
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                        minimumFractionDigits: 0,
-                      }).format(yearItem.summary.total_sales)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Liability: {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                        minimumFractionDigits: 0,
-                      }).format(yearItem.summary.estimated_liability)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Compliance Section - always show with correct variant */}
       <ComplianceSection
         nexusStatus={nexusStatus}
