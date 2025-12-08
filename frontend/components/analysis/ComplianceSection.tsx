@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import { AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PenaltyBreakdown } from '@/lib/api';
 
 interface ComplianceSectionProps {
   nexusStatus: 'has_nexus' | 'approaching' | 'none' | 'zero_sales';
@@ -39,6 +40,10 @@ interface ComplianceSectionProps {
       dor_website: string | null;
     };
   };
+  // Penalty and interest information
+  interestRate?: number | null;
+  interestMethod?: string | null;
+  penaltyBreakdown?: PenaltyBreakdown | null;
 }
 
 export const ComplianceSection = memo(function ComplianceSection({
@@ -49,6 +54,9 @@ export const ComplianceSection = memo(function ComplianceSection({
   summary,
   thresholdInfo,
   complianceInfo,
+  interestRate,
+  interestMethod,
+  penaltyBreakdown,
 }: ComplianceSectionProps) {
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return 'N/A';
@@ -78,6 +86,20 @@ export const ComplianceSection = memo(function ComplianceSection({
     }
     return 'N/A';
   };
+
+  const formatInterestMethod = (method: string | null | undefined) => {
+    if (!method) return 'N/A';
+    switch (method) {
+      case 'simple': return 'Simple Interest';
+      case 'compound_monthly': return 'Compounded Monthly';
+      case 'compound_daily': return 'Compounded Daily';
+      case 'compound_annually': return 'Compounded Annually';
+      default: return method.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+  };
+
+  // Check if we have penalty/interest data to show
+  const hasPenaltyInterestData = interestRate || penaltyBreakdown;
 
   // Variant 1: Has Nexus (Red Status)
   if (nexusStatus === 'has_nexus') {
@@ -208,6 +230,50 @@ export const ComplianceSection = memo(function ComplianceSection({
               )}
             </div>
           </div>
+
+          {/* Penalties & Interest - only show if we have data */}
+          {hasPenaltyInterestData && (
+            <div>
+              <h3 className="font-semibold text-lg mb-3">Penalties & Interest</h3>
+              <div className="space-y-3 text-sm bg-muted/50 rounded-lg border border-border p-6">
+                {interestRate !== undefined && interestRate !== null && (
+                  <>
+                    <div>
+                      <span className="text-muted-foreground">Interest Rate:</span>
+                      <span className="ml-2 font-medium">{formatPercentage(interestRate)} per year</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Interest Method:</span>
+                      <span className="ml-2 font-medium">{formatInterestMethod(interestMethod)}</span>
+                    </div>
+                  </>
+                )}
+                {penaltyBreakdown && (
+                  <>
+                    {penaltyBreakdown.late_filing !== undefined && penaltyBreakdown.late_filing > 0 && (
+                      <div>
+                        <span className="text-muted-foreground">Late Filing Penalty:</span>
+                        <span className="ml-2 font-medium">{formatCurrency(penaltyBreakdown.late_filing)}</span>
+                      </div>
+                    )}
+                    {penaltyBreakdown.late_payment !== undefined && penaltyBreakdown.late_payment > 0 && (
+                      <div>
+                        <span className="text-muted-foreground">Late Payment Penalty:</span>
+                        <span className="ml-2 font-medium">{formatCurrency(penaltyBreakdown.late_payment)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                <div className="mt-3 p-3 bg-card rounded border border-border">
+                  <p className="text-muted-foreground text-xs">
+                    <strong>Note:</strong> Penalties and interest are calculated based on {stateName}'s
+                    current rates. Actual amounts may vary based on filing date, payment history,
+                    and any applicable waivers or VDA programs.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Helpful Resources */}
           <div>

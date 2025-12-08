@@ -20,11 +20,15 @@ interface USMapProps {
   stateData: StateData[]
   analysisId: string
   onStateClick?: (stateCode: string) => void
+  registeredStates?: string[]  // States where client is registered to collect tax
 }
 
-const USMap = memo(function USMap({ stateData, analysisId, onStateClick }: USMapProps) {
+const USMap = memo(function USMap({ stateData, analysisId, onStateClick, registeredStates = [] }: USMapProps) {
   const router = useRouter()
   const [hoveredState, setHoveredState] = useState<string | null>(null)
+
+  // Create a Set for quick registered state lookup
+  const registeredSet = new Set(registeredStates)
 
   // Create a map of state codes to their data for quick lookup
   const stateDataMap = stateData.reduce((acc, state) => {
@@ -32,12 +36,18 @@ const USMap = memo(function USMap({ stateData, analysisId, onStateClick }: USMap
     return acc
   }, {} as Record<string, StateData>)
 
-  // Get color based on nexus status and type
+  // Get color based on nexus status, type, and registration
   const getStateColor = (geoName: string) => {
     const stateCode = getStateCode(geoName)
     if (!stateCode) return 'hsl(215 20.2% 75%)' // Darker gray for unknown states (visible in light mode)
 
     const state = stateDataMap[stateCode]
+
+    // Check if state is registered - show in dark slate grey
+    if (registeredSet.has(stateCode)) {
+      return 'hsl(215 15% 35%)' // Dark slate grey for registered states
+    }
+
     if (!state) return 'hsl(215 20.2% 75%)' // Darker gray for no data (visible in light mode)
 
     // If has nexus, differentiate by type (using professional, muted tones)
@@ -85,6 +95,21 @@ const USMap = memo(function USMap({ stateData, analysisId, onStateClick }: USMap
     if (!stateCode) return null
 
     const state = stateDataMap[stateCode]
+    const isRegistered = registeredSet.has(stateCode)
+
+    // If registered but no state data, show minimal tooltip
+    if (isRegistered && !state) {
+      return (
+        <div className="bg-popover text-popover-foreground border border-border px-3 py-2 rounded shadow-lg text-sm">
+          <div className="font-semibold">{geoName}</div>
+          <div className="text-xs mt-1 text-emerald-600 dark:text-emerald-400">
+            Registered
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">Click for details</div>
+        </div>
+      )
+    }
+
     if (!state) return null
 
     // Get nexus type label
@@ -105,6 +130,11 @@ const USMap = memo(function USMap({ stateData, analysisId, onStateClick }: USMap
     return (
       <div className="bg-popover text-popover-foreground border border-border px-3 py-2 rounded shadow-lg text-sm">
         <div className="font-semibold">{state.state_name}</div>
+        {isRegistered && (
+          <div className="text-xs mt-1 text-emerald-600 dark:text-emerald-400 font-medium">
+            Registered
+          </div>
+        )}
         <div className="text-xs mt-1">
           Status:{' '}
           {state.nexus_status === 'has_nexus'

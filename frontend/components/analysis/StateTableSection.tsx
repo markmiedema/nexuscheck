@@ -44,7 +44,7 @@ export function StateTableSection({
       </button>
 
       {isExpanded && (
-        <div className="border-t border-border">
+        <div className="border-t border-border overflow-x-auto">
           {children}
         </div>
       )}

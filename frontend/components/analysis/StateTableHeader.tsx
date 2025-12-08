@@ -33,7 +33,7 @@ export const StateTableHeader = memo(function StateTableHeader({
       <TableHeader className="bg-muted/80 border-b-2 border-border sticky top-0 z-10">
         <TableRow className="hover:bg-muted/80">
           {/* 1. State */}
-          <TableHead className="w-48 px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-32 min-w-[128px] px-3 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
             <button
               onClick={() => onSort('state')}
               className="flex items-center gap-2 hover:text-foreground transition-colors"
@@ -43,11 +43,11 @@ export const StateTableHeader = memo(function StateTableHeader({
             </button>
           </TableHead>
           {/* 2. Status */}
-          <TableHead className="w-48 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-40 min-w-[160px] px-3 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
             Status
           </TableHead>
           {/* 3. Threshold */}
-          <TableHead className="w-28 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-28 min-w-[112px] px-3 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
             <div className="flex items-center gap-1 justify-end">
               <button
                 onClick={() => onSort('threshold')}
@@ -69,7 +69,7 @@ export const StateTableHeader = memo(function StateTableHeader({
             </div>
           </TableHead>
           {/* 4. Operator */}
-          <TableHead className="w-20 px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-20 min-w-[80px] px-3 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider whitespace-nowrap">
             <div className="flex items-center gap-1 justify-center">
               <span>Operator</span>
               <Tooltip>
@@ -85,7 +85,7 @@ export const StateTableHeader = memo(function StateTableHeader({
             </div>
           </TableHead>
           {/* 5. Gross Sales */}
-          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-28 min-w-[112px] px-3 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider whitespace-nowrap">
             <div className="flex items-center gap-1 justify-end">
               <button
                 onClick={() => onSort('gross_sales')}
@@ -107,7 +107,7 @@ export const StateTableHeader = memo(function StateTableHeader({
             </div>
           </TableHead>
           {/* 6. Taxable Sales */}
-          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-28 min-w-[112px] px-3 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider whitespace-nowrap">
             <div className="flex items-center gap-1 justify-end">
               <button
                 onClick={() => onSort('taxable_sales')}
@@ -129,7 +129,7 @@ export const StateTableHeader = memo(function StateTableHeader({
             </div>
           </TableHead>
           {/* 7. Exempt Sales */}
-          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-28 min-w-[112px] px-3 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider whitespace-nowrap">
             <div className="flex items-center gap-1 justify-end">
               <button
                 onClick={() => onSort('exempt_sales')}
@@ -151,7 +151,7 @@ export const StateTableHeader = memo(function StateTableHeader({
             </div>
           </TableHead>
           {/* 8. Exposure Sales */}
-          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-28 min-w-[112px] px-3 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider whitespace-nowrap">
             <div className="flex items-center gap-1 justify-end">
               <button
                 onClick={() => onSort('exposure_sales')}
@@ -173,7 +173,7 @@ export const StateTableHeader = memo(function StateTableHeader({
             </div>
           </TableHead>
           {/* 9. Tax Liability */}
-          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-28 min-w-[112px] px-3 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider whitespace-nowrap">
             <div className="flex items-center gap-1 justify-end">
               <button
                 onClick={() => onSort('tax_liability')}
@@ -195,7 +195,7 @@ export const StateTableHeader = memo(function StateTableHeader({
             </div>
           </TableHead>
           {/* 10. Penalties & Interest */}
-          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-24 min-w-[96px] px-3 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider whitespace-nowrap">
             <div className="flex items-center gap-1 justify-end">
               <button
                 onClick={() => onSort('penalties_interest')}
@@ -217,7 +217,7 @@ export const StateTableHeader = memo(function StateTableHeader({
             </div>
           </TableHead>
           {/* 11. Total Liability */}
-          <TableHead className="w-32 px-4 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider">
+          <TableHead className="w-28 min-w-[112px] px-3 py-3 text-right text-xs font-semibold text-foreground uppercase tracking-wider whitespace-nowrap">
             <div className="flex items-center gap-1 justify-end">
               <button
                 onClick={() => onSort('total_liability')}

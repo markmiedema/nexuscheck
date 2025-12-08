@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
 import StateTable from '@/components/analysis/StateTable'
 import { PhysicalNexusManager } from '@/components/analysis/PhysicalNexusManager'
+import { RegistrationsManager } from '@/components/analysis/RegistrationsManager'
 import { ReportDownload } from '@/components/analysis/ReportDownload'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { StateResult as StateResultMap } from '@/types/states'
@@ -83,6 +84,7 @@ export default function ResultsPage() {
   const [calculationStatus, setCalculationStatus] = useState<'pending' | 'calculated' | 'error'>('pending')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [registeredStates, setRegisteredStates] = useState<string[]>([])
 
   useEffect(() => {
     fetchAnalysisSummary()
@@ -109,6 +111,9 @@ export default function ResultsPage() {
         completed_at: new Date().toISOString(),
         client_id: data.client_id || undefined
       })
+
+      // Fetch registered states (from client if linked, otherwise from analysis)
+      fetchRegisteredStates(data.client_id || undefined)
 
       // Check if calculation has already been done
       if (data.status === 'complete') {
@@ -194,6 +199,28 @@ export default function ResultsPage() {
         })
       }
     }
+  }
+
+  const fetchRegisteredStates = async (clientId?: string) => {
+    try {
+      if (clientId) {
+        // Fetch from client
+        const response = await apiClient.get(`/api/v1/clients/${clientId}`)
+        setRegisteredStates(response.data.registered_states || [])
+      } else {
+        // Fetch from analysis (for standalone analyses)
+        const response = await apiClient.get(`/api/v1/analyses/${analysisId}/registrations`)
+        setRegisteredStates(response.data.registered_states || [])
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch registered states:', error)
+      // Non-critical - don't show error toast
+    }
+  }
+
+  const handleRegistrationsUpdate = async () => {
+    // Refresh registered states when registrations change
+    await fetchRegisteredStates(summary?.client_id)
   }
 
   const handleBack = () => {
@@ -363,9 +390,14 @@ export default function ResultsPage() {
                     estimated_liability: state.estimated_liability,
                   }))}
                   analysisId={analysisId}
+                  registeredStates={registeredStates}
                 />
                 {/* Legend */}
                 <div className="mt-4 flex flex-wrap justify-center gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(215 15% 35%)' }}></div>
+                    <span className="text-muted-foreground">Registered</span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(142 71% 40%)' }}></div>
                     <span className="text-muted-foreground">No Nexus</span>
@@ -456,6 +488,15 @@ export default function ResultsPage() {
             />
           </div>
 
+          {/* State Registrations */}
+          <div className="mb-6">
+            <RegistrationsManager
+              analysisId={analysisId}
+              clientId={summary?.client_id}
+              onUpdate={handleRegistrationsUpdate}
+            />
+          </div>
+
           {/* Calculate Button */}
           {calculationStatus === 'pending' && (
             <div className="bg-warning/10 rounded-lg border border-warning/20 p-6 mb-6">
@@ -501,7 +542,7 @@ export default function ResultsPage() {
           {/* Embedded State Table */}
           {calculationStatus === 'calculated' && (
             <div className="mb-6">
-              <StateTable analysisId={analysisId} embedded={true} refreshTrigger={refreshTrigger} companyName={summary?.company_name} />
+              <StateTable analysisId={analysisId} embedded={true} refreshTrigger={refreshTrigger} companyName={summary?.company_name} registeredStates={registeredStates} />
             </div>
           )}
         </ErrorBoundary>
