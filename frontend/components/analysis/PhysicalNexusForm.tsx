@@ -75,7 +75,7 @@ export function PhysicalNexusForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formState.state_code || !formState.nexus_date || !formState.reason || !formState.nexus_type) {
+    if (!formState.state_code || !formState.nexus_date || !formState.nexus_type) {
       return
     }
 
@@ -189,7 +189,7 @@ export function PhysicalNexusForm({
 
             {/* Reason */}
             <div className="grid gap-2">
-              <Label htmlFor="reason">Reason *</Label>
+              <Label htmlFor="reason">Reason (Optional)</Label>
               <Input
                 id="reason"
                 value={formState.reason}
@@ -197,7 +197,6 @@ export function PhysicalNexusForm({
                   setFormState({ ...formState, reason: e.target.value })
                 }
                 placeholder="e.g., Office opened in Los Angeles"
-                required
               />
               <p className="text-xs text-muted-foreground dark:text-slate-300">
                 Brief description of physical presence
