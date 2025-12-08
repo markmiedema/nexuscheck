@@ -465,11 +465,6 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
               <Button variant="outline" size="sm" className="border-border">
                 <FileCheck className="h-4 w-4 mr-2" />
                 Registrations
-                {registeredStates.length > 0 && (
-                  <Badge variant="secondary" className="ml-2 h-5 min-w-5 px-1.5">
-                    {registeredStates.length}
-                  </Badge>
-                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80" align="end">
