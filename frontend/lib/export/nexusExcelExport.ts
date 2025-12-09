@@ -53,13 +53,11 @@ export async function generateNexusExcelExport(data: ExportData): Promise<Blob> 
   workbook.creator = 'NexusCheck'
   workbook.created = new Date()
 
-  // Filter to only nexus states that have detail data
-  const nexusStates = data.states.filter(
-    s => s.nexus_status === 'has_nexus' || s.nexus_type !== 'none'
-  )
+  // Include all states with sales (not just nexus states)
+  const statesWithSales = data.states.filter(s => s.total_sales > 0)
 
   // Sort by total liability descending (using detail data when available)
-  nexusStates.sort((a, b) => {
+  statesWithSales.sort((a, b) => {
     const detailA = data.stateDetails.get(a.state_code)
     const detailB = data.stateDetails.get(b.state_code)
     const liabA = detailA ? (detailA.base_tax + detailA.interest + detailA.penalties) : getTotalLiability(a)
@@ -68,11 +66,11 @@ export async function generateNexusExcelExport(data: ExportData): Promise<Blob> 
   })
 
   // Create sheets in order
-  createDashboardSheet(workbook, data, nexusStates)
-  createStateSummarySheet(workbook, data, nexusStates)
-  createYearByYearSheet(workbook, data, nexusStates)
-  createTransactionsSheet(workbook, data, nexusStates)
-  createDocumentationSheet(workbook, data, nexusStates)
+  createDashboardSheet(workbook, data, statesWithSales)
+  createStateSummarySheet(workbook, data, statesWithSales)
+  createYearByYearSheet(workbook, data, statesWithSales)
+  createTransactionsSheet(workbook, data, statesWithSales)
+  createDocumentationSheet(workbook, data, statesWithSales)
 
   // Generate buffer and return as Blob
   const buffer = await workbook.xlsx.writeBuffer()
@@ -395,8 +393,8 @@ function createDashboardSheet(
     row.getCell(3).value = getNexusStatusLabel(detail?.nexus_type || state.nexus_type)
     row.getCell(4).value = getTriggerDate(detail, state)
 
-    // Get tax rate from compliance_info
-    const taxRate = detail?.compliance_info?.tax_rates?.combined_rate || 0
+    // Get tax rate from compliance_info (API returns as percentage like 8.98, convert to decimal for Excel)
+    const taxRate = (detail?.compliance_info?.tax_rates?.combined_rate || 0) / 100
     row.getCell(5).value = taxRate
     row.getCell(5).numFmt = '0.00%'
 
@@ -559,8 +557,8 @@ function createStateSummarySheet(
     row.getCell(15).value = detail?.exposure_sales || state.exposure_sales || 0
     row.getCell(15).numFmt = '$#,##0'
 
-    // Tax rate from compliance info
-    const taxRate = detail?.compliance_info?.tax_rates?.combined_rate || 0
+    // Tax rate from compliance info (API returns as percentage like 8.98, convert to decimal for Excel)
+    const taxRate = (detail?.compliance_info?.tax_rates?.combined_rate || 0) / 100
     row.getCell(16).value = taxRate
     row.getCell(16).numFmt = '0.00%'
 

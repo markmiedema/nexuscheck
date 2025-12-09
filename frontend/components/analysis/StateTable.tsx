@@ -295,18 +295,16 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
       const analysisResponse = await apiClient.get<Analysis>(`/api/v1/analyses/${analysisId}`)
       const analysis = analysisResponse.data
 
-      // Filter to nexus states for fetching detailed data
-      const nexusStates = states.filter(
-        s => s.nexus_status === 'has_nexus' || s.nexus_type !== 'none'
-      )
+      // Filter to states with sales for fetching detailed data
+      const statesWithSales = states.filter(s => s.total_sales > 0)
 
-      // Fetch state details for each nexus state (for tax rates and compliance info)
+      // Fetch state details for each state with sales (for tax rates and compliance info)
       const stateDetails = new Map<string, StateDetailResponse>()
 
       // Fetch state details in parallel (batch of 5 at a time to avoid overwhelming the API)
       const batchSize = 5
-      for (let i = 0; i < nexusStates.length; i += batchSize) {
-        const batch = nexusStates.slice(i, i + batchSize)
+      for (let i = 0; i < statesWithSales.length; i += batchSize) {
+        const batch = statesWithSales.slice(i, i + batchSize)
         const detailPromises = batch.map(state =>
           getStateDetail(analysisId, state.state_code)
             .then(detail => ({ code: state.state_code, detail }))
