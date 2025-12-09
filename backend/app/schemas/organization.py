@@ -16,6 +16,7 @@ class PortalBranding(BaseModel):
     logo_url: Optional[str] = None
     favicon_url: Optional[str] = None
     primary_color: str = "#3b82f6"  # Default blue
+    secondary_color: str = "#1e40af"  # Default darker blue
     company_name: Optional[str] = None
     tagline: Optional[str] = None
     support_email: Optional[str] = None
