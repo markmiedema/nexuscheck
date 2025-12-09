@@ -12,7 +12,7 @@ import {
   MobileSidebarTrigger,
 } from './Sidebar'
 import Breadcrumbs, { BreadcrumbItem } from './Breadcrumbs'
-import { LogOut, Zap } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -57,17 +57,6 @@ function AppHeader() {
 
       {/* Right side actions */}
       <div className="flex items-center gap-2">
-        {/* Quick Analysis */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push('/analysis/new')}
-          className="hidden sm:flex items-center gap-2"
-        >
-          <Zap className="h-4 w-4" />
-          Quick Analysis
-        </Button>
-
         {/* User email */}
         <span className="text-sm text-muted-foreground hidden md:inline">
           {user?.email}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
+import { useMemo, useCallback, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { useQueryClient } from '@tanstack/react-query'
@@ -50,6 +50,9 @@ export default function ResultsPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const analysisId = params.id as string
+
+  // Refresh trigger for StateTable (increments when physical nexus changes)
+  const [stateTableRefreshTrigger, setStateTableRefreshTrigger] = useState(0)
 
   // Fetch analysis data
   const {
@@ -127,6 +130,8 @@ export default function ResultsPage() {
     // Invalidate queries to refetch fresh data after physical nexus changes
     await queryClient.invalidateQueries({ queryKey: queryKeys.analyses.results(analysisId) })
     await queryClient.invalidateQueries({ queryKey: queryKeys.analyses.states(analysisId) })
+    // Trigger StateTable refresh (it uses local state, not React Query)
+    setStateTableRefreshTrigger(prev => prev + 1)
   }, [queryClient, analysisId])
 
   const handleRegistrationsUpdate = useCallback(async () => {
@@ -452,6 +457,7 @@ export default function ResultsPage() {
                 companyName={summary?.company_name}
                 clientId={summary?.client_id}
                 onRegistrationsChange={handleRegistrationsUpdate}
+                refreshTrigger={stateTableRefreshTrigger}
               />
             </div>
           )}

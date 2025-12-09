@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useMemo, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useClients, useDeleteClient } from '@/hooks/queries'
 import { type Client } from '@/lib/api/clients'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -40,8 +40,9 @@ type SortConfig = {
   direction: 'asc' | 'desc'
 }
 
-export default function ClientsPage() {
+function ClientsPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // TanStack Query hooks
   const { data: clients = [], isLoading: loading } = useClients()
@@ -51,8 +52,18 @@ export default function ClientsPage() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [sortConfig, setSortConfig] = useState<SortConfig>({ column: 'created_at', direction: 'desc' })
 
-  // Default to 'active' tab, but options are: 'active', 'prospects', 'archived'
-  const [activeTab, setActiveTab] = useState('active')
+  // Read tab from URL or default to 'active'
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState(
+    tabParam && ['active', 'prospects', 'archived'].includes(tabParam) ? tabParam : 'active'
+  )
+
+  // Update tab when URL changes
+  useEffect(() => {
+    if (tabParam && ['active', 'prospects', 'archived'].includes(tabParam)) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
 
   // Debounce search term
   useEffect(() => {
@@ -303,5 +314,20 @@ export default function ClientsPage() {
         </AppLayout>
       </ErrorBoundary>
     </ProtectedRoute>
+  )
+}
+
+export default function ClientsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-ring"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ClientsPageContent />
+    </Suspense>
   )
 }
