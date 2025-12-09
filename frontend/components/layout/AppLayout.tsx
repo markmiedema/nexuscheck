@@ -3,6 +3,7 @@
 import { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/authStore'
+import { useOrganization } from '@/hooks/queries'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
 import {
@@ -37,6 +38,7 @@ const maxWidthClasses = {
 function AppHeader() {
   const router = useRouter()
   const { user, logout } = useAuthStore()
+  const { data: organization } = useOrganization()
 
   const handleLogout = async () => {
     try {
@@ -47,10 +49,24 @@ function AppHeader() {
     }
   }
 
+  // Get logo URL from organization settings
+  const logoUrl = organization?.settings?.portal_branding?.logo_url
+
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-card/80 backdrop-blur-sm px-4 lg:px-6">
       {/* Mobile menu trigger */}
       <MobileSidebarTrigger />
+
+      {/* Organization Logo */}
+      {logoUrl && (
+        <div className="flex items-center">
+          <img
+            src={logoUrl}
+            alt={organization?.name || 'Logo'}
+            className="h-8 w-auto max-w-[160px] object-contain"
+          />
+        </div>
+      )}
 
       {/* Spacer */}
       <div className="flex-1" />
