@@ -95,8 +95,9 @@ class OrganizationMemberResponse(OrganizationMemberBase):
     """Member response with user info."""
     id: UUID
     organization_id: UUID
-    user_id: UUID
+    user_id: Optional[UUID] = None  # Nullable for pending invites
     role: str
+    invited_email: Optional[str] = None  # Email for pending invites
     invited_by_user_id: Optional[UUID] = None
     invited_at: Optional[datetime] = None
     accepted_at: Optional[datetime] = None
