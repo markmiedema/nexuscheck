@@ -506,7 +506,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                           key={state}
                           variant="outline"
                           className={`cursor-pointer text-xs transition-all ${
-                            registeredStates.includes(state)
+                            registeredSet.has(state)
                               ? 'bg-emerald-100 border-emerald-400 text-emerald-800 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-200 shadow-sm'
                               : 'hover:bg-muted hover:border-muted-foreground/50'
                           } ${registrationsSaving ? 'opacity-50 pointer-events-none' : ''}`}
@@ -517,12 +517,12 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                       ))}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {registeredStates.length === 0 ? (
+                      {registeredSet.size === 0 ? (
                         'No states registered'
                       ) : (
                         <>
-                          <span className="font-medium text-foreground">{registeredStates.length}</span>
-                          {' '}state{registeredStates.length !== 1 ? 's' : ''} registered
+                          <span className="font-medium text-foreground">{registeredSet.size}</span>
+                          {' '}state{registeredSet.size !== 1 ? 's' : ''} registered
                         </>
                       )}
                     </div>

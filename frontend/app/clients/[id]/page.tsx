@@ -58,6 +58,17 @@ export default function ClientCRMPage() {
     powerOfAttorney: false
   })
 
+  // Helper to safely check if an array includes a value
+  // (database might return {} instead of [] for empty arrays)
+  const safeIncludes = (arr: unknown, value: string): boolean => {
+    return Array.isArray(arr) && arr.includes(value)
+  }
+
+  // Helper to safely get array length
+  const safeLength = (arr: unknown): number => {
+    return Array.isArray(arr) ? arr.length : 0
+  }
+
   const handleSaveNote = () => {
     if (!newNote.trim()) return
     createNoteMutation.mutate(
@@ -212,25 +223,25 @@ export default function ClientCRMPage() {
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Sales Channels</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {client.channels?.includes('dtc') && (
+                  {safeIncludes(client.channels, 'dtc') && (
                     <Badge variant="outline" className="text-xs">DTC</Badge>
                   )}
-                  {client.channels?.includes('amazon_fba') && (
+                  {safeIncludes(client.channels, 'amazon_fba') && (
                     <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">Amazon FBA</Badge>
                   )}
-                  {client.channels?.includes('amazon_fbm') && (
+                  {safeIncludes(client.channels, 'amazon_fbm') && (
                     <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">Amazon FBM</Badge>
                   )}
-                  {client.channels?.includes('wholesale') && (
+                  {safeIncludes(client.channels, 'wholesale') && (
                     <Badge variant="outline" className="text-xs">Wholesale</Badge>
                   )}
-                  {client.channels?.includes('retail') && (
+                  {safeIncludes(client.channels, 'retail') && (
                     <Badge variant="outline" className="text-xs">Retail</Badge>
                   )}
-                  {client.channels?.includes('marketplace_other') && (
+                  {safeIncludes(client.channels, 'marketplace_other') && (
                     <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">Marketplace</Badge>
                   )}
-                  {!client.channels?.length && (
+                  {safeLength(client.channels) === 0 && (
                     <span className="text-xs text-muted-foreground italic">Not set</span>
                   )}
                 </div>
@@ -240,22 +251,22 @@ export default function ClientCRMPage() {
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product Types</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {client.product_types?.includes('physical_goods') && (
+                  {safeIncludes(client.product_types, 'physical_goods') && (
                     <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">Tangible Goods</Badge>
                   )}
-                  {client.product_types?.includes('saas') && (
+                  {safeIncludes(client.product_types, 'saas') && (
                     <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800">SaaS</Badge>
                   )}
-                  {client.product_types?.includes('digital_goods') && (
+                  {safeIncludes(client.product_types, 'digital_goods') && (
                     <Badge variant="secondary" className="text-xs bg-indigo-100 text-indigo-800">Digital Goods</Badge>
                   )}
-                  {client.product_types?.includes('services') && (
+                  {safeIncludes(client.product_types, 'services') && (
                     <Badge variant="secondary" className="text-xs bg-teal-100 text-teal-800">Services</Badge>
                   )}
-                  {client.product_types?.includes('mixed') && (
+                  {safeIncludes(client.product_types, 'mixed') && (
                     <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-800">Mixed</Badge>
                   )}
-                  {!client.product_types?.length && (
+                  {safeLength(client.product_types) === 0 && (
                     <span className="text-xs text-muted-foreground italic">Not set</span>
                   )}
                 </div>
