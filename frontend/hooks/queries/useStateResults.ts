@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/api/queryKeys'
 import apiClient from '@/lib/api/client'
-import type { StateResultsResponse, StateResult } from '@/types/states'
+import { getStateDetail, type StateDetailResponse } from '@/lib/api'
+import type { StateResultsResponse } from '@/types/states'
 
 /**
  * Fetch state results for an analysis
@@ -18,38 +19,8 @@ export function useStateResults(analysisId: string | undefined) {
 }
 
 /**
- * State detail response type
- */
-export interface StateDetailResponse {
-  state_code: string
-  state_name: string
-  nexus_status: 'has_nexus' | 'approaching' | 'no_nexus'
-  nexus_type: 'physical' | 'economic' | 'both' | 'none'
-  total_sales: number
-  taxable_sales: number
-  exempt_sales: number
-  threshold: number
-  threshold_percent: number
-  estimated_liability: number
-  confidence_level: 'high' | 'medium' | 'low'
-  registration_status: 'registered' | 'not_registered' | null
-  transaction_count?: number
-  year_data?: Array<{
-    year: number
-    total_sales: number
-    taxable_sales: number
-    exempt_sales: number
-    estimated_liability: number
-  }>
-  physical_nexus_reasons?: Array<{
-    nexus_type: string
-    description: string
-    effective_date?: string
-  }>
-}
-
-/**
  * Fetch detailed state information for a specific state in an analysis
+ * Uses the proper getStateDetail function from lib/api
  */
 export function useStateDetail(
   analysisId: string | undefined,
@@ -57,15 +28,13 @@ export function useStateDetail(
 ) {
   return useQuery({
     queryKey: queryKeys.analyses.stateDetail(analysisId!, stateCode!),
-    queryFn: async () => {
-      const response = await apiClient.get(
-        `/api/v1/analyses/${analysisId}/results/states/${stateCode}`
-      )
-      return response.data as StateDetailResponse
-    },
+    queryFn: () => getStateDetail(analysisId!, stateCode!),
     enabled: !!analysisId && !!stateCode,
   })
 }
+
+// Re-export the type for convenience
+export type { StateDetailResponse }
 
 /**
  * Fetch state results from a client context (for client-linked analyses)

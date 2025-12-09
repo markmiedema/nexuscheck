@@ -27,8 +27,8 @@ export {
   useStateResults,
   useStateDetail,
   useClientStateResults,
-  type StateDetailResponse,
 } from './useStateResults'
+export type { StateDetailResponse } from './useStateResults'
 
 // Registration hooks
 export {
