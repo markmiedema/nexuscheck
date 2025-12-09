@@ -236,7 +236,16 @@ export function useRegistrations(
   clientId?: string,
   options?: { onUpdate?: () => void | Promise<void> }
 ) {
-  const { data: registeredStates = [], isLoading: loading } = useRegistrationsQuery(analysisId, clientId)
+  const { data: registeredStatesData, isLoading: loading } = useRegistrationsQuery(analysisId, clientId)
+
+  // Normalize registeredStates - the query may return a Client object (from shared cache)
+  // instead of string[] when using client storage
+  const registeredStates: string[] = Array.isArray(registeredStatesData)
+    ? registeredStatesData
+    : (registeredStatesData && typeof registeredStatesData === 'object' && 'registered_states' in registeredStatesData)
+      ? ((registeredStatesData as { registered_states?: string[] }).registered_states || [])
+      : []
+
   const toggleMutation = useToggleRegistration(analysisId, clientId, options)
   const setMultipleMutation = useSetMultipleRegistrations(analysisId, clientId, options)
   const queryClient = useQueryClient()
