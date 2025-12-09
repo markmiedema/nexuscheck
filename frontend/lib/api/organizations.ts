@@ -9,6 +9,7 @@ export interface PortalBranding {
   logo_url?: string | null
   favicon_url?: string | null
   primary_color?: string
+  secondary_color?: string
   company_name?: string | null
   tagline?: string | null
   support_email?: string | null
