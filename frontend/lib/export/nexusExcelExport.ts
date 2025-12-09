@@ -1,11 +1,14 @@
 /**
  * Comprehensive Excel Export for Nexus Analysis
  * Creates a professional 5-sheet workbook for executives and tax professionals
+ *
+ * Uses detailed state data from the state detail API endpoint for accurate
+ * transaction-level data, tax rates, and liability breakdowns.
  */
 
 import ExcelJS from 'exceljs'
 import { StateResult } from '@/types/states'
-import { YearData, StateDetailResponse } from '@/lib/api'
+import { YearData, StateDetailResponse, ComplianceInfo } from '@/lib/api'
 import { Analysis } from '@/lib/api/analyses'
 
 // Color constants matching the spec
@@ -21,7 +24,7 @@ const COLORS = {
   GRAY_TEXT: 'FF666666',
 }
 
-interface ExportData {
+export interface ExportData {
   analysis: Analysis
   states: StateResult[]
   stateDetails: Map<string, StateDetailResponse>
@@ -29,6 +32,7 @@ interface ExportData {
 
 interface TransactionRow {
   state: string
+  stateCode: string
   date: string
   transNum: number
   grossSales: number
@@ -49,13 +53,19 @@ export async function generateNexusExcelExport(data: ExportData): Promise<Blob> 
   workbook.creator = 'NexusCheck'
   workbook.created = new Date()
 
-  // Filter to only nexus states for most sheets
+  // Filter to only nexus states that have detail data
   const nexusStates = data.states.filter(
     s => s.nexus_status === 'has_nexus' || s.nexus_type !== 'none'
   )
 
-  // Sort by total liability descending
-  nexusStates.sort((a, b) => getTotalLiability(b) - getTotalLiability(a))
+  // Sort by total liability descending (using detail data when available)
+  nexusStates.sort((a, b) => {
+    const detailA = data.stateDetails.get(a.state_code)
+    const detailB = data.stateDetails.get(b.state_code)
+    const liabA = detailA ? (detailA.base_tax + detailA.interest + detailA.penalties) : getTotalLiability(a)
+    const liabB = detailB ? (detailB.base_tax + detailB.interest + detailB.penalties) : getTotalLiability(b)
+    return liabB - liabA
+  })
 
   // Create sheets in order
   createDashboardSheet(workbook, data, nexusStates)
@@ -72,7 +82,7 @@ export async function generateNexusExcelExport(data: ExportData): Promise<Blob> 
 }
 
 /**
- * Helper to get total liability from a state
+ * Helper to get total liability from a state (fallback when detail not available)
  */
 function getTotalLiability(state: StateResult): number {
   const baseTax = state.base_tax ?? state.estimated_liability
@@ -84,18 +94,17 @@ function getTotalLiability(state: StateResult): number {
 /**
  * Helper to format state name with abbreviation
  */
-function formatStateName(state: StateResult): string {
-  return `${state.state_name} (${state.state_code})`
+function formatStateName(stateCode: string, stateName: string): string {
+  return `${stateName} (${stateCode})`
 }
 
 /**
  * Helper to get nexus status label
  */
-function getNexusStatusLabel(state: StateResult): string {
-  if (state.nexus_type === 'both') return 'Physical + Economic'
-  if (state.nexus_type === 'physical') return 'Physical Nexus'
-  if (state.nexus_type === 'economic') return 'Economic Nexus'
-  if (state.nexus_status === 'approaching') return 'Approaching'
+function getNexusStatusLabel(nexusType: string): string {
+  if (nexusType === 'both') return 'Physical + Economic'
+  if (nexusType === 'physical') return 'Physical Nexus'
+  if (nexusType === 'economic') return 'Economic Nexus'
   return 'No Nexus'
 }
 
@@ -174,10 +183,16 @@ function applyDataCellBorders(row: ExcelJS.Row, startCol: number = 2): void {
 }
 
 /**
- * Get trigger date for a state (when nexus was established)
+ * Get trigger date for a state from detailed data
  */
-function getTriggerDate(state: StateResult): string {
-  // Check year_data for nexus_date or obligation_start_date
+function getTriggerDate(detail: StateDetailResponse | undefined, state: StateResult): string {
+  if (detail && detail.year_data && detail.year_data.length > 0) {
+    for (const yd of detail.year_data) {
+      if (yd.nexus_date) return yd.nexus_date
+      if (yd.obligation_start_date) return yd.obligation_start_date
+    }
+  }
+  // Fallback to state's year_data
   if (state.year_data && state.year_data.length > 0) {
     for (const yd of state.year_data) {
       if (yd.nexus_date) return yd.nexus_date
@@ -185,20 +200,6 @@ function getTriggerDate(state: StateResult): string {
     }
   }
   return ''
-}
-
-/**
- * Get transaction count for a state
- */
-function getTransactionCount(state: StateResult): number {
-  if (state.transaction_count && state.transaction_count > 0) {
-    return state.transaction_count
-  }
-  // Fallback: sum from year_data
-  if (state.year_data && state.year_data.length > 0) {
-    return state.year_data.reduce((sum, yd) => sum + (yd.summary?.transaction_count || 0), 0)
-  }
-  return 0
 }
 
 /**
@@ -256,10 +257,19 @@ function createDashboardSheet(
   // Row 6: NEXUS SUMMARY header
   applySectionHeader(ws.getRow(6), 'NEXUS SUMMARY', 9)
 
-  // Calculate nexus counts
-  const physicalPlusEconomic = nexusStates.filter(s => s.nexus_type === 'both').length
-  const physicalOnly = nexusStates.filter(s => s.nexus_type === 'physical').length
-  const economicOnly = nexusStates.filter(s => s.nexus_type === 'economic').length
+  // Calculate nexus counts using detail data
+  let physicalPlusEconomic = 0
+  let physicalOnly = 0
+  let economicOnly = 0
+
+  for (const state of nexusStates) {
+    const detail = data.stateDetails.get(state.state_code)
+    const nexusType = detail?.nexus_type || state.nexus_type
+    if (nexusType === 'both') physicalPlusEconomic++
+    else if (nexusType === 'physical') physicalOnly++
+    else if (nexusType === 'economic') economicOnly++
+  }
+
   const totalWithNexus = nexusStates.length
 
   // Row 8: Nexus counts
@@ -278,12 +288,29 @@ function createDashboardSheet(
   // Row 10: FINANCIAL SUMMARY header
   applySectionHeader(ws.getRow(10), 'FINANCIAL SUMMARY', 9)
 
-  // Calculate financial totals
-  const totalGrossSales = nexusStates.reduce((sum, s) => sum + s.total_sales, 0)
-  const totalTaxableSales = nexusStates.reduce((sum, s) => sum + (s.taxable_sales || 0), 0)
-  const totalExposureSales = nexusStates.reduce((sum, s) => sum + (s.exposure_sales || 0), 0)
-  const totalDirectSales = nexusStates.reduce((sum, s) => sum + (s.direct_sales || 0), 0)
-  const totalMarketplaceSales = nexusStates.reduce((sum, s) => sum + (s.marketplace_sales || 0), 0)
+  // Calculate financial totals using detailed state data
+  let totalGrossSales = 0
+  let totalTaxableSales = 0
+  let totalExposureSales = 0
+  let totalDirectSales = 0
+  let totalMarketplaceSales = 0
+
+  for (const state of nexusStates) {
+    const detail = data.stateDetails.get(state.state_code)
+    if (detail) {
+      totalGrossSales += detail.total_sales
+      totalTaxableSales += detail.taxable_sales
+      totalExposureSales += detail.exposure_sales
+      totalDirectSales += detail.direct_sales
+      totalMarketplaceSales += detail.marketplace_sales
+    } else {
+      totalGrossSales += state.total_sales
+      totalTaxableSales += state.taxable_sales || 0
+      totalExposureSales += state.exposure_sales || 0
+      totalDirectSales += state.direct_sales || 0
+      totalMarketplaceSales += state.marketplace_sales || 0
+    }
+  }
 
   // Row 12: Sales line 1
   const salesRow1 = ws.getRow(12)
@@ -309,10 +336,24 @@ function createDashboardSheet(
   // Row 15: LIABILITY SUMMARY header
   applySectionHeader(ws.getRow(15), 'LIABILITY SUMMARY', 9)
 
-  // Calculate liability totals
-  const totalTaxLiability = nexusStates.reduce((sum, s) => sum + (s.base_tax ?? s.estimated_liability), 0)
-  const totalInterest = nexusStates.reduce((sum, s) => sum + (s.interest ?? 0), 0)
-  const totalPenalties = nexusStates.reduce((sum, s) => sum + (s.penalties ?? 0), 0)
+  // Calculate liability totals using detailed state data
+  let totalTaxLiability = 0
+  let totalInterest = 0
+  let totalPenalties = 0
+
+  for (const state of nexusStates) {
+    const detail = data.stateDetails.get(state.state_code)
+    if (detail) {
+      totalTaxLiability += detail.base_tax
+      totalInterest += detail.interest
+      totalPenalties += detail.penalties
+    } else {
+      totalTaxLiability += state.base_tax ?? state.estimated_liability
+      totalInterest += state.interest ?? 0
+      totalPenalties += state.penalties ?? 0
+    }
+  }
+
   const grandTotalLiability = totalTaxLiability + totalInterest + totalPenalties
 
   // Row 17: Liability values
@@ -347,18 +388,21 @@ function createDashboardSheet(
   // Add data rows (already sorted by liability desc)
   let rowNum = 21
   for (const state of nexusStates) {
+    const detail = data.stateDetails.get(state.state_code)
     const row = ws.getRow(rowNum)
-    row.getCell(2).value = formatStateName(state)
-    row.getCell(3).value = getNexusStatusLabel(state)
-    row.getCell(4).value = getTriggerDate(state)
 
-    // Get tax rate from compliance_info if available in stateDetails
-    const stateDetail = data.stateDetails.get(state.state_code)
-    const taxRate = stateDetail?.compliance_info?.tax_rates?.combined_rate || 0
+    row.getCell(2).value = formatStateName(state.state_code, state.state_name)
+    row.getCell(3).value = getNexusStatusLabel(detail?.nexus_type || state.nexus_type)
+    row.getCell(4).value = getTriggerDate(detail, state)
+
+    // Get tax rate from compliance_info
+    const taxRate = detail?.compliance_info?.tax_rates?.combined_rate || 0
     row.getCell(5).value = taxRate
     row.getCell(5).numFmt = '0.00%'
 
-    const totalLiab = getTotalLiability(state)
+    const totalLiab = detail
+      ? (detail.base_tax + detail.interest + detail.penalties)
+      : getTotalLiability(state)
     row.getCell(6).value = totalLiab
     row.getCell(6).numFmt = '$#,##0'
 
@@ -451,15 +495,16 @@ function createStateSummarySheet(
   // Add data rows
   let rowNum = 6
   for (const state of nexusStates) {
+    const detail = data.stateDetails.get(state.state_code)
     const row = ws.getRow(rowNum)
-    const stateDetail = data.stateDetails.get(state.state_code)
 
-    row.getCell(2).value = formatStateName(state)
+    row.getCell(2).value = formatStateName(state.state_code, state.state_name)
 
     // Status with green fill for nexus states
+    const nexusType = detail?.nexus_type || state.nexus_type
     const statusCell = row.getCell(3)
-    statusCell.value = getNexusStatusLabel(state)
-    if (state.nexus_status === 'has_nexus') {
+    statusCell.value = getNexusStatusLabel(nexusType)
+    if (nexusType !== 'none') {
       statusCell.fill = {
         type: 'pattern',
         pattern: 'solid',
@@ -467,13 +512,18 @@ function createStateSummarySheet(
       }
     }
 
-    row.getCell(4).value = getTriggerDate(state)
-    row.getCell(5).value = (state.threshold_operator || 'or').toUpperCase()
+    row.getCell(4).value = getTriggerDate(detail, state)
 
-    row.getCell(6).value = state.threshold || 0
+    // Get threshold info from compliance_info
+    const thresholdOp = detail?.compliance_info?.threshold_info?.threshold_operator || state.threshold_operator || 'or'
+    row.getCell(5).value = thresholdOp.toUpperCase()
+
+    const econThreshold = detail?.compliance_info?.threshold_info?.revenue_threshold || state.threshold || 0
+    row.getCell(6).value = econThreshold
     row.getCell(6).numFmt = '$#,##0'
 
-    row.getCell(7).value = state.transaction_threshold ? state.transaction_threshold : 'N/A'
+    const transThreshold = detail?.compliance_info?.threshold_info?.transaction_threshold || state.transaction_threshold
+    row.getCell(7).value = transThreshold ? transThreshold : 'N/A'
 
     // Threshold Met with green fill
     const thresholdMetCell = row.getCell(8)
@@ -487,35 +537,36 @@ function createStateSummarySheet(
       }
     }
 
-    row.getCell(9).value = getTransactionCount(state)
+    // Use detail data for accurate numbers
+    row.getCell(9).value = detail?.transaction_count || state.transaction_count || 0
     row.getCell(9).numFmt = '#,##0'
 
-    row.getCell(10).value = state.total_sales
+    row.getCell(10).value = detail?.total_sales || state.total_sales
     row.getCell(10).numFmt = '$#,##0'
 
-    row.getCell(11).value = state.taxable_sales || 0
+    row.getCell(11).value = detail?.taxable_sales || state.taxable_sales || 0
     row.getCell(11).numFmt = '$#,##0'
 
-    row.getCell(12).value = state.exempt_sales || 0
+    row.getCell(12).value = detail?.exempt_sales || state.exempt_sales || 0
     row.getCell(12).numFmt = '$#,##0'
 
-    row.getCell(13).value = state.direct_sales || 0
+    row.getCell(13).value = detail?.direct_sales || state.direct_sales || 0
     row.getCell(13).numFmt = '$#,##0'
 
-    row.getCell(14).value = state.marketplace_sales || 0
+    row.getCell(14).value = detail?.marketplace_sales || state.marketplace_sales || 0
     row.getCell(14).numFmt = '$#,##0'
 
-    row.getCell(15).value = state.exposure_sales || 0
+    row.getCell(15).value = detail?.exposure_sales || state.exposure_sales || 0
     row.getCell(15).numFmt = '$#,##0'
 
-    // Tax rate
-    const taxRate = stateDetail?.compliance_info?.tax_rates?.combined_rate || 0
+    // Tax rate from compliance info
+    const taxRate = detail?.compliance_info?.tax_rates?.combined_rate || 0
     row.getCell(16).value = taxRate
     row.getCell(16).numFmt = '0.00%'
 
-    const baseTax = state.base_tax ?? state.estimated_liability
-    const interest = state.interest ?? 0
-    const penalties = state.penalties ?? 0
+    const baseTax = detail?.base_tax ?? (state.base_tax ?? state.estimated_liability)
+    const interest = detail?.interest ?? (state.interest ?? 0)
+    const penalties = detail?.penalties ?? (state.penalties ?? 0)
     const totalLiab = baseTax + interest + penalties
 
     row.getCell(17).value = baseTax
@@ -595,7 +646,7 @@ function createYearByYearSheet(
   })
   applyTableHeaderStyle(headerRow)
 
-  // Collect all year data and sort by state then year
+  // Collect all year data from state details
   interface YearRow {
     state: string
     stateCode: string
@@ -613,14 +664,17 @@ function createYearByYearSheet(
   const yearRows: YearRow[] = []
 
   for (const state of nexusStates) {
-    if (state.year_data && state.year_data.length > 0) {
-      for (const yd of state.year_data) {
+    const detail = data.stateDetails.get(state.state_code)
+    const yearData = detail?.year_data || state.year_data
+
+    if (yearData && yearData.length > 0) {
+      for (const yd of yearData) {
         const baseTax = yd.summary?.base_tax || yd.summary?.estimated_liability || 0
         const interest = yd.summary?.interest || 0
         const penalties = yd.summary?.penalties || 0
 
         yearRows.push({
-          state: formatStateName(state),
+          state: formatStateName(state.state_code, state.state_name),
           stateCode: state.state_code,
           year: yd.year,
           transactions: yd.summary?.transaction_count || 0,
@@ -692,6 +746,7 @@ function createYearByYearSheet(
 
 /**
  * Sheet 4: Transactions - Transaction-level detail with running totals and threshold indicators
+ * Uses detailed transaction data from state detail API
  */
 function createTransactionsSheet(
   workbook: ExcelJS.Workbook,
@@ -739,23 +794,7 @@ function createTransactionsSheet(
   })
   applyTableHeaderStyle(headerRow)
 
-  // Collect and process all transactions
-  // Track cumulative sales per state to identify threshold crossing
-  const stateCumulative: Map<string, number> = new Map()
-  const stateHighlighted: Map<string, boolean> = new Map()
-
-  // Build a map of state thresholds
-  const stateThresholds: Map<string, number> = new Map()
-  const stateNexusTypes: Map<string, string> = new Map()
-
-  for (const state of nexusStates) {
-    stateThresholds.set(state.state_code, state.threshold || 0)
-    stateNexusTypes.set(state.state_code, state.nexus_type)
-    stateCumulative.set(state.state_code, 0)
-    stateHighlighted.set(state.state_code, false)
-  }
-
-  // Collect all transactions from all nexus states
+  // Collect all transactions from state detail data
   interface RawTransaction {
     stateCode: string
     stateName: string
@@ -764,29 +803,38 @@ function createTransactionsSheet(
     taxable: number
     exempt: number
     channel: string
-    exemptionReason: string
-    ytdGrossSales: number
-    ytdTrans: number
+    runningTotal: number
   }
 
   const allTransactions: RawTransaction[] = []
 
+  // Build threshold info and nexus types for threshold crossing detection
+  const stateThresholds: Map<string, number> = new Map()
+  const stateNexusTypes: Map<string, string> = new Map()
+
   for (const state of nexusStates) {
-    if (state.year_data) {
-      for (const yd of state.year_data) {
-        if (yd.transactions) {
+    const detail = data.stateDetails.get(state.state_code)
+    const threshold = detail?.compliance_info?.threshold_info?.revenue_threshold || state.threshold || 0
+    const nexusType = detail?.nexus_type || state.nexus_type
+
+    stateThresholds.set(state.state_code, threshold)
+    stateNexusTypes.set(state.state_code, nexusType)
+
+    // Get transactions from detail year_data
+    const yearData = detail?.year_data || state.year_data
+    if (yearData) {
+      for (const yd of yearData) {
+        if (yd.transactions && yd.transactions.length > 0) {
           for (const tx of yd.transactions) {
             allTransactions.push({
               stateCode: state.state_code,
-              stateName: formatStateName(state),
+              stateName: formatStateName(state.state_code, state.state_name),
               date: tx.transaction_date,
               grossSales: tx.sales_amount,
               taxable: tx.taxable_amount,
               exempt: tx.exempt_amount,
               channel: tx.sales_channel,
-              exemptionReason: '', // Not available in current data
-              ytdGrossSales: tx.running_total,
-              ytdTrans: 0 // Will calculate below
+              runningTotal: tx.running_total
             })
           }
         }
@@ -801,8 +849,10 @@ function createTransactionsSheet(
     return new Date(a.date).getTime() - new Date(b.date).getTime()
   })
 
-  // Calculate transaction numbers and identify threshold crossings
+  // Process transactions to add YTD counts and identify threshold crossings
   const transactionsToExport: TransactionRow[] = []
+  const stateCumulative: Map<string, number> = new Map()
+  const stateHighlighted: Map<string, boolean> = new Map()
   const stateYearTransCount: Map<string, number> = new Map() // key: stateCode-year
 
   for (const tx of allTransactions) {
@@ -813,7 +863,7 @@ function createTransactionsSheet(
     const currentYtdCount = stateYearTransCount.get(ytdKey) || 0
     stateYearTransCount.set(ytdKey, currentYtdCount + 1)
 
-    // Track cumulative for threshold crossing
+    // Track cumulative for threshold crossing (across all years)
     const prevCumulative = stateCumulative.get(tx.stateCode) || 0
     const newCumulative = prevCumulative + tx.grossSales
     stateCumulative.set(tx.stateCode, newCumulative)
@@ -827,6 +877,7 @@ function createTransactionsSheet(
     const shouldCheckThreshold = nexusType === 'economic' || nexusType === 'both'
     const crossedThreshold = shouldCheckThreshold &&
       !alreadyHighlighted &&
+      threshold > 0 &&
       prevCumulative < threshold &&
       newCumulative >= threshold
 
@@ -836,15 +887,16 @@ function createTransactionsSheet(
 
     transactionsToExport.push({
       state: tx.stateName,
+      stateCode: tx.stateCode,
       date: tx.date,
       transNum: stateYearTransCount.get(ytdKey) || 1,
       grossSales: tx.grossSales,
       taxable: tx.taxable,
       exempt: tx.exempt,
       channel: tx.channel,
-      ytdGrossSales: tx.ytdGrossSales,
+      ytdGrossSales: tx.runningTotal, // Use the running total from the API
       ytdTrans: stateYearTransCount.get(ytdKey) || 1,
-      exemptionReason: tx.exemptionReason,
+      exemptionReason: '',
       crossedThreshold
     })
   }
@@ -1012,13 +1064,17 @@ function createDocumentationSheet(
   // Section: Economic Nexus Thresholds (This Analysis)
   rowNum = addSectionHeader(rowNum, 'Economic Nexus Thresholds (This Analysis)')
 
-  // List thresholds for states in this analysis
+  // List thresholds for states in this analysis using detail data
   for (const state of nexusStates) {
-    const threshold = state.threshold ? `$${state.threshold.toLocaleString()}` : 'N/A'
-    const tranThreshold = state.transaction_threshold
-      ? ` OR ${state.transaction_threshold.toLocaleString()} transactions`
+    const detail = data.stateDetails.get(state.state_code)
+    const econThreshold = detail?.compliance_info?.threshold_info?.revenue_threshold || state.threshold
+    const transThreshold = detail?.compliance_info?.threshold_info?.transaction_threshold || state.transaction_threshold
+
+    const threshold = econThreshold ? `$${econThreshold.toLocaleString()}` : 'N/A'
+    const tranThresholdStr = transThreshold
+      ? ` OR ${transThreshold.toLocaleString()} transactions`
       : ' (no transaction threshold)'
-    rowNum = addBullet(rowNum, `${state.state_name}: ${threshold}${tranThreshold}`)
+    rowNum = addBullet(rowNum, `${state.state_name}: ${threshold}${tranThresholdStr}`)
   }
   rowNum++
 
