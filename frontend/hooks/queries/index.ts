@@ -41,3 +41,21 @@ export {
   useSetMultipleRegistrations,
   useRegistrations,
 } from './useRegistrations'
+
+// Organization hooks
+export {
+  useOrganization,
+  useUpdateOrganization,
+  useUserRole,
+  useIsAdmin,
+  useOrganizationMembers,
+  useInviteMember,
+  useUpdateMemberRole,
+  useRemoveMember,
+} from './useOrganizations'
+export type {
+  Organization,
+  OrganizationMember,
+  UpdateOrganizationData,
+  InviteMemberData,
+} from '@/lib/api/organizations'

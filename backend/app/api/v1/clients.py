@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from typing import List, Optional
-from app.core.auth import require_auth
+from typing import List, Optional, Tuple
+from app.core.auth import require_auth, require_organization, get_user_organization_id
 from app.core.supabase import get_supabase
 from app.schemas.client import (
     ClientCreate, ClientUpdate, ClientResponse,
@@ -16,8 +16,9 @@ logger = logging.getLogger(__name__)
 @router.post("", response_model=ClientResponse)
 async def create_client(
     client_data: ClientCreate,
-    user_id: str = Depends(require_auth)
+    auth: Tuple[str, str] = Depends(require_organization)
 ):
+    user_id, org_id = auth
     supabase = get_supabase()
 
     try:
@@ -30,6 +31,7 @@ async def create_client(
 
         # 2. Insert the main Client record
         full_payload["user_id"] = user_id
+        full_payload["organization_id"] = org_id
 
         # Clean up any None values to let DB defaults take over
         client_insert_data = {k: v for k, v in full_payload.items() if v is not None}
@@ -75,15 +77,17 @@ async def create_client(
 
 @router.get("", response_model=List[ClientResponse])
 async def list_clients(
-    user_id: str = Depends(require_auth),
+    auth: Tuple[str, str] = Depends(require_organization),
     skip: int = 0,
     limit: int = 100
 ):
+    user_id, org_id = auth
     supabase = get_supabase()
     try:
+        # Filter by organization_id to show all team members' clients
         result = supabase.table('clients')\
             .select('*')\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .order('created_at', desc=True)\
             .range(skip, skip + limit - 1)\
             .execute()
@@ -96,15 +100,16 @@ async def list_clients(
 @router.get("/{client_id}", response_model=ClientResponse)
 async def get_client(
     client_id: str,
-    user_id: str = Depends(require_auth)
+    auth: Tuple[str, str] = Depends(require_organization)
 ):
+    user_id, org_id = auth
     supabase = get_supabase()
     try:
-        # 1. Fetch the Core Client (Must exist)
+        # 1. Fetch the Core Client (Must exist and belong to org)
         result = supabase.table('clients')\
             .select('*')\
             .eq('id', client_id)\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .single()\
             .execute()
 
@@ -146,8 +151,9 @@ async def get_client(
 async def update_client(
     client_id: str,
     client_data: ClientUpdate,
-    user_id: str = Depends(require_auth)
+    auth: Tuple[str, str] = Depends(require_organization)
 ):
+    user_id, org_id = auth
     supabase = get_supabase()
     try:
         # Use exclude_unset=True to only include fields that were actually sent in the request
@@ -176,7 +182,7 @@ async def update_client(
             result = supabase.table('clients')\
                 .update(update_data)\
                 .eq('id', client_id)\
-                .eq('user_id', user_id)\
+                .eq('organization_id', org_id)\
                 .execute()
             logger.info(f"DB update result for client {client_id}: {result.data}")
 
@@ -241,15 +247,16 @@ async def update_client(
 @router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_client(
     client_id: str,
-    user_id: str = Depends(require_auth)
+    auth: Tuple[str, str] = Depends(require_organization)
 ):
+    user_id, org_id = auth
     supabase = get_supabase()
     try:
-        # First verify the client exists and belongs to the user
+        # First verify the client exists and belongs to the organization
         existing = supabase.table('clients')\
             .select('id')\
             .eq('id', client_id)\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .execute()
 
         if not existing.data:
@@ -259,7 +266,7 @@ async def delete_client(
         supabase.table('clients')\
             .delete()\
             .eq('id', client_id)\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .execute()
 
         return None  # 204 No Content
@@ -274,15 +281,16 @@ async def delete_client(
 async def create_client_note(
     client_id: str,
     note_data: ClientNoteCreate,
-    user_id: str = Depends(require_auth)
+    auth: Tuple[str, str] = Depends(require_organization)
 ):
+    user_id, org_id = auth
     supabase = get_supabase()
     try:
-        # Verify client exists and belongs to user
+        # Verify client exists and belongs to organization
         client_result = supabase.table('clients')\
             .select('id')\
             .eq('id', client_id)\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .single()\
             .execute()
 
@@ -293,6 +301,7 @@ async def create_client_note(
         new_note = note_data.model_dump()
         new_note["client_id"] = client_id
         new_note["user_id"] = user_id
+        new_note["organization_id"] = org_id
 
         result = supabase.table('client_notes').insert(new_note).execute()
 
@@ -309,17 +318,18 @@ async def create_client_note(
 @router.get("/{client_id}/notes", response_model=List[ClientNoteResponse])
 async def list_client_notes(
     client_id: str,
-    user_id: str = Depends(require_auth),
+    auth: Tuple[str, str] = Depends(require_organization),
     skip: int = 0,
     limit: int = 100
 ):
+    user_id, org_id = auth
     supabase = get_supabase()
     try:
-        # Verify client exists and belongs to user
+        # Verify client exists and belongs to organization
         client_result = supabase.table('clients')\
             .select('id')\
             .eq('id', client_id)\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .single()\
             .execute()
 
@@ -345,29 +355,30 @@ async def list_client_notes(
 @router.get("/{client_id}/analyses")
 async def list_client_analyses(
     client_id: str,
-    user_id: str = Depends(require_auth),
+    auth: Tuple[str, str] = Depends(require_organization),
     skip: int = 0,
     limit: int = 100
 ):
     """List all analyses linked to a specific client"""
+    user_id, org_id = auth
     supabase = get_supabase()
     try:
-        # Verify client exists and belongs to user
+        # Verify client exists and belongs to organization
         client_result = supabase.table('clients')\
             .select('id')\
             .eq('id', client_id)\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .single()\
             .execute()
 
         if not client_result.data:
             raise HTTPException(status_code=404, detail="Client not found")
 
-        # Get analyses linked to this client
+        # Get analyses linked to this client (within same organization)
         result = supabase.table('analyses')\
             .select('id, client_company_name, status, created_at, updated_at, analysis_period_start, analysis_period_end, total_liability, states_with_nexus')\
             .eq('client_id', client_id)\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .is_('deleted_at', 'null')\
             .order('created_at', desc=True)\
             .range(skip, skip + limit - 1)\
@@ -386,15 +397,16 @@ async def list_client_analyses(
 @router.get("/{client_id}/contacts", response_model=List[ClientContactResponse])
 async def list_client_contacts(
     client_id: str,
-    user_id: str = Depends(require_auth)
+    auth: Tuple[str, str] = Depends(require_organization)
 ):
+    user_id, org_id = auth
     supabase = get_supabase()
     try:
-        # Verify client access
+        # Verify client access within organization
         client_check = supabase.table('clients')\
             .select('id')\
             .eq('id', client_id)\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .maybe_single()\
             .execute()
         if not client_check.data:
@@ -420,15 +432,16 @@ async def list_client_contacts(
 async def create_client_contact(
     client_id: str,
     contact_data: ClientContactCreate,
-    user_id: str = Depends(require_auth)
+    auth: Tuple[str, str] = Depends(require_organization)
 ):
+    user_id, org_id = auth
     supabase = get_supabase()
     try:
-        # Verify client access
+        # Verify client access within organization
         client_check = supabase.table('clients')\
             .select('id')\
             .eq('id', client_id)\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .maybe_single()\
             .execute()
         if not client_check.data:
@@ -456,15 +469,16 @@ async def create_client_contact(
 async def delete_client_contact(
     client_id: str,
     contact_id: str,
-    user_id: str = Depends(require_auth)
+    auth: Tuple[str, str] = Depends(require_organization)
 ):
+    user_id, org_id = auth
     supabase = get_supabase()
     try:
-        # Verify client access
+        # Verify client access within organization
         client_check = supabase.table('clients')\
             .select('id')\
             .eq('id', client_id)\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .maybe_single()\
             .execute()
         if not client_check.data:

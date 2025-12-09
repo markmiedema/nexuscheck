@@ -4,7 +4,8 @@ from typing import Optional
 from collections import defaultdict
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from app.core.auth import require_auth
+from app.core.auth import require_auth, require_organization, get_user_organization_id
+from typing import Tuple
 from app.core.supabase import get_supabase
 from app.config import settings
 from app.schemas.analysis import AnalysisCreate
@@ -52,19 +53,19 @@ limiter = Limiter(key_func=get_remote_address)
 @limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def list_analyses(
     request: Request,
-    user_id: str = Depends(require_auth),
+    auth: Tuple[str, str] = Depends(require_organization),
     limit: int = 50,
     offset: int = 0,
     search: Optional[str] = None,
     status_filter: Optional[str] = None
 ):
     """
-    List all analyses for the current user.
+    List all analyses for the current organization.
 
     Supports pagination, search, and filtering.
 
     Args:
-        user_id: Current authenticated user ID
+        auth: Tuple of (user_id, organization_id)
         limit: Max number of analyses to return (default: 50)
         offset: Number of analyses to skip (default: 0)
         search: Optional search term for client company name
@@ -73,13 +74,14 @@ async def list_analyses(
     Returns:
         Paginated list of analyses with metadata
     """
+    user_id, org_id = auth
     supabase = get_supabase()
 
     try:
-        # Build query
+        # Build query - filter by organization to show all team members' analyses
         query = supabase.table('analyses')\
             .select('*', count='exact')\
-            .eq('user_id', user_id)\
+            .eq('organization_id', org_id)\
             .is_('deleted_at', 'null')  # Exclude soft-deleted
 
         # Apply search filter if provided
@@ -164,7 +166,7 @@ async def get_analysis(
 async def create_analysis(
     request: Request,
     analysis_data: AnalysisCreate,
-    user_id: str = Depends(require_auth)
+    auth: Tuple[str, str] = Depends(require_organization)
 ):
     """
     Create a new analysis project.
@@ -177,6 +179,7 @@ async def create_analysis(
     - known_registrations: List of known state registrations (optional)
     - notes: Internal notes (optional)
     """
+    user_id, org_id = auth
     supabase = get_supabase()
 
     try:
@@ -203,6 +206,7 @@ async def create_analysis(
         analysis_record = {
             "id": analysis_id,
             "user_id": user_id,
+            "organization_id": org_id,
             "client_company_name": analysis_data.company_name,
             # Use .isoformat() only if date exists, otherwise None (will be auto-detected from CSV)
             "analysis_period_start": analysis_data.period_start.isoformat() if analysis_data.period_start else None,

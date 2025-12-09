@@ -32,4 +32,10 @@ export const queryKeys = {
     all: ['physicalNexus'] as const,
     list: (analysisId: string) => [...queryKeys.physicalNexus.all, analysisId] as const,
   },
+  organizations: {
+    all: ['organizations'] as const,
+    current: () => [...queryKeys.organizations.all, 'current'] as const,
+    role: () => [...queryKeys.organizations.all, 'role'] as const,
+    members: () => [...queryKeys.organizations.all, 'members'] as const,
+  },
 } as const
