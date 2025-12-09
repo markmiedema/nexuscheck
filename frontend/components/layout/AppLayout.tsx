@@ -1,8 +1,18 @@
 'use client'
 
 import { ReactNode } from 'react'
-import AppNav from './AppNav'
+import { useRouter } from 'next/navigation'
+import { useAuthStore } from '@/lib/stores/authStore'
+import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/theme-toggle'
+import {
+  Sidebar,
+  SidebarProvider,
+  MobileSidebar,
+  MobileSidebarTrigger,
+} from './Sidebar'
 import Breadcrumbs, { BreadcrumbItem } from './Breadcrumbs'
+import { LogOut, Zap } from 'lucide-react'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -24,14 +34,95 @@ const maxWidthClasses = {
   full: 'max-w-full',
 }
 
-export default function AppLayout({ children, maxWidth = '7xl', breadcrumbs, breadcrumbsRightContent }: AppLayoutProps) {
+function AppHeader() {
+  const router = useRouter()
+  const { user, logout } = useAuthStore()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      <AppNav />
-      <main className={`${maxWidthClasses[maxWidth]} mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8`}>
-        {breadcrumbs && <Breadcrumbs items={breadcrumbs} rightContent={breadcrumbsRightContent} />}
-        {children}
-      </main>
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-card/80 backdrop-blur-sm px-4 lg:px-6">
+      {/* Mobile menu trigger */}
+      <MobileSidebarTrigger />
+
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Right side actions */}
+      <div className="flex items-center gap-2">
+        {/* Quick Analysis */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.push('/analysis/new')}
+          className="hidden sm:flex items-center gap-2"
+        >
+          <Zap className="h-4 w-4" />
+          Quick Analysis
+        </Button>
+
+        {/* User email */}
+        <span className="text-sm text-muted-foreground hidden md:inline">
+          {user?.email}
+        </span>
+
+        {/* Theme toggle */}
+        <ThemeToggle />
+
+        {/* Logout */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleLogout}
+          title="Logout"
+        >
+          <LogOut className="h-4 w-4" />
+        </Button>
+      </div>
+    </header>
+  )
+}
+
+function AppLayoutInner({
+  children,
+  maxWidth = '7xl',
+  breadcrumbs,
+  breadcrumbsRightContent,
+}: AppLayoutProps) {
+  return (
+    <div className="flex min-h-screen bg-background">
+      {/* Desktop Sidebar */}
+      <Sidebar />
+
+      {/* Mobile Sidebar */}
+      <MobileSidebar />
+
+      {/* Main content area */}
+      <div className="flex flex-1 flex-col">
+        <AppHeader />
+
+        <main className={`flex-1 ${maxWidthClasses[maxWidth]} w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8`}>
+          {breadcrumbs && (
+            <Breadcrumbs items={breadcrumbs} rightContent={breadcrumbsRightContent} />
+          )}
+          {children}
+        </main>
+      </div>
     </div>
+  )
+}
+
+export default function AppLayout(props: AppLayoutProps) {
+  return (
+    <SidebarProvider>
+      <AppLayoutInner {...props} />
+    </SidebarProvider>
   )
 }
