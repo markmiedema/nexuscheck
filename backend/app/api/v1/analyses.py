@@ -835,16 +835,17 @@ async def validate_and_save_mappings(
         txn_df = pd.DataFrame(index=normalized_df.index)
         txn_df['analysis_id'] = analysis_id  # Scalar broadcasts to all rows
         txn_df['transaction_date'] = normalized_df['transaction_date'].values
-        txn_df['customer_state'] = normalized_df['customer_state'].str.strip().str.upper()
+        txn_df['customer_state'] = normalized_df['customer_state'].astype(str).str.strip().str.upper()
         txn_df['sales_amount'] = normalized_df['revenue_amount'].astype(float)
-        txn_df['sales_channel'] = normalized_df['sales_channel'].str.strip().str.lower()
+        txn_df['sales_channel'] = normalized_df['sales_channel'].astype(str).str.strip().str.lower()
         txn_df['transaction_count'] = 1  # Scalar broadcasts to all rows
         txn_df['tax_collected'] = None  # Scalar broadcasts to all rows
 
         # Handle optional columns with defaults
         if 'revenue_stream' in normalized_df.columns:
-            txn_df['revenue_stream'] = normalized_df['revenue_stream'].where(
-                pd.notna(normalized_df['revenue_stream']), None
+            # Convert to string where not null, keep None for null values
+            txn_df['revenue_stream'] = normalized_df['revenue_stream'].apply(
+                lambda x: str(x) if pd.notna(x) else None
             )
         else:
             txn_df['revenue_stream'] = None
