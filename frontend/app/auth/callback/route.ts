@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = requestUrl.searchParams.get('next') || '/clients'
+  const next = requestUrl.searchParams.get('next') || '/dashboard'
 
   if (code) {
     const cookieStore = cookies()
@@ -29,6 +29,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Redirect to the specified destination (or /clients by default)
+  // Redirect to the specified destination (or /dashboard by default)
   return NextResponse.redirect(new URL(next, requestUrl.origin))
 }

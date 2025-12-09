@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useClients, useDeleteClient } from '@/hooks/queries'
 import { type Client } from '@/lib/api/clients'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -42,6 +42,7 @@ type SortConfig = {
 
 export default function ClientsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // TanStack Query hooks
   const { data: clients = [], isLoading: loading } = useClients()
@@ -51,8 +52,18 @@ export default function ClientsPage() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [sortConfig, setSortConfig] = useState<SortConfig>({ column: 'created_at', direction: 'desc' })
 
-  // Default to 'active' tab, but options are: 'active', 'prospects', 'archived'
-  const [activeTab, setActiveTab] = useState('active')
+  // Read tab from URL or default to 'active'
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState(
+    tabParam && ['active', 'prospects', 'archived'].includes(tabParam) ? tabParam : 'active'
+  )
+
+  // Update tab when URL changes
+  useEffect(() => {
+    if (tabParam && ['active', 'prospects', 'archived'].includes(tabParam)) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
 
   // Debounce search term
   useEffect(() => {
