@@ -40,6 +40,7 @@ from app.services.column_detector import ColumnDetector
 import logging
 import uuid
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import io
 
@@ -1749,22 +1750,86 @@ async def get_state_detail(
     - Year-by-year aggregates
     - Threshold status
     - Compliance information
+
+    Performance optimizations:
+    - Parallelized database queries using ThreadPoolExecutor
+    - Monthly aggregation via SQL function instead of Python loops
+    - Transaction limit (500) to prevent large payloads
     """
     supabase = get_supabase()
 
     try:
-        # Verify analysis belongs to user
-        analysis_result = supabase.table('analyses').select('*').eq(
+        # Verify analysis belongs to user (must be first - security check)
+        analysis_result = supabase.table('analyses').select('id').eq(
             'id', analysis_id
         ).eq('user_id', user_id).execute()
 
         if not analysis_result.data:
             raise HTTPException(status_code=404, detail="Analysis not found")
 
-        # Get state name and URLs
-        state_result = supabase.table('states').select(
-            'code, name, registration_url, state_tax_website'
-        ).eq('code', state_code).execute()
+        # Define query functions for parallel execution
+        def query_state_info():
+            return supabase.table('states').select(
+                'code, name, registration_url, state_tax_website'
+            ).eq('code', state_code).execute()
+
+        def query_state_results():
+            return supabase.table('state_results').select(
+                '*'
+            ).eq('analysis_id', analysis_id).eq(
+                'state', state_code
+            ).order('year').execute()
+
+        def query_transactions():
+            # Limit to 500 transactions to prevent large payloads
+            return supabase.table('sales_transactions').select(
+                'transaction_id, transaction_date, sales_amount, sales_channel, taxable_amount, exempt_amount, is_taxable'
+            ).eq('analysis_id', analysis_id).eq(
+                'customer_state', state_code
+            ).order('transaction_date').limit(500).execute()
+
+        def query_aggregates():
+            return supabase.table('state_results_aggregated').select(
+                '*'
+            ).eq('analysis_id', analysis_id).eq(
+                'state_code', state_code
+            ).execute()
+
+        def query_thresholds():
+            return supabase.table('economic_nexus_thresholds').select(
+                'revenue_threshold, transaction_threshold, threshold_operator'
+            ).eq('state', state_code).is_('effective_to', 'null').execute()
+
+        def query_tax_rates():
+            return supabase.table('tax_rates').select(
+                'state_rate, avg_local_rate, combined_avg_rate'
+            ).eq('state', state_code).execute()
+
+        def query_monthly_aggregates():
+            # Use SQL function for monthly aggregation instead of Python loops
+            return supabase.rpc('get_monthly_sales_aggregates', {
+                'p_analysis_id': analysis_id,
+                'p_state_code': state_code
+            }).execute()
+
+        # Execute independent queries in parallel
+        with ThreadPoolExecutor(max_workers=7) as executor:
+            future_state = executor.submit(query_state_info)
+            future_results = executor.submit(query_state_results)
+            future_transactions = executor.submit(query_transactions)
+            future_aggregates = executor.submit(query_aggregates)
+            future_thresholds = executor.submit(query_thresholds)
+            future_tax_rates = executor.submit(query_tax_rates)
+            future_monthly = executor.submit(query_monthly_aggregates)
+
+            # Gather results
+            state_result = future_state.result()
+            state_results_query = future_results.result()
+            transactions_result = future_transactions.result()
+            aggregates_result = future_aggregates.result()
+            threshold_result = future_thresholds.result()
+            tax_rate_result = future_tax_rates.result()
+            monthly_aggregates_result = future_monthly.result()
 
         if not state_result.data:
             raise HTTPException(status_code=404, detail="Invalid state code")
@@ -1774,23 +1839,10 @@ async def get_state_detail(
         registration_url = state_data.get('registration_url')
         state_tax_website = state_data.get('state_tax_website')
 
-        # Get V2 calculated results for this state
-        state_results_query = supabase.table('state_results').select(
-            '*'
-        ).eq('analysis_id', analysis_id).eq(
-            'state', state_code
-        ).order('year').execute()
-
-        # Get all transactions for transaction list display
-        transactions_result = supabase.table('sales_transactions').select(
-            'transaction_id, transaction_date, sales_amount, sales_channel, taxable_amount, exempt_amount, is_taxable'
-        ).eq('analysis_id', analysis_id).eq(
-            'customer_state', state_code
-        ).order('transaction_date').execute()
-
-        # Get all transactions (don't filter NULL transaction_ids - they're not required for display)
         transactions = transactions_result.data
         state_year_results = state_results_query.data
+        monthly_aggregates = monthly_aggregates_result.data or []
+        threshold_info = threshold_result.data[0] if threshold_result.data else None
 
         # Debug logging
         logger.debug(f"[STATE DETAIL] {state_code}: Total transactions: {len(transactions)}")
@@ -1800,43 +1852,24 @@ async def get_state_detail(
             for yr in state_year_results[:2]:  # Just log first 2
                 logger.debug(f"[STATE DETAIL API] {state_code} year {yr.get('year')}: taxable_sales={yr.get('taxable_sales')}, exempt_sales={yr.get('exempt_sales')}, total_sales={yr.get('total_sales')}")
 
-        if not state_year_results:
-            # State has no transactions - still need to return compliance info
-            # Get threshold information
-            threshold_result = supabase.table('economic_nexus_thresholds').select(
-                'revenue_threshold, transaction_threshold, threshold_operator'
-            ).eq('state', state_code).is_('effective_to', 'null').execute()
-
-            threshold_info = None
-            if threshold_result.data:
-                threshold_info = threshold_result.data[0]
-
-            # Get tax rates
-            tax_rate_result = supabase.table('tax_rates').select(
-                'state_rate, avg_local_rate, combined_avg_rate'
-            ).eq('state', state_code).execute()
-
-            # Build compliance info using Pydantic models (consistent with main path)
+        # Helper function to build tax_rates from query result (used in both paths)
+        def build_tax_rates():
             if tax_rate_result.data:
                 state_rate = float(tax_rate_result.data[0]['state_rate']) * 100
                 avg_local_rate = float(tax_rate_result.data[0].get('avg_local_rate', 0)) * 100
                 combined_rate = float(tax_rate_result.data[0].get('combined_avg_rate', 0)) * 100
-
-                tax_rates = TaxRates(
+                return TaxRates(
                     state_rate=round(state_rate, 2),
                     avg_local_rate=round(avg_local_rate, 2),
                     combined_rate=round(combined_rate, 2),
-                    max_local_rate=0.0  # TODO: Research where to source max_local_rate data
+                    max_local_rate=0.0
                 )
-            else:
-                tax_rates = TaxRates(
-                    state_rate=0.0,
-                    avg_local_rate=0.0,
-                    combined_rate=0.0,
-                    max_local_rate=0.0  # TODO: Research where to source max_local_rate data
-                )
+            return TaxRates(state_rate=0.0, avg_local_rate=0.0, combined_rate=0.0, max_local_rate=0.0)
 
-            # Build threshold info (use actual data if available)
+        if not state_year_results:
+            # State has no transactions - use already-fetched compliance info
+            tax_rates = build_tax_rates()
+
             threshold_info_model = ThresholdInfo(
                 revenue_threshold=threshold_info.get('revenue_threshold') if threshold_info else None,
                 transaction_threshold=threshold_info.get('transaction_threshold') if threshold_info else None,
@@ -1868,7 +1901,6 @@ async def get_state_detail(
                 analysis_period={'years_available': []},
                 year_data=[],
                 compliance_info=compliance_info,
-                # All aggregate fields set to 0 for no-transactions case
                 total_sales=0.0,
                 taxable_sales=0.0,
                 exempt_sales=0.0,
@@ -1884,32 +1916,14 @@ async def get_state_detail(
                 first_nexus_year=None
             )
 
-        # Get pre-aggregated totals from database view (required - no fallback)
-        aggregates_result = supabase.table('state_results_aggregated').select(
-            '*'
-        ).eq('analysis_id', analysis_id).eq(
-            'state_code', state_code
-        ).execute()
-
+        # Validate aggregates result (already fetched in parallel)
         if not aggregates_result.data:
             raise HTTPException(
                 status_code=500,
                 detail=f"Failed to get aggregated data for {state_code}. Database view returned no results."
             )
 
-        # Use V2 calculated results from state_results table
-        # Get threshold and tax rate info for compliance section
-        threshold_result = supabase.table('economic_nexus_thresholds').select(
-            'revenue_threshold, transaction_threshold, threshold_operator'
-        ).eq('state', state_code).is_('effective_to', 'null').execute()
-
-        threshold_info = threshold_result.data[0] if threshold_result.data else None
-
-        tax_rate_result = supabase.table('tax_rates').select(
-            'state_rate, avg_local_rate, combined_avg_rate'
-        ).eq('state', state_code).execute()
-
-        # Build year_data from V2 calculated results
+        # Build year_data from V2 calculated results (thresholds/rates already fetched in parallel)
         year_data = []
         years_available = []
 
@@ -1947,15 +1961,17 @@ async def get_state_detail(
                     'running_total': running_total
                 })
 
-            # Build monthly aggregates from transactions
+            # Build monthly aggregates from SQL function results (not Python loops)
+            # monthly_aggregates contains pre-aggregated data from get_monthly_sales_aggregates()
+            year_monthly_data = {m['month_num']: m for m in monthly_aggregates if m['year'] == year}
             monthly_sales = []
             for month_num in range(1, 13):
                 month_str = f"{year}-{month_num:02d}"
-                month_txns = [tx for tx in year_transactions if pd.to_datetime(tx['transaction_date']).month == month_num]
+                month_data = year_monthly_data.get(month_num, {})
                 monthly_sales.append({
                     'month': month_str,
-                    'sales': sum(tx['sales_amount'] for tx in month_txns),
-                    'transaction_count': len(month_txns)
+                    'sales': float(month_data.get('total_sales', 0)),
+                    'transaction_count': int(month_data.get('transaction_count', 0))
                 })
 
             # Calculate threshold metrics
@@ -2011,26 +2027,8 @@ async def get_state_detail(
                 transactions=transaction_models
             ))
 
-        # Build compliance info using Pydantic models for type safety
-        # Tax rates - convert from decimals (0.0825) to percentages (8.25%)
-        if tax_rate_result.data:
-            state_rate = float(tax_rate_result.data[0]['state_rate']) * 100
-            avg_local_rate = float(tax_rate_result.data[0].get('avg_local_rate', 0)) * 100
-            combined_rate = float(tax_rate_result.data[0].get('combined_avg_rate', 0)) * 100
-
-            tax_rates = TaxRates(
-                state_rate=round(state_rate, 2),
-                avg_local_rate=round(avg_local_rate, 2),
-                combined_rate=round(combined_rate, 2),
-                max_local_rate=0.0  # TODO: Research where to source max_local_rate data
-            )
-        else:
-            tax_rates = TaxRates(
-                state_rate=0.0,
-                avg_local_rate=0.0,
-                combined_rate=0.0,
-                max_local_rate=0.0  # TODO: Research where to source max_local_rate data
-            )
+        # Build compliance info using helper function and already-fetched data
+        tax_rates = build_tax_rates()
 
         # Threshold info
         threshold_info_model = ThresholdInfo(

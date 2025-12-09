@@ -1,8 +1,11 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import ExcelJS from 'exceljs'
 import apiClient from '@/lib/api/client'
+import { getStateDetail } from '@/lib/api'
+import { queryKeys } from '@/lib/api/queryKeys'
 import { StateResult } from '@/types/states'
 import {
   Table,
@@ -124,6 +127,18 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     saving: registrationsSaving,
     toggleRegistration
   } = useRegistrations(analysisId, clientId, { onUpdate: onRegistrationsChange })
+
+  // Query client for prefetching
+  const queryClient = useQueryClient()
+
+  // Prefetch state detail data on row hover for instant modal opens
+  const prefetchStateDetail = useCallback((stateCode: string) => {
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.analyses.stateDetail(analysisId, stateCode),
+      queryFn: () => getStateDetail(analysisId, stateCode),
+      staleTime: 60 * 1000, // Don't refetch if less than 60 seconds old
+    })
+  }, [queryClient, analysisId])
 
   // Filters and sorting
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -542,6 +557,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                   state={state}
                   density={density}
                   onStateClick={handleStateClick}
+                  onMouseEnter={prefetchStateDetail}
                   isRegistered={true}
                 />
               ))}
@@ -569,6 +585,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                   state={state}
                   density={density}
                   onStateClick={handleStateClick}
+                  onMouseEnter={prefetchStateDetail}
                 />
               ))}
             </TableBody>
@@ -595,6 +612,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                   state={state}
                   density={density}
                   onStateClick={handleStateClick}
+                  onMouseEnter={prefetchStateDetail}
                 />
               ))}
             </TableBody>
@@ -621,6 +639,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                   state={state}
                   density={density}
                   onStateClick={handleStateClick}
+                  onMouseEnter={prefetchStateDetail}
                 />
               ))}
             </TableBody>
@@ -647,6 +666,7 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
                   state={state}
                   density={density}
                   onStateClick={handleStateClick}
+                  onMouseEnter={prefetchStateDetail}
                 />
               ))}
             </TableBody>

@@ -11,6 +11,7 @@ interface StateTableRowProps {
   state: StateResult
   density: Density
   onStateClick: (code: string, name: string) => void
+  onMouseEnter?: (stateCode: string) => void
   isRegistered?: boolean
 }
 
@@ -96,6 +97,7 @@ export const StateTableRow = memo(function StateTableRow({
   state,
   density,
   onStateClick,
+  onMouseEnter,
   isRegistered = false
 }: StateTableRowProps) {
   const liability = getLiabilityBreakdown(state)
@@ -104,6 +106,7 @@ export const StateTableRow = memo(function StateTableRow({
     <TableRow
       className="hover:bg-muted/50 cursor-pointer transition-colors"
       onClick={() => onStateClick(state.state_code, state.state_name)}
+      onMouseEnter={() => onMouseEnter?.(state.state_code)}
     >
       {/* 1. State Name */}
       <TableCell className={`px-3 text-sm text-foreground whitespace-nowrap ${densityClasses[density]}`}>
