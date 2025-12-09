@@ -33,10 +33,13 @@ export function useRegistrationsQuery(
     queryFn: async (): Promise<string[]> => {
       if (useClientStorage) {
         const response = await apiClient.get(`/api/v1/clients/${clientId}`)
-        return (response.data as Client).registered_states || []
+        const states = (response.data as Client).registered_states
+        // Defensive: ensure we always return an array (database might have {} instead of [])
+        return Array.isArray(states) ? states : []
       }
       const response = await apiClient.get(`/api/v1/analyses/${analysisId}/registrations`)
-      return response.data.registered_states || []
+      const states = response.data.registered_states
+      return Array.isArray(states) ? states : []
     },
     enabled: !!analysisId,
   })
