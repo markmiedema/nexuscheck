@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, createContext, useContext } from 'react'
+import { useState, createContext, useContext, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -80,9 +80,34 @@ export function useSidebar() {
   return context
 }
 
+const SIDEBAR_COLLAPSED_KEY = 'nexuscheck-sidebar-collapsed'
+
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  // Initialize from localStorage to persist state across navigation
+  const [isCollapsed, setIsCollapsedState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
+      return stored === 'true'
+    }
+    return false
+  })
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+
+  // Persist collapsed state to localStorage
+  const setIsCollapsed = (collapsed: boolean) => {
+    setIsCollapsedState(collapsed)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed))
+    }
+  }
+
+  // Sync with localStorage on mount (handles SSR hydration)
+  useEffect(() => {
+    const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
+    if (stored !== null) {
+      setIsCollapsedState(stored === 'true')
+    }
+  }, [])
 
   return (
     <SidebarContext.Provider
