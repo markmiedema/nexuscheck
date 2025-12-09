@@ -1,11 +1,14 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { useClientStateResults } from '@/hooks/queries'
+import { getStateDetail } from '@/lib/api'
+import { queryKeys } from '@/lib/api/queryKeys'
 import { StateResult } from '@/types/states'
 import {
   Table,
@@ -43,6 +46,19 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
   // TanStack Query for data fetching (fetches latest analysis for this client)
   const { data, isLoading: loading, error: queryError } = useClientStateResults(clientId)
   const states = data?.states || []
+
+  // Query client for prefetching
+  const queryClient = useQueryClient()
+
+  // Prefetch state detail data on row hover for instant page loads
+  // Note: clientId is used as the analysisId for client-linked state details
+  const prefetchStateDetail = useCallback((stateCode: string) => {
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.analyses.stateDetail(clientId, stateCode),
+      queryFn: () => getStateDetail(clientId, stateCode),
+      staleTime: 60 * 1000, // Don't refetch if less than 60 seconds old
+    })
+  }, [queryClient, clientId])
 
   // Derive error state from query error
   const error = useMemo(() => {
@@ -509,6 +525,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
                   onClick={() =>
                     router.push(`/clients/${clientId}/states/${state.state_code}`)
                   }
+                  onMouseEnter={() => prefetchStateDetail(state.state_code)}
                   className="cursor-pointer hover:bg-accent transition-colors group"
                 >
                   {/* State Column */}
