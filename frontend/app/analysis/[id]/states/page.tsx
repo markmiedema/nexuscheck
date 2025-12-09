@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
 import { ErrorBoundary } from '@/components/error-boundary'
-import apiClient from '@/lib/api/client'
-import { StateResult, StateResultsResponse } from '@/types/states'
+import { useStateResults } from '@/hooks/queries'
+import { StateResult } from '@/types/states'
 import {
   Table,
   TableBody,
@@ -40,10 +40,21 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams()
   const analysisId = params.id
 
-  // Data state
-  const [states, setStates] = useState<StateResult[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // TanStack Query for data fetching
+  const { data, isLoading: loading, error: queryError } = useStateResults(analysisId)
+  const states = data?.states || []
+
+  // Derive error state from query error
+  const error = useMemo(() => {
+    if (!queryError) return null
+    const err = queryError as any
+    if (err.status === 404) {
+      const detail = err.message || ''
+      if (detail.includes('calculation')) return 'no_calculation'
+      return 'not_found'
+    }
+    return err.message || 'Failed to load state data'
+  }, [queryError])
 
   // Filter and sort state (initialized from URL params)
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'nexus_status')
@@ -62,9 +73,6 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
   // Note: searchQuery is NOT synced to URL (stays ephemeral)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Computed filtered and sorted states
-  const [displayedStates, setDisplayedStates] = useState<StateResult[]>([])
-
   // Sort handler functions
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -80,42 +88,8 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
     setSortOrder('desc')
   }
 
-  // Fetch state results
-  useEffect(() => {
-    const fetchStates = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const response = await apiClient.get<StateResultsResponse>(
-          `/api/v1/analyses/${analysisId}/results/states`
-        )
-
-        setStates(response.data.states)
-      } catch (err: any) {
-        console.error('Failed to fetch states:', err)
-
-        if (err.response?.status === 404) {
-          // Check if it's "no calculation" vs "analysis not found"
-          const detail = err.response?.data?.detail || ''
-          if (detail.includes('calculation')) {
-            setError('no_calculation')
-          } else {
-            setError('not_found')
-          }
-        } else {
-          setError(err.response?.data?.detail || 'Failed to load state data')
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchStates()
-  }, [analysisId])
-
-  // Apply filters and sorting whenever dependencies change
-  useEffect(() => {
+  // Computed filtered and sorted states
+  const displayedStates = useMemo(() => {
     let result = states
 
     // Apply filters
@@ -129,7 +103,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
     // Apply sorting
     result = sortStates(result, sortBy, sortOrder)
 
-    setDisplayedStates(result)
+    return result
   }, [states, sortBy, sortOrder, nexusFilter, registrationFilter, confidenceFilter, searchQuery])
 
   // Update URL params when filters or sort change

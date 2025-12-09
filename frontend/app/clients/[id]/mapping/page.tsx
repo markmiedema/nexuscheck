@@ -10,6 +10,10 @@ import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
 import { findDuplicates } from '@/lib/utils/validation'
 import {
+  useAnalysisColumns,
+  type ColumnInfo,
+} from '@/hooks/queries'
+import {
   Card,
   CardContent,
   CardDescription,
@@ -39,12 +43,6 @@ import {
   Loader2
 } from 'lucide-react'
 
-interface ColumnInfo {
-  name: string
-  sample_values: string[]
-  data_type: string
-}
-
 interface MappingConfig {
   transaction_date: string
   customer_state: string
@@ -58,16 +56,6 @@ interface ValueMapping {
   [key: string]: string
 }
 
-interface DataSummary {
-  total_rows: number
-  date_range: {
-    start: string
-    end: string
-  }
-  unique_states: number
-  estimated_time: string
-}
-
 interface ValidationError {
   row: number
   column: string
@@ -76,15 +64,28 @@ interface ValidationError {
   severity: string
 }
 
+// Helper to find a column by candidate names
+const findColumn = (cols: ColumnInfo[], candidates: string[]): string => {
+  for (const candidate of candidates) {
+    const match = cols.find(c => c.name.toLowerCase() === candidate.toLowerCase())
+    if (match) return match.name
+  }
+  return '' // Empty string is OK for required fields - they just won't be pre-selected
+}
+
 export default function MappingPage() {
   const params = useParams()
   const router = useRouter()
   const analysisId = params.id as string
 
-  const [loading, setLoading] = useState(true)
-  const [validating, setValidating] = useState(false)
-  const [columns, setColumns] = useState<ColumnInfo[]>([])
-  const [dataSummary, setDataSummary] = useState<DataSummary | null>(null)
+  // Fetch column info with TanStack Query
+  const {
+    data: columnsData,
+    isLoading: loading,
+  } = useAnalysisColumns(analysisId)
+
+  const columns = columnsData?.columns || []
+  const dataSummary = columnsData?.summary || null
 
   // Mapping state
   const [mappings, setMappings] = useState<MappingConfig>({
@@ -97,47 +98,26 @@ export default function MappingPage() {
   const [dateFormat, setDateFormat] = useState('YYYY-MM-DD')
   const [valueMappings, setValueMappings] = useState<ValueMapping>({})
 
+  // Processing state
+  const [validating, setValidating] = useState(false)
+
   // Validation state
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
   const [validationStatus, setValidationStatus] = useState<'idle' | 'passed' | 'failed'>('idle')
   const [showErrors, setShowErrors] = useState(false)
 
+  // Auto-detect mappings when columns load
   useEffect(() => {
-    fetchColumnInfo()
-  }, [analysisId])
-
-  const fetchColumnInfo = async () => {
-    try {
-      setLoading(true)
-      const response = await apiClient.get(`/api/v1/analyses/${analysisId}/columns`)
-      const data = response.data
-
-      setColumns(data.columns)
-      setDataSummary(data.summary)
-
-      // Auto-detect mappings
+    if (columns.length > 0) {
       const autoMappings: MappingConfig = {
-        transaction_date: findColumn(data.columns, ['transaction_date', 'date', 'order_date', 'sale_date']),
-        customer_state: findColumn(data.columns, ['customer_state', 'state', 'buyer_state', 'ship_to_state']),
-        revenue_amount: findColumn(data.columns, ['revenue_amount', 'amount', 'sales_amount', 'total', 'price']),
-        sales_channel: findColumn(data.columns, ['sales_channel', 'channel', 'source', 'marketplace']),
+        transaction_date: findColumn(columns, ['transaction_date', 'date', 'order_date', 'sale_date']),
+        customer_state: findColumn(columns, ['customer_state', 'state', 'buyer_state', 'ship_to_state']),
+        revenue_amount: findColumn(columns, ['revenue_amount', 'amount', 'sales_amount', 'total', 'price']),
+        sales_channel: findColumn(columns, ['sales_channel', 'channel', 'source', 'marketplace']),
       }
-
       setMappings(autoMappings)
-    } catch (error) {
-      handleApiError(error, { userMessage: 'Failed to load column information' })
-    } finally {
-      setLoading(false)
     }
-  }
-
-  const findColumn = (cols: ColumnInfo[], candidates: string[]): string => {
-    for (const candidate of candidates) {
-      const match = cols.find(c => c.name.toLowerCase() === candidate.toLowerCase())
-      if (match) return match.name
-    }
-    return '' // Empty string is OK for required fields - they just won't be pre-selected
-  }
+  }, [columns])
 
   const handleMappingChange = (field: keyof MappingConfig, value: string) => {
     setMappings(prev => ({ ...prev, [field]: value }))

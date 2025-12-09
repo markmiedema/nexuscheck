@@ -47,7 +47,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { SkeletonTable } from '@/components/ui/skeleton-table'
-import { useRegistrations } from '@/hooks/useRegistrations'
+import { useRegistrations } from '@/hooks/queries'
 import { US_STATE_CODES } from '@/lib/constants/states'
 
 interface StateTableProps {

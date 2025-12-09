@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { getClient, listClientNotes, createClientNote, listClientAnalyses, type Client, type ClientNote, type ClientAnalysis } from '@/lib/api/clients'
-import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
+import { useClient, useClientNotes, useCreateClientNote, useClientAnalyses, useDeleteAnalysis } from '@/hooks/queries'
+import { type Client, type ClientNote, type ClientAnalysis } from '@/lib/api/clients'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/api/queryKeys'
+import { showSuccess } from '@/lib/utils/errorHandler'
 import AppLayout from '@/components/layout/AppLayout'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { Button } from '@/components/ui/button'
@@ -24,23 +27,28 @@ import {
   Trash2, ClipboardList, FileSignature,
   Users, Warehouse
 } from 'lucide-react'
-import apiClient from '@/lib/api/client'
 
 export default function ClientCRMPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [client, setClient] = useState<Client | null>(null)
-  const [notes, setNotes] = useState<ClientNote[]>([])
-  const [analyses, setAnalyses] = useState<ClientAnalysis[]>([])
+  const queryClient = useQueryClient()
+  const clientId = params.id as string
+
+  // TanStack Query hooks for data fetching
+  const { data: client, isLoading: loading } = useClient(clientId)
+  const { data: notes = [] } = useClientNotes(clientId)
+  const { data: analyses = [] } = useClientAnalyses(clientId)
+
+  // Mutations
+  const createNoteMutation = useCreateClientNote(clientId)
+  const deleteAnalysisMutation = useDeleteAnalysis()
+
   // Initialize tab from URL query param or default to 'overview'
   const initialTab = searchParams.get('tab') || 'overview'
   const [activeTab, setActiveTab] = useState(initialTab)
   const [newNote, setNewNote] = useState('')
   const [noteType, setNoteType] = useState<string>('call')
-  const [loading, setLoading] = useState(true)
-  const [savingNote, setSavingNote] = useState(false)
-  const [deletingAnalysis, setDeletingAnalysis] = useState<string | null>(null)
 
   // Data Request Checklist state (in real app, save to DB)
   const [checklist, setChecklist] = useState({
@@ -50,77 +58,28 @@ export default function ClientCRMPage() {
     powerOfAttorney: false
   })
 
-  useEffect(() => {
-    async function loadClient() {
-      try {
-        setLoading(true)
-        const data = await getClient(params.id as string)
-        setClient(data)
-
-        // Load notes and analyses in parallel
-        const [notesData, analysesData] = await Promise.all([
-          listClientNotes(params.id as string),
-          listClientAnalyses(params.id as string)
-        ])
-        setNotes(notesData)
-        setAnalyses(analysesData)
-      } catch (err) {
-        handleApiError(err, { userMessage: 'Failed to load client' })
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadClient()
-
-    // Refresh client data when returning to the page (e.g., from analysis page)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // Silently refresh client data without showing loading state
-        getClient(params.id as string)
-          .then(data => setClient(data))
-          .catch(() => {}) // Silently fail on background refresh
-      }
-    }
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [params.id])
-
-  const handleSaveNote = async () => {
+  const handleSaveNote = () => {
     if (!newNote.trim()) return
-
-    try {
-      setSavingNote(true)
-      const note = await createClientNote(params.id as string, {
-        content: newNote,
-        note_type: noteType
-      })
-      setNotes([note, ...notes])
-      setNewNote('')
-      showSuccess('Note saved successfully')
-    } catch (err) {
-      handleApiError(err, { userMessage: 'Failed to save note' })
-    } finally {
-      setSavingNote(false)
-    }
+    createNoteMutation.mutate(
+      { content: newNote, note_type: noteType },
+      { onSuccess: () => setNewNote('') }
+    )
   }
 
-  const handleDeleteAnalysis = async (analysisId: string, e: React.MouseEvent) => {
+  const handleDeleteAnalysis = (analysisId: string, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click navigation
     if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) return
+    deleteAnalysisMutation.mutate(analysisId)
+  }
 
-    try {
-      setDeletingAnalysis(analysisId)
-      await apiClient.delete(`/api/v1/analyses/${analysisId}`)
-      setAnalyses(analyses.filter(a => a.id !== analysisId))
-      showSuccess('Project deleted successfully')
-    } catch (err) {
-      handleApiError(err, { userMessage: 'Failed to delete project' })
-    } finally {
-      setDeletingAnalysis(null)
-    }
+  // Helper to refresh client data (used by child components)
+  const refreshClient = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.clients.detail(clientId) })
+  }
+
+  // Helper to refresh notes (used by child components)
+  const refreshNotes = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.clients.notes(clientId) })
   }
 
   // Memoize discovery initialData to prevent useEffect from triggering on every parent render
@@ -521,8 +480,8 @@ export default function ClientCRMPage() {
                                Deliverable
                              </Badge>
                            </div>
-                           <Button size="sm" disabled={!newNote || savingNote} onClick={handleSaveNote}>
-                             {savingNote ? 'Saving...' : 'Log Note'}
+                           <Button size="sm" disabled={!newNote || createNoteMutation.isPending} onClick={handleSaveNote}>
+                             {createNoteMutation.isPending ? 'Saving...' : 'Log Note'}
                            </Button>
                         </div>
                       </Card>
@@ -628,7 +587,7 @@ export default function ClientCRMPage() {
                                      size="icon"
                                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
                                      onClick={(e) => handleDeleteAnalysis(analysis.id, e)}
-                                     disabled={deletingAnalysis === analysis.id}
+                                     disabled={deleteAnalysisMutation.isPending}
                                    >
                                      <Trash2 className="h-3 w-3" />
                                    </Button>
@@ -692,21 +651,12 @@ export default function ClientCRMPage() {
                         initialData={discoveryInitialData}
                         onUpdate={() => {
                           // Reload client data to reflect changes
-                          console.log('[ClientPage] onUpdate triggered, refetching client...')
-                          getClient(params.id as string).then(data => {
-                            console.log('[ClientPage] Refetched client data:', data)
-                            setClient(data)
-                          })
+                          refreshClient()
                         }}
-                        onComplete={async () => {
+                        onComplete={() => {
                           // Reload client and notes, then switch to Activity tab
-                          console.log('[ClientPage] onComplete triggered, switching to Activity tab...')
-                          const [clientData, notesData] = await Promise.all([
-                            getClient(params.id as string),
-                            listClientNotes(params.id as string)
-                          ])
-                          setClient(clientData)
-                          setNotes(notesData)
+                          refreshClient()
+                          refreshNotes()
                           setActiveTab('overview')
                         }}
                       />
@@ -724,7 +674,7 @@ export default function ClientCRMPage() {
                         discoveryCompleted={!!client.discovery_completed_at}
                         onEngagementChange={() => {
                           // Reload client data to reflect changes
-                          getClient(params.id as string).then(setClient)
+                          refreshClient()
                         }}
                       />
                     </div>

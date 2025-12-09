@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AppLayout from '@/components/layout/AppLayout';
-import { getStateDetail, StateDetailResponse, YearData } from '@/lib/api';
+import { useStateDetail } from '@/hooks/queries';
+import { type YearData } from '@/lib/api';
 import { StateDetailHeader } from '@/components/analysis/StateDetailHeader';
 import { SummaryCards } from '@/components/analysis/SummaryCards';
 import { LiabilityBreakdown } from '@/components/analysis/LiabilityBreakdown';
@@ -35,38 +36,25 @@ interface StateDetailPageProps {
 }
 
 export default function StateDetailPage({ params }: StateDetailPageProps) {
-  const [data, setData] = useState<StateDetailResponse | null>(null);
+  // TanStack Query for data fetching
+  const { data, isLoading: loading, error: queryError } = useStateDetail(params.id, params.stateCode);
   const [selectedYear, setSelectedYear] = useState<number | 'all' | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Fetch data on mount
+  // Derive error message from query error
+  const error = queryError
+    ? (queryError instanceof Error ? queryError.message : 'Failed to load state details')
+    : null;
+
+  // Set default year when data loads
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await getStateDetail(params.id, params.stateCode);
-        setData(response);
-
-        // Default to "All Years" if multiple years, otherwise show the single year
-        if (response.analysis_period.years_available.length > 1) {
-          setSelectedYear('all');
-        } else if (response.analysis_period.years_available.length === 1) {
-          setSelectedYear(response.analysis_period.years_available[0]);
-        }
-      } catch (err) {
-        console.error('Error fetching state detail:', err);
-        setError(
-          err instanceof Error ? err.message : 'Failed to load state details'
-        );
-      } finally {
-        setLoading(false);
+    if (data && selectedYear === null) {
+      if (data.analysis_period.years_available.length > 1) {
+        setSelectedYear('all');
+      } else if (data.analysis_period.years_available.length === 1) {
+        setSelectedYear(data.analysis_period.years_available[0]);
       }
-    };
-
-    fetchData();
-  }, [params.id, params.stateCode]);
+    }
+  }, [data, selectedYear]);
 
   // Loading skeleton
   if (loading) {

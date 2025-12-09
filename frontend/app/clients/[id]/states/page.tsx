@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
 import { ErrorBoundary } from '@/components/error-boundary'
-import apiClient from '@/lib/api/client'
-import { StateResult, StateResultsResponse } from '@/types/states'
+import { useClientStateResults } from '@/hooks/queries'
+import { StateResult } from '@/types/states'
 import {
   Table,
   TableBody,
@@ -38,12 +38,30 @@ import {
 export default function StateTablePage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const analysisId = params.id
+  const clientId = params.id
 
-  // Data state
-  const [states, setStates] = useState<StateResult[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // TanStack Query for data fetching (fetches latest analysis for this client)
+  const { data, isLoading: loading, error: queryError } = useClientStateResults(clientId)
+  const states = data?.states || []
+
+  // Derive error state from query error
+  const error = useMemo(() => {
+    if (!queryError) return null
+    const err = queryError as any
+    if (err.status === 404) {
+      const detail = err.message || ''
+      if (detail.includes('calculation')) return 'no_calculation'
+      return 'not_found'
+    }
+    return err.message || 'Failed to load state data'
+  }, [queryError])
+
+  // Show no_calculation if there's no data but also no error (no complete analysis)
+  const effectiveError = useMemo(() => {
+    if (error) return error
+    if (!loading && !data) return 'no_calculation'
+    return null
+  }, [error, loading, data])
 
   // Filter and sort state (initialized from URL params)
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'nexus_status')
@@ -62,9 +80,6 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
   // Note: searchQuery is NOT synced to URL (stays ephemeral)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Computed filtered and sorted states
-  const [displayedStates, setDisplayedStates] = useState<StateResult[]>([])
-
   // Sort handler functions
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -80,42 +95,8 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
     setSortOrder('desc')
   }
 
-  // Fetch state results
-  useEffect(() => {
-    const fetchStates = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const response = await apiClient.get<StateResultsResponse>(
-          `/api/v1/analyses/${analysisId}/results/states`
-        )
-
-        setStates(response.data.states)
-      } catch (err: any) {
-        console.error('Failed to fetch states:', err)
-
-        if (err.response?.status === 404) {
-          // Check if it's "no calculation" vs "analysis not found"
-          const detail = err.response?.data?.detail || ''
-          if (detail.includes('calculation')) {
-            setError('no_calculation')
-          } else {
-            setError('not_found')
-          }
-        } else {
-          setError(err.response?.data?.detail || 'Failed to load state data')
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchStates()
-  }, [analysisId])
-
-  // Apply filters and sorting whenever dependencies change
-  useEffect(() => {
+  // Computed filtered and sorted states
+  const displayedStates = useMemo(() => {
     let result = states
 
     // Apply filters
@@ -129,7 +110,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
     // Apply sorting
     result = sortStates(result, sortBy, sortOrder)
 
-    setDisplayedStates(result)
+    return result
   }, [states, sortBy, sortOrder, nexusFilter, registrationFilter, confidenceFilter, searchQuery])
 
   // Update URL params when filters or sort change
@@ -171,7 +152,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
           maxWidth="7xl"
           breadcrumbs={[
             { label: 'Clients', href: '/clients' },
-            { label: 'Client Dashboard', href: `/clients/${analysisId}` },
+            { label: 'Client Dashboard', href: `/clients/${clientId}` },
             { label: 'State Table' },
           ]}
         >
@@ -205,14 +186,14 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
   }
 
   // Error state - No calculation error (yellow)
-  if (error === 'no_calculation') {
+  if (effectiveError === 'no_calculation') {
     return (
       <ProtectedRoute>
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
             { label: 'Clients', href: '/clients' },
-            { label: 'Client Dashboard', href: `/clients/${analysisId}` },
+            { label: 'Client Dashboard', href: `/clients/${clientId}` },
             { label: 'State Table' },
           ]}
         >
@@ -225,13 +206,13 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
             </p>
             <div className="flex gap-3 justify-center">
               <button
-                onClick={() => router.push(`/clients/${analysisId}/mapping`)}
+                onClick={() => router.push(`/clients/${clientId}/mapping`)}
                 className="px-4 py-2 bg-warning text-warning-foreground rounded-md hover:opacity-90"
               >
                 Go to Mapping Page
               </button>
               <button
-                onClick={() => router.push(`/clients/${analysisId}`)}
+                onClick={() => router.push(`/clients/${clientId}`)}
                 className="px-4 py-2 border border-warning/30 text-warning-foreground rounded-md hover:bg-warning/20"
               >
                 Back to Dashboard
@@ -244,7 +225,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
   }
 
   // Error state - Not found error (red)
-  if (error === 'not_found') {
+  if (effectiveError === 'not_found') {
     return (
       <ProtectedRoute>
         <AppLayout
@@ -274,14 +255,14 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
   }
 
   // Error state - Generic error (red) with retry button
-  if (error) {
+  if (effectiveError) {
     return (
       <ProtectedRoute>
         <AppLayout
           maxWidth="7xl"
           breadcrumbs={[
             { label: 'Clients', href: '/clients' },
-            { label: 'Client Dashboard', href: `/clients/${analysisId}` },
+            { label: 'Client Dashboard', href: `/clients/${clientId}` },
             { label: 'State Table' },
           ]}
         >
@@ -289,7 +270,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
             <h3 className="text-lg font-semibold text-destructive-foreground mb-2">
               Error Loading States
             </h3>
-            <p className="text-destructive-foreground mb-4">{error}</p>
+            <p className="text-destructive-foreground mb-4">{effectiveError}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => window.location.reload()}
@@ -298,7 +279,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
                 Retry
               </button>
               <button
-                onClick={() => router.push(`/clients/${analysisId}`)}
+                onClick={() => router.push(`/clients/${clientId}`)}
                 className="px-4 py-2 border border-destructive/30 text-destructive-foreground rounded-md hover:bg-destructive/20"
               >
                 Back to Results
@@ -318,7 +299,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
           maxWidth="7xl"
           breadcrumbs={[
             { label: 'Clients', href: '/clients' },
-            { label: 'Client Dashboard', href: `/clients/${analysisId}` },
+            { label: 'Client Dashboard', href: `/clients/${clientId}` },
             { label: 'State Table' },
           ]}
         >
@@ -526,7 +507,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
                 <TableRow
                   key={state.state_code}
                   onClick={() =>
-                    router.push(`/clients/${analysisId}/states/${state.state_code}`)
+                    router.push(`/clients/${clientId}/states/${state.state_code}`)
                   }
                   className="cursor-pointer hover:bg-accent transition-colors group"
                 >
@@ -646,7 +627,7 @@ export default function StateTablePage({ params }: { params: { id: string } }) {
         </Button>
         <Button
           variant="outline"
-          onClick={() => router.push(`/analysis/${analysisId}/results`)}
+          onClick={() => router.push(`/analysis/${clientId}/results`)}
         >
           Back to Results
         </Button>

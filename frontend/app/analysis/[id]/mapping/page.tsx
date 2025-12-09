@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { handleApiError, showSuccess, showError } from '@/lib/utils/errorHandler'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -10,6 +10,11 @@ import { Button } from '@/components/ui/button'
 import apiClient from '@/lib/api/client'
 import { createClientNote } from '@/lib/api/clients'
 import { findDuplicates } from '@/lib/utils/validation'
+import {
+  useAnalysis,
+  useAnalysisColumns,
+  type ColumnInfo,
+} from '@/hooks/queries'
 import {
   Card,
   CardContent,
@@ -41,12 +46,6 @@ import {
 } from 'lucide-react'
 import ReviewNormalizationsModal from '@/components/analysis/ReviewNormalizationsModal'
 
-interface ColumnInfo {
-  name: string
-  sample_values: string[]
-  data_type: string
-}
-
 interface MappingConfig {
   transaction_date: string
   customer_state: string
@@ -59,16 +58,6 @@ interface MappingConfig {
 
 interface ValueMapping {
   [key: string]: string
-}
-
-interface DataSummary {
-  total_rows: number
-  date_range: {
-    start: string
-    end: string
-  }
-  unique_states: number
-  estimated_time: string
 }
 
 interface ValidationError {
@@ -90,17 +79,38 @@ const formatDateUS = (isoDate: string): string => {
   })
 }
 
+// Helper to find a column by candidate names
+const findColumn = (cols: ColumnInfo[], candidates: string[]): string => {
+  for (const candidate of candidates) {
+    const match = cols.find(c => c.name.toLowerCase() === candidate.toLowerCase())
+    if (match) return match.name
+  }
+  return '' // Empty string is OK for required fields - they just won't be pre-selected
+}
+
 export default function MappingPage() {
   const params = useParams()
   const router = useRouter()
   const analysisId = params.id as string
 
-  const [loading, setLoading] = useState(true)
-  const [validating, setValidating] = useState(false)
-  const [columns, setColumns] = useState<ColumnInfo[]>([])
-  const [dataSummary, setDataSummary] = useState<DataSummary | null>(null)
-  const [clientId, setClientId] = useState<string | null>(null)
-  const [companyName, setCompanyName] = useState<string>('')
+  // Fetch analysis data with TanStack Query
+  const {
+    data: analysis,
+    isLoading: analysisLoading,
+  } = useAnalysis(analysisId)
+
+  // Fetch column info with TanStack Query
+  const {
+    data: columnsData,
+    isLoading: columnsLoading,
+  } = useAnalysisColumns(analysisId)
+
+  const columns = columnsData?.columns || []
+  const dataSummary = columnsData?.summary || null
+
+  // Derived data
+  const clientId = analysis?.client_id || null
+  const companyName = analysis?.client_company_name || ''
 
   // Mapping state
   const [mappings, setMappings] = useState<MappingConfig>({
@@ -116,6 +126,9 @@ export default function MappingPage() {
   const [dateFormat, setDateFormat] = useState('MM/DD/YYYY')
   const [valueMappings, setValueMappings] = useState<ValueMapping>({})
 
+  // Processing state
+  const [validating, setValidating] = useState(false)
+
   // Validation state
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
   const [validationStatus, setValidationStatus] = useState<'idle' | 'passed' | 'failed'>('idle')
@@ -125,55 +138,22 @@ export default function MappingPage() {
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [previewData, setPreviewData] = useState<any>(null)
 
+  // Auto-detect mappings when columns load
   useEffect(() => {
-    fetchColumnInfo()
-  }, [analysisId])
-
-  const fetchColumnInfo = async () => {
-    try {
-      setLoading(true)
-
-      // Fetch analysis data and column info in parallel
-      const [analysisResponse, columnsResponse] = await Promise.all([
-        apiClient.get(`/api/v1/analyses/${analysisId}`),
-        apiClient.get(`/api/v1/analyses/${analysisId}/columns`)
-      ])
-
-      // Store client info for activity logging
-      setClientId(analysisResponse.data.client_id || null)
-      setCompanyName(analysisResponse.data.client_company_name || '')
-
-      const data = columnsResponse.data
-      setColumns(data.columns)
-      setDataSummary(data.summary)
-
-      // Auto-detect mappings (required fields)
+    if (columns.length > 0) {
       const autoMappings: MappingConfig = {
-        transaction_date: findColumn(data.columns, ['transaction_date', 'date', 'order_date', 'sale_date']),
-        customer_state: findColumn(data.columns, ['customer_state', 'state', 'buyer_state', 'ship_to_state']),
-        revenue_amount: findColumn(data.columns, ['revenue_amount', 'amount', 'sales_amount', 'total', 'price']),
-        sales_channel: findColumn(data.columns, ['sales_channel', 'channel', 'source', 'marketplace']),
+        transaction_date: findColumn(columns, ['transaction_date', 'date', 'order_date', 'sale_date']),
+        customer_state: findColumn(columns, ['customer_state', 'state', 'buyer_state', 'ship_to_state']),
+        revenue_amount: findColumn(columns, ['revenue_amount', 'amount', 'sales_amount', 'total', 'price']),
+        sales_channel: findColumn(columns, ['sales_channel', 'channel', 'source', 'marketplace']),
         // Optional fields - auto-map if detected
-        taxability: findColumn(data.columns, ['taxability', 'is_taxable', 'taxable', 'tax_status', 'tax_type']),
-        exempt_amount: findColumn(data.columns, ['exempt_amount', 'exemption_amount', 'exemption', 'non_taxable_amount', 'nontaxable_amount']),
-        transaction_id: findColumn(data.columns, ['transaction_id', 'txn_id', 'order_id', 'order_number', 'invoice_id', 'invoice_number', 'sale_id', 'record_id', 'reference_id', 'ref_id']),
+        taxability: findColumn(columns, ['taxability', 'is_taxable', 'taxable', 'tax_status', 'tax_type']),
+        exempt_amount: findColumn(columns, ['exempt_amount', 'exemption_amount', 'exemption', 'non_taxable_amount', 'nontaxable_amount']),
+        transaction_id: findColumn(columns, ['transaction_id', 'txn_id', 'order_id', 'order_number', 'invoice_id', 'invoice_number', 'sale_id', 'record_id', 'reference_id', 'ref_id']),
       }
-
       setMappings(autoMappings)
-    } catch (error) {
-      handleApiError(error, { userMessage: 'Failed to load column information' })
-    } finally {
-      setLoading(false)
     }
-  }
-
-  const findColumn = (cols: ColumnInfo[], candidates: string[]): string => {
-    for (const candidate of candidates) {
-      const match = cols.find(c => c.name.toLowerCase() === candidate.toLowerCase())
-      if (match) return match.name
-    }
-    return '' // Empty string is OK for required fields - they just won't be pre-selected
-  }
+  }, [columns])
 
   const handleMappingChange = (field: keyof MappingConfig, value: string) => {
     setMappings(prev => ({ ...prev, [field]: value }))
@@ -359,6 +339,8 @@ export default function MappingPage() {
   const handleBack = () => {
     router.push(`/analysis/${analysisId}/upload`)
   }
+
+  const loading = analysisLoading || columnsLoading
 
   if (loading) {
     return (
