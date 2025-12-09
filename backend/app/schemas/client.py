@@ -129,8 +129,10 @@ class ClientResponse(ClientBase):
     systems: Optional[List[str]] = None  # Tech systems from discovery (renamed from tech_stack)
     has_remote_employees: Optional[bool] = None
     remote_employee_states: Optional[List[str]] = None
+    remote_employee_state_dates: Optional[Dict[str, str]] = None
     has_inventory_3pl: Optional[bool] = None
     inventory_3pl_states: Optional[List[str]] = None
+    inventory_3pl_state_dates: Optional[Dict[str, str]] = None
     estimated_annual_revenue: Optional[str] = None
     transaction_volume: Optional[str] = None
     current_registration_count: Optional[int] = None
