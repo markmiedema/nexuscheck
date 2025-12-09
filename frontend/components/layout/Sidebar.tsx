@@ -187,15 +187,15 @@ export function Sidebar() {
         </Button>
       </div>
 
-      {/* Main Navigation */}
-      <nav className="flex-1 space-y-1 p-2">
+      {/* Main Navigation - scrollable */}
+      <nav className="flex-1 overflow-y-auto space-y-1 p-2">
         {navigationItems.map((item) => (
           <NavItem key={item.href} item={item} isCollapsed={isCollapsed} />
         ))}
       </nav>
 
-      {/* Bottom Navigation */}
-      <nav className="border-t border-border p-2 space-y-1">
+      {/* Bottom Navigation - pinned at bottom */}
+      <nav className="shrink-0 border-t border-border p-2 space-y-1">
         {bottomNavigationItems.map((item) => (
           <NavItem key={item.href} item={item} isCollapsed={isCollapsed} />
         ))}
@@ -232,29 +232,31 @@ export function MobileSidebar() {
           <SheetTitle className="text-xl font-bold">NexusCheck</SheetTitle>
         </SheetHeader>
 
-        {/* Main Navigation */}
-        <nav className="flex-1 space-y-1 p-2">
-          {navigationItems.map((item) => (
-            <NavItem
-              key={item.href}
-              item={item}
-              isCollapsed={false}
-              onClick={() => setIsMobileOpen(false)}
-            />
-          ))}
-        </nav>
+        <div className="flex flex-col h-[calc(100%-4rem)]">
+          {/* Main Navigation - scrollable */}
+          <nav className="flex-1 overflow-y-auto space-y-1 p-2">
+            {navigationItems.map((item) => (
+              <NavItem
+                key={item.href}
+                item={item}
+                isCollapsed={false}
+                onClick={() => setIsMobileOpen(false)}
+              />
+            ))}
+          </nav>
 
-        {/* Bottom Navigation */}
-        <nav className="absolute bottom-0 left-0 right-0 border-t border-border p-2 space-y-1">
-          {bottomNavigationItems.map((item) => (
-            <NavItem
-              key={item.href}
-              item={item}
-              isCollapsed={false}
-              onClick={() => setIsMobileOpen(false)}
-            />
-          ))}
-        </nav>
+          {/* Bottom Navigation - pinned at bottom */}
+          <nav className="shrink-0 border-t border-border p-2 space-y-1">
+            {bottomNavigationItems.map((item) => (
+              <NavItem
+                key={item.href}
+                item={item}
+                isCollapsed={false}
+                onClick={() => setIsMobileOpen(false)}
+              />
+            ))}
+          </nav>
+        </div>
       </SheetContent>
     </Sheet>
   )
