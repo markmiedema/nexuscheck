@@ -56,8 +56,27 @@ import {
   Clock,
   Loader2,
   Trash2,
+  Copy,
+  Link,
 } from 'lucide-react'
 import type { OrganizationMember } from '@/lib/api/organizations'
+import { toast } from 'sonner'
+
+// Generate signup link with email pre-filled
+const getInviteLink = (email: string) => {
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+  return `${baseUrl}/signup?email=${encodeURIComponent(email)}`
+}
+
+const copyInviteLink = async (email: string) => {
+  const link = getInviteLink(email)
+  try {
+    await navigator.clipboard.writeText(link)
+    toast.success('Invite link copied to clipboard')
+  } catch {
+    toast.error('Failed to copy link')
+  }
+}
 
 const ROLE_CONFIG = {
   owner: { label: 'Owner', icon: ShieldCheck, color: 'text-amber-500', description: 'Full access + billing' },
@@ -149,7 +168,7 @@ function MemberCard({
         </div>
       </div>
 
-      {(canChangeRole || canRemove) && (
+      {(canChangeRole || canRemove || isPending) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -157,6 +176,18 @@ function MemberCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {/* Copy invite link for pending members */}
+            {isPending && member.invited_email && (
+              <>
+                <DropdownMenuItem
+                  onClick={() => copyInviteLink(member.invited_email!)}
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy Invite Link
+                </DropdownMenuItem>
+                {(canChangeRole || canRemove) && <DropdownMenuSeparator />}
+              </>
+            )}
             {canChangeRole && (
               <>
                 <DropdownMenuItem
@@ -221,10 +252,14 @@ export default function TeamSettingsPage() {
   const handleInvite = () => {
     if (!inviteEmail) return
 
+    const emailToInvite = inviteEmail // Capture before clearing
+
     inviteMutation.mutate(
       { email: inviteEmail, name: inviteName || undefined, role: inviteRole },
       {
         onSuccess: () => {
+          // Copy invite link to clipboard automatically
+          copyInviteLink(emailToInvite)
           setInviteDialogOpen(false)
           setInviteName('')
           setInviteEmail('')
@@ -276,8 +311,8 @@ export default function TeamSettingsPage() {
                   <DialogHeader>
                     <DialogTitle>Invite Team Member</DialogTitle>
                     <DialogDescription>
-                      Send an invitation to join your organization. They'll receive an email with
-                      instructions to get started.
+                      Create an invitation for a team member. After inviting, you can copy the
+                      signup link to share with them directly.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
