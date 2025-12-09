@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, createContext, useContext } from 'react'
+import { useState, createContext, useContext, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -80,9 +80,34 @@ export function useSidebar() {
   return context
 }
 
+const SIDEBAR_COLLAPSED_KEY = 'nexuscheck-sidebar-collapsed'
+
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  // Initialize from localStorage to persist state across navigation
+  const [isCollapsed, setIsCollapsedState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
+      return stored === 'true'
+    }
+    return false
+  })
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+
+  // Persist collapsed state to localStorage
+  const setIsCollapsed = (collapsed: boolean) => {
+    setIsCollapsedState(collapsed)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed))
+    }
+  }
+
+  // Sync with localStorage on mount (handles SSR hydration)
+  useEffect(() => {
+    const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
+    if (stored !== null) {
+      setIsCollapsedState(stored === 'true')
+    }
+  }, [])
 
   return (
     <SidebarContext.Provider
@@ -156,7 +181,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'hidden lg:flex flex-col border-r border-border bg-card/50 transition-all duration-300',
+        'hidden lg:flex flex-col border-r border-border bg-card/50 transition-all duration-300 sticky top-0 h-screen',
         isCollapsed ? 'w-16' : 'w-64'
       )}
     >
@@ -187,15 +212,15 @@ export function Sidebar() {
         </Button>
       </div>
 
-      {/* Main Navigation */}
-      <nav className="flex-1 space-y-1 p-2">
+      {/* Main Navigation - scrollable */}
+      <nav className="flex-1 overflow-y-auto space-y-1 p-2">
         {navigationItems.map((item) => (
           <NavItem key={item.href} item={item} isCollapsed={isCollapsed} />
         ))}
       </nav>
 
-      {/* Bottom Navigation */}
-      <nav className="border-t border-border p-2 space-y-1">
+      {/* Bottom Navigation - pinned at bottom */}
+      <nav className="shrink-0 border-t border-border p-2 space-y-1">
         {bottomNavigationItems.map((item) => (
           <NavItem key={item.href} item={item} isCollapsed={isCollapsed} />
         ))}
@@ -232,29 +257,31 @@ export function MobileSidebar() {
           <SheetTitle className="text-xl font-bold">NexusCheck</SheetTitle>
         </SheetHeader>
 
-        {/* Main Navigation */}
-        <nav className="flex-1 space-y-1 p-2">
-          {navigationItems.map((item) => (
-            <NavItem
-              key={item.href}
-              item={item}
-              isCollapsed={false}
-              onClick={() => setIsMobileOpen(false)}
-            />
-          ))}
-        </nav>
+        <div className="flex flex-col h-[calc(100%-4rem)]">
+          {/* Main Navigation - scrollable */}
+          <nav className="flex-1 overflow-y-auto space-y-1 p-2">
+            {navigationItems.map((item) => (
+              <NavItem
+                key={item.href}
+                item={item}
+                isCollapsed={false}
+                onClick={() => setIsMobileOpen(false)}
+              />
+            ))}
+          </nav>
 
-        {/* Bottom Navigation */}
-        <nav className="absolute bottom-0 left-0 right-0 border-t border-border p-2 space-y-1">
-          {bottomNavigationItems.map((item) => (
-            <NavItem
-              key={item.href}
-              item={item}
-              isCollapsed={false}
-              onClick={() => setIsMobileOpen(false)}
-            />
-          ))}
-        </nav>
+          {/* Bottom Navigation - pinned at bottom */}
+          <nav className="shrink-0 border-t border-border p-2 space-y-1">
+            {bottomNavigationItems.map((item) => (
+              <NavItem
+                key={item.href}
+                item={item}
+                isCollapsed={false}
+                onClick={() => setIsMobileOpen(false)}
+              />
+            ))}
+          </nav>
+        </div>
       </SheetContent>
     </Sheet>
   )
