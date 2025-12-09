@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { listClients, deleteClient, type Client } from '@/lib/api/clients'
-import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
+import { useClients, useDeleteClient } from '@/hooks/queries'
+import { type Client } from '@/lib/api/clients'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
 import { ErrorBoundary } from '@/components/error-boundary'
@@ -43,51 +43,27 @@ type SortConfig = {
 export default function ClientsPage() {
   const router = useRouter()
 
-  const [clients, setClients] = useState<Client[]>([])
-  const [loading, setLoading] = useState(true)
+  // TanStack Query hooks
+  const { data: clients = [], isLoading: loading } = useClients()
+  const deleteClientMutation = useDeleteClient()
+
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
-  const [deleteLoading, setDeleteLoading] = useState<string | null>(null)
   const [sortConfig, setSortConfig] = useState<SortConfig>({ column: 'created_at', direction: 'desc' })
 
-  // NEW: Default to 'active' tab, but options are: 'active', 'prospects', 'archived'
+  // Default to 'active' tab, but options are: 'active', 'prospects', 'archived'
   const [activeTab, setActiveTab] = useState('active')
 
+  // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300)
     return () => clearTimeout(timer)
   }, [searchTerm])
 
-  useEffect(() => {
-    loadClients()
-  }, [])
-
-  async function loadClients() {
-    try {
-      setLoading(true)
-      const data = await listClients()
-      setClients(data)
-    } catch (error) {
-      handleApiError(error, { userMessage: 'Failed to load clients' })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handleDelete(clientId: string, clientName: string, e?: React.MouseEvent) {
+  function handleDelete(clientId: string, clientName: string, e?: React.MouseEvent) {
     e?.stopPropagation()
     if (!confirm(`Delete client "${clientName}"?`)) return
-
-    try {
-      setDeleteLoading(clientId)
-      await deleteClient(clientId)
-      showSuccess(`Deleted client "${clientName}"`)
-      await loadClients()
-    } catch (error) {
-      handleApiError(error, { userMessage: 'Failed to delete client' })
-    } finally {
-      setDeleteLoading(null)
-    }
+    deleteClientMutation.mutate(clientId)
   }
 
   // --- SORT HANDLER ---

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useRegistrations } from '@/hooks/useRegistrations'
+import { useRegistrations } from '@/hooks/queries'
 import { FileCheck, Info } from 'lucide-react'
 import { US_STATE_CODES } from '@/lib/constants/states'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
