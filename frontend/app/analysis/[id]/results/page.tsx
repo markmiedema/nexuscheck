@@ -31,6 +31,10 @@ const formatDateUS = (isoDate: string): string => {
   })
 }
 
+// Stable empty arrays to avoid creating new references on each render
+const EMPTY_REGISTERED_STATES: string[] = []
+const EMPTY_STATE_RESULTS: any[] = []
+
 // Lazy load USMap to reduce initial bundle size (saves ~200KB from react-simple-maps)
 const USMap = dynamic(() => import('@/components/dashboard/USMap'), {
   loading: () => (
@@ -69,7 +73,7 @@ export default function ResultsPage() {
     data: stateResultsData,
   } = useStateResults(isComplete ? analysisId : undefined)
 
-  const stateResults = stateResultsData?.states || []
+  const stateResults = stateResultsData?.states || EMPTY_STATE_RESULTS
 
   // Memoize transformed state data to prevent USMap re-renders
   const mappedStateData = useMemo(() => {
@@ -85,7 +89,7 @@ export default function ResultsPage() {
 
   // Fetch registered states - use client storage if linked, otherwise analysis storage
   const {
-    data: registeredStates = [],
+    data: registeredStates = EMPTY_REGISTERED_STATES,
   } = useRegistrationsQuery(analysisId, analysis?.client_id || undefined)
 
   // Calculate mutation
