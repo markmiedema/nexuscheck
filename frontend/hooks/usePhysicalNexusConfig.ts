@@ -119,12 +119,16 @@ export function usePhysicalNexusConfig(
         })
       }
 
-      await loadConfigs()
+      // Close form immediately for better perceived performance
       cancelForm()
 
-      // ENHANCEMENT: Trigger analysis recalculation
-      // Physical nexus changes should update state results immediately
-      await triggerRecalculation()
+      // Run loadConfigs and recalculation in parallel
+      // - loadConfigs refreshes the local config list UI
+      // - triggerRecalculation tells backend to recalculate (reads from DB)
+      await Promise.all([
+        loadConfigs(),
+        triggerRecalculation()
+      ])
 
       // Run non-critical operations in background (don't block UI)
       const action = isUpdate ? 'Updated' : 'Added'
@@ -173,10 +177,12 @@ export function usePhysicalNexusConfig(
         title: 'Success',
         description: `Physical nexus deleted for ${stateCode}`
       })
-      await loadConfigs()
 
-      // ENHANCEMENT: Trigger recalculation after deletion
-      await triggerRecalculation()
+      // Run loadConfigs and recalculation in parallel
+      await Promise.all([
+        loadConfigs(),
+        triggerRecalculation()
+      ])
 
       // Run non-critical operations in background (don't block UI)
       Promise.all([
@@ -239,15 +245,16 @@ export function usePhysicalNexusConfig(
         { configs: config }
       )
 
-      await loadConfigs()
-
       toast({
         title: 'Success',
         description: `Imported ${response.data.imported_count} states, updated ${response.data.updated_count} states`
       })
 
-      // ENHANCEMENT: Trigger recalculation after import
-      await triggerRecalculation()
+      // Run loadConfigs and recalculation in parallel
+      await Promise.all([
+        loadConfigs(),
+        triggerRecalculation()
+      ])
 
       // Log activity note in background (don't block UI)
       logActivityNote(`Imported physical nexus config: ${response.data.imported_count} new, ${response.data.updated_count} updated`, true)
