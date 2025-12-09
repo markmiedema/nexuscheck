@@ -40,7 +40,6 @@ from app.services.column_detector import ColumnDetector
 import logging
 import uuid
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import io
 
@@ -1752,112 +1751,56 @@ async def get_state_detail(
     - Compliance information
 
     Performance optimizations:
-    - Parallelized database queries using ThreadPoolExecutor
+    - Single RPC call combines all 7 queries into 1 database round-trip
     - Monthly aggregation via SQL function instead of Python loops
     - Transaction limit (500) to prevent large payloads
     """
     supabase = get_supabase()
 
     try:
-        # Verify analysis belongs to user (must be first - security check)
-        analysis_result = supabase.table('analyses').select('id').eq(
-            'id', analysis_id
-        ).eq('user_id', user_id).execute()
+        # Single RPC call fetches all data (includes ownership check)
+        rpc_result = supabase.rpc('get_state_detail_complete', {
+            'p_analysis_id': analysis_id,
+            'p_state_code': state_code,
+            'p_user_id': user_id
+        }).execute()
 
-        if not analysis_result.data:
-            raise HTTPException(status_code=404, detail="Analysis not found")
+        if not rpc_result.data:
+            raise HTTPException(status_code=500, detail="Failed to fetch state detail data")
 
-        # Define query functions for parallel execution
-        def query_state_info():
-            return supabase.table('states').select(
-                'code, name, registration_url, state_tax_website'
-            ).eq('code', state_code).execute()
+        data = rpc_result.data
 
-        def query_state_results():
-            return supabase.table('state_results').select(
-                '*'
-            ).eq('analysis_id', analysis_id).eq(
-                'state', state_code
-            ).order('year').execute()
+        # Check for access error from RPC function
+        if isinstance(data, dict) and data.get('error'):
+            if data['error'] == 'not_found':
+                raise HTTPException(status_code=404, detail="Analysis not found")
+            raise HTTPException(status_code=403, detail=data.get('message', 'Access denied'))
 
-        def query_transactions():
-            # Limit to 500 transactions to prevent large payloads
-            return supabase.table('sales_transactions').select(
-                'transaction_id, transaction_date, sales_amount, sales_channel, taxable_amount, exempt_amount, is_taxable'
-            ).eq('analysis_id', analysis_id).eq(
-                'customer_state', state_code
-            ).order('transaction_date').limit(500).execute()
+        # Extract data from combined response
+        state_info = data.get('state_info')
+        state_year_results = data.get('state_results') or []
+        transactions = data.get('transactions') or []
+        aggregates = data.get('aggregates')
+        monthly_aggregates = data.get('monthly_aggregates') or []
+        threshold_info = data.get('thresholds')
+        tax_rate_data = data.get('tax_rates')
 
-        def query_aggregates():
-            return supabase.table('state_results_aggregated').select(
-                '*'
-            ).eq('analysis_id', analysis_id).eq(
-                'state_code', state_code
-            ).execute()
-
-        def query_thresholds():
-            return supabase.table('economic_nexus_thresholds').select(
-                'revenue_threshold, transaction_threshold, threshold_operator'
-            ).eq('state', state_code).is_('effective_to', 'null').execute()
-
-        def query_tax_rates():
-            return supabase.table('tax_rates').select(
-                'state_rate, avg_local_rate, combined_avg_rate'
-            ).eq('state', state_code).execute()
-
-        def query_monthly_aggregates():
-            # Use SQL function for monthly aggregation instead of Python loops
-            return supabase.rpc('get_monthly_sales_aggregates', {
-                'p_analysis_id': analysis_id,
-                'p_state_code': state_code
-            }).execute()
-
-        # Execute independent queries in parallel
-        with ThreadPoolExecutor(max_workers=7) as executor:
-            future_state = executor.submit(query_state_info)
-            future_results = executor.submit(query_state_results)
-            future_transactions = executor.submit(query_transactions)
-            future_aggregates = executor.submit(query_aggregates)
-            future_thresholds = executor.submit(query_thresholds)
-            future_tax_rates = executor.submit(query_tax_rates)
-            future_monthly = executor.submit(query_monthly_aggregates)
-
-            # Gather results
-            state_result = future_state.result()
-            state_results_query = future_results.result()
-            transactions_result = future_transactions.result()
-            aggregates_result = future_aggregates.result()
-            threshold_result = future_thresholds.result()
-            tax_rate_result = future_tax_rates.result()
-            monthly_aggregates_result = future_monthly.result()
-
-        if not state_result.data:
+        if not state_info:
             raise HTTPException(status_code=404, detail="Invalid state code")
 
-        state_data = state_result.data[0]
-        state_name = state_data['name']
-        registration_url = state_data.get('registration_url')
-        state_tax_website = state_data.get('state_tax_website')
-
-        transactions = transactions_result.data
-        state_year_results = state_results_query.data
-        monthly_aggregates = monthly_aggregates_result.data or []
-        threshold_info = threshold_result.data[0] if threshold_result.data else None
+        state_name = state_info['name']
+        registration_url = state_info.get('registration_url')
+        state_tax_website = state_info.get('state_tax_website')
 
         # Debug logging
         logger.debug(f"[STATE DETAIL] {state_code}: Total transactions: {len(transactions)}")
 
-        # Debug: log what we got from state_results
-        if state_year_results:
-            for yr in state_year_results[:2]:  # Just log first 2
-                logger.debug(f"[STATE DETAIL API] {state_code} year {yr.get('year')}: taxable_sales={yr.get('taxable_sales')}, exempt_sales={yr.get('exempt_sales')}, total_sales={yr.get('total_sales')}")
-
         # Helper function to build tax_rates from query result (used in both paths)
         def build_tax_rates():
-            if tax_rate_result.data:
-                state_rate = float(tax_rate_result.data[0]['state_rate']) * 100
-                avg_local_rate = float(tax_rate_result.data[0].get('avg_local_rate', 0)) * 100
-                combined_rate = float(tax_rate_result.data[0].get('combined_avg_rate', 0)) * 100
+            if tax_rate_data:
+                state_rate = float(tax_rate_data.get('state_rate', 0)) * 100
+                avg_local_rate = float(tax_rate_data.get('avg_local_rate', 0)) * 100
+                combined_rate = float(tax_rate_data.get('combined_avg_rate', 0)) * 100
                 return TaxRates(
                     state_rate=round(state_rate, 2),
                     avg_local_rate=round(avg_local_rate, 2),
@@ -1916,14 +1859,14 @@ async def get_state_detail(
                 first_nexus_year=None
             )
 
-        # Validate aggregates result (already fetched in parallel)
-        if not aggregates_result.data:
+        # Validate aggregates result (from combined RPC call)
+        if not aggregates:
             raise HTTPException(
                 status_code=500,
                 detail=f"Failed to get aggregated data for {state_code}. Database view returned no results."
             )
 
-        # Build year_data from V2 calculated results (thresholds/rates already fetched in parallel)
+        # Build year_data from V2 calculated results (from combined RPC call)
         year_data = []
         years_available = []
 
@@ -2055,9 +1998,9 @@ async def get_state_detail(
             sstm_member=False  # TODO: Source from state compliance table
         )
 
-        # Get aggregate totals from database view (database does all aggregation)
-        # Validate that view has all required columns
-        agg = aggregates_result.data[0]
+        # Get aggregate totals from combined RPC response
+        # Validate that all required columns are present
+        agg = aggregates  # Already extracted from RPC response
         required_columns = [
             'total_sales', 'taxable_sales', 'exempt_sales', 'direct_sales',
             'marketplace_sales', 'exposure_sales', 'transaction_count',
