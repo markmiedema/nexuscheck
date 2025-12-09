@@ -2164,6 +2164,142 @@ async def get_analysis_registrations(
         )
 
 
+@router.post("/{analysis_id}/mark-presented")
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
+async def mark_analysis_presented(
+    request: Request,
+    analysis_id: str,
+    user_id: str = Depends(require_auth)
+):
+    """
+    Mark a completed analysis as presented to the client.
+
+    This updates the status from 'complete' to 'presented' and records
+    the presentation timestamp. Only analyses with 'complete' status
+    can be marked as presented.
+
+    Returns:
+        Updated analysis data
+    """
+    supabase = get_supabase()
+
+    try:
+        # Verify analysis exists and belongs to user
+        result = supabase.table('analyses')\
+            .select('*')\
+            .eq('id', analysis_id)\
+            .eq('user_id', user_id)\
+            .execute()
+
+        if not result.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Analysis not found"
+            )
+
+        analysis = result.data[0]
+
+        # Only complete analyses can be marked as presented
+        if analysis['status'] != 'complete':
+            raise HTTPException(
+                status_code=400,
+                detail=f"Only completed analyses can be marked as presented. Current status: {analysis['status']}"
+            )
+
+        # Update status to presented
+        update_result = supabase.table('analyses').update({
+            'status': 'presented',
+            'presented_at': datetime.utcnow().isoformat(),
+            'updated_at': datetime.utcnow().isoformat()
+        }).eq('id', analysis_id).execute()
+
+        if not update_result.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to update analysis status"
+            )
+
+        logger.info(f"Analysis {analysis_id} marked as presented")
+
+        return update_result.data[0]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error marking analysis as presented: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to mark analysis as presented"
+        )
+
+
+@router.post("/{analysis_id}/unmark-presented")
+@limiter.limit(settings.RATE_LIMIT_DEFAULT)
+async def unmark_analysis_presented(
+    request: Request,
+    analysis_id: str,
+    user_id: str = Depends(require_auth)
+):
+    """
+    Revert a presented analysis back to complete status.
+
+    This allows correcting if an analysis was mistakenly marked as presented.
+
+    Returns:
+        Updated analysis data
+    """
+    supabase = get_supabase()
+
+    try:
+        # Verify analysis exists and belongs to user
+        result = supabase.table('analyses')\
+            .select('*')\
+            .eq('id', analysis_id)\
+            .eq('user_id', user_id)\
+            .execute()
+
+        if not result.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Analysis not found"
+            )
+
+        analysis = result.data[0]
+
+        # Only presented analyses can be unmarked
+        if analysis['status'] != 'presented':
+            raise HTTPException(
+                status_code=400,
+                detail=f"Only presented analyses can be unmarked. Current status: {analysis['status']}"
+            )
+
+        # Update status back to complete
+        update_result = supabase.table('analyses').update({
+            'status': 'complete',
+            'presented_at': None,
+            'updated_at': datetime.utcnow().isoformat()
+        }).eq('id', analysis_id).execute()
+
+        if not update_result.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to update analysis status"
+            )
+
+        logger.info(f"Analysis {analysis_id} unmarked as presented (reverted to complete)")
+
+        return update_result.data[0]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error unmarking analysis as presented: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to unmark analysis as presented"
+        )
+
+
 @router.patch("/{analysis_id}/registrations")
 @limiter.limit(settings.RATE_LIMIT_DEFAULT)
 async def update_analysis_registrations(

@@ -3,6 +3,8 @@ import { queryKeys } from '@/lib/api/queryKeys'
 import {
   listAnalyses,
   deleteAnalysis,
+  markAnalysisPresented,
+  unmarkAnalysisPresented,
   type Analysis,
   type AnalysesListResponse,
 } from '@/lib/api/analyses'
@@ -214,6 +216,46 @@ export function useCalculateAnalysis() {
     },
     onError: (error: any) => {
       toast.error(error?.message || 'Failed to calculate nexus')
+    },
+  })
+}
+
+/**
+ * Mark an analysis as presented to the client
+ */
+export function useMarkAnalysisPresented() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (analysisId: string) => markAnalysisPresented(analysisId),
+    onSuccess: (data, analysisId) => {
+      // Invalidate analysis detail and lists to refetch
+      queryClient.invalidateQueries({ queryKey: queryKeys.analyses.detail(analysisId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.analyses.lists() })
+      toast.success('Analysis marked as presented')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.detail || error?.message || 'Failed to mark as presented')
+    },
+  })
+}
+
+/**
+ * Unmark an analysis as presented (revert to complete)
+ */
+export function useUnmarkAnalysisPresented() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (analysisId: string) => unmarkAnalysisPresented(analysisId),
+    onSuccess: (data, analysisId) => {
+      // Invalidate analysis detail and lists to refetch
+      queryClient.invalidateQueries({ queryKey: queryKeys.analyses.detail(analysisId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.analyses.lists() })
+      toast.success('Analysis reverted to complete')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.detail || error?.message || 'Failed to unmark as presented')
     },
   })
 }

@@ -17,8 +17,12 @@ import {
   useCalculateAnalysis,
   useStateResults,
   useRegistrationsQuery,
+  useMarkAnalysisPresented,
+  useUnmarkAnalysisPresented,
   queryKeys,
 } from '@/hooks/queries'
+import { CheckCircle2, RotateCcw } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 // Format ISO date to US format (MM/DD/YYYY)
 const formatDateUS = (isoDate: string): string => {
@@ -62,10 +66,15 @@ export default function ResultsPage() {
     refetch: refetchAnalysis,
   } = useAnalysis(analysisId)
 
-  // Determine if analysis is complete
-  const isComplete = analysis?.status === 'complete'
+  // Determine if analysis is complete or presented (both have results)
+  const isComplete = analysis?.status === 'complete' || analysis?.status === 'presented'
+  const isPresented = analysis?.status === 'presented'
 
-  // Fetch results summary (only if analysis is complete)
+  // Mutations for marking as presented
+  const markPresentedMutation = useMarkAnalysisPresented()
+  const unmarkPresentedMutation = useUnmarkAnalysisPresented()
+
+  // Fetch results summary (only if analysis is complete/presented)
   const {
     data: results,
     isLoading: resultsLoading,
@@ -235,18 +244,51 @@ export default function ResultsPage() {
           {/* Header Section */}
           <div className="bg-card rounded-lg shadow-md border border-border p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-3xl font-bold text-card-foreground">
-                {calculationStatus === 'calculated' ? 'Analysis Complete' : 'Data Processed - Ready to Calculate'}
-              </h2>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <h2 className="text-3xl font-bold text-card-foreground">
+                  {isPresented
+                    ? 'Report Delivered'
+                    : calculationStatus === 'calculated'
+                      ? 'Analysis Complete'
+                      : 'Data Processed - Ready to Calculate'}
+                </h2>
+                {isPresented && (
+                  <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200 shadow-none">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Presented
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
                 <ReportDownload
                   analysisId={analysisId}
                   companyName={summary?.company_name || 'Analysis'}
                   hasResults={calculationStatus === 'calculated'}
                 />
-                <span className="text-sm text-muted-foreground">
-                  {summary && new Date(summary.completed_at).toLocaleString()}
-                </span>
+                {calculationStatus === 'calculated' && (
+                  isPresented ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => unmarkPresentedMutation.mutate(analysisId)}
+                      disabled={unmarkPresentedMutation.isPending}
+                      className="text-muted-foreground"
+                    >
+                      <RotateCcw className="h-4 w-4 mr-1" />
+                      {unmarkPresentedMutation.isPending ? 'Reverting...' : 'Revert'}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => markPresentedMutation.mutate(analysisId)}
+                      disabled={markPresentedMutation.isPending}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      {markPresentedMutation.isPending ? 'Marking...' : 'Mark as Presented'}
+                    </Button>
+                  )
+                )}
               </div>
             </div>
             {summary && (
