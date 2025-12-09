@@ -89,8 +89,21 @@ export default function ResultsPage() {
 
   // Fetch registered states - use client storage if linked, otherwise analysis storage
   const {
-    data: registeredStates = EMPTY_REGISTERED_STATES,
+    data: registeredStatesData,
   } = useRegistrationsQuery(analysisId, analysis?.client_id || undefined)
+
+  // Normalize registeredStates - the query may return a Client object (from shared cache)
+  // instead of string[] when using client storage, so we need to handle both cases
+  const registeredStates = useMemo(() => {
+    if (!registeredStatesData) return EMPTY_REGISTERED_STATES
+    // If it's already an array, use it directly
+    if (Array.isArray(registeredStatesData)) return registeredStatesData
+    // If it's a Client object, extract registered_states
+    if (typeof registeredStatesData === 'object' && 'registered_states' in registeredStatesData) {
+      return (registeredStatesData as { registered_states?: string[] }).registered_states || EMPTY_REGISTERED_STATES
+    }
+    return EMPTY_REGISTERED_STATES
+  }, [registeredStatesData])
 
   // Calculate mutation
   const calculateMutation = useCalculateAnalysis()
