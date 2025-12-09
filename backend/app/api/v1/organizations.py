@@ -1,5 +1,5 @@
 """Organization and team member management API endpoints."""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from typing import List, Tuple
 from app.core.auth import require_auth, require_organization, get_user_organization_id
 from app.core.supabase import get_supabase
@@ -10,7 +10,9 @@ from app.schemas.organization import (
     OrganizationMemberInvite,
     OrganizationMemberUpdate,
     OrganizationWithMembersResponse,
+    UserProfileUpdate,
 )
+from app.services.email import email_service
 import logging
 from datetime import datetime
 
@@ -120,17 +122,24 @@ async def list_organization_members(
 
         members = result.data or []
 
-        # Fetch user details for each member from auth.users
-        # Note: In production, you might want to use a join or view
+        # Fetch user details from the users table for each member
         for member in members:
-            try:
-                # Try to get user info from auth metadata or a users table
-                # For now, we'll leave user_email and user_name as None
-                # until we implement a users profile table
-                member['user_email'] = None
-                member['user_name'] = None
-            except Exception:
-                pass
+            member['user_email'] = None
+            member['user_name'] = None
+
+            if member.get('user_id'):
+                try:
+                    user_result = supabase.table('users')\
+                        .select('email, full_name')\
+                        .eq('id', member['user_id'])\
+                        .single()\
+                        .execute()
+
+                    if user_result.data:
+                        member['user_email'] = user_result.data.get('email')
+                        member['user_name'] = user_result.data.get('full_name')
+                except Exception:
+                    pass
 
         return members
     except Exception as e:
@@ -141,6 +150,7 @@ async def list_organization_members(
 @router.post("/current/members/invite", response_model=OrganizationMemberResponse)
 async def invite_organization_member(
     invite_data: OrganizationMemberInvite,
+    background_tasks: BackgroundTasks,
     auth: Tuple[str, str] = Depends(require_organization)
 ):
     """
@@ -188,6 +198,7 @@ async def invite_organization_member(
             'invited_by_user_id': user_id,
             'invited_at': datetime.utcnow().isoformat(),
             'invited_email': invite_data.email,  # Store email for lookup
+            'member_name': invite_data.name,  # Store name for display
         }
 
         result = supabase.table('organization_members')\
@@ -197,7 +208,33 @@ async def invite_organization_member(
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to create invitation")
 
-        # TODO: Send invitation email
+        # Get organization name and inviter name for the email
+        org_result = supabase.table('organizations')\
+            .select('name')\
+            .eq('id', org_id)\
+            .single()\
+            .execute()
+        org_name = org_result.data['name'] if org_result.data else "the organization"
+
+        inviter_result = supabase.table('users')\
+            .select('full_name, email')\
+            .eq('id', user_id)\
+            .single()\
+            .execute()
+        inviter_name = None
+        if inviter_result.data:
+            inviter_name = inviter_result.data.get('full_name') or inviter_result.data.get('email')
+
+        # Send invitation email in background
+        if email_service.is_configured:
+            background_tasks.add_task(
+                email_service.send_team_invite,
+                to_email=invite_data.email,
+                to_name=invite_data.name,
+                organization_name=org_name,
+                inviter_name=inviter_name,
+                role=invite_data.role,
+            )
 
         return result.data[0]
     except HTTPException:
@@ -384,3 +421,80 @@ async def get_current_user_role(
     except Exception as e:
         logger.error(f"Error fetching user role: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch role")
+
+
+# --- User Profile Endpoints ---
+
+@router.get("/current/profile")
+async def get_current_user_profile(
+    auth: Tuple[str, str] = Depends(require_organization)
+):
+    """Get the current user's profile information."""
+    user_id, org_id = auth
+    supabase = get_supabase()
+
+    try:
+        # Get user profile from users table
+        user_result = supabase.table('users')\
+            .select('email, full_name, company_name')\
+            .eq('id', user_id)\
+            .single()\
+            .execute()
+
+        # Get member_name from organization_members
+        member_result = supabase.table('organization_members')\
+            .select('member_name')\
+            .eq('organization_id', org_id)\
+            .eq('user_id', user_id)\
+            .single()\
+            .execute()
+
+        profile = {
+            "user_id": user_id,
+            "email": user_result.data.get('email') if user_result.data else None,
+            "name": user_result.data.get('full_name') if user_result.data else None,
+            "company_name": user_result.data.get('company_name') if user_result.data else None,
+            "member_name": member_result.data.get('member_name') if member_result.data else None,
+        }
+
+        return profile
+    except Exception as e:
+        logger.error(f"Error fetching user profile: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch profile")
+
+
+@router.put("/current/profile")
+async def update_current_user_profile(
+    profile_data: UserProfileUpdate,
+    auth: Tuple[str, str] = Depends(require_organization)
+):
+    """
+    Update the current user's profile.
+    Updates both the users table (full_name) and organization_members (member_name).
+    """
+    user_id, org_id = auth
+    supabase = get_supabase()
+
+    try:
+        if profile_data.name is not None:
+            # Update users table
+            supabase.table('users')\
+                .update({'full_name': profile_data.name})\
+                .eq('id', user_id)\
+                .execute()
+
+            # Update organization_members table
+            supabase.table('organization_members')\
+                .update({
+                    'member_name': profile_data.name,
+                    'updated_at': datetime.utcnow().isoformat()
+                })\
+                .eq('organization_id', org_id)\
+                .eq('user_id', user_id)\
+                .execute()
+
+        # Return updated profile
+        return await get_current_user_profile(auth)
+    except Exception as e:
+        logger.error(f"Error updating user profile: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update profile")

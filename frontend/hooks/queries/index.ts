@@ -52,10 +52,14 @@ export {
   useInviteMember,
   useUpdateMemberRole,
   useRemoveMember,
+  useUserProfile,
+  useUpdateUserProfile,
 } from './useOrganizations'
 export type {
   Organization,
   OrganizationMember,
   UpdateOrganizationData,
   InviteMemberData,
+  UserProfile,
+  UpdateProfileData,
 } from '@/lib/api/organizations'

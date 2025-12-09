@@ -83,12 +83,18 @@ class OrganizationMemberBase(BaseModel):
 class OrganizationMemberInvite(OrganizationMemberBase):
     """Invite a new member to an organization."""
     email: str
+    name: Optional[str] = None  # Invitee's name for display and email
     role: str = "staff"
 
 
 class OrganizationMemberUpdate(BaseModel):
     """Update member role."""
     role: str = Field(pattern="^(owner|admin|staff|viewer)$")
+
+
+class UserProfileUpdate(BaseModel):
+    """Update current user's profile."""
+    name: Optional[str] = None
 
 
 class OrganizationMemberResponse(OrganizationMemberBase):
@@ -98,6 +104,7 @@ class OrganizationMemberResponse(OrganizationMemberBase):
     user_id: Optional[UUID] = None  # Nullable for pending invites
     role: str
     invited_email: Optional[str] = None  # Email for pending invites
+    member_name: Optional[str] = None  # Display name for the member
     invited_by_user_id: Optional[UUID] = None
     invited_at: Optional[datetime] = None
     accepted_at: Optional[datetime] = None

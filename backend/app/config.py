@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     RATE_LIMIT_UPLOAD: str = "10/minute"  # File upload endpoints
     RATE_LIMIT_CALCULATE: str = "20/minute"  # Calculation endpoints
 
+    # Email (Resend)
+    RESEND_API_KEY: str | None = None
+    EMAIL_FROM_ADDRESS: str = "noreply@nexuscheck.com"
+    EMAIL_FROM_NAME: str = "NexusCheck"
+    APP_URL: str = "http://localhost:3000"  # Frontend URL for email links
+
     @property
     def allowed_origins_list(self) -> list[str]:
         """Parse comma-separated origins into list"""

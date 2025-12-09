@@ -1,13 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/stores/authStore'
+import { useUserProfile, useUpdateUserProfile } from '@/hooks/queries'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import {
   Building2,
   Users,
@@ -16,6 +19,11 @@ import {
   ChevronRight,
   Mail,
   Calendar,
+  User,
+  Pencil,
+  Check,
+  X,
+  Loader2,
 } from 'lucide-react'
 
 interface SettingsCardProps {
@@ -74,6 +82,34 @@ function SettingsCard({ title, description, icon, href, disabled, badge, onClick
 
 export default function SettingsPage() {
   const { user } = useAuthStore()
+  const { data: profile, isLoading: profileLoading } = useUserProfile()
+  const updateProfileMutation = useUpdateUserProfile()
+
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editedName, setEditedName] = useState('')
+
+  const handleStartEditName = () => {
+    setEditedName(profile?.name || profile?.member_name || '')
+    setIsEditingName(true)
+  }
+
+  const handleSaveName = () => {
+    updateProfileMutation.mutate(
+      { name: editedName },
+      {
+        onSuccess: () => {
+          setIsEditingName(false)
+        },
+      }
+    )
+  }
+
+  const handleCancelEditName = () => {
+    setIsEditingName(false)
+    setEditedName('')
+  }
+
+  const displayName = profile?.name || profile?.member_name
 
   return (
     <ProtectedRoute>
@@ -91,6 +127,63 @@ export default function SettingsPage() {
               <CardTitle className="text-lg">Account</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Name field with inline edit */}
+              <div className="flex items-center gap-3">
+                <User className="h-4 w-4 text-muted-foreground" />
+                {isEditingName ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <Input
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      placeholder="Enter your name"
+                      className="h-8 max-w-xs"
+                      autoFocus
+                    />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      onClick={handleSaveName}
+                      disabled={updateProfileMutation.isPending}
+                    >
+                      {updateProfileMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="h-4 w-4 text-green-600" />
+                      )}
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      onClick={handleCancelEditName}
+                      disabled={updateProfileMutation.isPending}
+                    >
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">
+                      {profileLoading ? (
+                        <span className="text-muted-foreground">Loading...</span>
+                      ) : displayName ? (
+                        displayName
+                      ) : (
+                        <span className="text-muted-foreground italic">No name set</span>
+                      )}
+                    </span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={handleStartEditName}
+                    >
+                      <Pencil className="h-3 w-3 text-muted-foreground" />
+                    </Button>
+                  </div>
+                )}
+              </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{user?.email}</span>

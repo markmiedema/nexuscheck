@@ -47,6 +47,7 @@ export interface OrganizationMember {
   user_id: string | null
   role: 'owner' | 'admin' | 'staff' | 'viewer'
   invited_email?: string | null
+  member_name?: string | null  // Display name for the member
   invited_by_user_id?: string | null
   invited_at?: string | null
   accepted_at?: string | null
@@ -67,11 +68,24 @@ export interface UpdateOrganizationData {
 
 export interface InviteMemberData {
   email: string
+  name?: string  // Invitee's name for display and email
   role?: 'admin' | 'staff' | 'viewer'
 }
 
 export interface UpdateMemberRoleData {
   role: 'admin' | 'staff' | 'viewer'
+}
+
+export interface UserProfile {
+  user_id: string
+  email: string | null
+  name: string | null
+  company_name: string | null
+  member_name: string | null
+}
+
+export interface UpdateProfileData {
+  name?: string
 }
 
 // --- API Functions ---
@@ -129,4 +143,20 @@ export async function updateMemberRole(memberId: string, data: UpdateMemberRoleD
  */
 export async function removeOrganizationMember(memberId: string): Promise<void> {
   await apiClient.delete(`/api/v1/organizations/current/members/${memberId}`)
+}
+
+/**
+ * Get the current user's profile
+ */
+export async function getCurrentUserProfile(): Promise<UserProfile> {
+  const response = await apiClient.get('/api/v1/organizations/current/profile')
+  return response.data
+}
+
+/**
+ * Update the current user's profile
+ */
+export async function updateCurrentUserProfile(data: UpdateProfileData): Promise<UserProfile> {
+  const response = await apiClient.put('/api/v1/organizations/current/profile', data)
+  return response.data
 }

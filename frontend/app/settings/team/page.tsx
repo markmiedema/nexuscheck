@@ -56,8 +56,27 @@ import {
   Clock,
   Loader2,
   Trash2,
+  Copy,
+  Link,
 } from 'lucide-react'
 import type { OrganizationMember } from '@/lib/api/organizations'
+import { toast } from 'sonner'
+
+// Generate signup link with email pre-filled
+const getInviteLink = (email: string) => {
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+  return `${baseUrl}/signup?email=${encodeURIComponent(email)}`
+}
+
+const copyInviteLink = async (email: string) => {
+  const link = getInviteLink(email)
+  try {
+    await navigator.clipboard.writeText(link)
+    toast.success('Invite link copied to clipboard')
+  } catch {
+    toast.error('Failed to copy link')
+  }
+}
 
 const ROLE_CONFIG = {
   owner: { label: 'Owner', icon: ShieldCheck, color: 'text-amber-500', description: 'Full access + billing' },
@@ -89,10 +108,14 @@ function MemberCard({
   const canChangeRole = canManage && !isCurrentUser && member.role !== 'owner'
   const canRemove = canManage && !isCurrentUser && member.role !== 'owner'
 
+  // Get display name - prefer member_name, then user_name, then email
+  const displayName = member.member_name || member.user_name || member.user_email || member.invited_email || 'Unknown'
+
   // Get initials for avatar
   const getInitials = () => {
-    if (member.user_name) {
-      return member.user_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    const name = member.member_name || member.user_name
+    if (name) {
+      return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     }
     if (member.user_email || member.invited_email) {
       return (member.user_email || member.invited_email || '??')[0].toUpperCase()
@@ -111,7 +134,7 @@ function MemberCard({
         <div>
           <div className="flex items-center gap-2">
             <span className="font-medium">
-              {member.user_name || member.user_email || member.invited_email || 'Unknown'}
+              {displayName}
             </span>
             {isCurrentUser && (
               <Badge variant="outline" className="text-xs">
@@ -127,9 +150,16 @@ function MemberCard({
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <RoleIcon className={`h-4 w-4 ${roleConfig.color}`} />
             <span>{roleConfig.label}</span>
+            {/* Show email if different from display name */}
+            {(member.user_email || member.invited_email) && displayName !== (member.user_email || member.invited_email) && (
+              <>
+                <span>·</span>
+                <span>{member.user_email || member.invited_email}</span>
+              </>
+            )}
             {isPending && member.invited_at && (
               <>
-                <span>-</span>
+                <span>·</span>
                 <Clock className="h-3 w-3" />
                 <span>Invited {new Date(member.invited_at).toLocaleDateString()}</span>
               </>
@@ -138,7 +168,7 @@ function MemberCard({
         </div>
       </div>
 
-      {(canChangeRole || canRemove) && (
+      {(canChangeRole || canRemove || isPending) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -146,6 +176,18 @@ function MemberCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {/* Copy invite link for pending members */}
+            {isPending && member.invited_email && (
+              <>
+                <DropdownMenuItem
+                  onClick={() => copyInviteLink(member.invited_email!)}
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy Invite Link
+                </DropdownMenuItem>
+                {(canChangeRole || canRemove) && <DropdownMenuSeparator />}
+              </>
+            )}
             {canChangeRole && (
               <>
                 <DropdownMenuItem
@@ -199,6 +241,7 @@ export default function TeamSettingsPage() {
   const removeMutation = useRemoveMember()
 
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
+  const [inviteName, setInviteName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<'admin' | 'staff' | 'viewer'>('staff')
 
@@ -209,11 +252,16 @@ export default function TeamSettingsPage() {
   const handleInvite = () => {
     if (!inviteEmail) return
 
+    const emailToInvite = inviteEmail // Capture before clearing
+
     inviteMutation.mutate(
-      { email: inviteEmail, role: inviteRole },
+      { email: inviteEmail, name: inviteName || undefined, role: inviteRole },
       {
         onSuccess: () => {
+          // Copy invite link to clipboard automatically
+          copyInviteLink(emailToInvite)
           setInviteDialogOpen(false)
+          setInviteName('')
           setInviteEmail('')
           setInviteRole('staff')
         },
@@ -263,11 +311,21 @@ export default function TeamSettingsPage() {
                   <DialogHeader>
                     <DialogTitle>Invite Team Member</DialogTitle>
                     <DialogDescription>
-                      Send an invitation to join your organization. They'll receive an email with
-                      instructions to get started.
+                      Create an invitation for a team member. After inviting, you can copy the
+                      signup link to share with them directly.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="invite-name">Name</Label>
+                      <Input
+                        id="invite-name"
+                        type="text"
+                        placeholder="John Doe"
+                        value={inviteName}
+                        onChange={(e) => setInviteName(e.target.value)}
+                      />
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="invite-email">Email Address</Label>
                       <Input
