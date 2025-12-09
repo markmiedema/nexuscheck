@@ -171,7 +171,11 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
   }, [analysisId, refreshTrigger])
 
   // Create a Set for quick registered state lookup
-  const registeredSet = useMemo(() => new Set(registeredStates), [registeredStates])
+  // Defensive: ensure registeredStates is an array before creating Set
+  const registeredSet = useMemo(() => {
+    const states = Array.isArray(registeredStates) ? registeredStates : []
+    return new Set(states)
+  }, [registeredStates])
 
   // Combined filtering and sorting logic
   const displayedStates = useMemo<{

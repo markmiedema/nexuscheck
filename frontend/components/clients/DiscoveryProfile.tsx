@@ -159,7 +159,10 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
   const [estimatedRevenue, setEstimatedRevenue] = useState(initialData?.estimated_annual_revenue || '')
   const [transactionVolume, setTransactionVolume] = useState(initialData?.transaction_volume || '')
   const [registrationCount, setRegistrationCount] = useState(initialData?.current_registration_count || 0)
-  const [registeredStates, setRegisteredStates] = useState<string[]>(initialData?.registered_states || [])
+  // Defensive: ensure registered_states is an array
+  const [registeredStates, setRegisteredStates] = useState<string[]>(
+    Array.isArray(initialData?.registered_states) ? initialData.registered_states : []
+  )
   const [discoveryNotes, setDiscoveryNotes] = useState(initialData?.discovery_notes || '')
   // Tech integration fields
   const [erpSystem, setErpSystem] = useState(initialData?.erp_system || '')
