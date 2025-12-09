@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import ExcelJS from 'exceljs'
+import { toast } from 'sonner'
 import apiClient from '@/lib/api/client'
-import { getStateDetail } from '@/lib/api'
+import { getStateDetail, StateDetailResponse } from '@/lib/api'
 import { queryKeys } from '@/lib/api/queryKeys'
 import { StateResult } from '@/types/states'
+import { Analysis } from '@/lib/api/analyses'
+import { generateNexusExcelExport, generateExportFilename } from '@/lib/export/nexusExcelExport'
 import {
   Table,
   TableBody,
@@ -272,175 +274,80 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
     setQuickViewOpen(true)
   }, [])
 
-  // Export state results to Excel with formatting
-  const handleExportCSV = useCallback(async () => {
-    // Combine all displayed states in priority order
-    const allDisplayed = [
-      ...displayedStates.hasNexus,
-      ...displayedStates.approaching,
-      ...displayedStates.salesNoNexus,
-      ...displayedStates.noSales
-    ]
+  // Export state to track if export is in progress
+  const [isExporting, setIsExporting] = useState(false)
 
-    if (allDisplayed.length === 0) {
+  // Comprehensive Excel export with 5 sheets
+  const handleExportExcel = useCallback(async () => {
+    if (isExporting) return
+
+    // Get all states from the data
+    if (states.length === 0) {
+      toast.error('No data to export')
       return
     }
 
-    // Helper to format threshold percentage
-    const formatThresholdPercent = (percent: number): string => {
-      if (percent >= 100) {
-        return 'Met'
-      }
-      return `${percent.toFixed(1)}%`
-    }
+    setIsExporting(true)
+    const loadingToast = toast.loading('Generating comprehensive Excel report...')
 
-    // Helper to get status label
-    const getStatusLabel = (state: StateResult): string => {
-      if (state.nexus_type === 'both') return 'Physical + Economic'
-      if (state.nexus_type === 'physical') return 'Physical Nexus'
-      if (state.nexus_type === 'economic') return 'Economic Nexus'
-      if (state.nexus_status === 'approaching') return 'Approaching'
-      return 'No Nexus'
-    }
+    try {
+      // Fetch analysis details for company name and period
+      const analysisResponse = await apiClient.get<Analysis>(`/api/v1/analyses/${analysisId}`)
+      const analysis = analysisResponse.data
 
-    // Helper to calculate liability breakdown
-    const getLiabilityValues = (state: StateResult) => {
-      const baseTax = state.base_tax ?? state.estimated_liability
-      const interest = state.interest ?? 0
-      const penalties = state.penalties ?? 0
-      return {
-        taxLiability: baseTax,
-        penaltiesAndInterest: interest + penalties,
-        totalLiability: baseTax + interest + penalties
-      }
-    }
+      // Filter to nexus states for fetching detailed data
+      const nexusStates = states.filter(
+        s => s.nexus_status === 'has_nexus' || s.nexus_type !== 'none'
+      )
 
-    // Helper to get transaction count with fallback to year_data
-    const getTransactionCount = (state: StateResult): number => {
-      if (state.transaction_count && state.transaction_count > 0) {
-        return state.transaction_count
-      }
-      // Fallback: sum from year_data if available
-      if (state.year_data && state.year_data.length > 0) {
-        return state.year_data.reduce((sum, yd) => {
-          const count = yd.summary?.transaction_count || 0
-          return sum + count
-        }, 0)
-      }
-      return 0
-    }
+      // Fetch state details for each nexus state (for tax rates and compliance info)
+      const stateDetails = new Map<string, StateDetailResponse>()
 
-    // Create workbook and worksheet
-    const workbook = new ExcelJS.Workbook()
-    const worksheet = workbook.addWorksheet('State Results')
-
-    // Define columns with headers and widths
-    worksheet.columns = [
-      { header: 'State', key: 'state', width: 24 },
-      { header: 'Status', key: 'status', width: 18 },
-      { header: 'Operator', key: 'operator', width: 10 },
-      { header: 'Threshold', key: 'threshold', width: 20 },
-      { header: 'Threshold %', key: 'thresholdPct', width: 12 },
-      { header: 'Transactions', key: 'transactions', width: 13 },
-      { header: 'Gross Sales', key: 'grossSales', width: 14 },
-      { header: 'Taxable Sales', key: 'taxableSales', width: 14 },
-      { header: 'Exempt Sales', key: 'exemptSales', width: 14 },
-      { header: 'Exposure Sales', key: 'exposureSales', width: 15 },
-      { header: 'Tax Liability', key: 'taxLiability', width: 14 },
-      { header: 'P&I', key: 'pi', width: 12 },
-      { header: 'Total Liability', key: 'totalLiability', width: 15 },
-    ]
-
-    // Style header row - bold and centered
-    const headerRow = worksheet.getRow(1)
-    headerRow.font = { bold: true }
-    headerRow.alignment = { horizontal: 'center', vertical: 'middle' }
-    headerRow.eachCell((cell) => {
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE0E0E0' }
-      }
-      cell.border = {
-        bottom: { style: 'thin', color: { argb: 'FF000000' } }
-      }
-    })
-
-    // Add data rows
-    allDisplayed.forEach(state => {
-      const liability = getLiabilityValues(state)
-      // Format threshold with transaction threshold if available
-      const thresholdFormatted = state.threshold
-        ? state.transaction_threshold
-          ? `$${state.threshold.toLocaleString()} / ${state.transaction_threshold.toLocaleString()}`
-          : `$${state.threshold.toLocaleString()}`
-        : '-'
-
-      worksheet.addRow({
-        state: `${state.state_name} (${state.state_code})`,
-        status: getStatusLabel(state),
-        operator: (state.threshold_operator || 'or').toUpperCase(),
-        threshold: thresholdFormatted,
-        thresholdPct: formatThresholdPercent(state.threshold_percent),
-        transactions: getTransactionCount(state),
-        grossSales: state.total_sales,
-        taxableSales: state.taxable_sales,
-        exemptSales: state.exempt_sales,
-        exposureSales: state.exposure_sales || 0,
-        taxLiability: liability.taxLiability,
-        pi: liability.penaltiesAndInterest,
-        totalLiability: liability.totalLiability
-      })
-    })
-
-    // Apply formatting to data rows
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber > 1) {
-        // Center align all cells
-        row.alignment = { horizontal: 'center', vertical: 'middle' }
-
-        // Format currency columns (7-13=sales/liability; threshold is now a formatted string)
-        const currencyColumns = [7, 8, 9, 10, 11, 12, 13]
-        currencyColumns.forEach(colNum => {
-          const cell = row.getCell(colNum)
-          if (typeof cell.value === 'number') {
-            cell.numFmt = '$#,##0.00'
+      // Fetch state details in parallel (batch of 5 at a time to avoid overwhelming the API)
+      const batchSize = 5
+      for (let i = 0; i < nexusStates.length; i += batchSize) {
+        const batch = nexusStates.slice(i, i + batchSize)
+        const detailPromises = batch.map(state =>
+          getStateDetail(analysisId, state.state_code)
+            .then(detail => ({ code: state.state_code, detail }))
+            .catch(() => ({ code: state.state_code, detail: null }))
+        )
+        const results = await Promise.all(detailPromises)
+        results.forEach(({ code, detail }) => {
+          if (detail) {
+            stateDetails.set(code, detail)
           }
         })
-
-        // Format transactions column (6) with commas
-        const transCell = row.getCell(6)
-        if (typeof transCell.value === 'number') {
-          transCell.numFmt = '#,##0'
-        }
       }
-    })
 
-    // Add auto-filter to header row
-    worksheet.autoFilter = {
-      from: { row: 1, column: 1 },
-      to: { row: allDisplayed.length + 1, column: 13 }
+      // Generate the comprehensive Excel export
+      const blob = await generateNexusExcelExport({
+        analysis,
+        states,
+        stateDetails
+      })
+
+      // Download the file
+      const filename = generateExportFilename(analysis.client_company_name || 'Analysis')
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      toast.dismiss(loadingToast)
+      toast.success('Excel report downloaded successfully')
+    } catch (error) {
+      console.error('Export failed:', error)
+      toast.dismiss(loadingToast)
+      toast.error('Failed to generate Excel report')
+    } finally {
+      setIsExporting(false)
     }
-
-    // Generate filename with company name and current date
-    const currentDate = new Date().toISOString().split('T')[0]
-    const sanitizedCompanyName = companyName
-      ? companyName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-')
-      : 'Analysis'
-    const filename = `${sanitizedCompanyName}-State-Results-${currentDate}.xlsx`
-
-    // Write to buffer and download
-    const buffer = await workbook.xlsx.writeBuffer()
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-  }, [displayedStates, companyName])
+  }, [states, analysisId, isExporting])
 
   if (loading) {
     return <SkeletonTable rows={10} columns={9} />
@@ -532,9 +439,15 @@ export default function StateTable({ analysisId, embedded = false, refreshTrigge
             </PopoverContent>
           </Popover>
 
-          <Button variant="outline" size="sm" className="border-border" onClick={handleExportCSV}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-border"
+            onClick={handleExportExcel}
+            disabled={isExporting}
+          >
             <Download className="h-4 w-4 mr-2" />
-            Export
+            {isExporting ? 'Exporting...' : 'Export'}
           </Button>
         </div>
       </div>
