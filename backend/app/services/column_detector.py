@@ -749,15 +749,20 @@ class ColumnDetector:
         # Track validation errors
         validation_errors = []
 
-        # 1. Normalize dates with error tracking
+        # 1. Normalize dates with error tracking (vectorized)
         if 'transaction_date' in df.columns:
             date_col = 'transaction_date'
-            for idx, value in enumerate(df[date_col]):
+
+            def safe_normalize_date(value, idx):
                 try:
-                    df.at[idx, date_col] = self.normalize_date(value)
+                    return self.normalize_date(value), None
                 except ValueError as e:
-                    validation_errors.append(f"Row {idx + 2}: {str(e)}")
-                    df.at[idx, date_col] = None
+                    return None, f"Row {idx + 2}: {str(e)}"
+
+            # Apply vectorized with index for error tracking
+            results = [safe_normalize_date(val, idx) for idx, val in enumerate(df[date_col].values)]
+            df[date_col] = [r[0] for r in results]
+            validation_errors = [r[1] for r in results if r[1] is not None]
 
             # If too many errors, raise exception
             if len(validation_errors) > len(df) * 0.1:  # More than 10% invalid
@@ -800,25 +805,25 @@ class ColumnDetector:
             df['revenue_stream'] = df['revenue_stream'].apply(self.normalize_revenue_stream)
             transformations.append('Normalized revenue streams to standard categories')
 
-        # 5. Calculate taxable amounts
+        # 5. Calculate taxable amounts (vectorized)
         if 'revenue_amount' in df.columns:
-            df['taxable_amount'] = None
-            df['is_taxable'] = None
-            df['exempt_amount_calc'] = None
+            has_is_taxable = 'is_taxable' in df.columns
+            has_exempt = 'exempt_amount' in df.columns
+            has_taxability = 'taxability' in df.columns
 
-            for idx, row in df.iterrows():
-                revenue = row.get('revenue_amount')
-                is_tax = row.get('is_taxable') if 'is_taxable' in df.columns else None
-                exempt = row.get('exempt_amount') if 'exempt_amount' in df.columns else None
-                taxability = row.get('taxability') if 'taxability' in df.columns else None
-
-                taxable, is_taxable_bool, exempt_calc = self.calculate_taxable_amount(
-                    revenue, is_tax, exempt, taxability
+            def calc_row(row):
+                return self.calculate_taxable_amount(
+                    row['revenue_amount'],
+                    row.get('is_taxable') if has_is_taxable else None,
+                    row.get('exempt_amount') if has_exempt else None,
+                    row.get('taxability') if has_taxability else None
                 )
 
-                df.at[idx, 'taxable_amount'] = taxable
-                df.at[idx, 'is_taxable'] = is_taxable_bool
-                df.at[idx, 'exempt_amount_calc'] = exempt_calc
+            # Apply to all rows at once and unpack results
+            results = df.apply(calc_row, axis=1)
+            df['taxable_amount'] = results.apply(lambda x: x[0])
+            df['is_taxable'] = results.apply(lambda x: x[1])
+            df['exempt_amount_calc'] = results.apply(lambda x: x[2])
 
             transformations.append('Calculated taxable amounts based on taxability and exempt sales data')
 

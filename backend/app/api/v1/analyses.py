@@ -830,24 +830,44 @@ async def validate_and_save_mappings(
                 detail="No valid transactions after normalization and validation"
             )
 
-        # Prepare transactions for insertion
-        transactions = []
-        for _, row in normalized_df.iterrows():
-            transaction = {
-                "analysis_id": analysis_id,
-                "transaction_date": row['transaction_date'],
-                "customer_state": str(row['customer_state']).strip().upper(),
-                "sales_amount": float(row['revenue_amount']),
-                "sales_channel": str(row['sales_channel']).strip().lower(),
-                "transaction_count": 1,
-                "tax_collected": None,
-                # New columns for Days 6-8
-                "revenue_stream": str(row['revenue_stream']) if 'revenue_stream' in row and pd.notna(row['revenue_stream']) else None,
-                "is_taxable": bool(row['is_taxable']) if 'is_taxable' in row and pd.notna(row['is_taxable']) else True,
-                "taxable_amount": float(row['taxable_amount']) if 'taxable_amount' in row and pd.notna(row['taxable_amount']) else float(row['revenue_amount']),
-                "exempt_amount": float(row['exempt_amount_calc']) if 'exempt_amount_calc' in row and pd.notna(row['exempt_amount_calc']) else 0.0,
-            }
-            transactions.append(transaction)
+        # Prepare transactions for insertion (vectorized)
+        # Build DataFrame with transformed columns to avoid row-by-row iteration
+        txn_df = pd.DataFrame()
+        txn_df['analysis_id'] = analysis_id
+        txn_df['transaction_date'] = normalized_df['transaction_date'].values
+        txn_df['customer_state'] = normalized_df['customer_state'].str.strip().str.upper()
+        txn_df['sales_amount'] = normalized_df['revenue_amount'].astype(float)
+        txn_df['sales_channel'] = normalized_df['sales_channel'].str.strip().str.lower()
+        txn_df['transaction_count'] = 1
+        txn_df['tax_collected'] = None
+
+        # Handle optional columns with defaults
+        if 'revenue_stream' in normalized_df.columns:
+            txn_df['revenue_stream'] = normalized_df['revenue_stream'].where(
+                pd.notna(normalized_df['revenue_stream']), None
+            )
+        else:
+            txn_df['revenue_stream'] = None
+
+        if 'is_taxable' in normalized_df.columns:
+            txn_df['is_taxable'] = normalized_df['is_taxable'].fillna(True).astype(bool)
+        else:
+            txn_df['is_taxable'] = True
+
+        if 'taxable_amount' in normalized_df.columns:
+            txn_df['taxable_amount'] = normalized_df['taxable_amount'].fillna(
+                normalized_df['revenue_amount']
+            ).astype(float)
+        else:
+            txn_df['taxable_amount'] = normalized_df['revenue_amount'].astype(float)
+
+        if 'exempt_amount_calc' in normalized_df.columns:
+            txn_df['exempt_amount'] = normalized_df['exempt_amount_calc'].fillna(0.0).astype(float)
+        else:
+            txn_df['exempt_amount'] = 0.0
+
+        # Convert to list of dicts in one operation
+        transactions = txn_df.to_dict(orient='records')
 
         # Insert transactions in batches
         batch_size = 1000
