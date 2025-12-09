@@ -147,9 +147,14 @@ export function useToggleRegistration(
       }
     },
     onSettled: () => {
-      // Refetch to ensure consistency
-      queryClient.invalidateQueries({ queryKey })
+      // Only invalidate if no other mutations are in flight
+      // This prevents refetch from overwriting optimistic updates of subsequent mutations
+      const isMutating = queryClient.isMutating({ mutationKey: ['toggleRegistration', analysisId, clientId] })
+      if (isMutating <= 1) {
+        queryClient.invalidateQueries({ queryKey })
+      }
     },
+    mutationKey: ['toggleRegistration', analysisId, clientId],
   })
 }
 
