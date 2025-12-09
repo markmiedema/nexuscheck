@@ -29,6 +29,7 @@ class NexusCalculatorV2:
     def __init__(self, supabase_client):
         self.supabase = supabase_client
         self.interest_calculator = PenaltyInterestCalculator(supabase_client)
+        self._interest_penalty_cache: Dict[str, Dict] = {}  # Cache for interest/penalty configs
 
     # ========================================================================
     # Main Entry Point
@@ -56,6 +57,9 @@ class NexusCalculatorV2:
             tax_rates = self._get_tax_rates()
             mf_rules = self._get_marketplace_facilitator_rules()
             all_state_codes = self._get_all_state_codes()
+
+            # Bulk load interest/penalty configs (single query instead of 200+)
+            self._load_all_interest_penalty_configs()
 
             # Get physical nexus data for this analysis
             physical_nexus_states = self._get_physical_nexus(analysis_id)
@@ -1398,12 +1402,47 @@ class NexusCalculatorV2:
             logger.error(f"Error fetching marketplace facilitator rules: {str(e)}")
             raise
 
+    def _load_all_interest_penalty_configs(self) -> None:
+        """
+        Bulk load all interest/penalty configurations in a single query.
+
+        This replaces 200+ individual queries with a single query.
+        Results are cached in self._interest_penalty_cache.
+        """
+        try:
+            result = self.supabase.table('interest_penalty_rates') \
+                .select('*') \
+                .is_('effective_to', 'null') \
+                .execute()
+
+            # Build cache keyed by state code
+            self._interest_penalty_cache = {}
+            for row in result.data:
+                state_code = row.get('state')
+                if state_code:
+                    self._interest_penalty_cache[state_code] = row
+
+            logger.info(f"Loaded interest/penalty configs for {len(self._interest_penalty_cache)} states")
+
+        except Exception as e:
+            logger.error(f"Error bulk loading interest/penalty configs: {str(e)}")
+            self._interest_penalty_cache = {}
+
     def _get_interest_penalty_config(self, state_code: str) -> Optional[Dict]:
         """
         Get current interest/penalty configuration for a state.
 
-        Phase 2: Fetch from interest_penalty_rates table.
+        Uses cached data from _load_all_interest_penalty_configs().
+        Falls back to individual query if cache is empty.
         """
+        # Use cache if available
+        if self._interest_penalty_cache:
+            config = self._interest_penalty_cache.get(state_code)
+            if not config:
+                logger.warning(f"No interest/penalty config for {state_code}, using defaults")
+            return config
+
+        # Fallback to individual query if cache wasn't loaded
         try:
             result = self.supabase.table('interest_penalty_rates') \
                 .select('*') \
