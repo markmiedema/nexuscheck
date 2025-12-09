@@ -117,8 +117,6 @@ export default function SettingsPage() {
                 description="Company name, branding, and contact information"
                 icon={<Building2 className="h-5 w-5" />}
                 href="/settings/agency"
-                badge="Coming Soon"
-                disabled
               />
 
               <SettingsCard
@@ -126,8 +124,6 @@ export default function SettingsPage() {
                 description="Invite and manage team members"
                 icon={<Users className="h-5 w-5" />}
                 href="/settings/team"
-                badge="Coming Soon"
-                disabled
               />
 
               <SettingsCard

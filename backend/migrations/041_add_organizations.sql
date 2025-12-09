@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS organization_members (
 
   -- Relationships
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE, -- Nullable for pending invites
 
   -- Role within organization
   role VARCHAR(20) NOT NULL DEFAULT 'staff',
@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS organization_members (
   -- 'viewer' : Read-only access
 
   -- Invitation tracking
+  invited_email VARCHAR(255), -- Email for pending invites (before user accepts)
   invited_by_user_id UUID REFERENCES auth.users(id),
   invited_at TIMESTAMPTZ,
   accepted_at TIMESTAMPTZ,
@@ -90,7 +91,8 @@ CREATE TABLE IF NOT EXISTS organization_members (
 
   -- Constraints
   CONSTRAINT valid_role CHECK (role IN ('owner', 'admin', 'staff', 'viewer')),
-  CONSTRAINT unique_org_member UNIQUE (organization_id, user_id)
+  CONSTRAINT unique_org_member UNIQUE (organization_id, user_id),
+  CONSTRAINT unique_org_invite UNIQUE (organization_id, invited_email)
 );
 
 -- Indexes
