@@ -126,12 +126,12 @@ export function usePhysicalNexusConfig(
       // Physical nexus changes should update state results immediately
       await triggerRecalculation()
 
-      // Sync to client Discovery profile if clientId provided
-      await syncToClientProfile(stateCode!, payload.nexus_date, isUpdate ? 'update' : 'add', data.nexus_type)
-
-      // Log activity note AFTER recalculation so summary reflects updated state
+      // Run non-critical operations in background (don't block UI)
       const action = isUpdate ? 'Updated' : 'Added'
-      await logActivityNote(`${action} physical nexus for ${stateCode}: ${data.reason}`, true)
+      Promise.all([
+        syncToClientProfile(stateCode!, payload.nexus_date, isUpdate ? 'update' : 'add', data.nexus_type),
+        logActivityNote(`${action} physical nexus for ${stateCode}: ${data.reason}`, true)
+      ]).catch(err => console.warn('Background sync failed:', err))
     } catch (error: any) {
       console.error('Failed to save physical nexus:', error)
       toast({
@@ -178,11 +178,11 @@ export function usePhysicalNexusConfig(
       // ENHANCEMENT: Trigger recalculation after deletion
       await triggerRecalculation()
 
-      // Sync deletion to client Discovery profile if clientId provided
-      await syncToClientProfile(stateCode, '', 'delete')
-
-      // Log activity note AFTER recalculation so summary reflects updated state
-      await logActivityNote(`Removed physical nexus for ${stateCode}`, true)
+      // Run non-critical operations in background (don't block UI)
+      Promise.all([
+        syncToClientProfile(stateCode, '', 'delete'),
+        logActivityNote(`Removed physical nexus for ${stateCode}`, true)
+      ]).catch(err => console.warn('Background sync failed:', err))
     } catch (error: any) {
       console.error('Failed to delete physical nexus:', error)
       toast({
@@ -249,8 +249,9 @@ export function usePhysicalNexusConfig(
       // ENHANCEMENT: Trigger recalculation after import
       await triggerRecalculation()
 
-      // Log activity note AFTER recalculation so summary reflects updated state
-      await logActivityNote(`Imported physical nexus config: ${response.data.imported_count} new, ${response.data.updated_count} updated`, true)
+      // Log activity note in background (don't block UI)
+      logActivityNote(`Imported physical nexus config: ${response.data.imported_count} new, ${response.data.updated_count} updated`, true)
+        .catch(err => console.warn('Background note failed:', err))
 
       if (response.data.errors.length > 0) {
         console.error('Import errors:', response.data.errors)
@@ -387,26 +388,14 @@ export function usePhysicalNexusConfig(
     }
   }
 
-  // ENHANCEMENT: Trigger analysis recalculation and wait for completion
+  // ENHANCEMENT: Trigger analysis recalculation
+  // The /recalculate endpoint is synchronous - it returns after calculation completes
   const triggerRecalculation = async () => {
     try {
       await apiClient.post(`/api/v1/analyses/${analysisId}/recalculate`)
-      console.log('Analysis recalculation triggered')
+      console.log('Analysis recalculation complete')
 
-      // Poll for completion so activity notes have updated data
-      let attempts = 0
-      const maxAttempts = 15 // 15 seconds max wait
-
-      while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        const statusResponse = await apiClient.get(`/api/v1/analyses/${analysisId}`)
-        if (statusResponse.data.status === 'complete') {
-          break
-        }
-        attempts++
-      }
-
-      // Call callback if provided to refresh parent component
+      // Call callback immediately - no polling needed since recalculate is synchronous
       if (options?.onRecalculated) {
         await options.onRecalculated()
       }
