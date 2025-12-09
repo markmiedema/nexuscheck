@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useClients, useDeleteClient } from '@/hooks/queries'
 import { type Client } from '@/lib/api/clients'
@@ -40,7 +40,7 @@ type SortConfig = {
   direction: 'asc' | 'desc'
 }
 
-export default function ClientsPage() {
+function ClientsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -314,5 +314,20 @@ export default function ClientsPage() {
         </AppLayout>
       </ErrorBoundary>
     </ProtectedRoute>
+  )
+}
+
+export default function ClientsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-ring"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ClientsPageContent />
+    </Suspense>
   )
 }
