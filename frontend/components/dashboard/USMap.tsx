@@ -28,7 +28,11 @@ const USMap = memo(function USMap({ stateData, analysisId, onStateClick, registe
   const [hoveredState, setHoveredState] = useState<string | null>(null)
 
   // Create a Set for quick registered state lookup (memoized)
-  const registeredSet = useMemo(() => new Set(registeredStates), [registeredStates])
+  // Defensive: ensure registeredStates is an array before creating Set
+  const registeredSet = useMemo(() => {
+    const states = Array.isArray(registeredStates) ? registeredStates : []
+    return new Set(states)
+  }, [registeredStates])
 
   // Create a map of state codes to their data for quick lookup (memoized)
   const stateDataMap = useMemo(() => {
