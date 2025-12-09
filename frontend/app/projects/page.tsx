@@ -34,7 +34,6 @@ import {
   ArrowUp,
   ArrowDown,
   Zap,
-  Send,
 } from 'lucide-react'
 
 type SortConfig = {
@@ -104,9 +103,7 @@ export default function ProjectsPage() {
 
     // 2. Filter by Tab
     if (activeTab === 'complete') {
-      filtered = filtered.filter((a: Analysis) => a.status === 'complete')
-    } else if (activeTab === 'presented') {
-      filtered = filtered.filter((a: Analysis) => a.status === 'presented')
+      filtered = filtered.filter((a: Analysis) => a.status === 'complete' || a.status === 'presented')
     } else if (activeTab === 'active') {
       filtered = filtered.filter((a: Analysis) => a.status === 'draft' || a.status === 'processing')
     }
@@ -128,8 +125,7 @@ export default function ProjectsPage() {
       stats: {
         totalProjects: analyses.length,
         activeCount: analyses.filter((a: Analysis) => a.status === 'draft' || a.status === 'processing').length,
-        completeCount: analyses.filter((a: Analysis) => a.status === 'complete').length,
-        presentedCount: analyses.filter((a: Analysis) => a.status === 'presented').length,
+        completeCount: analyses.filter((a: Analysis) => a.status === 'complete' || a.status === 'presented').length,
         errorCount: analyses.filter((a: Analysis) => a.status === 'error').length,
       }
     }
@@ -147,7 +143,7 @@ export default function ProjectsPage() {
       case 'presented':
         return (
           <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200 shadow-none">
-            <Send className="h-3 w-3 mr-1" />
+            <CheckCircle2 className="h-3 w-3 mr-1" />
             Presented
           </Badge>
         )
@@ -198,13 +194,12 @@ export default function ProjectsPage() {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
               { label: 'Active', value: stats.activeCount, icon: Clock, color: 'text-blue-600' },
               { label: 'Completed', value: stats.completeCount, icon: CheckCircle2, color: 'text-emerald-600' },
-              { label: 'Presented', value: stats.presentedCount, icon: Send, color: 'text-purple-600' },
               { label: 'Errors', value: stats.errorCount, icon: AlertCircle, color: 'text-red-500' },
-              { label: 'Total', value: stats.totalProjects, icon: FolderKanban, color: 'text-slate-600' },
+              { label: 'Total', value: stats.totalProjects, icon: FolderKanban, color: 'text-purple-600' },
             ].map((stat, i) => (
               <Card key={i} className="p-4 bg-card/50 backdrop-blur-sm border-border/60 shadow-sm flex items-center justify-between">
                 <div>
@@ -228,7 +223,6 @@ export default function ProjectsPage() {
                 { id: 'all', label: 'All Projects', content: null },
                 { id: 'active', label: 'In Progress', content: null },
                 { id: 'complete', label: 'Completed', content: null },
-                { id: 'presented', label: 'Presented', content: null },
               ]}
             />
 
@@ -258,7 +252,6 @@ export default function ProjectsPage() {
 
               <h3 className="text-lg font-semibold text-foreground">
                 {activeTab === 'complete' ? 'No completed projects' :
-                 activeTab === 'presented' ? 'No presented projects' :
                  activeTab === 'active' ? 'No active projects' :
                  'No projects yet'}
               </h3>
