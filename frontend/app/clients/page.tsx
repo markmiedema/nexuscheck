@@ -205,7 +205,7 @@ function ClientsPageContent() {
           {/* TABS & FILTERS */}
           <div className="space-y-4 mb-6">
              <TabsCustom
-                defaultTab="active"
+                activeTab={activeTab}
                 onTabChange={setActiveTab}
                 variant="pills"
                 items={[
