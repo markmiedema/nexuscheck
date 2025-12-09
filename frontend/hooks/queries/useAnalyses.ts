@@ -119,3 +119,101 @@ export function useAnalysisWithPolling(
     },
   })
 }
+
+export interface ColumnInfo {
+  name: string
+  sample_values: string[]
+  data_type: string
+}
+
+export interface DataSummary {
+  total_rows: number
+  date_range: {
+    start: string
+    end: string
+  }
+  unique_states: number
+  estimated_time: string
+}
+
+export interface ColumnsResponse {
+  columns: ColumnInfo[]
+  summary: DataSummary
+}
+
+/**
+ * Fetch column information for an analysis (used in mapping page)
+ */
+export function useAnalysisColumns(analysisId: string | undefined) {
+  return useQuery({
+    queryKey: [...queryKeys.analyses.detail(analysisId!), 'columns'] as const,
+    queryFn: async () => {
+      const response = await apiClient.get(`/api/v1/analyses/${analysisId}/columns`)
+      return response.data as ColumnsResponse
+    },
+    enabled: !!analysisId,
+  })
+}
+
+export interface AnalysisResultsSummary {
+  summary: {
+    total_states_analyzed: number
+    states_with_nexus: number
+    total_estimated_liability: number
+  }
+  nexus_breakdown: {
+    economic_nexus: number
+    physical_nexus: number
+    no_nexus: number
+    both: number
+  }
+  top_states_by_liability: Array<{
+    state: string
+    estimated_liability: number
+    nexus_type: string
+    total_sales: number
+  }>
+  approaching_threshold: Array<{
+    state: string
+    total_sales: number
+    threshold: number
+  }>
+}
+
+/**
+ * Fetch analysis results summary
+ */
+export function useAnalysisResultsSummary(analysisId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.analyses.results(analysisId!),
+    queryFn: async () => {
+      const response = await apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`)
+      return response.data as AnalysisResultsSummary
+    },
+    enabled: !!analysisId,
+  })
+}
+
+/**
+ * Trigger analysis calculation
+ */
+export function useCalculateAnalysis() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (analysisId: string) => {
+      await apiClient.post(`/api/v1/analyses/${analysisId}/calculate`)
+      return analysisId
+    },
+    onSuccess: (analysisId) => {
+      // Invalidate results and analysis detail to refetch
+      queryClient.invalidateQueries({ queryKey: queryKeys.analyses.results(analysisId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.analyses.states(analysisId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.analyses.detail(analysisId) })
+      toast.success('Calculation complete')
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Failed to calculate nexus')
+    },
+  })
+}

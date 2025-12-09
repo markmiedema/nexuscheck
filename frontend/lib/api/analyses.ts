@@ -3,6 +3,7 @@ import apiClient from './client'
 export interface Analysis {
   id: string
   user_id: string
+  client_id?: string | null
   client_company_name: string
   industry?: string
   business_type: string
@@ -11,6 +12,8 @@ export interface Analysis {
   status: 'draft' | 'processing' | 'complete' | 'error'
   total_liability?: number
   states_with_nexus?: number
+  total_transactions?: number
+  unique_states?: number
   created_at: string
   updated_at: string
 }

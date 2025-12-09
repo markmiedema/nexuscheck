@@ -1,18 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { useQueryClient } from '@tanstack/react-query'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/button'
-import apiClient from '@/lib/api/client'
 import StateTable from '@/components/analysis/StateTable'
 import { PhysicalNexusManager } from '@/components/analysis/PhysicalNexusManager'
 import { ReportDownload } from '@/components/analysis/ReportDownload'
 import { ErrorBoundary } from '@/components/error-boundary'
-import { StateResult as StateResultMap } from '@/types/states'
-import { handleApiError, showError } from '@/lib/utils/errorHandler'
+import {
+  useAnalysis,
+  useAnalysisResultsSummary,
+  useCalculateAnalysis,
+  useStateResults,
+  useRegistrationsQuery,
+  queryKeys,
+} from '@/hooks/queries'
 
 // Format ISO date to US format (MM/DD/YYYY)
 const formatDateUS = (isoDate: string): string => {
@@ -35,191 +41,53 @@ const USMap = dynamic(() => import('@/components/dashboard/USMap'), {
   ssr: false,
 })
 
-interface AnalysisSummary {
-  company_name: string
-  period_start: string
-  period_end: string
-  total_transactions: number
-  unique_states: number
-  completed_at: string
-  client_id?: string
-}
-
-interface CalculationResults {
-  summary: {
-    total_states_analyzed: number
-    states_with_nexus: number
-    total_estimated_liability: number
-  }
-  nexus_breakdown: {
-    economic_nexus: number
-    physical_nexus: number
-    no_nexus: number
-    both: number
-  }
-  top_states_by_liability: Array<{
-    state: string
-    estimated_liability: number
-    nexus_type: string
-    total_sales: number
-  }>
-  approaching_threshold: Array<{
-    state: string
-    total_sales: number
-    threshold: number
-  }>
-}
-
 export default function ResultsPage() {
   const params = useParams()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const analysisId = params.id as string
 
-  const [loading, setLoading] = useState(true)
-  const [calculating, setCalculating] = useState(false)
-  const [summary, setSummary] = useState<AnalysisSummary | null>(null)
-  const [results, setResults] = useState<CalculationResults | null>(null)
-  const [stateResults, setStateResults] = useState<StateResultMap[]>([])
-  const [calculationStatus, setCalculationStatus] = useState<'pending' | 'calculated' | 'error'>('pending')
-  const [refreshTrigger, setRefreshTrigger] = useState(0)
-  const [error, setError] = useState<string | null>(null)
-  const [registeredStates, setRegisteredStates] = useState<string[]>([])
+  // Fetch analysis data
+  const {
+    data: analysis,
+    isLoading: analysisLoading,
+    error: analysisError,
+    refetch: refetchAnalysis,
+  } = useAnalysis(analysisId)
 
-  useEffect(() => {
-    fetchAnalysisSummary()
-  }, [analysisId])
+  // Determine if analysis is complete
+  const isComplete = analysis?.status === 'complete'
 
-  const fetchAnalysisSummary = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const response = await apiClient.get(`/api/v1/analyses/${analysisId}`)
-      const data = response.data
+  // Fetch results summary (only if analysis is complete)
+  const {
+    data: results,
+    isLoading: resultsLoading,
+  } = useAnalysisResultsSummary(isComplete ? analysisId : undefined)
 
-      // Validate response data
-      if (!data || !data.client_company_name) {
-        throw new Error('Invalid analysis data received')
-      }
+  // Fetch state results (only if analysis is complete)
+  const {
+    data: stateResultsData,
+  } = useStateResults(isComplete ? analysisId : undefined)
 
-      setSummary({
-        company_name: data.client_company_name,
-        period_start: data.analysis_period_start,
-        period_end: data.analysis_period_end,
-        total_transactions: data.total_transactions || 0,
-        unique_states: data.unique_states || 0,
-        completed_at: new Date().toISOString(),
-        client_id: data.client_id || undefined
-      })
+  const stateResults = stateResultsData?.states || []
 
-      // Fetch registered states (from client if linked, otherwise from analysis)
-      fetchRegisteredStates(data.client_id || undefined)
+  // Fetch registered states - use client storage if linked, otherwise analysis storage
+  const {
+    data: registeredStates = [],
+  } = useRegistrationsQuery(analysisId, analysis?.client_id || undefined)
 
-      // Check if calculation has already been done
-      if (data.status === 'complete') {
-        fetchResults()
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch analysis summary:', error)
-      const errorMsg = handleApiError(error, {
-        userMessage: 'Failed to load analysis summary. Please try refreshing the page.'
-      })
-      setError(errorMsg)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Calculate mutation
+  const calculateMutation = useCalculateAnalysis()
 
-  const handleCalculate = async () => {
-    try {
-      setCalculating(true)
-      setCalculationStatus('pending')
+  // Derive calculation status from data availability
+  const calculationStatus = useMemo(() => {
+    if (analysisLoading || resultsLoading) return 'pending'
+    if (results) return 'calculated'
+    return 'pending'
+  }, [analysisLoading, resultsLoading, results])
 
-      // Trigger calculation
-      await apiClient.post(`/api/v1/analyses/${analysisId}/calculate`)
-
-      // Fetch results
-      await fetchResults()
-
-      setCalculationStatus('calculated')
-    } catch (error: any) {
-      console.error('Failed to calculate nexus:', error)
-      handleApiError(error, {
-        userMessage: 'Failed to calculate nexus. Please try again or contact support if the problem persists.'
-      })
-      setCalculationStatus('error')
-    } finally {
-      setCalculating(false)
-    }
-  }
-
-  const fetchResults = async () => {
-    try {
-      // Parallelize independent API calls to improve performance
-      const [summaryResponse, stateResponse] = await Promise.all([
-        apiClient.get(`/api/v1/analyses/${analysisId}/results/summary`),
-        apiClient.get(`/api/v1/analyses/${analysisId}/results/states`)
-      ])
-
-      // Validate response data
-      if (!summaryResponse.data || !stateResponse.data) {
-        throw new Error('Invalid results data received')
-      }
-
-      setResults(summaryResponse.data)
-      setStateResults(stateResponse.data.states || [])
-      setCalculationStatus('calculated')
-    } catch (error: any) {
-      console.error('Failed to fetch results:', error)
-      // Only show error if this wasn't a 404 (results don't exist yet)
-      if (error.response?.status !== 404) {
-        handleApiError(error, {
-          userMessage: 'Failed to load calculation results.'
-        })
-      }
-      // If results don't exist yet (404), keep status as pending
-    }
-  }
-
-  const fetchStateResults = async () => {
-    try {
-      const response = await apiClient.get(`/api/v1/analyses/${analysisId}/results/states`)
-
-      if (!response.data) {
-        throw new Error('Invalid state results data received')
-      }
-
-      setStateResults(response.data.states || [])
-    } catch (error: any) {
-      console.error('Failed to fetch state results:', error)
-      // Only show error if this wasn't a 404
-      if (error.response?.status !== 404) {
-        handleApiError(error, {
-          userMessage: 'Failed to refresh state results.'
-        })
-      }
-    }
-  }
-
-  const fetchRegisteredStates = async (clientId?: string) => {
-    try {
-      if (clientId) {
-        // Fetch from client
-        const response = await apiClient.get(`/api/v1/clients/${clientId}`)
-        setRegisteredStates(response.data.registered_states || [])
-      } else {
-        // Fetch from analysis (for standalone analyses)
-        const response = await apiClient.get(`/api/v1/analyses/${analysisId}/registrations`)
-        setRegisteredStates(response.data.registered_states || [])
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch registered states:', error)
-      // Non-critical - don't show error toast
-    }
-  }
-
-  const handleRegistrationsUpdate = async () => {
-    // Refresh registered states when registrations change
-    await fetchRegisteredStates(summary?.client_id)
+  const handleCalculate = () => {
+    calculateMutation.mutate(analysisId)
   }
 
   const handleBack = () => {
@@ -227,11 +95,33 @@ export default function ResultsPage() {
   }
 
   const handleRecalculated = async () => {
-    // Refresh results after physical nexus changes trigger recalculation
-    await fetchResults()
-    // Trigger StateTable refresh by incrementing counter
-    setRefreshTrigger(prev => prev + 1)
+    // Invalidate queries to refetch fresh data after physical nexus changes
+    await queryClient.invalidateQueries({ queryKey: queryKeys.analyses.results(analysisId) })
+    await queryClient.invalidateQueries({ queryKey: queryKeys.analyses.states(analysisId) })
   }
+
+  const handleRegistrationsUpdate = async () => {
+    // Refresh registered states when registrations change
+    if (analysis?.client_id) {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.clients.detail(analysis.client_id) })
+    } else {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.analyses.registrations(analysisId) })
+    }
+  }
+
+  // Build summary object from analysis data
+  const summary = useMemo(() => {
+    if (!analysis) return null
+    return {
+      company_name: analysis.client_company_name,
+      period_start: analysis.analysis_period_start,
+      period_end: analysis.analysis_period_end,
+      total_transactions: analysis.total_transactions || 0,
+      unique_states: analysis.unique_states || 0,
+      completed_at: new Date().toISOString(),
+      client_id: analysis.client_id || undefined,
+    }
+  }, [analysis])
 
   // Generate breadcrumbs based on whether analysis is linked to a client
   const getBreadcrumbs = () => {
@@ -248,7 +138,7 @@ export default function ResultsPage() {
     ]
   }
 
-  if (loading) {
+  if (analysisLoading) {
     return (
       <ProtectedRoute>
         <AppLayout
@@ -270,7 +160,7 @@ export default function ResultsPage() {
   }
 
   // Error state - show error message if initial load failed
-  if (error && !summary) {
+  if (analysisError && !analysis) {
     return (
       <ProtectedRoute>
         <AppLayout
@@ -284,9 +174,11 @@ export default function ResultsPage() {
             <h3 className="text-lg font-semibold text-destructive-foreground mb-2">
               Error Loading Analysis
             </h3>
-            <p className="text-sm text-destructive-foreground mb-4">{error}</p>
+            <p className="text-sm text-destructive-foreground mb-4">
+              {(analysisError as Error)?.message || 'Failed to load analysis summary. Please try refreshing the page.'}
+            </p>
             <div className="flex gap-3">
-              <Button onClick={() => fetchAnalysisSummary()} variant="outline">
+              <Button onClick={() => refetchAnalysis()} variant="outline">
                 Try Again
               </Button>
               <Button onClick={() => router.push('/clients')} variant="ghost">
@@ -327,7 +219,7 @@ export default function ResultsPage() {
               <div className="text-muted-foreground">
                 <p className="text-lg font-medium">{summary.company_name}</p>
                 <p className="text-sm">
-                  {formatDateUS(summary.period_start)} to {formatDateUS(summary.period_end)}
+                  {formatDateUS(summary.period_start || '')} to {formatDateUS(summary.period_end || '')}
                 </p>
                 <p className="text-sm mt-2">
                   Processed {summary.total_transactions} transactions across {summary.unique_states} states
@@ -493,7 +385,7 @@ export default function ResultsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-warning-foreground mb-2">
-                    ⚠️ Calculation Not Yet Run
+                    Calculation Not Yet Run
                   </h3>
                   <p className="text-sm text-warning-foreground">
                     The calculation should have run automatically. If you're seeing this, click the button to calculate now.
@@ -501,10 +393,10 @@ export default function ResultsPage() {
                 </div>
                 <Button
                   onClick={handleCalculate}
-                  disabled={calculating}
+                  disabled={calculateMutation.isPending}
                   className="flex items-center gap-2"
                 >
-                  {calculating ? (
+                  {calculateMutation.isPending ? (
                     <>
                       <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Calculating...
@@ -535,7 +427,6 @@ export default function ResultsPage() {
               <StateTable
                 analysisId={analysisId}
                 embedded={true}
-                refreshTrigger={refreshTrigger}
                 companyName={summary?.company_name}
                 clientId={summary?.client_id}
                 onRegistrationsChange={handleRegistrationsUpdate}

@@ -20,7 +20,11 @@ export {
   useDeleteAnalysis,
   useCreateAnalysis,
   useAnalysisWithPolling,
+  useAnalysisColumns,
+  useAnalysisResultsSummary,
+  useCalculateAnalysis,
 } from './useAnalyses'
+export type { AnalysisResultsSummary, ColumnInfo, DataSummary, ColumnsResponse } from './useAnalyses'
 
 // State results hooks
 export {
