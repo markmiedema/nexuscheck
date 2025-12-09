@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, memo } from 'react'
+import { useState, useMemo, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 import { STATE_NAME_TO_CODE, getStateCode } from '@/lib/constants/states'
@@ -27,14 +27,16 @@ const USMap = memo(function USMap({ stateData, analysisId, onStateClick, registe
   const router = useRouter()
   const [hoveredState, setHoveredState] = useState<string | null>(null)
 
-  // Create a Set for quick registered state lookup
-  const registeredSet = new Set(registeredStates)
+  // Create a Set for quick registered state lookup (memoized)
+  const registeredSet = useMemo(() => new Set(registeredStates), [registeredStates])
 
-  // Create a map of state codes to their data for quick lookup
-  const stateDataMap = stateData.reduce((acc, state) => {
-    acc[state.state_code] = state
-    return acc
-  }, {} as Record<string, StateData>)
+  // Create a map of state codes to their data for quick lookup (memoized)
+  const stateDataMap = useMemo(() => {
+    return stateData.reduce((acc, state) => {
+      acc[state.state_code] = state
+      return acc
+    }, {} as Record<string, StateData>)
+  }, [stateData])
 
   // Get color based on nexus status, type, and registration
   const getStateColor = (geoName: string) => {
@@ -163,7 +165,6 @@ const USMap = memo(function USMap({ stateData, analysisId, onStateClick, registe
           {({ geographies }) =>
             geographies.map((geo) => {
               const stateName = geo.properties.name
-              const isHovered = hoveredState === stateName
 
               return (
                 <Geography

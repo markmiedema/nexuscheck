@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { useQueryClient } from '@tanstack/react-query'
@@ -30,6 +30,10 @@ const formatDateUS = (isoDate: string): string => {
     year: 'numeric'
   })
 }
+
+// Stable empty arrays to avoid creating new references on each render
+const EMPTY_REGISTERED_STATES: string[] = []
+const EMPTY_STATE_RESULTS: any[] = []
 
 // Lazy load USMap to reduce initial bundle size (saves ~200KB from react-simple-maps)
 const USMap = dynamic(() => import('@/components/dashboard/USMap'), {
@@ -69,11 +73,23 @@ export default function ResultsPage() {
     data: stateResultsData,
   } = useStateResults(isComplete ? analysisId : undefined)
 
-  const stateResults = stateResultsData?.states || []
+  const stateResults = stateResultsData?.states || EMPTY_STATE_RESULTS
+
+  // Memoize transformed state data to prevent USMap re-renders
+  const mappedStateData = useMemo(() => {
+    return stateResults.map((state) => ({
+      state_code: state.state_code,
+      state_name: state.state_name,
+      nexus_status: (state.nexus_status === 'no_nexus' ? 'none' : state.nexus_status) as 'has_nexus' | 'approaching' | 'none',
+      nexus_type: state.nexus_type,
+      total_sales: state.total_sales,
+      estimated_liability: state.estimated_liability,
+    }))
+  }, [stateResults])
 
   // Fetch registered states - use client storage if linked, otherwise analysis storage
   const {
-    data: registeredStates = [],
+    data: registeredStates = EMPTY_REGISTERED_STATES,
   } = useRegistrationsQuery(analysisId, analysis?.client_id || undefined)
 
   // Calculate mutation
@@ -94,20 +110,20 @@ export default function ResultsPage() {
     router.push(`/analysis/${analysisId}/mapping`)
   }
 
-  const handleRecalculated = async () => {
+  const handleRecalculated = useCallback(async () => {
     // Invalidate queries to refetch fresh data after physical nexus changes
     await queryClient.invalidateQueries({ queryKey: queryKeys.analyses.results(analysisId) })
     await queryClient.invalidateQueries({ queryKey: queryKeys.analyses.states(analysisId) })
-  }
+  }, [queryClient, analysisId])
 
-  const handleRegistrationsUpdate = async () => {
+  const handleRegistrationsUpdate = useCallback(async () => {
     // Refresh registered states when registrations change
     if (analysis?.client_id) {
       await queryClient.invalidateQueries({ queryKey: queryKeys.clients.detail(analysis.client_id) })
     } else {
       await queryClient.invalidateQueries({ queryKey: queryKeys.analyses.registrations(analysisId) })
     }
-  }
+  }, [queryClient, analysis?.client_id, analysisId])
 
   // Build summary object from analysis data
   const summary = useMemo(() => {
@@ -272,14 +288,7 @@ export default function ResultsPage() {
             {calculationStatus === 'calculated' && stateResults.length > 0 ? (
               <>
                 <USMap
-                  stateData={stateResults.map((state) => ({
-                    state_code: state.state_code,
-                    state_name: state.state_name,
-                    nexus_status: state.nexus_status === 'no_nexus' ? 'none' : state.nexus_status,
-                    nexus_type: state.nexus_type,
-                    total_sales: state.total_sales,
-                    estimated_liability: state.estimated_liability,
-                  }))}
+                  stateData={mappedStateData}
                   analysisId={analysisId}
                   registeredStates={registeredStates}
                 />
