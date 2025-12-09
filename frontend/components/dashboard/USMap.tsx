@@ -165,7 +165,6 @@ const USMap = memo(function USMap({ stateData, analysisId, onStateClick, registe
           {({ geographies }) =>
             geographies.map((geo) => {
               const stateName = geo.properties.name
-              const isHovered = hoveredState === stateName
 
               return (
                 <Geography
