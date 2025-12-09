@@ -23,6 +23,8 @@ export {
   useAnalysisColumns,
   useAnalysisResultsSummary,
   useCalculateAnalysis,
+  useMarkAnalysisPresented,
+  useUnmarkAnalysisPresented,
 } from './useAnalyses'
 export type { AnalysisResultsSummary, ColumnInfo, DataSummary, ColumnsResponse } from './useAnalyses'
 

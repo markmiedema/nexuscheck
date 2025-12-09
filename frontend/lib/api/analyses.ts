@@ -9,7 +9,8 @@ export interface Analysis {
   business_type: string
   analysis_period_start: string | null  // ← Fixed: Can be null (VDA mode)
   analysis_period_end: string | null    // ← Fixed: Can be null (VDA mode)
-  status: 'draft' | 'processing' | 'complete' | 'error'
+  status: 'draft' | 'processing' | 'complete' | 'error' | 'presented'
+  presented_at?: string | null
   total_liability?: number
   states_with_nexus?: number
   total_transactions?: number
@@ -37,4 +38,14 @@ export async function listAnalyses(params?: {
 
 export async function deleteAnalysis(analysisId: string): Promise<void> {
   await apiClient.delete(`/api/v1/analyses/${analysisId}`)
+}
+
+export async function markAnalysisPresented(analysisId: string): Promise<Analysis> {
+  const response = await apiClient.post(`/api/v1/analyses/${analysisId}/mark-presented`)
+  return response.data
+}
+
+export async function unmarkAnalysisPresented(analysisId: string): Promise<Analysis> {
+  const response = await apiClient.post(`/api/v1/analyses/${analysisId}/unmark-presented`)
+  return response.data
 }
