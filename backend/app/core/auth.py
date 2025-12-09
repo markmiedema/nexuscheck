@@ -73,3 +73,53 @@ async def get_current_user(
 async def require_auth(user_id: str = Depends(get_current_user)) -> str:
     """Require authentication for an endpoint"""
     return user_id
+
+
+async def get_user_organization_id(user_id: str) -> str | None:
+    """
+    Get the primary organization ID for a user.
+
+    For now, returns the first organization the user is a member of.
+    In the future, this could respect a "current organization" selection.
+
+    Args:
+        user_id: The authenticated user's ID
+
+    Returns:
+        organization_id: The user's organization ID, or None if not found
+    """
+    from app.core.supabase import get_supabase
+
+    supabase = get_supabase()
+    try:
+        result = supabase.table('organization_members')\
+            .select('organization_id')\
+            .eq('user_id', user_id)\
+            .limit(1)\
+            .execute()
+
+        if result.data and len(result.data) > 0:
+            return result.data[0]['organization_id']
+        return None
+    except Exception as e:
+        logger.error(f"Error getting user organization: {str(e)}")
+        return None
+
+
+async def require_organization(user_id: str = Depends(require_auth)) -> tuple[str, str]:
+    """
+    Require authentication AND organization membership.
+
+    Returns:
+        tuple: (user_id, organization_id)
+
+    Raises:
+        HTTPException: If user has no organization
+    """
+    org_id = await get_user_organization_id(user_id)
+    if not org_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not a member of any organization"
+        )
+    return (user_id, org_id)
