@@ -8,11 +8,15 @@ import {
   inviteOrganizationMember,
   updateMemberRole,
   removeOrganizationMember,
+  getCurrentUserProfile,
+  updateCurrentUserProfile,
   type Organization,
   type OrganizationMember,
   type UpdateOrganizationData,
   type InviteMemberData,
   type UpdateMemberRoleData,
+  type UserProfile,
+  type UpdateProfileData,
 } from '@/lib/api/organizations'
 import { toast } from 'sonner'
 
@@ -125,6 +129,36 @@ export function useRemoveMember() {
     },
     onError: (error: any) => {
       toast.error(error?.message || 'Failed to remove member')
+    },
+  })
+}
+
+/**
+ * Fetch the current user's profile
+ */
+export function useUserProfile() {
+  return useQuery({
+    queryKey: queryKeys.organizations.profile(),
+    queryFn: getCurrentUserProfile,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/**
+ * Update the current user's profile
+ */
+export function useUpdateUserProfile() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: UpdateProfileData) => updateCurrentUserProfile(data),
+    onSuccess: (updatedProfile) => {
+      queryClient.setQueryData(queryKeys.organizations.profile(), updatedProfile)
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.members() })
+      toast.success('Profile updated successfully')
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Failed to update profile')
     },
   })
 }

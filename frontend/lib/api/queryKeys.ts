@@ -37,5 +37,6 @@ export const queryKeys = {
     current: () => [...queryKeys.organizations.all, 'current'] as const,
     role: () => [...queryKeys.organizations.all, 'role'] as const,
     members: () => [...queryKeys.organizations.all, 'members'] as const,
+    profile: () => [...queryKeys.organizations.all, 'profile'] as const,
   },
 } as const
