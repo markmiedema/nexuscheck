@@ -39,4 +39,9 @@ export const queryKeys = {
     members: () => [...queryKeys.organizations.all, 'members'] as const,
     profile: () => [...queryKeys.organizations.all, 'profile'] as const,
   },
+  compliance: {
+    all: ['compliance'] as const,
+    thresholds: () => [...queryKeys.compliance.all, 'thresholds'] as const,
+    stateDetail: (stateCode: string) => [...queryKeys.compliance.all, 'state', stateCode] as const,
+  },
 } as const

@@ -65,3 +65,10 @@ export type {
   UserProfile,
   UpdateProfileData,
 } from '@/lib/api/organizations'
+
+// Compliance hooks
+export {
+  useComplianceThresholds,
+  useComplianceStateDetail,
+} from './useCompliance'
+export type { ThresholdData, StateDetailData } from './useCompliance'
