@@ -1025,10 +1025,10 @@ function createDocumentationSheet(
   rowNum = addBullet(rowNum, 'Marketplace Sales: Sales made through marketplace facilitators (marketplace remits tax)')
   rowNum = addBullet(rowNum, 'Exposure Sales: Direct sales made after nexus triggered, subject to liability calculation')
   rowNum = addBullet(rowNum, 'Tax Rate: Blended state + local tax rate used for liability estimation')
-  rowNum = addBullet(rowNum, 'Tax Liability: Estimated uncollected tax owed')
-  rowNum = addBullet(rowNum, 'Interest: Estimated interest on unpaid tax')
-  rowNum = addBullet(rowNum, 'Penalties: Estimated penalties for non-filing/non-payment')
-  rowNum = addBullet(rowNum, 'Total Liability: Tax Liability + Interest + Penalties')
+  rowNum = addBullet(rowNum, 'Estimated Tax Liability: Estimated uncollected tax owed')
+  rowNum = addBullet(rowNum, 'Estimated Interest: Estimated interest on unpaid tax')
+  rowNum = addBullet(rowNum, 'Estimated Penalties: Estimated penalties for non-filing/non-payment')
+  rowNum = addBullet(rowNum, 'Total Estimated Liability: Estimated Tax Liability + Estimated Interest + Estimated Penalties')
   rowNum++
 
   // Section: Nexus Status Definitions
@@ -1067,10 +1067,12 @@ function createDocumentationSheet(
     const detail = data.stateDetails.get(state.state_code)
     const econThreshold = detail?.compliance_info?.threshold_info?.revenue_threshold || state.threshold
     const transThreshold = detail?.compliance_info?.threshold_info?.transaction_threshold || state.transaction_threshold
+    const thresholdOp = detail?.compliance_info?.threshold_info?.threshold_operator || state.threshold_operator || 'or'
 
     const threshold = econThreshold ? `$${econThreshold.toLocaleString()}` : 'N/A'
+    const operatorLabel = thresholdOp.toUpperCase() === 'AND' ? 'AND' : 'OR'
     const tranThresholdStr = transThreshold
-      ? ` OR ${transThreshold.toLocaleString()} transactions`
+      ? ` ${operatorLabel} ${transThreshold.toLocaleString()} transactions${operatorLabel === 'AND' ? ' (both required)' : ''}`
       : ' (no transaction threshold)'
     rowNum = addBullet(rowNum, `${state.state_name}: ${threshold}${tranThresholdStr}`)
   }
