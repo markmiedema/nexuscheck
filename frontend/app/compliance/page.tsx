@@ -22,17 +22,9 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  CheckCircle2,
-  XCircle,
   AlertTriangle,
   Info,
 } from 'lucide-react'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 
 type SortConfig = {
   column: 'state_name' | 'revenue_threshold' | 'transaction_threshold' | 'combined_rate' | null
@@ -206,8 +198,7 @@ export default function CompliancePage() {
                   <p className="text-muted-foreground mt-1">Please try refreshing the page</p>
                 </div>
               ) : (
-                <TooltipProvider>
-                  <div className="overflow-x-auto">
+                <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="hover:bg-transparent">
@@ -226,18 +217,12 @@ export default function CompliancePage() {
                           <SortableHeader column="combined_rate" className="text-right">
                             Combined Rate
                           </SortableHeader>
-                          <TableHead className="text-center w-[80px]">
-                            Locals
-                          </TableHead>
-                          <TableHead className="text-center w-[80px]">
-                            VDA
-                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {displayedStates.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                               {debouncedSearchTerm ? 'No states match your search' : 'No state data available'}
                             </TableCell>
                           </TableRow>
@@ -277,42 +262,12 @@ export default function CompliancePage() {
                               <TableCell className="text-right font-mono">
                                 {state.has_sales_tax ? formatPercent(state.combined_rate) : '-'}
                               </TableCell>
-                              <TableCell className="text-center">
-                                {state.has_local_taxes ? (
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Has local taxes</p>
-                                      {state.has_home_rule_cities && <p className="text-xs text-muted-foreground">Includes home rule cities</p>}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                ) : (
-                                  <XCircle className="h-4 w-4 text-muted-foreground/30 mx-auto" />
-                                )}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {state.has_vda_program ? (
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <CheckCircle2 className="h-4 w-4 text-purple-500 mx-auto" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>VDA program available</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                ) : (
-                                  <XCircle className="h-4 w-4 text-muted-foreground/30 mx-auto" />
-                                )}
-                              </TableCell>
                             </TableRow>
                           ))
                         )}
                       </TableBody>
                     </Table>
-                  </div>
-                </TooltipProvider>
+                </div>
               )}
             </CardContent>
           </Card>
