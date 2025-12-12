@@ -246,13 +246,10 @@ export default function CompliancePage() {
                             <TableRow key={state.state_code} className="group">
                               <TableCell className="font-medium">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                                    {state.state_code}
+                                  <span className="text-xs font-mono text-muted-foreground/70 w-6">{state.state_code}</span>
+                                  <span className={!state.has_sales_tax ? 'text-muted-foreground' : ''}>
+                                    {state.state_name}
                                   </span>
-                                  <span>{state.state_name}</span>
-                                  {!state.has_sales_tax && (
-                                    <Badge variant="secondary" className="text-xs">No Sales Tax</Badge>
-                                  )}
                                 </div>
                               </TableCell>
                               <TableCell className="text-right font-mono">
@@ -262,7 +259,7 @@ export default function CompliancePage() {
                                 {state.has_sales_tax ? formatNumber(state.transaction_threshold) : '-'}
                               </TableCell>
                               <TableCell className="text-center">
-                                {state.has_sales_tax && state.threshold_operator ? (
+                                {state.has_sales_tax && state.revenue_threshold && state.transaction_threshold ? (
                                   <Badge
                                     variant="outline"
                                     className={
@@ -271,10 +268,10 @@ export default function CompliancePage() {
                                         : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800'
                                     }
                                   >
-                                    {state.threshold_operator.toUpperCase()}
+                                    {(state.threshold_operator || 'or').toUpperCase()}
                                   </Badge>
                                 ) : (
-                                  '-'
+                                  <span className="text-muted-foreground">-</span>
                                 )}
                               </TableCell>
                               <TableCell className="text-right font-mono">
