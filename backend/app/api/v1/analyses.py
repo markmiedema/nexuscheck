@@ -35,6 +35,7 @@ from app.schemas.responses import (
     TaxRates,
     ThresholdInfo,
     RegistrationInfo,
+    PenaltyInfo,
 )
 from app.services.nexus_calculator_v2 import NexusCalculatorV2
 from app.services.column_detector import ColumnDetector
@@ -1841,7 +1842,8 @@ async def get_state_detail(
             threshold_info_model = ThresholdInfo(
                 revenue_threshold=threshold_info.get('revenue_threshold') if threshold_info else None,
                 transaction_threshold=threshold_info.get('transaction_threshold') if threshold_info else None,
-                threshold_operator=threshold_info.get('threshold_operator') if threshold_info else None
+                threshold_operator=threshold_info.get('threshold_operator') if threshold_info else None,
+                lookback_period=threshold_info.get('lookback_period') if threshold_info else None
             )
 
             registration_info = RegistrationInfo(
@@ -1856,6 +1858,7 @@ async def get_state_detail(
                 tax_rates=tax_rates,
                 threshold_info=threshold_info_model,
                 registration_info=registration_info,
+                penalty_info=None,  # No penalty info for states without transactions
                 filing_frequency='Monthly',
                 filing_method='Online',
                 sstm_member=False
@@ -2002,7 +2005,8 @@ async def get_state_detail(
         threshold_info_model = ThresholdInfo(
             revenue_threshold=threshold_info.get('revenue_threshold') if threshold_info else None,
             transaction_threshold=threshold_info.get('transaction_threshold') if threshold_info else None,
-            threshold_operator=threshold_info.get('threshold_operator') if threshold_info else None
+            threshold_operator=threshold_info.get('threshold_operator') if threshold_info else None,
+            lookback_period=threshold_info.get('lookback_period') if threshold_info else None
         )
 
         # Registration info
@@ -2014,10 +2018,83 @@ async def get_state_detail(
             dor_website=state_tax_website
         )
 
+        # Penalty info - fetch from state_penalty_interest_configs
+        penalty_info_model = None
+        try:
+            penalty_config_result = supabase.table('state_penalty_interest_configs') \
+                .select('config') \
+                .eq('state', state_code) \
+                .order('effective_date', desc=True) \
+                .limit(1) \
+                .execute()
+
+            if penalty_config_result.data:
+                config = penalty_config_result.data[0].get('config', {})
+                interest_config = config.get('interest', {})
+                late_filing = config.get('late_filing')
+                late_payment = config.get('late_payment')
+
+                # Build human-readable descriptions
+                interest_rate = interest_config.get('annual_rate')
+                if interest_rate is None and interest_config.get('monthly_rate'):
+                    interest_rate = interest_config.get('monthly_rate') * 12  # Convert monthly to annual
+                interest_method = interest_config.get('method', 'simple')
+                interest_desc = None
+                if interest_rate is not None:
+                    rate_pct = round(interest_rate * 100, 1)
+                    interest_desc = f"{rate_pct}% annual, {interest_method} interest"
+
+                def format_penalty_rule(rule):
+                    if not rule:
+                        return None
+                    rule_type = rule.get('type')
+                    if rule_type == 'flat':
+                        rate = round(rule.get('rate', 0) * 100)
+                        desc = f"{rate}%"
+                        if rule.get('max_rate'):
+                            desc += f" (max {round(rule.get('max_rate') * 100)}%)"
+                        return desc
+                    elif rule_type == 'flat_fee':
+                        return f"${rule.get('amount', 0)}"
+                    elif rule_type == 'per_period':
+                        rate = round(rule.get('rate_per_period', 0) * 100, 1)
+                        period = rule.get('period_type', 'month')
+                        desc = f"{rate}%/{period}"
+                        if rule.get('max_rate'):
+                            desc += f" (max {round(rule.get('max_rate') * 100)}%)"
+                        return desc
+                    elif rule_type == 'tiered':
+                        tiers = rule.get('tiers', [])
+                        if tiers:
+                            first = tiers[0]
+                            last = tiers[-1]
+                            return f"{round(first.get('rate', 0) * 100)}%-{round(last.get('rate', 0) * 100)}% tiered"
+                        return "Tiered"
+                    elif rule_type == 'base_plus_per_period':
+                        base = round(rule.get('base_rate', 0) * 100)
+                        per_period = round(rule.get('rate_per_period', 0) * 100, 1)
+                        desc = f"{base}% + {per_period}%/month"
+                        if rule.get('max_rate'):
+                            desc += f" (max {round(rule.get('max_rate') * 100)}%)"
+                        return desc
+                    return None
+
+                penalty_info_model = PenaltyInfo(
+                    interest_rate=round(interest_rate * 100, 1) if interest_rate else None,
+                    interest_method=interest_method,
+                    interest_description=interest_desc,
+                    late_filing_description=format_penalty_rule(late_filing),
+                    late_payment_description=format_penalty_rule(late_payment),
+                    notes=config.get('notes')
+                )
+        except Exception as e:
+            logger.warning(f"Failed to fetch penalty config for {state_code}: {e}")
+
         compliance_info = ComplianceInfo(
             tax_rates=tax_rates,
             threshold_info=threshold_info_model,
             registration_info=registration_info,
+            penalty_info=penalty_info_model,
             filing_frequency='Monthly',  # TODO: Source from state compliance table
             filing_method='Online',  # TODO: Source from state compliance table
             sstm_member=False  # TODO: Source from state compliance table

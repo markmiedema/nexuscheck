@@ -1078,6 +1078,92 @@ function createDocumentationSheet(
   }
   rowNum++
 
+  // Section: Interest & Penalty Calculation Methodology
+  rowNum = addSectionHeader(rowNum, 'Interest & Penalty Calculation Methodology')
+  const row1 = ws.getRow(rowNum)
+  row1.getCell(2).value = 'This analysis uses state-specific statutory rates for interest and penalty calculations:'
+  rowNum++
+  rowNum++
+
+  // List penalty info for each state in this analysis
+  for (const state of nexusStates) {
+    const detail = data.stateDetails.get(state.state_code)
+    const penaltyInfo = detail?.compliance_info?.penalty_info
+
+    if (penaltyInfo) {
+      rowNum = addBullet(rowNum, `${state.state_name} (${state.state_code}):`)
+
+      // Interest info
+      if (penaltyInfo.interest_description) {
+        const interestRow = ws.getRow(rowNum)
+        interestRow.getCell(2).value = `  - Interest: ${penaltyInfo.interest_description}`
+        rowNum++
+      }
+
+      // Late filing penalty
+      if (penaltyInfo.late_filing_description) {
+        const lateFilingRow = ws.getRow(rowNum)
+        lateFilingRow.getCell(2).value = `  - Late Filing Penalty: ${penaltyInfo.late_filing_description}`
+        rowNum++
+      }
+
+      // Late payment penalty
+      if (penaltyInfo.late_payment_description) {
+        const latePaymentRow = ws.getRow(rowNum)
+        latePaymentRow.getCell(2).value = `  - Late Payment Penalty: ${penaltyInfo.late_payment_description}`
+        rowNum++
+      }
+
+      // Notes (e.g., California operating without permit)
+      if (penaltyInfo.notes) {
+        const notesRow = ws.getRow(rowNum)
+        notesRow.getCell(2).value = `  - Note: ${penaltyInfo.notes}`
+        rowNum++
+      }
+    } else {
+      // Fallback when no penalty config available
+      rowNum = addBullet(rowNum, `${state.state_name} (${state.state_code}): Default rates applied`)
+    }
+  }
+  rowNum++
+
+  // Add important disclaimer
+  const disclaimerRow = ws.getRow(rowNum)
+  disclaimerRow.getCell(2).value = 'Important: These are estimates for planning purposes. Actual liability may be reduced through:'
+  rowNum++
+  rowNum = addBullet(rowNum, 'Voluntary Disclosure Agreements (VDAs)')
+  rowNum = addBullet(rowNum, 'Reasonable cause penalty waivers')
+  rowNum = addBullet(rowNum, 'State-specific amnesty programs')
+  rowNum++
+
+  // Section: Threshold Measurement Periods
+  rowNum = addSectionHeader(rowNum, 'Threshold Measurement Periods')
+  const periodIntroRow = ws.getRow(rowNum)
+  periodIntroRow.getCell(2).value = 'This analysis applies the correct measurement methodology for each state:'
+  rowNum++
+  rowNum++
+
+  // Group states by their lookback period
+  const periodGroups: Map<string, string[]> = new Map()
+  for (const state of nexusStates) {
+    const detail = data.stateDetails.get(state.state_code)
+    const lookbackPeriod = detail?.compliance_info?.threshold_info?.lookback_period || 'Current or Previous Calendar Year'
+    const existingStates = periodGroups.get(lookbackPeriod) || []
+    existingStates.push(`${state.state_name} (${state.state_code})`)
+    periodGroups.set(lookbackPeriod, existingStates)
+  }
+
+  // Display each group
+  for (const [period, states] of periodGroups.entries()) {
+    rowNum = addBullet(rowNum, `${period}:`)
+    for (const stateName of states) {
+      const stateRow = ws.getRow(rowNum)
+      stateRow.getCell(2).value = `  - ${stateName}`
+      rowNum++
+    }
+  }
+  rowNum++
+
   // Section: Conditional Formatting
   rowNum = addSectionHeader(rowNum, 'Conditional Formatting')
   rowNum = addBullet(rowNum, 'Total Liability cells > $25,000 highlighted in red/pink')

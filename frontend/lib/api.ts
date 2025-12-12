@@ -123,6 +123,15 @@ export interface YearData {
   }[]
 }
 
+export interface PenaltyInfo {
+  interest_rate: number | null  // Annual rate as percentage (e.g., 7.0 for 7%)
+  interest_method: string | null  // "simple", "compound_monthly", "compound_daily"
+  interest_description: string | null  // Human-readable: "7% annual, simple interest"
+  late_filing_description: string | null  // e.g., "5%/month, max 25%"
+  late_payment_description: string | null  // e.g., "10% + 1%/month, max 30%"
+  notes: string | null  // e.g., "Operating without permit penalty NOT included"
+}
+
 export interface ComplianceInfo {
   tax_rates: {
     state_rate: number
@@ -134,6 +143,7 @@ export interface ComplianceInfo {
     revenue_threshold: number | null
     transaction_threshold: number | null
     threshold_operator: 'or' | 'and' | null
+    lookback_period?: string | null  // e.g., "Current or Previous Calendar Year", "Rolling 12 Months"
   }
   registration_info: {
     registration_required: boolean
@@ -144,6 +154,7 @@ export interface ComplianceInfo {
     registration_threshold?: string | null
     estimated_timeline?: string | null
   }
+  penalty_info?: PenaltyInfo | null  // Interest and penalty methodology
   filing_frequency: string
   filing_method: string
   sstm_member: boolean
