@@ -133,6 +133,7 @@ class ThresholdInfo(BaseModel):
     revenue_threshold: Optional[float] = None
     transaction_threshold: Optional[int] = None
     threshold_operator: Optional[str] = None
+    lookback_period: Optional[str] = None  # e.g., "Current or Previous Calendar Year", "Rolling 12 Months"
 
 
 class YearData(BaseModel):
@@ -282,11 +283,25 @@ class RegistrationInfo(BaseModel):
     estimated_timeline: Optional[str] = None
 
 
+class PenaltyInfo(BaseModel):
+    """Interest and penalty methodology for a state"""
+    # Interest info
+    interest_rate: Optional[float] = None  # Annual rate as percentage (e.g., 7.0 for 7%)
+    interest_method: Optional[str] = None  # "simple", "compound_monthly", "compound_daily"
+    interest_description: Optional[str] = None  # Human-readable: "7% annual, simple interest"
+    # Penalty info
+    late_filing_description: Optional[str] = None  # e.g., "5%/month, max 25%"
+    late_payment_description: Optional[str] = None  # e.g., "10% + 1%/month, max 30%"
+    # Notes
+    notes: Optional[str] = None  # e.g., "Operating without permit penalty NOT included"
+
+
 class ComplianceInfo(BaseModel):
     """Compliance requirements for a state"""
     tax_rates: TaxRates
     threshold_info: ThresholdInfo
     registration_info: RegistrationInfo
+    penalty_info: Optional[PenaltyInfo] = None  # Interest and penalty methodology
     filing_frequency: str
     filing_method: str
     sstm_member: bool
