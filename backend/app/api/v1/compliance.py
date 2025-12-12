@@ -16,7 +16,7 @@ from typing import Optional, List
 from decimal import Decimal
 from datetime import date
 from app.core.supabase import get_supabase
-from app.dependencies import require_auth
+from app.core.auth import require_auth
 from app.config import settings
 from slowapi import Limiter
 from slowapi.util import get_remote_address
