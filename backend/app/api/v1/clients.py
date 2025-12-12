@@ -236,7 +236,7 @@ async def update_client(
                     supabase.table('client_tech_stacks').insert(stack_update).execute()
 
         # Fetch and return the updated client with nested data
-        return await get_client(client_id, user_id)
+        return await get_client(client_id, auth)
 
     except HTTPException:
         raise
