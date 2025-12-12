@@ -22,9 +22,6 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  DollarSign,
-  Hash,
-  Building2,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -106,8 +103,8 @@ export default function CompliancePage() {
     )
   }
 
-  const { displayedStates, stats } = useMemo(() => {
-    if (!thresholds) return { displayedStates: [], stats: { total: 0, withSalesTax: 0, withVDA: 0 } }
+  const displayedStates = useMemo(() => {
+    if (!thresholds) return []
 
     // Filter by search
     let filtered = thresholds.filter((s: ThresholdData) =>
@@ -140,14 +137,7 @@ export default function CompliancePage() {
       })
     }
 
-    return {
-      displayedStates: filtered,
-      stats: {
-        total: thresholds.length,
-        withSalesTax: thresholds.filter((s: ThresholdData) => s.has_sales_tax).length,
-        withVDA: thresholds.filter((s: ThresholdData) => s.has_vda_program).length,
-      }
-    }
+    return filtered
   }, [thresholds, sortConfig, debouncedSearchTerm])
 
   return (
@@ -180,51 +170,6 @@ export default function CompliancePage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Stats Row */}
-          {!isLoading && (
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <Card>
-                <CardContent className="pt-4 pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Building2 className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stats.total}</p>
-                      <p className="text-sm text-muted-foreground">Total States</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                      <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stats.withSalesTax}</p>
-                      <p className="text-sm text-muted-foreground">With Sales Tax</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                      <CheckCircle2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stats.withVDA}</p>
-                      <p className="text-sm text-muted-foreground">VDA Programs</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
 
           {/* Search and Table */}
           <Card>

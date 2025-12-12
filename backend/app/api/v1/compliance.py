@@ -15,7 +15,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from decimal import Decimal
 from datetime import date
-from app.db.supabase import get_supabase_client
+from app.core.supabase import get_supabase
 from app.dependencies import require_auth
 from app.config import settings
 from slowapi import Limiter
@@ -105,7 +105,7 @@ async def get_all_thresholds(
     economic nexus thresholds, tax rates, and basic compliance info.
     This allows users to verify the data being used in calculations.
     """
-    supabase = get_supabase_client()
+    supabase = get_supabase()
 
     # Query states with their current thresholds and tax rates
     # Using a single query with joins would be ideal but Supabase client
@@ -183,7 +183,7 @@ async def get_state_detail(
     if len(state_code) != 2:
         raise HTTPException(status_code=400, detail="Invalid state code")
 
-    supabase = get_supabase_client()
+    supabase = get_supabase()
 
     # Get state info
     state_response = supabase.table("states")\
