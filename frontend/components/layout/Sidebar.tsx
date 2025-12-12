@@ -16,7 +16,7 @@ import {
   Users,
   FolderKanban,
   FileText,
-  Map,
+  Scale,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -47,10 +47,9 @@ const navigationItems = [
     disabled: true, // Phase 2
   },
   {
-    title: 'States',
-    href: '/states',
-    icon: Map,
-    disabled: true, // Phase 3
+    title: 'Compliance',
+    href: '/compliance',
+    icon: Scale,
   },
 ]
 
