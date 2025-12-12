@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/table'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Search,
@@ -24,16 +23,18 @@ import {
   ArrowDown,
   AlertTriangle,
   Info,
+  Check,
+  X,
 } from 'lucide-react'
 
 type SortConfig = {
-  column: 'state_name' | 'revenue_threshold' | 'transaction_threshold' | 'combined_rate' | null
+  column: 'state_name' | 'revenue_threshold' | 'combined_rate' | null
   direction: 'asc' | 'desc'
 }
 
 // Format currency
 function formatCurrency(amount: number | null): string {
-  if (amount === null) return '-'
+  if (amount === null) return ''
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -44,7 +45,7 @@ function formatCurrency(amount: number | null): string {
 
 // Format number with commas
 function formatNumber(num: number | null): string {
-  if (num === null) return '-'
+  if (num === null) return ''
   return new Intl.NumberFormat('en-US').format(num)
 }
 
@@ -52,6 +53,22 @@ function formatNumber(num: number | null): string {
 function formatPercent(rate: number | null): string {
   if (rate === null) return '-'
   return `${(rate * 100).toFixed(2)}%`
+}
+
+// Format threshold as combined string like "$100,000 OR 200 transactions"
+function formatThreshold(state: ThresholdData): string {
+  if (!state.has_sales_tax) return '-'
+
+  const revenue = state.revenue_threshold ? formatCurrency(state.revenue_threshold) : null
+  const transactions = state.transaction_threshold ? `${formatNumber(state.transaction_threshold)} transactions` : null
+
+  if (revenue && transactions) {
+    const operator = (state.threshold_operator || 'or').toUpperCase()
+    return `${revenue} ${operator} ${transactions}`
+  }
+  if (revenue) return revenue
+  if (transactions) return transactions
+  return '-'
 }
 
 export default function CompliancePage() {
@@ -132,10 +149,23 @@ export default function CompliancePage() {
     return filtered
   }, [thresholds, sortConfig, debouncedSearchTerm])
 
+  // Yes/No indicator component
+  const YesNo = ({ value }: { value: boolean }) => (
+    value ? (
+      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+        <Check className="h-4 w-4" /> Yes
+      </span>
+    ) : (
+      <span className="inline-flex items-center gap-1 text-muted-foreground">
+        <X className="h-4 w-4" /> No
+      </span>
+    )
+  )
+
   return (
     <ProtectedRoute>
       <ErrorBoundary>
-        <AppLayout maxWidth="7xl">
+        <AppLayout maxWidth="full">
           {/* Header */}
           <div className="flex flex-col gap-4 mb-6">
             <div>
@@ -143,7 +173,7 @@ export default function CompliancePage() {
                 Compliance Data
               </h1>
               <p className="text-muted-foreground mt-1">
-                State economic nexus thresholds and tax information used in calculations
+                State economic nexus thresholds and rules used in calculations
               </p>
             </div>
 
@@ -170,7 +200,7 @@ export default function CompliancePage() {
                 <div>
                   <CardTitle>Economic Nexus Thresholds</CardTitle>
                   <CardDescription>
-                    Current thresholds by state - meet either sales OR transaction threshold to trigger nexus
+                    Threshold rules determine when you have nexus in a state
                   </CardDescription>
                 </div>
                 <div className="relative w-full sm:w-72">
@@ -199,74 +229,67 @@ export default function CompliancePage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="hover:bg-transparent">
-                          <SortableHeader column="state_name" className="w-[180px]">
-                            State
-                          </SortableHeader>
-                          <SortableHeader column="revenue_threshold" className="text-right">
-                            Sales Threshold
-                          </SortableHeader>
-                          <SortableHeader column="transaction_threshold" className="text-right">
-                            Transaction Threshold
-                          </SortableHeader>
-                          <TableHead className="text-center w-[100px]">
-                            Operator
-                          </TableHead>
-                          <SortableHeader column="combined_rate" className="text-right">
-                            Combined Rate
-                          </SortableHeader>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <SortableHeader column="state_name" className="min-w-[140px]">
+                          State
+                        </SortableHeader>
+                        <SortableHeader column="revenue_threshold" className="min-w-[200px]">
+                          Economic Nexus Threshold
+                        </SortableHeader>
+                        <TableHead className="min-w-[180px]">
+                          Lookback Period
+                        </TableHead>
+                        <TableHead className="text-center min-w-[120px]">
+                          Marketplace Excluded
+                        </TableHead>
+                        <TableHead className="text-center min-w-[100px]">
+                          Resale Excluded
+                        </TableHead>
+                        <SortableHeader column="combined_rate" className="text-right min-w-[100px]">
+                          Combined Rate
+                        </SortableHeader>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {displayedStates.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                            {debouncedSearchTerm ? 'No states match your search' : 'No state data available'}
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {displayedStates.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                              {debouncedSearchTerm ? 'No states match your search' : 'No state data available'}
+                      ) : (
+                        displayedStates.map((state: ThresholdData) => (
+                          <TableRow key={state.state_code} className="group">
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-mono text-muted-foreground/70 w-6">{state.state_code}</span>
+                                <span className={!state.has_sales_tax ? 'text-muted-foreground' : ''}>
+                                  {state.state_name}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {formatThreshold(state)}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {state.has_sales_tax ? (state.lookback_period || '-') : '-'}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {state.has_sales_tax ? <YesNo value={state.marketplace_excluded} /> : '-'}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {state.has_sales_tax ? <YesNo value={state.resale_excluded} /> : '-'}
+                            </TableCell>
+                            <TableCell className="text-right font-mono">
+                              {state.has_sales_tax ? formatPercent(state.combined_rate) : '-'}
                             </TableCell>
                           </TableRow>
-                        ) : (
-                          displayedStates.map((state: ThresholdData) => (
-                            <TableRow key={state.state_code} className="group">
-                              <TableCell className="font-medium">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs font-mono text-muted-foreground/70 w-6">{state.state_code}</span>
-                                  <span className={!state.has_sales_tax ? 'text-muted-foreground' : ''}>
-                                    {state.state_name}
-                                  </span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right font-mono">
-                                {state.has_sales_tax ? formatCurrency(state.revenue_threshold) : '-'}
-                              </TableCell>
-                              <TableCell className="text-right font-mono">
-                                {state.has_sales_tax ? formatNumber(state.transaction_threshold) : '-'}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {state.has_sales_tax && state.revenue_threshold && state.transaction_threshold ? (
-                                  <Badge
-                                    variant="outline"
-                                    className={
-                                      state.threshold_operator === 'or'
-                                        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800'
-                                        : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800'
-                                    }
-                                  >
-                                    {(state.threshold_operator || 'or').toUpperCase()}
-                                  </Badge>
-                                ) : (
-                                  <span className="text-muted-foreground">-</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right font-mono">
-                                {state.has_sales_tax ? formatPercent(state.combined_rate) : '-'}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </CardContent>
@@ -274,7 +297,7 @@ export default function CompliancePage() {
 
           {/* Footer note */}
           <p className="text-sm text-muted-foreground mt-4 text-center">
-            Data is regularly verified against official state sources. Last comprehensive review: December 2025.
+            Data is regularly verified against official state sources.
           </p>
         </AppLayout>
       </ErrorBoundary>

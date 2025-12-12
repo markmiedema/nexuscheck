@@ -35,17 +35,13 @@ class ThresholdData(BaseModel):
     transaction_threshold: Optional[int] = None
     threshold_operator: Optional[str] = None  # 'and' or 'or'
     effective_date: Optional[date] = None
-    # State info
-    has_local_taxes: bool = False
-    has_home_rule_cities: bool = False
+    lookback_period: Optional[str] = None
+    # Exclusions - what doesn't count toward threshold
+    marketplace_excluded: bool = False
+    nontaxable_excluded: bool = False
+    resale_excluded: bool = False
     # Tax rate
-    state_tax_rate: Optional[Decimal] = None
-    avg_local_rate: Optional[Decimal] = None
     combined_rate: Optional[Decimal] = None
-    # VDA
-    has_vda_program: bool = False
-    # Metadata
-    notes: Optional[str] = None
 
 
 class StateDetailData(BaseModel):
@@ -149,13 +145,11 @@ async def get_all_thresholds(
             transaction_threshold=threshold.get("transaction_threshold"),
             threshold_operator=threshold.get("threshold_operator"),
             effective_date=threshold.get("effective_from"),
-            has_local_taxes=state.get("has_local_taxes", False),
-            has_home_rule_cities=state.get("has_home_rule_cities", False),
-            state_tax_rate=rate.get("state_rate"),
-            avg_local_rate=rate.get("avg_local_rate"),
+            lookback_period=threshold.get("lookback_period"),
+            marketplace_excluded=threshold.get("marketplace_excluded", False),
+            nontaxable_excluded=threshold.get("nontaxable_excluded", False),
+            resale_excluded=threshold.get("resale_excluded", False),
             combined_rate=rate.get("combined_avg_rate"),
-            has_vda_program=state.get("has_vda_program", False),
-            notes=state.get("notes"),
         ))
 
     return ThresholdsResponse(
