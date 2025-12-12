@@ -9,13 +9,12 @@ export interface ThresholdData {
   transaction_threshold: number | null
   threshold_operator: string | null
   effective_date: string | null
-  has_local_taxes: boolean
-  has_home_rule_cities: boolean
-  state_tax_rate: number | null
-  avg_local_rate: number | null
+  lookback_period: string | null
+  // Exclusions - what doesn't count toward threshold
+  marketplace_excluded: boolean
+  nontaxable_excluded: boolean
+  resale_excluded: boolean
   combined_rate: number | null
-  has_vda_program: boolean
-  notes: string | null
 }
 
 export interface StateDetailData {
