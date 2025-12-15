@@ -229,7 +229,7 @@ export function IntakeStepper({ clientId, onComplete }: IntakeStepperProps) {
 
   // Handle initialize intake
   const handleInitialize = () => {
-    initializeMutation.mutate()
+    initializeMutation.mutate(undefined)
   }
 
   // Navigation
