@@ -15,13 +15,13 @@ import { TabsCustom } from '@/components/ui/tabs-custom'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
 import { ClientValueSummary } from '@/components/clients/ClientValueSummary'
 import { ClientContacts } from '@/components/clients/ClientContacts'
 import { NewProjectDialog } from '@/components/clients/NewProjectDialog'
 import { DiscoveryProfile } from '@/components/clients/DiscoveryProfile'
 import { EngagementManager } from '@/components/clients/EngagementManager'
 import { ClientOverview } from '@/components/clients/ClientOverview'
+import { IntakeStepper } from '@/components/clients/IntakeStepper'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
@@ -50,14 +50,6 @@ export default function ClientCRMPage() {
   const [activeTab, setActiveTab] = useState(initialTab)
   const [newNote, setNewNote] = useState('')
   const [noteType, setNoteType] = useState<string>('call')
-
-  // Data Request Checklist state (in real app, save to DB)
-  const [checklist, setChecklist] = useState({
-    salesData: false,
-    priorReturns: false,
-    nexusQuestionnaire: false,
-    powerOfAttorney: false
-  })
 
   const handleSaveNote = () => {
     if (!newNote.trim()) return
@@ -618,35 +610,17 @@ export default function ClientCRMPage() {
                   )
                 },
                 {
-                  id: 'files',
-                  label: 'Data Checklist',
+                  id: 'intake',
+                  label: 'Intake',
                   content: (
-                    <div className="pt-4 space-y-6">
-                      <div>
-                        <h3 className="text-lg font-medium">Data Request Checklist</h3>
-                        <p className="text-sm text-muted-foreground">Track received documents for this client.</p>
-                      </div>
-                      <Card className="p-0 overflow-hidden">
-                        <div className="divide-y">
-                          {Object.entries(checklist).map(([key, checked]) => (
-                            <div key={key} className="p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors">
-                              <Checkbox
-                                id={key}
-                                checked={checked}
-                                onCheckedChange={(c) => setChecklist(prev => ({...prev, [key]: !!c}))}
-                              />
-                              <label htmlFor={key} className="flex-1 cursor-pointer font-medium text-sm capitalize">
-                                {key.replace(/([A-Z])/g, ' $1').trim()}
-                              </label>
-                              {checked && (
-                                <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300">
-                                  Received
-                                </Badge>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </Card>
+                    <div className="pt-4">
+                      <IntakeStepper
+                        clientId={client.id}
+                        onComplete={() => {
+                          refreshClient()
+                          setActiveTab('overview')
+                        }}
+                      />
                     </div>
                   )
                 },
