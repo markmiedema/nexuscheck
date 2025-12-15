@@ -33,6 +33,7 @@ class DiscoveryProfile(BaseModel):
     # Current Filing Status
     current_registration_count: int = 0
     registered_states: List[str] = []
+    registered_state_dates: Dict[str, str] = {}  # State code -> registration date (ISO format)
 
     # Notes
     discovery_notes: Optional[str] = None
@@ -104,6 +105,7 @@ class ClientUpdate(ClientBase):
     transaction_volume: Optional[str] = None
     current_registration_count: Optional[int] = None
     registered_states: Optional[List[str]] = None
+    registered_state_dates: Optional[Dict[str, str]] = None
     discovery_notes: Optional[str] = None
     discovery_completed_at: Optional[datetime] = None
 
@@ -137,6 +139,7 @@ class ClientResponse(ClientBase):
     transaction_volume: Optional[str] = None
     current_registration_count: Optional[int] = None
     registered_states: Optional[List[str]] = None
+    registered_state_dates: Optional[Dict[str, str]] = None
     discovery_completed_at: Optional[datetime] = None
     discovery_notes: Optional[str] = None
 

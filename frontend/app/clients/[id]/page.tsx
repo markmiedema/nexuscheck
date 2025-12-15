@@ -100,6 +100,7 @@ export default function ClientCRMPage() {
       transaction_volume: client.transaction_volume,
       current_registration_count: client.current_registration_count || 0,
       registered_states: client.registered_states || [],
+      registered_state_dates: client.registered_state_dates || {},
       discovery_completed_at: client.discovery_completed_at,
       discovery_notes: client.discovery_notes,
       erp_system: client.erp_system,

@@ -52,6 +52,7 @@ export interface Client {
   transaction_volume?: string
   current_registration_count?: number
   registered_states?: string[]
+  registered_state_dates?: Record<string, string>
   discovery_completed_at?: string
   discovery_notes?: string
 
