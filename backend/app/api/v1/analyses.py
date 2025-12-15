@@ -137,7 +137,7 @@ async def get_analysis(
             .eq('id', analysis_id)\
             .eq('organization_id', org_id)\
             .is_('deleted_at', 'null')\
-            .single()\
+            .maybe_single()\
             .execute()
 
         if not analysis_result.data:
