@@ -11,7 +11,22 @@ export {
   useClientNotes,
   useCreateClientNote,
   useClientAnalyses,
+  useClientOverview,
+  useClientIntakeItems,
+  useClientIntakeStatus,
+  useInitializeClientIntake,
+  useUpdateClientIntakeItem,
 } from './useClients'
+export type {
+  ClientOverview,
+  IntakeItem,
+  IntakeStatus,
+  NextAction,
+  Deadline,
+  BlockingItem,
+  StatesSummary,
+  StageInfo,
+} from '@/lib/api/clients'
 
 // Analysis hooks
 export {

@@ -7,6 +7,14 @@ from app.schemas.client import (
     ClientNoteCreate, ClientNoteResponse,
     ClientContactCreate, ClientContactResponse
 )
+from app.schemas.client_overview import (
+    ClientOverviewResponse,
+    IntakeItemResponse,
+    IntakeItemCreate,
+    IntakeItemUpdate,
+    IntakeStatusResponse
+)
+from app.services.client_overview_service import ClientOverviewService
 import logging
 from datetime import datetime
 
@@ -497,3 +505,238 @@ async def delete_client_contact(
     except Exception as e:
         logger.error(f"Error deleting contact: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete contact")
+
+
+# --- Client Overview Endpoints ---
+
+@router.get("/{client_id}/overview", response_model=ClientOverviewResponse)
+async def get_client_overview(
+    client_id: str,
+    auth: Tuple[str, str] = Depends(require_organization)
+):
+    """
+    Get comprehensive overview for a client.
+
+    Returns:
+    - Current workflow stage and progress
+    - Next best action recommendation
+    - Upcoming deadlines
+    - States summary (nexus status)
+    - Blocking items
+    - Active engagement info
+    - Intake progress
+    """
+    user_id, org_id = auth
+    supabase = get_supabase()
+
+    try:
+        # Use the overview service to compute all data
+        service = ClientOverviewService(supabase)
+        overview = service.get_client_overview(client_id, org_id)
+
+        if not overview:
+            raise HTTPException(status_code=404, detail="Client not found")
+
+        return overview
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting client overview: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get client overview"
+        )
+
+
+# --- Intake Items Endpoints ---
+
+@router.get("/{client_id}/intake", response_model=List[IntakeItemResponse])
+async def list_intake_items(
+    client_id: str,
+    auth: Tuple[str, str] = Depends(require_organization)
+):
+    """List all intake items for a client."""
+    user_id, org_id = auth
+    supabase = get_supabase()
+
+    try:
+        # Verify client exists and belongs to org
+        client_check = supabase.table('clients')\
+            .select('id')\
+            .eq('id', client_id)\
+            .eq('organization_id', org_id)\
+            .maybe_single()\
+            .execute()
+
+        if not client_check.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+
+        # Fetch intake items
+        result = supabase.table('intake_items')\
+            .select('*')\
+            .eq('client_id', client_id)\
+            .eq('organization_id', org_id)\
+            .order('category')\
+            .order('item_key')\
+            .execute()
+
+        return result.data or []
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error listing intake items: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch intake items")
+
+
+@router.post("/{client_id}/intake/initialize", response_model=List[IntakeItemResponse])
+async def initialize_intake_items(
+    client_id: str,
+    auth: Tuple[str, str] = Depends(require_organization),
+    engagement_id: Optional[str] = None
+):
+    """Initialize default intake items for a client."""
+    user_id, org_id = auth
+    supabase = get_supabase()
+
+    try:
+        # Verify client exists and belongs to org
+        client_check = supabase.table('clients')\
+            .select('id')\
+            .eq('id', client_id)\
+            .eq('organization_id', org_id)\
+            .maybe_single()\
+            .execute()
+
+        if not client_check.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+
+        # Initialize using service
+        service = ClientOverviewService(supabase)
+        items = service.initialize_intake_items(client_id, org_id, engagement_id)
+
+        return items
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error initializing intake items: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to initialize intake items")
+
+
+@router.patch("/{client_id}/intake/{item_id}", response_model=IntakeItemResponse)
+async def update_intake_item(
+    client_id: str,
+    item_id: str,
+    update_data: IntakeItemUpdate,
+    auth: Tuple[str, str] = Depends(require_organization)
+):
+    """Update an intake item status or details."""
+    user_id, org_id = auth
+    supabase = get_supabase()
+
+    try:
+        # Verify client exists and belongs to org
+        client_check = supabase.table('clients')\
+            .select('id')\
+            .eq('id', client_id)\
+            .eq('organization_id', org_id)\
+            .maybe_single()\
+            .execute()
+
+        if not client_check.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+
+        # Update using service
+        service = ClientOverviewService(supabase)
+        updates = update_data.model_dump(exclude_unset=True)
+        updated_item = service.update_intake_item(item_id, org_id, updates)
+
+        if not updated_item:
+            raise HTTPException(status_code=404, detail="Intake item not found")
+
+        return updated_item
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating intake item: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update intake item")
+
+
+@router.get("/{client_id}/intake/status", response_model=IntakeStatusResponse)
+async def get_intake_status(
+    client_id: str,
+    auth: Tuple[str, str] = Depends(require_organization)
+):
+    """Get intake completion status summary for a client."""
+    user_id, org_id = auth
+    supabase = get_supabase()
+
+    try:
+        # Verify client exists and belongs to org
+        client_result = supabase.table('clients')\
+            .select('*')\
+            .eq('id', client_id)\
+            .eq('organization_id', org_id)\
+            .maybe_single()\
+            .execute()
+
+        if not client_result.data:
+            raise HTTPException(status_code=404, detail="Client not found")
+
+        client = client_result.data
+
+        # Fetch intake items
+        items_result = supabase.table('intake_items')\
+            .select('*')\
+            .eq('client_id', client_id)\
+            .eq('organization_id', org_id)\
+            .execute()
+
+        items = items_result.data or []
+
+        # Compute status using service
+        service = ClientOverviewService(supabase)
+        progress = service._compute_intake_progress(client, items)
+
+        # Compute by category
+        by_category = {}
+        for item in items:
+            cat = item.get('category')
+            if cat not in by_category:
+                by_category[cat] = {"total": 0, "completed": 0, "status": "not_started"}
+
+            by_category[cat]["total"] += 1
+            if item.get('status') in ('received', 'validated', 'not_applicable'):
+                by_category[cat]["completed"] += 1
+
+        # Update category statuses
+        for cat, data in by_category.items():
+            if data["completed"] == data["total"]:
+                data["status"] = "complete"
+            elif data["completed"] > 0:
+                data["status"] = "in_progress"
+            else:
+                data["status"] = "not_started"
+
+        # Get blocking items (required items not yet received)
+        blocking = [
+            item for item in items
+            if item.get('is_required') and item.get('status') not in ('received', 'validated', 'not_applicable')
+        ]
+
+        return {
+            "total_items": progress["total_items"],
+            "completed_items": progress["completed_items"],
+            "completion_percentage": progress["completion_percentage"],
+            "by_category": by_category,
+            "blocking_items": blocking
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting intake status: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get intake status")

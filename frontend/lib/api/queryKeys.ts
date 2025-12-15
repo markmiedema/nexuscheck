@@ -27,6 +27,9 @@ export const queryKeys = {
     notes: (id: string) => [...queryKeys.clients.detail(id), 'notes'] as const,
     analyses: (id: string) => [...queryKeys.clients.detail(id), 'analyses'] as const,
     contacts: (id: string) => [...queryKeys.clients.detail(id), 'contacts'] as const,
+    overview: (id: string) => [...queryKeys.clients.detail(id), 'overview'] as const,
+    intake: (id: string) => [...queryKeys.clients.detail(id), 'intake'] as const,
+    intakeStatus: (id: string) => [...queryKeys.clients.detail(id), 'intake-status'] as const,
   },
   physicalNexus: {
     all: ['physicalNexus'] as const,

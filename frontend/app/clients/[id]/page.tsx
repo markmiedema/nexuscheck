@@ -21,6 +21,7 @@ import { ClientContacts } from '@/components/clients/ClientContacts'
 import { NewProjectDialog } from '@/components/clients/NewProjectDialog'
 import { DiscoveryProfile } from '@/components/clients/DiscoveryProfile'
 import { EngagementManager } from '@/components/clients/EngagementManager'
+import { ClientOverview } from '@/components/clients/ClientOverview'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
@@ -400,6 +401,13 @@ export default function ClientCRMPage() {
               items={[
                 {
                   id: 'overview',
+                  label: 'Overview',
+                  content: (
+                    <ClientOverview clientId={client.id} />
+                  )
+                },
+                {
+                  id: 'activity',
                   label: 'Activity & Notes',
                   content: (
                     <div className="space-y-6 pt-4">
@@ -657,7 +665,7 @@ export default function ClientCRMPage() {
                           // Reload client and notes, then switch to Activity tab
                           refreshClient()
                           refreshNotes()
-                          setActiveTab('overview')
+                          setActiveTab('activity')
                         }}
                       />
                     </div>
