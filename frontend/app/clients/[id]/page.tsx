@@ -19,22 +19,23 @@ import {
   Database,
   Play,
   Clock,
+  Search,
+  Filter,
 } from 'lucide-react'
 
 // Section types for the new 4-section navigation
 type WorkspaceSection = 'dashboard' | 'data' | 'execution' | 'history'
 
-// Section configuration
+// Section configuration - horizontal tabs
 const SECTION_CONFIG: {
   id: WorkspaceSection
   label: string
   icon: typeof LayoutDashboard
-  description: string
 }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Overview & next actions' },
-  { id: 'data', label: 'Data', icon: Database, description: 'Client profile & intake' },
-  { id: 'execution', label: 'Execution', icon: Play, description: 'State actions & tasks' },
-  { id: 'history', label: 'History', icon: Clock, description: 'Analyses & activity log' },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'data', label: 'Data', icon: Database },
+  { id: 'execution', label: 'Execution', icon: Play },
+  { id: 'history', label: 'History', icon: Clock },
 ]
 
 export default function ClientCRMPage() {
@@ -100,11 +101,11 @@ export default function ClientCRMPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <AppLayout maxWidth="7xl" noPadding>
+        <AppLayout maxWidth="full" noPadding>
           <div className="flex items-center justify-center py-32">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading client workspace...</p>
+              <p className="text-muted-foreground">Loading workspace...</p>
             </div>
           </div>
         </AppLayout>
@@ -115,7 +116,7 @@ export default function ClientCRMPage() {
   if (!client) {
     return (
       <ProtectedRoute>
-        <AppLayout maxWidth="7xl">
+        <AppLayout maxWidth="full">
           <div className="text-center py-12">
             <p className="text-muted-foreground">Client not found</p>
             <Button onClick={() => router.push('/clients')} className="mt-4">Back to Clients</Button>
@@ -127,19 +128,19 @@ export default function ClientCRMPage() {
 
   return (
     <ProtectedRoute>
-      <AppLayout maxWidth="7xl" noPadding>
-        {/* Engagement Header - Sticky context bar */}
+      <AppLayout maxWidth="full" noPadding>
+        {/* Compact Engagement Header */}
         <EngagementHeader
           clientId={clientId}
           engagementId={activeEngagementId}
           onEngagementChange={handleEngagementChange}
         />
 
-        {/* Main workspace container */}
-        <div className="flex min-h-[calc(100vh-180px)]">
-          {/* Left sidebar - Section navigation */}
-          <nav className="w-56 border-r bg-muted/30 flex-shrink-0">
-            <div className="p-4 space-y-1">
+        {/* Horizontal section tabs + filters bar */}
+        <div className="border-b bg-background sticky top-0 z-10">
+          <div className="flex items-center justify-between px-6">
+            {/* Section tabs */}
+            <nav className="flex" aria-label="Workspace sections">
               {SECTION_CONFIG.map((section) => {
                 const Icon = section.icon
                 const isActive = activeSection === section.id
@@ -148,55 +149,66 @@ export default function ClientCRMPage() {
                     key={section.id}
                     onClick={() => handleSectionChange(section.id)}
                     className={cn(
-                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors',
+                      'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
                       isActive
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30'
                     )}
                   >
-                    <Icon className="h-4 w-4 flex-shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium">{section.label}</p>
-                      {!isActive && (
-                        <p className="text-xs opacity-70 truncate">{section.description}</p>
-                      )}
-                    </div>
+                    <Icon className="h-4 w-4" />
+                    {section.label}
                   </button>
                 )
               })}
-            </div>
-          </nav>
+            </nav>
 
-          {/* Main content area */}
-          <main className="flex-1 overflow-y-auto">
-            <div className="p-6">
-              {activeSection === 'dashboard' && (
-                <DashboardSection clientId={clientId} />
-              )}
-
-              {activeSection === 'data' && (
-                <DataSection
-                  clientId={clientId}
-                  clientName={client.company_name}
-                  discoveryCompleted={!!client.discovery_completed_at}
-                  discoveryInitialData={discoveryInitialData}
-                  onRefreshClient={refreshClient}
-                />
-              )}
-
+            {/* Right side: Search/Filters (contextual) */}
+            <div className="flex items-center gap-2">
               {activeSection === 'execution' && (
-                <ExecutionSection clientId={clientId} />
-              )}
-
-              {activeSection === 'history' && (
-                <HistorySection
-                  clientId={clientId}
-                  clientName={client.company_name}
-                />
+                <>
+                  <Button variant="outline" size="sm" className="h-8">
+                    <Filter className="h-3.5 w-3.5 mr-1.5" />
+                    Filters
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-8">
+                    <Search className="h-3.5 w-3.5 mr-1.5" />
+                    Search
+                  </Button>
+                </>
               )}
             </div>
-          </main>
+          </div>
         </div>
+
+        {/* Main work surface - full width */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {activeSection === 'dashboard' && (
+              <DashboardSection clientId={clientId} />
+            )}
+
+            {activeSection === 'data' && (
+              <DataSection
+                clientId={clientId}
+                clientName={client.company_name}
+                discoveryCompleted={!!client.discovery_completed_at}
+                discoveryInitialData={discoveryInitialData}
+                onRefreshClient={refreshClient}
+              />
+            )}
+
+            {activeSection === 'execution' && (
+              <ExecutionSection clientId={clientId} />
+            )}
+
+            {activeSection === 'history' && (
+              <HistorySection
+                clientId={clientId}
+                clientName={client.company_name}
+              />
+            )}
+          </div>
+        </main>
       </AppLayout>
     </ProtectedRoute>
   )
