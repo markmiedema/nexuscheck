@@ -2,34 +2,40 @@
 
 import { useState, useMemo } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { useClient, useClientNotes, useCreateClientNote, useClientAnalyses, useDeleteAnalysis } from '@/hooks/queries'
-import { type Client, type ClientNote, type ClientAnalysis } from '@/lib/api/clients'
+import { useClient } from '@/hooks/queries'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/api/queryKeys'
-import { showSuccess } from '@/lib/utils/errorHandler'
 import AppLayout from '@/components/layout/AppLayout'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { TabsCustom } from '@/components/ui/tabs-custom'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Textarea } from '@/components/ui/textarea'
-import { ClientValueSummary } from '@/components/clients/ClientValueSummary'
-import { ClientContacts } from '@/components/clients/ClientContacts'
-import { NewProjectDialog } from '@/components/clients/NewProjectDialog'
-import { DiscoveryProfile } from '@/components/clients/DiscoveryProfile'
-import { EngagementManager } from '@/components/clients/EngagementManager'
-import { ClientOverview } from '@/components/clients/ClientOverview'
-import { IntakeStepper } from '@/components/clients/IntakeStepper'
-import { StateWorklist } from '@/components/clients/StateWorklist'
-import { StateDetailDrawer } from '@/components/clients/StateDetailDrawer'
+import { cn } from '@/lib/utils'
+import { EngagementHeader } from '@/components/engagement/EngagementHeader'
+import { DashboardSection } from '@/components/engagement/sections/DashboardSection'
+import { DataSection } from '@/components/engagement/sections/DataSection'
+import { ExecutionSection } from '@/components/engagement/sections/ExecutionSection'
+import { HistorySection } from '@/components/engagement/sections/HistorySection'
 import {
-  Building2, Phone, Mail, Globe,
-  FileText, Plus, Calendar,
-  Trash2, ClipboardList, FileSignature,
-  Users, Warehouse, MapPin
+  LayoutDashboard,
+  Database,
+  Play,
+  Clock,
 } from 'lucide-react'
+
+// Section types for the new 4-section navigation
+type WorkspaceSection = 'dashboard' | 'data' | 'execution' | 'history'
+
+// Section configuration
+const SECTION_CONFIG: {
+  id: WorkspaceSection
+  label: string
+  icon: typeof LayoutDashboard
+  description: string
+}[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Overview & next actions' },
+  { id: 'data', label: 'Data', icon: Database, description: 'Client profile & intake' },
+  { id: 'execution', label: 'Execution', icon: Play, description: 'State actions & tasks' },
+  { id: 'history', label: 'History', icon: Clock, description: 'Analyses & activity log' },
+]
 
 export default function ClientCRMPage() {
   const params = useParams()
@@ -40,42 +46,29 @@ export default function ClientCRMPage() {
 
   // TanStack Query hooks for data fetching
   const { data: client, isLoading: loading } = useClient(clientId)
-  const { data: notes = [] } = useClientNotes(clientId)
-  const { data: analyses = [] } = useClientAnalyses(clientId)
 
-  // Mutations
-  const createNoteMutation = useCreateClientNote(clientId)
-  const deleteAnalysisMutation = useDeleteAnalysis()
-
-  // Initialize tab from URL query param or default to 'overview'
-  const initialTab = searchParams.get('tab') || 'overview'
-  const [activeTab, setActiveTab] = useState(initialTab)
-  const [newNote, setNewNote] = useState('')
-  const [noteType, setNoteType] = useState<string>('call')
-  const [selectedState, setSelectedState] = useState<string | null>(null)
-
-  const handleSaveNote = () => {
-    if (!newNote.trim()) return
-    createNoteMutation.mutate(
-      { content: newNote, note_type: noteType },
-      { onSuccess: () => setNewNote('') }
-    )
-  }
-
-  const handleDeleteAnalysis = (analysisId: string, e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent card click navigation
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) return
-    deleteAnalysisMutation.mutate(analysisId)
-  }
+  // Initialize section from URL query param or default to 'dashboard'
+  const initialSection = (searchParams.get('section') as WorkspaceSection) || 'dashboard'
+  const [activeSection, setActiveSection] = useState<WorkspaceSection>(initialSection)
+  const [activeEngagementId, setActiveEngagementId] = useState<string | undefined>(undefined)
 
   // Helper to refresh client data (used by child components)
   const refreshClient = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.clients.detail(clientId) })
   }
 
-  // Helper to refresh notes (used by child components)
-  const refreshNotes = () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.clients.notes(clientId) })
+  // Handle section change with URL update
+  const handleSectionChange = (section: WorkspaceSection) => {
+    setActiveSection(section)
+    // Update URL without navigation
+    const url = new URL(window.location.href)
+    url.searchParams.set('section', section)
+    window.history.replaceState({}, '', url.toString())
+  }
+
+  // Handle engagement change from header
+  const handleEngagementChange = (engagementId: string) => {
+    setActiveEngagementId(engagementId)
   }
 
   // Memoize discovery initialData to prevent useEffect from triggering on every parent render
@@ -107,11 +100,11 @@ export default function ClientCRMPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <AppLayout maxWidth="7xl">
+        <AppLayout maxWidth="7xl" noPadding>
           <div className="flex items-center justify-center py-32">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading client profile...</p>
+              <p className="text-muted-foreground">Loading client workspace...</p>
             </div>
           </div>
         </AppLayout>
@@ -134,560 +127,75 @@ export default function ClientCRMPage() {
 
   return (
     <ProtectedRoute>
-      <AppLayout
-        maxWidth="7xl"
-        breadcrumbs={[
-          { label: 'Clients', href: '/clients' },
-          { label: client.company_name }
-        ]}
-      >
-        {/* ENHANCED HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
-          <div className="flex gap-4">
-            <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-              <Building2 className="h-8 w-8" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">{client.company_name}</h1>
-              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Client Since {new Date(client.created_at).getFullYear()}
-                </span>
-                {client.industry && <span className="flex items-center gap-1"><Building2 className="h-3 w-3" /> {client.industry}</span>}
-{/* Dynamic Status Badge */}
-                {client.status === 'active' && (
-                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Active Client</Badge>
-                )}
-                {(client.status === 'prospect' || !client.status) && (
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Prospect</Badge>
-                )}
-                {client.status === 'paused' && (
-                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Paused</Badge>
-                )}
-                {client.status === 'churned' && (
-                  <Badge variant="secondary">Archived</Badge>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => router.push(`/clients/${client.id}/edit`)}>Edit Profile</Button>
-            <NewProjectDialog
-              clientId={client.id}
-              clientName={client.company_name}
-            />
-          </div>
-        </div>
+      <AppLayout maxWidth="7xl" noPadding>
+        {/* Engagement Header - Sticky context bar */}
+        <EngagementHeader
+          clientId={clientId}
+          engagementId={activeEngagementId}
+          onEngagementChange={handleEngagementChange}
+        />
 
-        {/* VALUE SUMMARY ("RAINMAKER" VIEW) */}
-        <ClientValueSummary analyses={analyses} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* LEFT COL: CONTACT & INFO */}
-          <div className="space-y-6">
-            {/* Team Roster (Replaces static Contact Card) */}
-            <ClientContacts clientId={client.id} />
-
-            {/* Business Profile Card - Full Discovery Summary */}
-            <Card className="p-6 space-y-5">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-foreground">Business Profile</h3>
-                {client.discovery_completed_at ? (
-                  <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
-                    Discovery Complete
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                    Pending Discovery
-                  </Badge>
-                )}
-              </div>
-
-              {/* Sales Channels */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Sales Channels</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {client.channels?.includes('dtc') && (
-                    <Badge variant="outline" className="text-xs">DTC</Badge>
-                  )}
-                  {client.channels?.includes('amazon_fba') && (
-                    <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">Amazon FBA</Badge>
-                  )}
-                  {client.channels?.includes('amazon_fbm') && (
-                    <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">Amazon FBM</Badge>
-                  )}
-                  {client.channels?.includes('wholesale') && (
-                    <Badge variant="outline" className="text-xs">Wholesale</Badge>
-                  )}
-                  {client.channels?.includes('retail') && (
-                    <Badge variant="outline" className="text-xs">Retail</Badge>
-                  )}
-                  {client.channels?.includes('marketplace_other') && (
-                    <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">Marketplace</Badge>
-                  )}
-                  {!client.channels?.length && (
-                    <span className="text-xs text-muted-foreground italic">Not set</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Product Types */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product Types</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {client.product_types?.includes('physical_goods') && (
-                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">Tangible Goods</Badge>
-                  )}
-                  {client.product_types?.includes('saas') && (
-                    <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800">SaaS</Badge>
-                  )}
-                  {client.product_types?.includes('digital_goods') && (
-                    <Badge variant="secondary" className="text-xs bg-indigo-100 text-indigo-800">Digital Goods</Badge>
-                  )}
-                  {client.product_types?.includes('services') && (
-                    <Badge variant="secondary" className="text-xs bg-teal-100 text-teal-800">Services</Badge>
-                  )}
-                  {client.product_types?.includes('mixed') && (
-                    <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-800">Mixed</Badge>
-                  )}
-                  {!client.product_types?.length && (
-                    <span className="text-xs text-muted-foreground italic">Not set</span>
-                  )}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Tech Stack */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tech Stack</p>
-                <div className="space-y-1.5 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">ERP</span>
-                    <span className="font-medium capitalize">{client.erp_system?.replace(/_/g, ' ') || <span className="text-muted-foreground italic font-normal">Not set</span>}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">E-Commerce</span>
-                    <span className="font-medium capitalize">{client.ecommerce_platform?.replace(/_/g, ' ') || <span className="text-muted-foreground italic font-normal">Not set</span>}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tax Engine</span>
-                    <span className="font-medium capitalize">{client.tax_engine?.replace(/_/g, ' ') || <span className="text-muted-foreground italic font-normal">None</span>}</span>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Business Volume */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Business Volume</p>
-                <div className="space-y-1.5 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Est. Revenue</span>
-                    <span className="font-medium">
-                      {client.estimated_annual_revenue === 'under_100k' && 'Under $100K'}
-                      {client.estimated_annual_revenue === '100k_500k' && '$100K - $500K'}
-                      {client.estimated_annual_revenue === '500k_1m' && '$500K - $1M'}
-                      {client.estimated_annual_revenue === '1m_5m' && '$1M - $5M'}
-                      {client.estimated_annual_revenue === '5m_10m' && '$5M - $10M'}
-                      {client.estimated_annual_revenue === 'over_10m' && 'Over $10M'}
-                      {!client.estimated_annual_revenue && <span className="text-muted-foreground italic font-normal">Not set</span>}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Transaction Vol.</span>
-                    <span className="font-medium capitalize">
-                      {client.transaction_volume === 'low' && 'Low (<1K/yr)'}
-                      {client.transaction_volume === 'medium' && 'Medium (1K-10K/yr)'}
-                      {client.transaction_volume === 'high' && 'High (>10K/yr)'}
-                      {!client.transaction_volume && <span className="text-muted-foreground italic font-normal">Not set</span>}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Physical Presence / Nexus Triggers */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Physical Presence (Nexus Triggers)</p>
-                <div className="space-y-2">
-                  {client.has_remote_employees && (
-                    <div className="p-2 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                      <div className="flex items-center gap-2 text-sm font-medium text-red-700 dark:text-red-300">
-                        <Users className="h-3.5 w-3.5" />
-                        Remote Employees
-                      </div>
-                      {(client.remote_employee_states?.length ?? 0) > 0 && (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {client.remote_employee_states?.map((state: string) => (
-                            <Badge key={state} variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">{state}</Badge>
-                          ))}
-                        </div>
+        {/* Main workspace container */}
+        <div className="flex min-h-[calc(100vh-180px)]">
+          {/* Left sidebar - Section navigation */}
+          <nav className="w-56 border-r bg-muted/30 flex-shrink-0">
+            <div className="p-4 space-y-1">
+              {SECTION_CONFIG.map((section) => {
+                const Icon = section.icon
+                const isActive = activeSection === section.id
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => handleSectionChange(section.id)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors',
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    )}
+                  >
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{section.label}</p>
+                      {!isActive && (
+                        <p className="text-xs opacity-70 truncate">{section.description}</p>
                       )}
                     </div>
-                  )}
-                  {client.has_inventory_3pl && (
-                    <div className="p-2 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                      <div className="flex items-center gap-2 text-sm font-medium text-red-700 dark:text-red-300">
-                        <Warehouse className="h-3.5 w-3.5" />
-                        3PL / FBA Inventory
-                      </div>
-                      {(client.inventory_3pl_states?.length ?? 0) > 0 && (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {client.inventory_3pl_states?.map((state: string) => (
-                            <Badge key={state} variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300">{state}</Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {!client.has_remote_employees && !client.has_inventory_3pl && (
-                    <span className="text-xs text-muted-foreground italic">No physical presence indicators</span>
-                  )}
-                </div>
-              </div>
+                  </button>
+                )
+              })}
+            </div>
+          </nav>
 
-              {/* Current Registrations */}
-              {((client.registered_states?.length ?? 0) > 0 || (client.current_registration_count ?? 0) > 0) && (
-                <>
-                  <Separator />
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      Current Registrations ({client.registered_states?.length || client.current_registration_count || 0} states)
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {client.registered_states?.map((state: string) => (
-                        <Badge key={state} variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-300">{state}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                </>
+          {/* Main content area */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="p-6">
+              {activeSection === 'dashboard' && (
+                <DashboardSection clientId={clientId} />
               )}
 
-              {/* Discovery Notes */}
-              {client.discovery_notes && (
-                <>
-                  <Separator />
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Discovery Notes</p>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{client.discovery_notes}</p>
-                  </div>
-                </>
+              {activeSection === 'data' && (
+                <DataSection
+                  clientId={clientId}
+                  clientName={client.company_name}
+                  discoveryCompleted={!!client.discovery_completed_at}
+                  discoveryInitialData={discoveryInitialData}
+                  onRefreshClient={refreshClient}
+                />
               )}
 
-              {/* Fallback if no Discovery data at all */}
-              {!client.discovery_completed_at && !client.product_types?.length && !client.channels?.length && (
-                <div className="text-center py-2">
-                  <p className="text-sm text-muted-foreground">Complete Discovery to populate business profile</p>
-                </div>
+              {activeSection === 'execution' && (
+                <ExecutionSection clientId={clientId} />
               )}
-            </Card>
-          </div>
 
-          {/* CENTER COL: ACTIVITY & NOTES */}
-          <div className="lg:col-span-2 space-y-6">
-            <TabsCustom
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              variant="pills"
-              items={[
-                {
-                  id: 'overview',
-                  label: 'Overview',
-                  content: (
-                    <ClientOverview clientId={client.id} />
-                  )
-                },
-                {
-                  id: 'activity',
-                  label: 'Activity & Notes',
-                  content: (
-                    <div className="space-y-6 pt-4">
-                      {/* Quick Note Entry */}
-                      <Card className="p-4 bg-muted/30 border-dashed">
-                        <Textarea
-                          placeholder="Log a call, meeting note, or thought..."
-                          className="bg-background mb-3 border-muted-foreground/20"
-                          value={newNote}
-                          onChange={(e) => setNewNote(e.target.value)}
-                        />
-                        <div className="flex justify-between items-center">
-                           <div className="flex gap-2">
-                             <Badge
-                               variant="outline"
-                               className={`cursor-pointer transition-all ${
-                                 noteType === 'discovery'
-                                   ? 'bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700'
-                                   : 'hover:bg-purple-50 hover:border-purple-200 dark:hover:bg-purple-900/20'
-                               }`}
-                               onClick={() => setNoteType('discovery')}
-                             >
-                               Discovery
-                             </Badge>
-                             <Badge
-                               variant="outline"
-                               className={`cursor-pointer transition-all ${
-                                 noteType === 'call'
-                                   ? 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-700'
-                                   : 'hover:bg-orange-50 hover:border-orange-200 dark:hover:bg-orange-900/20'
-                               }`}
-                               onClick={() => setNoteType('call')}
-                             >
-                               Call
-                             </Badge>
-                             <Badge
-                               variant="outline"
-                               className={`cursor-pointer transition-all ${
-                                 noteType === 'email'
-                                   ? 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700'
-                                   : 'hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-900/20'
-                               }`}
-                               onClick={() => setNoteType('email')}
-                             >
-                               Email
-                             </Badge>
-                             <Badge
-                               variant="outline"
-                               className={`cursor-pointer transition-all ${
-                                 noteType === 'meeting'
-                                   ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700'
-                                   : 'hover:bg-green-50 hover:border-green-200 dark:hover:bg-green-900/20'
-                               }`}
-                               onClick={() => setNoteType('meeting')}
-                             >
-                               Meeting
-                             </Badge>
-                             <Badge
-                               variant="outline"
-                               className={`cursor-pointer transition-all ${
-                                 noteType === 'analysis'
-                                   ? 'bg-teal-100 text-teal-700 border-teal-300 hover:bg-teal-200 dark:bg-teal-900/40 dark:text-teal-300 dark:border-teal-700'
-                                   : 'hover:bg-teal-50 hover:border-teal-200 dark:hover:bg-teal-900/20'
-                               }`}
-                               onClick={() => setNoteType('analysis')}
-                             >
-                               Nexus Analysis
-                             </Badge>
-                             <Badge
-                               variant="outline"
-                               className={`cursor-pointer transition-all ${
-                                 noteType === 'deliverable'
-                                   ? 'bg-pink-100 text-pink-700 border-pink-300 hover:bg-pink-200 dark:bg-pink-900/40 dark:text-pink-300 dark:border-pink-700'
-                                   : 'hover:bg-pink-50 hover:border-pink-200 dark:hover:bg-pink-900/20'
-                               }`}
-                               onClick={() => setNoteType('deliverable')}
-                             >
-                               Deliverable
-                             </Badge>
-                           </div>
-                           <Button size="sm" disabled={!newNote || createNoteMutation.isPending} onClick={handleSaveNote}>
-                             {createNoteMutation.isPending ? 'Saving...' : 'Log Note'}
-                           </Button>
-                        </div>
-                      </Card>
-
-                      {/* Timeline */}
-                      <div className="space-y-6 pl-4 border-l border-border/50 ml-2">
-                        {notes.length === 0 ? (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                            <p>No notes yet. Log your first interaction above.</p>
-                          </div>
-                        ) : (
-                          notes.map((note) => (
-                            <div key={note.id} className="relative">
-                              <div className={`absolute -left-[21px] top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-background ${
-                                note.note_type === 'discovery' ? 'bg-purple-500' :
-                                note.note_type === 'discovery_update' ? 'bg-purple-400' :
-                                note.note_type === 'engagement' ? 'bg-sky-500' :
-                                note.note_type === 'email' ? 'bg-blue-500' :
-                                note.note_type === 'meeting' ? 'bg-green-500' :
-                                note.note_type === 'analysis' ? 'bg-teal-500' :
-                                note.note_type === 'deliverable' ? 'bg-pink-500' :
-                                'bg-orange-500'
-                              }`} />
-                              <div className="bg-card border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="flex justify-between items-start mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className={`text-xs font-semibold px-2.5 py-0.5 ${
-                                      note.note_type === 'discovery' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700' :
-                                      note.note_type === 'discovery_update' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700' :
-                                      note.note_type === 'engagement' ? 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-700' :
-                                      note.note_type === 'email' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700' :
-                                      note.note_type === 'meeting' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700' :
-                                      note.note_type === 'analysis' ? 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700' :
-                                      note.note_type === 'deliverable' ? 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-700' :
-                                      'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700'
-                                    }`}>
-                                      {note.note_type === 'discovery_update' ? 'Discovery Update' : (note.note_type || 'note').charAt(0).toUpperCase() + (note.note_type || 'note').slice(1)}
-                                    </Badge>
-                                  </div>
-                                  <span className="text-xs text-muted-foreground">
-                                    {new Date(note.created_at).toLocaleDateString()}
-                                  </span>
-                                </div>
-                                <p className="text-sm text-muted-foreground leading-relaxed">
-                                  {note.content}
-                                </p>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )
-                },
-                {
-                  id: 'projects',
-                  label: 'Project History',
-                  content: (
-                    <div className="pt-4">
-                       <div className="flex justify-between items-center mb-4">
-                         <h3 className="text-lg font-medium">Projects</h3>
-                         <NewProjectDialog
-                           clientId={client.id}
-                           clientName={client.company_name}
-                         />
-                       </div>
-
-                       {/* Project list - analyses */}
-                       {analyses.length === 0 ? (
-                         <Card className="p-8 text-center text-muted-foreground border-dashed">
-                           <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                           <p>No projects yet for this client.</p>
-                           <div className="mt-4">
-                             <NewProjectDialog
-                               clientId={client.id}
-                               clientName={client.company_name}
-                             />
-                           </div>
-                         </Card>
-                       ) : (
-                         <div className="space-y-3">
-                           {analyses.map((analysis) => (
-                             <div
-                               key={analysis.id}
-                               className="border rounded-lg p-4 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group"
-                               onClick={() => router.push(`/analysis/${analysis.id}/results`)}
-                             >
-                               <div className="flex justify-between items-start mb-2">
-                                 <p className="font-medium">Nexus Study</p>
-                                 <div className="flex items-center gap-2">
-                                   <Badge variant={analysis.status === 'complete' ? 'default' : 'outline'} className={
-                                     analysis.status === 'complete'
-                                       ? ''
-                                       : analysis.status === 'error'
-                                       ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300'
-                                       : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300'
-                                   }>
-                                     {analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1)}
-                                   </Badge>
-                                   <Button
-                                     variant="ghost"
-                                     size="icon"
-                                     className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                                     onClick={(e) => handleDeleteAnalysis(analysis.id, e)}
-                                     disabled={deleteAnalysisMutation.isPending}
-                                   >
-                                     <Trash2 className="h-3 w-3" />
-                                   </Button>
-                                 </div>
-                               </div>
-                               <p className="text-sm text-muted-foreground mb-3">
-                                 {analysis.analysis_period_start && analysis.analysis_period_end
-                                   ? `${new Date(analysis.analysis_period_start).toLocaleDateString()} - ${new Date(analysis.analysis_period_end).toLocaleDateString()}`
-                                   : `Started ${new Date(analysis.created_at).toLocaleDateString()}`}
-                               </p>
-                               <Button variant="outline" size="sm" className="w-full h-8 text-sm">
-                                 Open
-                               </Button>
-                             </div>
-                           ))}
-                         </div>
-                       )}
-                    </div>
-                  )
-                },
-                {
-                  id: 'intake',
-                  label: 'Intake',
-                  content: (
-                    <div className="pt-4">
-                      <IntakeStepper
-                        clientId={client.id}
-                        onComplete={() => {
-                          refreshClient()
-                          setActiveTab('overview')
-                        }}
-                      />
-                    </div>
-                  )
-                },
-                {
-                  id: 'states',
-                  label: 'States',
-                  content: (
-                    <div className="pt-4">
-                      <StateWorklist
-                        clientId={client.id}
-                        onSelectState={(state) => setSelectedState(state)}
-                      />
-                      <StateDetailDrawer
-                        clientId={client.id}
-                        state={selectedState}
-                        open={!!selectedState}
-                        onClose={() => setSelectedState(null)}
-                      />
-                    </div>
-                  )
-                },
-                {
-                  id: 'discovery',
-                  label: 'Discovery',
-                  content: (
-                    <div className="pt-4">
-                      <DiscoveryProfile
-                        clientId={client.id}
-                        initialData={discoveryInitialData}
-                        onUpdate={() => {
-                          // Reload client data to reflect changes
-                          refreshClient()
-                        }}
-                        onComplete={() => {
-                          // Reload client and notes, then switch to Activity tab
-                          refreshClient()
-                          refreshNotes()
-                          setActiveTab('activity')
-                        }}
-                      />
-                    </div>
-                  )
-                },
-                {
-                  id: 'engagements',
-                  label: 'Engagements',
-                  content: (
-                    <div className="pt-4">
-                      <EngagementManager
-                        clientId={client.id}
-                        clientName={client.company_name}
-                        discoveryCompleted={!!client.discovery_completed_at}
-                        onEngagementChange={() => {
-                          // Reload client data to reflect changes
-                          refreshClient()
-                        }}
-                      />
-                    </div>
-                  )
-                }
-              ]}
-            />
-          </div>
-
+              {activeSection === 'history' && (
+                <HistorySection
+                  clientId={clientId}
+                  clientName={client.company_name}
+                />
+              )}
+            </div>
+          </main>
         </div>
       </AppLayout>
     </ProtectedRoute>
