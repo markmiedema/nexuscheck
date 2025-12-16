@@ -34,7 +34,7 @@ import {
   Plus,
   ChevronRight,
 } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils/formatting'
 
 interface StateWorklistProps {
   clientId: string
