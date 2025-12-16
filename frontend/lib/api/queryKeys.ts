@@ -30,6 +30,8 @@ export const queryKeys = {
     overview: (id: string) => [...queryKeys.clients.detail(id), 'overview'] as const,
     intake: (id: string) => [...queryKeys.clients.detail(id), 'intake'] as const,
     intakeStatus: (id: string) => [...queryKeys.clients.detail(id), 'intake-status'] as const,
+    stateWorklist: (id: string) => [...queryKeys.clients.detail(id), 'state-worklist'] as const,
+    stateDetail: (clientId: string, state: string) => [...queryKeys.clients.stateWorklist(clientId), state] as const,
   },
   physicalNexus: {
     all: ['physicalNexus'] as const,
