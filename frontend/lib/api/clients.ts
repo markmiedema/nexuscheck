@@ -52,6 +52,7 @@ export interface Client {
   transaction_volume?: string
   current_registration_count?: number
   registered_states?: string[]
+  registered_state_dates?: Record<string, string>
   discovery_completed_at?: string
   discovery_notes?: string
 
@@ -143,5 +144,148 @@ export async function listClientNotes(clientId: string): Promise<ClientNote[]> {
 
 export async function listClientAnalyses(clientId: string): Promise<ClientAnalysis[]> {
   const response = await apiClient.get(`/api/v1/clients/${clientId}/analyses`)
+  return response.data
+}
+
+// --- Client Overview Types ---
+
+export interface NextAction {
+  action: string
+  action_type: string
+  priority: 'high' | 'medium' | 'low'
+  target_url?: string
+  context?: string
+  due_date?: string
+}
+
+export interface Deadline {
+  id?: string
+  title: string
+  due_date: string
+  deadline_type: string
+  state?: string
+  days_until: number
+  is_overdue: boolean
+  client_name?: string
+}
+
+export interface BlockingItem {
+  item: string
+  category: string
+  since?: string
+  blocking_states: string[]
+}
+
+export interface StatesSummary {
+  total_with_nexus: number
+  needing_action: number
+  approaching_threshold: number
+  in_progress: number
+  complete: number
+  states_needing_action: string[]
+}
+
+export interface StageInfo {
+  current_stage: string
+  stage_progress: number
+  stage_started_at?: string
+  stages_completed: string[]
+}
+
+export interface EngagementSummary {
+  id: string
+  title: string
+  engagement_type?: string
+  stage: string
+  status: string
+  next_milestone_name?: string
+  next_milestone_date?: string
+}
+
+export interface IntakeProgress {
+  total_items: number
+  completed_items: number
+  completion_percentage: number
+  missing_required: string[]
+}
+
+export interface ClientOverview {
+  client_id: string
+  company_name: string
+  lifecycle_status: string
+  stage_info: StageInfo
+  next_action?: NextAction
+  secondary_actions: NextAction[]
+  upcoming_deadlines: Deadline[]
+  overdue_count: number
+  states_summary: StatesSummary
+  blocking_items: BlockingItem[]
+  is_blocked: boolean
+  active_engagement?: EngagementSummary
+  intake_progress?: IntakeProgress
+  last_activity_at?: string
+  last_analysis_at?: string
+}
+
+export interface IntakeItem {
+  id: string
+  client_id: string
+  organization_id: string
+  engagement_id?: string
+  category: string
+  item_key: string
+  label: string
+  description?: string
+  is_required: boolean
+  status: string
+  assigned_to?: string
+  due_date?: string
+  requested_at?: string
+  received_at?: string
+  validated_at?: string
+  uploaded_files: Array<{ url: string; filename: string; uploaded_at: string }>
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface IntakeStatus {
+  total_items: number
+  completed_items: number
+  completion_percentage: number
+  by_category: Record<string, { total: number; completed: number; status: string }>
+  blocking_items: IntakeItem[]
+}
+
+// --- Client Overview API Functions ---
+
+export async function getClientOverview(clientId: string): Promise<ClientOverview> {
+  const response = await apiClient.get(`/api/v1/clients/${clientId}/overview`)
+  return response.data
+}
+
+export async function getClientIntakeItems(clientId: string): Promise<IntakeItem[]> {
+  const response = await apiClient.get(`/api/v1/clients/${clientId}/intake`)
+  return response.data
+}
+
+export async function initializeClientIntake(clientId: string, engagementId?: string): Promise<IntakeItem[]> {
+  const response = await apiClient.post(`/api/v1/clients/${clientId}/intake/initialize`, null, {
+    params: engagementId ? { engagement_id: engagementId } : undefined
+  })
+  return response.data
+}
+
+export async function updateClientIntakeItem(
+  clientId: string,
+  itemId: string,
+  data: { status?: string; due_date?: string; assigned_to?: string; notes?: string }
+): Promise<IntakeItem> {
+  const response = await apiClient.patch(`/api/v1/clients/${clientId}/intake/${itemId}`, data)
+  return response.data
+}
+
+export async function getClientIntakeStatus(clientId: string): Promise<IntakeStatus> {
+  const response = await apiClient.get(`/api/v1/clients/${clientId}/intake/status`)
   return response.data
 }

@@ -128,6 +128,7 @@ interface DiscoveryProfileProps {
     transaction_volume?: string
     current_registration_count?: number
     registered_states?: string[]
+    registered_state_dates?: Record<string, string>  // State code -> registration date
     discovery_completed_at?: string
     discovery_notes?: string
     // Tech integration fields
@@ -163,6 +164,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
   const [registeredStates, setRegisteredStates] = useState<string[]>(
     Array.isArray(initialData?.registered_states) ? initialData.registered_states : []
   )
+  const [registeredStateDates, setRegisteredStateDates] = useState<Record<string, string>>(initialData?.registered_state_dates || {})
   const [discoveryNotes, setDiscoveryNotes] = useState(initialData?.discovery_notes || '')
   // Tech integration fields
   const [erpSystem, setErpSystem] = useState(initialData?.erp_system || '')
@@ -188,6 +190,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
     setTransactionVolume(initialData?.transaction_volume || '')
     setRegistrationCount(initialData?.current_registration_count || 0)
     setRegisteredStates(initialData?.registered_states || [])
+    setRegisteredStateDates(initialData?.registered_state_dates || {})
     setDiscoveryNotes(initialData?.discovery_notes || '')
     setErpSystem(initialData?.erp_system || '')
     setEcommercePlatform(initialData?.ecommerce_platform || '')
@@ -368,6 +371,7 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
         transaction_volume: transactionVolume || null,
         current_registration_count: registrationCount,
         registered_states: registeredStates,
+        registered_state_dates: registeredStateDates,
         discovery_notes: discoveryNotes || null,
         // Tech integration fields
         erp_system: erpSystem || null,
@@ -880,6 +884,28 @@ export function DiscoveryProfile({ clientId, initialData, onUpdate, onComplete }
           <p className="text-sm text-muted-foreground mt-2">
             {registeredStates.length} states selected
           </p>
+          {/* Registration date inputs for selected states */}
+          {registeredStates.length > 0 && (
+            <div className="space-y-2 pt-3 mt-3 border-t">
+              <Label className="text-xs text-muted-foreground">When was registration effective?</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {registeredStates.map(state => (
+                  <div key={state} className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-300 w-10 justify-center shrink-0">{state}</Badge>
+                    <Input
+                      type="date"
+                      className="h-8 text-sm flex-1"
+                      value={registeredStateDates[state] || ''}
+                      onChange={(e) => {
+                        setRegisteredStateDates(prev => ({ ...prev, [state]: e.target.value }))
+                        setHasChanges(true)
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Discovery Notes */}
