@@ -22,11 +22,13 @@ import { DiscoveryProfile } from '@/components/clients/DiscoveryProfile'
 import { EngagementManager } from '@/components/clients/EngagementManager'
 import { ClientOverview } from '@/components/clients/ClientOverview'
 import { IntakeStepper } from '@/components/clients/IntakeStepper'
+import { StateWorklist } from '@/components/clients/StateWorklist'
+import { StateDetailDrawer } from '@/components/clients/StateDetailDrawer'
 import {
   Building2, Phone, Mail, Globe,
   FileText, Plus, Calendar,
   Trash2, ClipboardList, FileSignature,
-  Users, Warehouse
+  Users, Warehouse, MapPin
 } from 'lucide-react'
 
 export default function ClientCRMPage() {
@@ -50,6 +52,7 @@ export default function ClientCRMPage() {
   const [activeTab, setActiveTab] = useState(initialTab)
   const [newNote, setNewNote] = useState('')
   const [noteType, setNoteType] = useState<string>('call')
+  const [selectedState, setSelectedState] = useState<string | null>(null)
 
   const handleSaveNote = () => {
     if (!newNote.trim()) return
@@ -620,6 +623,24 @@ export default function ClientCRMPage() {
                           refreshClient()
                           setActiveTab('overview')
                         }}
+                      />
+                    </div>
+                  )
+                },
+                {
+                  id: 'states',
+                  label: 'States',
+                  content: (
+                    <div className="pt-4">
+                      <StateWorklist
+                        clientId={client.id}
+                        onSelectState={(state) => setSelectedState(state)}
+                      />
+                      <StateDetailDrawer
+                        clientId={client.id}
+                        state={selectedState}
+                        open={!!selectedState}
+                        onClose={() => setSelectedState(null)}
                       />
                     </div>
                   )

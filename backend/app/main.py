@@ -69,7 +69,7 @@ async def root():
     }
 
 # Include API routers
-from app.api.v1 import analyses, physical_nexus, clients, engagements, exemptions, reports, organizations, compliance
+from app.api.v1 import analyses, physical_nexus, clients, engagements, exemptions, reports, organizations, compliance, state_worklist
 # VDA module disabled for now - will be added later
 # from app.api.v1 import vda
 
@@ -126,6 +126,12 @@ app.include_router(
     compliance.router,
     prefix=f"{settings.API_V1_PREFIX}/compliance",
     tags=["compliance"]
+)
+
+app.include_router(
+    state_worklist.router,
+    prefix=settings.API_V1_PREFIX,
+    tags=["state-worklist"]
 )
 
 # TODO: Add more routers as they are implemented
