@@ -181,12 +181,12 @@ export function EngagementManager({
       title,
       scope_config: {
         services: selectedServices,
-        pricing_model: pricingModel || null,
-        estimated_fee: estimatedFee ? parseFloat(estimatedFee) : null,
-        retainer_monthly: retainerMonthly ? parseFloat(retainerMonthly) : null,
+        pricing_model: pricingModel || undefined,
+        estimated_fee: estimatedFee ? parseFloat(estimatedFee) : undefined,
+        retainer_monthly: retainerMonthly ? parseFloat(retainerMonthly) : undefined,
       },
-      scope_summary: scopeSummary || null,
-      effective_date: effectiveDate || null,
+      scope_summary: scopeSummary || undefined,
+      effective_date: effectiveDate || undefined,
     }
 
     if (editingEngagement) {
