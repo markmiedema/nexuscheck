@@ -50,7 +50,7 @@ export function DataSection({
   discoveryCompleted,
   discoveryInitialData,
   onRefreshClient,
-  onRefreshNotes,
+  onRefreshNotes: _onRefreshNotes, // reserved for later
 }: DataSectionProps) {
   const [engagementDrawerOpen, setEngagementDrawerOpen] = useState(false)
 
