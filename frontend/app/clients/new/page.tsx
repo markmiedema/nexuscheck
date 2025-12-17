@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { createClient, createClientNote, type CreateClientData } from '@/lib/api/clients'
+import { createClient, createClientNote, type CreateClientData, type DuplicateClient, ClientDuplicateError } from '@/lib/api/clients'
 import apiClient from '@/lib/api/client'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
 import {
@@ -20,9 +20,19 @@ import {
   Plus,
   FileText,
   ArrowRight,
-  ClipboardList
+  ClipboardList,
+  AlertTriangle,
+  ExternalLink
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 // Simplified validation schema - just the essentials
 const newClientSchema = z.object({
@@ -41,6 +51,9 @@ export default function NewClientPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitAction, setSubmitAction] = useState<'create' | 'discovery'>('create')
+  const [duplicates, setDuplicates] = useState<DuplicateClient[]>([])
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
+  const [pendingPayload, setPendingPayload] = useState<CreateClientData | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
   const {
@@ -50,6 +63,49 @@ export default function NewClientPage() {
   } = useForm<NewClientForm>({
     resolver: zodResolver(newClientSchema),
   })
+
+  const completeClientCreation = async (payload: CreateClientData, force: boolean = false) => {
+    const newClient = await createClient(payload, force)
+
+    // Create primary contact in Team Roster if contact info was provided
+    if (payload.contact_name) {
+      try {
+        await apiClient.post(`/api/v1/clients/${newClient.id}/contacts`, {
+          name: payload.contact_name,
+          role: 'Primary Contact',
+          email: payload.contact_email || null,
+          phone: payload.contact_phone || null,
+          is_primary: true
+        })
+      } catch {
+        // Silently fail - contact creation is not critical
+        console.warn('Failed to create primary contact')
+      }
+    }
+
+    // Log activity note for client creation
+    try {
+      const noteContent = payload.notes
+        ? `Initial contact - client record created. Notes: ${payload.notes}`
+        : 'Initial contact - client record created'
+      await createClientNote(newClient.id, {
+        content: noteContent,
+        note_type: 'call'
+      })
+    } catch {
+      // Silently fail - note creation is not critical
+      console.warn('Failed to create activity note')
+    }
+
+    showSuccess(`Client "${newClient.company_name}" added successfully`)
+
+    // Navigate based on which button was clicked
+    if (submitAction === 'discovery') {
+      router.push(`/clients/${newClient.id}?tab=discovery`)
+    } else {
+      router.push(`/clients/${newClient.id}`)
+    }
+  }
 
   const onSubmit = async (data: NewClientForm) => {
     setIsSubmitting(true)
@@ -68,52 +124,48 @@ export default function NewClientPage() {
         lifecycle_status: 'prospect',
       }
 
-      const newClient = await createClient(payload)
-
-      // Create primary contact in Team Roster if contact info was provided
-      if (data.contact_name) {
-        try {
-          await apiClient.post(`/api/v1/clients/${newClient.id}/contacts`, {
-            name: data.contact_name,
-            role: 'Primary Contact',
-            email: data.contact_email || null,
-            phone: data.contact_phone || null,
-            is_primary: true
-          })
-        } catch {
-          // Silently fail - contact creation is not critical
-          console.warn('Failed to create primary contact')
-        }
-      }
-
-      // Log activity note for client creation
-      try {
-        const noteContent = data.notes
-          ? `Initial contact - client record created. Notes: ${data.notes}`
-          : 'Initial contact - client record created'
-        await createClientNote(newClient.id, {
-          content: noteContent,
-          note_type: 'call'
+      await completeClientCreation(payload)
+    } catch (error) {
+      // Handle duplicate detection
+      if (error instanceof ClientDuplicateError) {
+        setDuplicates(error.duplicates)
+        setPendingPayload({
+          company_name: data.company_name,
+          contact_name: data.contact_name || null,
+          contact_email: data.contact_email || null,
+          contact_phone: data.contact_phone || null,
+          industry: data.industry || null,
+          website: data.website || null,
+          notes: data.notes || null,
+          status: 'prospect',
+          lifecycle_status: 'prospect',
         })
-      } catch {
-        // Silently fail - note creation is not critical
-        console.warn('Failed to create activity note')
-      }
-
-      showSuccess(`Client "${newClient.company_name}" added successfully`)
-
-      // Navigate based on which button was clicked
-      if (submitAction === 'discovery') {
-        // Navigate to client page with discovery tab active
-        router.push(`/clients/${newClient.id}?tab=discovery`)
+        setShowDuplicateDialog(true)
       } else {
-        router.push(`/clients/${newClient.id}`)
+        handleApiError(error, { userMessage: 'Failed to create client' })
       }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleForceCreate = async () => {
+    if (!pendingPayload) return
+    setIsSubmitting(true)
+    setShowDuplicateDialog(false)
+    try {
+      await completeClientCreation(pendingPayload, true)
     } catch (error) {
       handleApiError(error, { userMessage: 'Failed to create client' })
     } finally {
       setIsSubmitting(false)
+      setPendingPayload(null)
+      setDuplicates([])
     }
+  }
+
+  const handleViewExisting = (clientId: string) => {
+    router.push(`/clients/${clientId}`)
   }
 
   const handleCreateAndDiscover = () => {
@@ -289,6 +341,71 @@ export default function NewClientPage() {
             </div>
           </div>
         </form>
+
+        {/* Duplicate Detection Dialog */}
+        <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                Potential Duplicate Found
+              </DialogTitle>
+              <DialogDescription>
+                We found existing client(s) with a similar name. Would you like to view them or create anyway?
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3 py-4">
+              {duplicates.map((dup) => (
+                <div
+                  key={dup.id}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-muted/50"
+                >
+                  <div>
+                    <p className="font-medium">{dup.company_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {dup.match_type === 'exact' ? 'Exact match' : 'Similar name'}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewExisting(dup.id)}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                    View
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowDuplicateDialog(false)
+                  setPendingPayload(null)
+                  setDuplicates([])
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleForceCreate}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Anyway'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </AppLayout>
     </ProtectedRoute>
   )

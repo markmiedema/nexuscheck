@@ -21,15 +21,72 @@ from datetime import datetime
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+def _normalize_company_name(name: str) -> str:
+    """Normalize company name for duplicate detection."""
+    import re
+    # Convert to lowercase and strip whitespace
+    normalized = name.lower().strip()
+    # Remove common suffixes
+    suffixes = [
+        r'\s+(inc\.?|llc\.?|corp\.?|corporation|company|co\.?|ltd\.?|limited|lp\.?|llp\.?)$',
+        r'\s+(incorporated|enterprises?)$',
+        r'[,\.]$'
+    ]
+    for suffix in suffixes:
+        normalized = re.sub(suffix, '', normalized, flags=re.IGNORECASE)
+    # Remove extra whitespace
+    normalized = re.sub(r'\s+', ' ', normalized).strip()
+    return normalized
+
+
 @router.post("", response_model=ClientResponse)
 async def create_client(
     client_data: ClientCreate,
-    auth: Tuple[str, str] = Depends(require_organization)
+    auth: Tuple[str, str] = Depends(require_organization),
+    force: bool = False  # Allow bypassing duplicate check
 ):
     user_id, org_id = auth
     supabase = get_supabase()
 
     try:
+        # Check for potential duplicate clients (unless force=True)
+        if not force and client_data.company_name:
+            existing_clients = supabase.table('clients')\
+                .select('id, company_name')\
+                .eq('organization_id', org_id)\
+                .execute()
+
+            normalized_new = _normalize_company_name(client_data.company_name)
+            duplicates = []
+
+            for existing in (existing_clients.data or []):
+                normalized_existing = _normalize_company_name(existing['company_name'])
+                # Check for exact match (case-insensitive, normalized)
+                if normalized_new == normalized_existing:
+                    duplicates.append({
+                        'id': existing['id'],
+                        'company_name': existing['company_name'],
+                        'match_type': 'exact'
+                    })
+                # Check if one name contains the other (catches "Acme" vs "Acme Inc")
+                elif normalized_new in normalized_existing or normalized_existing in normalized_new:
+                    if len(normalized_new) >= 3 and len(normalized_existing) >= 3:  # Avoid false positives on short names
+                        duplicates.append({
+                            'id': existing['id'],
+                            'company_name': existing['company_name'],
+                            'match_type': 'similar'
+                        })
+
+            if duplicates:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail={
+                        'message': f"Potential duplicate client(s) found for '{client_data.company_name}'",
+                        'duplicates': duplicates,
+                        'hint': "Use force=true query parameter to create anyway"
+                    }
+                )
+
         # 1. Separate the nested data from the main client data
         full_payload = client_data.model_dump()
 

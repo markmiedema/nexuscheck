@@ -16,6 +16,7 @@ from app.schemas.client import (
     EngagementCreate, EngagementUpdate, EngagementResponse,
     EngagementWithProjectsResponse, ScopeConfig
 )
+from app.services.client_overview_service import ClientOverviewService
 import logging
 import json
 
@@ -34,7 +35,7 @@ async def create_engagement(
     try:
         # Verify client exists and belongs to user
         client_check = supabase.table('clients')\
-            .select('id, company_name')\
+            .select('id, company_name, discovery_completed_at')\
             .eq('id', str(engagement_data.client_id))\
             .eq('user_id', user_id)\
             .execute()
@@ -43,6 +44,13 @@ async def create_engagement(
             raise HTTPException(status_code=404, detail="Client not found")
 
         client = client_check.data[0]
+
+        # Enforce discovery completion before engagement creation
+        if not client.get('discovery_completed_at'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Discovery must be completed before creating an engagement. Please complete the Discovery Profile first."
+            )
 
         # Prepare engagement data
         insert_data = {
@@ -196,11 +204,14 @@ async def update_engagement(
 
         if engagement_data.title is not None:
             update_data['title'] = engagement_data.title
+        # Track if we're transitioning to signed status
+        transitioning_to_signed = False
         if engagement_data.status is not None:
             update_data['status'] = engagement_data.status
             # If marking as signed, set signed_at
             if engagement_data.status == 'signed' and engagement_data.signed_at is None:
                 update_data['signed_at'] = datetime.utcnow().isoformat()
+                transitioning_to_signed = True
         if engagement_data.scope_config is not None:
             update_data['scope_config'] = engagement_data.scope_config.model_dump()
         if engagement_data.scope_summary is not None:
@@ -227,14 +238,31 @@ async def update_engagement(
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to update engagement")
 
-        # Get client name for response
+        # Get client info for response and potential intake initialization
+        client_id = check.data[0]['client_id']
         client_result = supabase.table('clients')\
-            .select('company_name')\
-            .eq('id', check.data[0]['client_id'])\
+            .select('company_name, organization_id')\
+            .eq('id', client_id)\
             .execute()
 
         engagement = result.data[0]
         engagement['client_name'] = client_result.data[0]['company_name'] if client_result.data else None
+
+        # Auto-initialize intake items when engagement is signed
+        if transitioning_to_signed and client_result.data:
+            org_id = client_result.data[0].get('organization_id')
+            if org_id:
+                try:
+                    service = ClientOverviewService(supabase)
+                    service.initialize_intake_items(
+                        client_id=client_id,
+                        org_id=org_id,
+                        engagement_id=engagement_id
+                    )
+                    logger.info(f"Auto-initialized intake items for client {client_id} on engagement signing")
+                except Exception as init_error:
+                    # Log but don't fail the engagement update
+                    logger.warning(f"Failed to auto-initialize intake items: {init_error}")
 
         return engagement
 

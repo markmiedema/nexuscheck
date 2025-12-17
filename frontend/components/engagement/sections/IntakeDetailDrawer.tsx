@@ -45,7 +45,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   business_model: 'Business Model',
   physical_presence: 'Physical Presence',
   registrations: 'Registrations',
-  data_requests: 'Data Requests',
+  data_request: 'Data Requests',
 }
 
 interface IntakeDetailDrawerProps {

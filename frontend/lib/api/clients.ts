@@ -79,6 +79,29 @@ export interface CreateClientData {
   // Business details are captured during the Discovery meeting
 }
 
+// Duplicate detection types
+export interface DuplicateClient {
+  id: string
+  company_name: string
+  match_type: 'exact' | 'similar'
+}
+
+export interface DuplicateClientError {
+  message: string
+  duplicates: DuplicateClient[]
+  hint: string
+}
+
+export class ClientDuplicateError extends Error {
+  duplicates: DuplicateClient[]
+
+  constructor(message: string, duplicates: DuplicateClient[]) {
+    super(message)
+    this.name = 'ClientDuplicateError'
+    this.duplicates = duplicates
+  }
+}
+
 // --- 3. API Functions (Keep these mostly the same) ---
 
 export interface ClientNote {
@@ -113,9 +136,32 @@ export async function listClients(): Promise<Client[]> {
   return response.data
 }
 
-export async function createClient(data: CreateClientData): Promise<Client> {
-  const response = await apiClient.post('/api/v1/clients', data)
-  return response.data
+export async function createClient(data: CreateClientData, force: boolean = false): Promise<Client> {
+  try {
+    const response = await apiClient.post('/api/v1/clients', data, {
+      params: force ? { force: true } : undefined
+    })
+    return response.data
+  } catch (error: unknown) {
+    // Check for duplicate detection error (409 Conflict)
+    if (
+      error &&
+      typeof error === 'object' &&
+      'response' in error &&
+      error.response &&
+      typeof error.response === 'object' &&
+      'status' in error.response &&
+      error.response.status === 409 &&
+      'data' in error.response &&
+      error.response.data
+    ) {
+      const detail = (error.response.data as { detail?: DuplicateClientError }).detail
+      if (detail && detail.duplicates) {
+        throw new ClientDuplicateError(detail.message, detail.duplicates)
+      }
+    }
+    throw error
+  }
 }
 
 export async function getClient(id: string): Promise<Client> {

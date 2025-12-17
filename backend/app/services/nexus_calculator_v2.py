@@ -118,6 +118,9 @@ class NexusCalculatorV2:
                 states_with_nexus=states_with_nexus
             )
 
+            # Auto-populate state worklist from results
+            self._auto_populate_state_assessments(analysis_id)
+
             logger.info(
                 f"Calculation complete: {len(all_results)} state-year results, "
                 f"{states_with_nexus} states with nexus"
@@ -1575,3 +1578,93 @@ class NexusCalculatorV2:
         except Exception as e:
             logger.error(f"Error updating analysis summary: {str(e)}")
             raise
+
+    def _auto_populate_state_assessments(self, analysis_id: str):
+        """
+        Auto-populate state_assessments table from analysis state_results.
+        This creates worklist items for states that need attention after analysis completes.
+        """
+        try:
+            # Get analysis to find client_id and organization_id
+            analysis = self.supabase.table('analyses').select(
+                'client_id, organization_id'
+            ).eq('id', analysis_id).maybe_single().execute()
+
+            if not analysis.data:
+                logger.warning(f"Analysis {analysis_id} not found for state assessment population")
+                return
+
+            client_id = analysis.data.get('client_id')
+            org_id = analysis.data.get('organization_id')
+
+            if not client_id or not org_id:
+                logger.warning(f"Analysis {analysis_id} missing client_id or organization_id")
+                return
+
+            # Get state results from the analysis
+            results = self.supabase.table('state_results').select(
+                'state, has_nexus, physical_nexus, economic_nexus, total_sales, '
+                'estimated_total_liability, threshold_percentage, first_nexus_date'
+            ).eq('analysis_id', analysis_id).execute()
+
+            if not results.data:
+                logger.info(f"No state results to import for analysis {analysis_id}")
+                return
+
+            # Get existing assessments for this client
+            existing = self.supabase.table('state_assessments').select(
+                'state'
+            ).eq('client_id', client_id).execute()
+
+            existing_states = {a['state'] for a in (existing.data or [])}
+
+            # Create assessments for states not already tracked
+            assessments_to_create = []
+            for result in results.data:
+                if result['state'] in existing_states:
+                    continue
+
+                # Determine nexus status
+                nexus_status = 'unknown'
+                if result.get('has_nexus'):
+                    nexus_status = 'has_nexus'
+                elif result.get('threshold_percentage') and result['threshold_percentage'] >= 75:
+                    nexus_status = 'approaching'
+                elif result.get('total_sales', 0) == 0:
+                    nexus_status = 'no_nexus'
+
+                # Determine nexus type
+                nexus_type = None
+                if result.get('physical_nexus') and result.get('economic_nexus'):
+                    nexus_type = 'both'
+                elif result.get('physical_nexus'):
+                    nexus_type = 'physical'
+                elif result.get('economic_nexus'):
+                    nexus_type = 'economic'
+
+                assessments_to_create.append({
+                    'client_id': client_id,
+                    'analysis_id': analysis_id,
+                    'organization_id': org_id,
+                    'state': result['state'],
+                    'nexus_status': nexus_status,
+                    'nexus_type': nexus_type,
+                    'total_sales': result.get('total_sales'),
+                    'estimated_liability': result.get('estimated_total_liability'),
+                    'threshold_percentage': result.get('threshold_percentage'),
+                    'first_exposure_date': result.get('first_nexus_date'),
+                    'assessed_at': datetime.utcnow().isoformat(),
+                })
+
+            if assessments_to_create:
+                self.supabase.table('state_assessments').insert(assessments_to_create).execute()
+                logger.info(
+                    f"Auto-populated {len(assessments_to_create)} state assessments for "
+                    f"client {client_id} from analysis {analysis_id}"
+                )
+            else:
+                logger.info(f"No new state assessments to create (all states already tracked)")
+
+        except Exception as e:
+            # Log but don't fail the analysis - state assessments can be imported manually
+            logger.warning(f"Failed to auto-populate state assessments: {str(e)}")
