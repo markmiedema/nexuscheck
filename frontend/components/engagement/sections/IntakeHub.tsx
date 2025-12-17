@@ -52,8 +52,8 @@ const CATEGORY_CONFIG = {
     icon: FileCheck,
     description: 'Current state registrations',
   },
-  data_requests: {
-    id: 'data_requests',
+  data_request: {
+    id: 'data_request',
     label: 'Data Requests',
     icon: FileText,
     description: 'Sales data, transaction files',

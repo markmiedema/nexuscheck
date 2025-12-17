@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,9 +29,12 @@ import {
   FileText, Plus, CheckCircle2, Clock, Send, Archive,
   AlertTriangle, Calendar, DollarSign, ExternalLink, Pencil
 } from 'lucide-react'
-import apiClient from '@/lib/api/client'
 import { createClientNote } from '@/lib/api/clients'
-import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
+import { useClientEngagements, useCreateEngagement, useUpdateEngagement } from '@/hooks/queries'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { updateEngagement as updateEngagementApi } from '@/lib/api/engagements'
+import { queryKeys } from '@/lib/api/queryKeys'
+import { toast } from 'sonner'
 
 // Service types available for engagements
 const SERVICE_OPTIONS = [
@@ -95,11 +98,9 @@ export function EngagementManager({
   discoveryCompleted = false,
   onEngagementChange
 }: EngagementManagerProps) {
-  const [engagements, setEngagements] = useState<Engagement[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingEngagement, setEditingEngagement] = useState<Engagement | null>(null)
-  const [saving, setSaving] = useState(false)
 
   // Form state
   const [title, setTitle] = useState('')
@@ -110,22 +111,24 @@ export function EngagementManager({
   const [scopeSummary, setScopeSummary] = useState('')
   const [effectiveDate, setEffectiveDate] = useState('')
 
-  // Load engagements
-  useEffect(() => {
-    loadEngagements()
-  }, [clientId])
+  // React Query hooks
+  const { data: engagements = [], isLoading: loading } = useClientEngagements(clientId)
+  const createEngagementMutation = useCreateEngagement()
 
-  const loadEngagements = async () => {
-    try {
-      setLoading(true)
-      const response = await apiClient.get(`/api/v1/engagements?client_id=${clientId}`)
-      setEngagements(response.data)
-    } catch (error) {
-      handleApiError(error, { userMessage: 'Failed to load engagements' })
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Generic update mutation (allows updating any engagement)
+  const updateEngagementMutation = useMutation({
+    mutationFn: ({ engagementId, data }: { engagementId: string; data: any }) =>
+      updateEngagementApi(engagementId, data),
+    onSuccess: (engagement) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.engagements.list(clientId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.engagements.active(clientId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.clients.overview(clientId) })
+      onEngagementChange?.()
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.detail || error?.message || 'Failed to update engagement')
+    },
+  })
 
   // Reset form
   const resetForm = () => {
@@ -170,86 +173,101 @@ export function EngagementManager({
   // Save engagement
   const handleSave = async () => {
     if (!title.trim()) {
-      handleApiError(new Error('Title is required'), { userMessage: 'Please enter a title' })
+      toast.error('Please enter a title')
       return
     }
 
-    setSaving(true)
-    try {
-      const payload = {
-        title,
-        scope_config: {
-          services: selectedServices,
-          pricing_model: pricingModel || null,
-          estimated_fee: estimatedFee ? parseFloat(estimatedFee) : null,
-          retainer_monthly: retainerMonthly ? parseFloat(retainerMonthly) : null,
-        },
-        scope_summary: scopeSummary || null,
-        effective_date: effectiveDate || null,
-      }
+    const payload = {
+      title,
+      scope_config: {
+        services: selectedServices,
+        pricing_model: pricingModel || undefined,
+        estimated_fee: estimatedFee ? parseFloat(estimatedFee) : undefined,
+        retainer_monthly: retainerMonthly ? parseFloat(retainerMonthly) : undefined,
+      },
+      scope_summary: scopeSummary || undefined,
+      effective_date: effectiveDate || undefined,
+    }
 
-      if (editingEngagement) {
-        await apiClient.patch(`/api/v1/engagements/${editingEngagement.id}`, payload)
-        showSuccess('Engagement updated')
-      } else {
-        await apiClient.post('/api/v1/engagements', {
+    if (editingEngagement) {
+      updateEngagementMutation.mutate(
+        { engagementId: editingEngagement.id, data: payload },
+        {
+          onSuccess: () => {
+            toast.success('Engagement updated')
+            setDialogOpen(false)
+            resetForm()
+          },
+        }
+      )
+    } else {
+      createEngagementMutation.mutate(
+        {
           ...payload,
           client_id: clientId,
           status: 'draft',
-        })
-        showSuccess('Engagement created')
-
-        // Log activity note for new engagement
-        const serviceLabels = selectedServices.map(s => SERVICE_OPTIONS.find(o => o.id === s)?.label || s).join(', ')
-        try {
-          await createClientNote(clientId, {
-            content: `New engagement created: "${title}"\n\nServices: ${serviceLabels || 'None specified'}`,
-            note_type: 'engagement'
-          })
-        } catch {
-          // Silent fail - note creation is not critical
+        },
+        {
+          onSuccess: async () => {
+            // Log activity note for new engagement
+            const serviceLabels = selectedServices.map(s => SERVICE_OPTIONS.find(o => o.id === s)?.label || s).join(', ')
+            let noteCreated = true
+            try {
+              await createClientNote(clientId, {
+                content: `New engagement created: "${title}"\n\nServices: ${serviceLabels || 'None specified'}`,
+                note_type: 'engagement'
+              })
+            } catch {
+              noteCreated = false
+            }
+            setDialogOpen(false)
+            resetForm()
+            onEngagementChange?.()
+            if (!noteCreated) {
+              toast.warning('Engagement created (activity note failed to save)')
+            }
+          },
         }
-      }
-
-      setDialogOpen(false)
-      resetForm()
-      loadEngagements()
-      onEngagementChange?.()
-    } catch (error) {
-      handleApiError(error, { userMessage: 'Failed to save engagement' })
-    } finally {
-      setSaving(false)
+      )
     }
   }
 
   // Update engagement status
   const updateStatus = async (engagementId: string, newStatus: string, engagementTitle?: string) => {
-    try {
-      await apiClient.patch(`/api/v1/engagements/${engagementId}`, { status: newStatus })
-      showSuccess(`Engagement marked as ${newStatus}`)
+    updateEngagementMutation.mutate(
+      { engagementId, data: { status: newStatus } },
+      {
+        onSuccess: async () => {
+          let noteCreated = true
 
-      // Log activity note for sent/signed status changes
-      if (newStatus === 'sent' || newStatus === 'signed') {
-        const noteContent = newStatus === 'sent'
-          ? `Engagement sent to client: "${engagementTitle || 'Untitled'}"`
-          : `Engagement signed: "${engagementTitle || 'Untitled'}"\n\nClient is now ready for project work.`
+          // Log activity note for sent/signed status changes
+          if (newStatus === 'sent' || newStatus === 'signed') {
+            const noteContent = newStatus === 'sent'
+              ? `Engagement sent to client: "${engagementTitle || 'Untitled'}"`
+              : `Engagement signed: "${engagementTitle || 'Untitled'}"\n\nClient is now ready for project work.`
 
-        try {
-          await createClientNote(clientId, {
-            content: noteContent,
-            note_type: 'engagement'
-          })
-        } catch {
-          // Silent fail - note creation is not critical
-        }
+            try {
+              await createClientNote(clientId, {
+                content: noteContent,
+                note_type: 'engagement'
+              })
+            } catch {
+              noteCreated = false
+            }
+          }
+
+          if (!noteCreated) {
+            toast.warning(`Engagement marked as ${newStatus} (activity note failed to save)`)
+          } else {
+            toast.success(`Engagement marked as ${newStatus}`)
+          }
+        },
       }
-
-      loadEngagements()
-      onEngagementChange?.()
-    } catch (error) {
-      handleApiError(error, { userMessage: 'Failed to update status' })
-    }
+    )
   }
+
+  // Check if saving
+  const saving = createEngagementMutation.isPending || updateEngagementMutation.isPending
 
   // Get active engagement
   const activeEngagement = engagements.find(e => e.status === 'signed')

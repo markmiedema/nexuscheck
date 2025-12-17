@@ -29,8 +29,10 @@ import {
   Target,
   Play,
   Calendar,
+  Clock,
+  AlertTriangle,
 } from 'lucide-react'
-import { formatDistanceToNow, isPast, parseISO } from 'date-fns'
+import { formatDistanceToNow, isPast, parseISO, differenceInDays } from 'date-fns'
 
 // Stage configuration - simplified
 const STAGE_CONFIG: Record<string, { label: string; color: string }> = {
@@ -109,6 +111,33 @@ export function EngagementHeader({
   }
 
   const dueDateInfo = nextAction?.due_date ? formatDueDate(nextAction.due_date) : null
+
+  // Check engagement expiration
+  const expirationWarning = useMemo(() => {
+    if (!activeEngagement?.expiration_date) return null
+    try {
+      const expirationDate = parseISO(activeEngagement.expiration_date)
+      const daysUntil = differenceInDays(expirationDate, new Date())
+      const isExpired = isPast(expirationDate)
+
+      if (isExpired) {
+        return {
+          type: 'expired' as const,
+          message: 'Engagement expired',
+          variant: 'destructive' as const,
+        }
+      } else if (daysUntil <= 30) {
+        return {
+          type: 'expiring_soon' as const,
+          message: `Expires ${formatDistanceToNow(expirationDate, { addSuffix: true })}`,
+          variant: daysUntil <= 7 ? ('destructive' as const) : ('outline' as const),
+        }
+      }
+      return null
+    } catch {
+      return null
+    }
+  }, [activeEngagement?.expiration_date])
 
   // Handle engagement change
   const handleEngagementChange = (newEngagementId: string) => {
@@ -192,6 +221,18 @@ export function EngagementHeader({
       {overview?.is_blocked && (
         <Badge variant="destructive" className="shrink-0 text-xs font-normal">
           Blocked
+        </Badge>
+      )}
+
+      {/* Engagement expiration warning */}
+      {expirationWarning && (
+        <Badge variant={expirationWarning.variant} className="shrink-0 text-xs font-normal">
+          {expirationWarning.type === 'expired' ? (
+            <AlertTriangle className="h-3 w-3 mr-1" />
+          ) : (
+            <Clock className="h-3 w-3 mr-1" />
+          )}
+          {expirationWarning.message}
         </Badge>
       )}
 
