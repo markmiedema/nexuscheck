@@ -5,7 +5,7 @@ from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
 
-from app.core.dependencies import require_organization
+from app.core.auth import require_organization
 from app.schemas.state_worklist import (
     StateAssessmentCreate,
     StateAssessmentUpdate,
