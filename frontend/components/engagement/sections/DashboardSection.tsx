@@ -30,6 +30,8 @@ interface DashboardSectionProps {
   clientId: string
   onNavigateToExecution?: () => void
   onNavigateToData?: () => void
+  /** Hide primary next action since it's shown in EngagementHeader */
+  hidePrimaryAction?: boolean
 }
 
 // Format due date with urgency
@@ -92,20 +94,26 @@ function BlockersSection({ blockers }: { blockers: BlockingItem[] }) {
 function NextActionsSection({
   nextAction,
   secondaryActions,
+  hidePrimary = false,
 }: {
   nextAction?: NextAction
   secondaryActions?: NextAction[]
+  /** Hide primary action since it's shown in header */
+  hidePrimary?: boolean
 }) {
-  const allActions = [
-    ...(nextAction ? [{ ...nextAction, isPrimary: true }] : []),
-    ...(secondaryActions?.slice(0, 2).map(a => ({ ...a, isPrimary: false })) || []),
-  ]
+  // If hidePrimary is true, only show secondary actions (primary is in EngagementHeader)
+  const allActions = hidePrimary
+    ? (secondaryActions?.slice(0, 3).map(a => ({ ...a, isPrimary: false })) || [])
+    : [
+        ...(nextAction ? [{ ...nextAction, isPrimary: true }] : []),
+        ...(secondaryActions?.slice(0, 2).map(a => ({ ...a, isPrimary: false })) || []),
+      ]
 
   if (allActions.length === 0) {
     return (
       <Card className="p-6 text-center border-dashed">
         <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-emerald-500 opacity-50" />
-        <p className="text-sm text-muted-foreground">No pending actions</p>
+        <p className="text-sm text-muted-foreground">{hidePrimary ? 'No additional actions' : 'No pending actions'}</p>
       </Card>
     )
   }
@@ -331,6 +339,7 @@ export function DashboardSection({
   clientId,
   onNavigateToExecution,
   onNavigateToData,
+  hidePrimaryAction = true, // Default to true since EngagementHeader shows the primary action
 }: DashboardSectionProps) {
   const { data: overview, isLoading, error } = useClientOverview(clientId)
 
@@ -358,10 +367,11 @@ export function DashboardSection({
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Next Actions */}
+        {/* Left: Next Actions (secondary only if primary is in header) */}
         <NextActionsSection
           nextAction={overview.next_action}
           secondaryActions={overview.secondary_actions}
+          hidePrimary={hidePrimaryAction}
         />
 
         {/* Right: Deadlines */}

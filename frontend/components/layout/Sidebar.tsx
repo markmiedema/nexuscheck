@@ -26,7 +26,7 @@ import {
 // Navigation items configuration
 const navigationItems = [
   {
-    title: 'Dashboard',
+    title: 'Command Center',
     href: '/dashboard',
     icon: LayoutDashboard,
   },
