@@ -15,7 +15,7 @@ import { StateDetailDrawer } from '@/components/clients/StateDetailDrawer'
 import { useStateWorklist } from '@/hooks/queries'
 import { type StateWorklistItem } from '@/lib/api/stateWorklist'
 import { cn } from '@/lib/utils'
-import { formatCurrency } from '@/lib/utils/formatCurrency'
+import { formatCurrency } from '@/lib/utils/formatting'
 import {
   Loader2,
   AlertCircle,
