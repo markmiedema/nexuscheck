@@ -37,13 +37,12 @@ class ClientOverviewService:
         "complete"
     ]
 
-    # Default intake items that should exist for a client
+    # Default intake items for data requests (external data collection).
+    # Note: Discovery profile data (business model, physical presence, registrations)
+    # is stored directly in the clients table columns, not in intake_items.
+    # intake_items is used only for tracking external data requests with
+    # request/receive/validate workflow.
     DEFAULT_INTAKE_ITEMS = [
-        {"category": "business_model", "item_key": "sales_channels", "label": "Sales Channels", "is_required": True},
-        {"category": "business_model", "item_key": "product_types", "label": "Product Types", "is_required": True},
-        {"category": "physical_presence", "item_key": "remote_employees", "label": "Remote Employee Locations", "is_required": True},
-        {"category": "physical_presence", "item_key": "inventory_3pl", "label": "Inventory/3PL Locations", "is_required": True},
-        {"category": "registrations", "item_key": "current_registrations", "label": "Current State Registrations", "is_required": True},
         {"category": "data_request", "item_key": "sales_data", "label": "Sales Transaction Data", "is_required": True},
         {"category": "data_request", "item_key": "prior_returns", "label": "Prior Tax Returns", "is_required": False},
         {"category": "data_request", "item_key": "exemption_certificates", "label": "Exemption Certificates", "is_required": False},
@@ -326,60 +325,74 @@ class ClientOverviewService:
         return (has_channels and has_presence_info) or (total_required > 0 and required_received >= total_required)
 
     def _compute_intake_progress(self, client: Dict, intake_items: List[Dict]) -> Dict[str, Any]:
-        """Compute intake completion progress."""
+        """
+        Compute overall intake completion progress.
 
-        # If no intake items exist, compute from client fields
-        if not intake_items:
-            completed = 0
-            total = len(self.DEFAULT_INTAKE_ITEMS)
+        Combines:
+        1. Discovery profile progress (from client table columns)
+        2. Data request progress (from intake_items table)
+        """
+        missing_required = []
 
-            # Check client fields for completion
-            if client.get('channels'):
-                completed += 1
-            if client.get('product_types'):
-                completed += 1
-            if client.get('has_remote_employees') is not None:
-                completed += 1
-            if client.get('has_inventory_3pl') is not None:
-                completed += 1
-            if client.get('registered_states'):
-                completed += 1
+        # --- Discovery Profile Progress (from client table) ---
+        discovery_fields = [
+            ('channels', 'Sales Channels'),
+            ('product_types', 'Product Types'),
+        ]
+        # Physical presence fields - check if explicitly set (not None)
+        presence_fields = [
+            ('has_remote_employees', 'Remote Employee Locations'),
+            ('has_inventory_3pl', 'Inventory/3PL Locations'),
+        ]
 
-            missing = []
-            if not client.get('channels'):
-                missing.append("Sales Channels")
-            if not client.get('product_types'):
-                missing.append("Product Types")
-            if client.get('has_remote_employees') is None:
-                missing.append("Remote Employee Locations")
-            if client.get('has_inventory_3pl') is None:
-                missing.append("Inventory/3PL Locations")
+        discovery_completed = 0
+        discovery_total = len(discovery_fields) + len(presence_fields)
 
-            return {
-                "total_items": total,
-                "completed_items": completed,
-                "completion_percentage": int((completed / total) * 100) if total > 0 else 0,
-                "missing_required": missing
-            }
+        for field, label in discovery_fields:
+            if client.get(field):
+                discovery_completed += 1
+            else:
+                missing_required.append(label)
 
-        # Compute from intake_items
-        total = len(intake_items)
-        completed = sum(
-            1 for item in intake_items
+        for field, label in presence_fields:
+            if client.get(field) is not None:
+                discovery_completed += 1
+            else:
+                missing_required.append(label)
+
+        # --- Data Request Progress (from intake_items table) ---
+        # Only count data_request category items
+        data_request_items = [
+            item for item in intake_items
+            if item.get('category') == 'data_request'
+        ]
+
+        data_requests_completed = sum(
+            1 for item in data_request_items
             if item.get('status') in ('received', 'validated', 'not_applicable')
         )
+        data_requests_total = len(data_request_items) if data_request_items else len(self.DEFAULT_INTAKE_ITEMS)
 
-        missing = [
-            item.get('label')
-            for item in intake_items
-            if item.get('is_required') and item.get('status') not in ('received', 'validated', 'not_applicable')
-        ]
+        # Add missing required data requests
+        for item in data_request_items:
+            if item.get('is_required') and item.get('status') not in ('received', 'validated', 'not_applicable'):
+                missing_required.append(item.get('label'))
+
+        # If no data_request items exist yet, count sales_data as missing
+        if not data_request_items:
+            missing_required.append('Sales Transaction Data')
+
+        # --- Combined Progress ---
+        total = discovery_total + data_requests_total
+        completed = discovery_completed + data_requests_completed
 
         return {
             "total_items": total,
             "completed_items": completed,
             "completion_percentage": int((completed / total) * 100) if total > 0 else 0,
-            "missing_required": missing
+            "missing_required": missing_required,
+            "discovery_complete": discovery_completed == discovery_total,
+            "data_requests_complete": data_requests_completed == data_requests_total
         }
 
     def _compute_states_summary(
