@@ -1,74 +1,66 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   useClientIntakeItems,
   useClientIntakeStatus,
   useUpdateClientIntakeItem,
-  useClient,
 } from '@/hooks/queries'
 import { type IntakeItem } from '@/lib/api/clients'
-import { DiscoveryProfile } from '@/components/clients/DiscoveryProfile'
-import { IntakeStepper } from '@/components/clients/IntakeStepper'
+import { IntakeDetailDrawer } from './IntakeDetailDrawer'
 import { cn } from '@/lib/utils'
 import {
   CheckCircle2,
-  Clock,
-  FileQuestion,
-  Send,
-  Download,
-  ShieldCheck,
-  Minus,
   AlertTriangle,
-  ChevronRight,
-  Edit3,
-  ListChecks,
+  ArrowRight,
+  Send,
+  ClipboardCheck,
+  Play,
   Building2,
-  Globe,
-  Package,
-  Users,
+  MapPin,
+  FileCheck,
   FileText,
-  MoreHorizontal,
+  ChevronRight,
 } from 'lucide-react'
-import { formatDistanceToNow, parseISO } from 'date-fns'
 
-// Status configuration
-const STATUS_CONFIG = {
-  not_requested: { label: 'Not Requested', icon: FileQuestion, color: 'text-muted-foreground', bg: 'bg-muted' },
-  requested: { label: 'Requested', icon: Send, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-  received: { label: 'Received', icon: Download, color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-900/30' },
-  validated: { label: 'Validated', icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
-  na: { label: 'N/A', icon: Minus, color: 'text-muted-foreground', bg: 'bg-muted' },
+// Complete statuses (item is "done")
+const COMPLETE_STATUSES = ['received', 'validated', 'not_applicable']
+
+// Category configuration
+const CATEGORY_CONFIG = {
+  business_model: {
+    id: 'business_model',
+    label: 'Business Model',
+    icon: Building2,
+    description: 'Sales channels, product types, tech stack',
+  },
+  physical_presence: {
+    id: 'physical_presence',
+    label: 'Physical Presence',
+    icon: MapPin,
+    description: 'Employees, inventory, offices by state',
+  },
+  registrations: {
+    id: 'registrations',
+    label: 'Registrations',
+    icon: FileCheck,
+    description: 'Current state registrations',
+  },
+  data_requests: {
+    id: 'data_requests',
+    label: 'Data Requests',
+    icon: FileText,
+    description: 'Sales data, transaction files',
+  },
 } as const
 
-type IntakeStatusFilter = keyof typeof STATUS_CONFIG | 'all' | 'blocking'
-
-// Category icons
-const CATEGORY_ICONS: Record<string, typeof Building2> = {
-  business_info: Building2,
-  financials: FileText,
-  sales_data: Globe,
-  inventory: Package,
-  employees: Users,
-}
+type IntakeFocus = keyof typeof CATEGORY_CONFIG
 
 interface IntakeHubProps {
   clientId: string
@@ -77,276 +69,300 @@ interface IntakeHubProps {
   onRefreshClient: () => void
 }
 
-// Completeness Meter Component
-function CompletenessMeter({
-  total,
-  completed,
-  percentage,
-  blocking
-}: {
-  total: number
-  completed: number
-  percentage: number
-  blocking: number
-}) {
-  return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <ListChecks className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Intake Progress</h3>
-        </div>
-        <span className="text-2xl font-bold">{percentage}%</span>
-      </div>
-      <Progress value={percentage} className="h-2 mb-3" />
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{completed} of {total} items complete</span>
-        {blocking > 0 && (
-          <span className="flex items-center gap-1 text-red-600">
-            <AlertTriangle className="h-3.5 w-3.5" />
-            {blocking} blocking
-          </span>
-        )}
-      </div>
-    </Card>
-  )
-}
+// Compute derived intake metrics
+function useIntakeMetrics(items: IntakeItem[] | undefined) {
+  return useMemo(() => {
+    if (!items) {
+      return {
+        total: 0,
+        requiredTotal: 0,
+        requiredComplete: 0,
+        openRequests: 0,
+        percentage: 0,
+        requiredItems: [],
+        requiredIncompleteItems: [],
+        requestedOpenItems: [],
+        blockers: [],
+        byCategory: {} as Record<string, { total: number; complete: number; required: number; requiredComplete: number; items: IntakeItem[] }>,
+      }
+    }
 
-// Business Profile Snapshot Component
-function ProfileSnapshot({
-  client,
-  onEdit
-}: {
-  client: any
-  onEdit: () => void
-}) {
-  const hasProfile = client?.discovery_completed_at
+    const requiredItems = items.filter(i => i.is_required)
+    const requiredIncompleteItems = requiredItems.filter(i => !COMPLETE_STATUSES.includes(i.status))
+    const requestedOpenItems = items.filter(i => i.status === 'requested')
+    const blockers = requiredIncompleteItems.slice(0, 5) // Top 5 blockers
 
-  if (!hasProfile) {
-    return (
-      <Card className="p-4 border-dashed">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-              <Building2 className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="font-medium">Business Profile</p>
-              <p className="text-sm text-muted-foreground">Not yet completed</p>
-            </div>
-          </div>
-          <Button onClick={onEdit} size="sm">
-            <Edit3 className="h-4 w-4 mr-1.5" />
-            Start Profile
-          </Button>
-        </div>
-      </Card>
-    )
-  }
+    // Group by category
+    const byCategory: Record<string, { total: number; complete: number; required: number; requiredComplete: number; items: IntakeItem[] }> = {}
 
-  return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-muted-foreground" />
-          <h3 className="font-semibold">Business Profile</h3>
-        </div>
-        <Button variant="outline" size="sm" onClick={onEdit}>
-          <Edit3 className="h-3.5 w-3.5 mr-1.5" />
-          Edit
-        </Button>
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-        <div>
-          <p className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Channels</p>
-          <p className="font-medium">{client?.channels?.length || 0}</p>
-        </div>
-        <div>
-          <p className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Product Types</p>
-          <p className="font-medium">{client?.product_types?.length || 0}</p>
-        </div>
-        <div>
-          <p className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Remote States</p>
-          <p className="font-medium">{client?.remote_employee_states?.length || 0}</p>
-        </div>
-        <div>
-          <p className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Registered</p>
-          <p className="font-medium">{client?.registered_states?.length || 0} states</p>
-        </div>
-      </div>
-    </Card>
-  )
-}
+    Object.keys(CATEGORY_CONFIG).forEach(cat => {
+      const catItems = items.filter(i => i.category === cat)
+      const catRequired = catItems.filter(i => i.is_required)
+      const catComplete = catItems.filter(i => COMPLETE_STATUSES.includes(i.status))
+      const catRequiredComplete = catRequired.filter(i => COMPLETE_STATUSES.includes(i.status))
 
-// Status Filter Tabs
-function StatusFilterTabs({
-  activeFilter,
-  onFilterChange,
-  counts,
-}: {
-  activeFilter: IntakeStatusFilter
-  onFilterChange: (filter: IntakeStatusFilter) => void
-  counts: Record<string, number>
-}) {
-  const filters: { id: IntakeStatusFilter; label: string }[] = [
-    { id: 'all', label: `All (${counts.all || 0})` },
-    { id: 'blocking', label: `Blocking (${counts.blocking || 0})` },
-    { id: 'not_requested', label: `Not Requested (${counts.not_requested || 0})` },
-    { id: 'requested', label: `Requested (${counts.requested || 0})` },
-    { id: 'received', label: `Received (${counts.received || 0})` },
-    { id: 'validated', label: `Validated (${counts.validated || 0})` },
-  ]
+      byCategory[cat] = {
+        total: catItems.length,
+        complete: catComplete.length,
+        required: catRequired.length,
+        requiredComplete: catRequiredComplete.length,
+        items: catItems,
+      }
+    })
 
-  return (
-    <div className="flex gap-1 overflow-x-auto pb-1">
-      {filters.map((filter) => (
-        <Button
-          key={filter.id}
-          variant={activeFilter === filter.id ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => onFilterChange(filter.id)}
-          className={cn(
-            'shrink-0 text-xs h-8',
-            filter.id === 'blocking' && counts.blocking > 0 && activeFilter !== 'blocking' && 'text-red-600'
-          )}
-        >
-          {filter.label}
-        </Button>
-      ))}
-    </div>
-  )
-}
+    const requiredComplete = requiredItems.filter(i => COMPLETE_STATUSES.includes(i.status)).length
+    const percentage = requiredItems.length > 0
+      ? Math.round((requiredComplete / requiredItems.length) * 100)
+      : 100
 
-// Intake Item Row
-function IntakeItemRow({
-  item,
-  onStatusChange,
-}: {
-  item: IntakeItem
-  onStatusChange: (itemId: string, status: string) => void
-}) {
-  const statusConfig = STATUS_CONFIG[item.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.not_requested
-  const StatusIcon = statusConfig.icon
-  const CategoryIcon = CATEGORY_ICONS[item.category] || FileText
-
-  return (
-    <div className="flex items-center gap-3 py-3 px-4 hover:bg-muted/50 rounded-lg transition-colors">
-      {/* Category icon */}
-      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-        <CategoryIcon className="h-4 w-4 text-muted-foreground" />
-      </div>
-
-      {/* Item details */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="font-medium text-sm truncate">{item.label}</p>
-          {item.is_required && (
-            <Badge variant="outline" className="text-[10px] px-1 py-0 shrink-0">Required</Badge>
-          )}
-        </div>
-        {item.description && (
-          <p className="text-xs text-muted-foreground truncate">{item.description}</p>
-        )}
-      </div>
-
-      {/* Status */}
-      <div className={cn('flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium shrink-0', statusConfig.bg)}>
-        <StatusIcon className={cn('h-3.5 w-3.5', statusConfig.color)} />
-        <span className={statusConfig.color}>{statusConfig.label}</span>
-      </div>
-
-      {/* Quick status change */}
-      <Select
-        value={item.status}
-        onValueChange={(value) => onStatusChange(item.id, value)}
-      >
-        <SelectTrigger className="w-8 h-8 p-0 border-0 bg-transparent hover:bg-muted">
-          <MoreHorizontal className="h-4 w-4" />
-        </SelectTrigger>
-        <SelectContent align="end">
-          {Object.entries(STATUS_CONFIG).map(([key, config]) => {
-            const Icon = config.icon
-            return (
-              <SelectItem key={key} value={key}>
-                <div className="flex items-center gap-2">
-                  <Icon className={cn('h-3.5 w-3.5', config.color)} />
-                  {config.label}
-                </div>
-              </SelectItem>
-            )
-          })}
-        </SelectContent>
-      </Select>
-    </div>
-  )
-}
-
-// Items grouped by category
-function IntakeItemsList({
-  items,
-  onStatusChange,
-}: {
-  items: IntakeItem[]
-  onStatusChange: (itemId: string, status: string) => void
-}) {
-  // Group by category
-  const grouped = useMemo(() => {
-    return items.reduce((acc, item) => {
-      const cat = item.category || 'other'
-      if (!acc[cat]) acc[cat] = []
-      acc[cat].push(item)
-      return acc
-    }, {} as Record<string, IntakeItem[]>)
+    return {
+      total: items.length,
+      requiredTotal: requiredItems.length,
+      requiredComplete,
+      openRequests: requestedOpenItems.length,
+      percentage,
+      requiredItems,
+      requiredIncompleteItems,
+      requestedOpenItems,
+      blockers,
+      byCategory,
+    }
   }, [items])
+}
 
-  const categoryLabels: Record<string, string> = {
-    business_info: 'Business Information',
-    financials: 'Financial Data',
-    sales_data: 'Sales & Transactions',
-    inventory: 'Inventory & 3PL',
-    employees: 'Employee Data',
-    other: 'Other',
-  }
+// Determine primary CTA based on intake state
+function usePrimaryCTA(metrics: ReturnType<typeof useIntakeMetrics>) {
+  return useMemo(() => {
+    const { requiredIncompleteItems, percentage } = metrics
 
-  if (items.length === 0) {
+    // Priority 1: Required items not yet requested
+    const notRequested = requiredIncompleteItems.filter(i => i.status === 'not_requested')
+    if (notRequested.length > 0) {
+      return {
+        label: 'Request missing items',
+        description: `${notRequested.length} required item${notRequested.length > 1 ? 's' : ''} not yet requested`,
+        icon: Send,
+        action: 'request_items' as const,
+        targetCategory: notRequested[0]?.category as IntakeFocus | undefined,
+      }
+    }
+
+    // Priority 2: Items requested but not received/validated
+    const pendingItems = requiredIncompleteItems.filter(i => i.status === 'requested')
+    if (pendingItems.length > 0) {
+      return {
+        label: 'Mark received / validate',
+        description: `${pendingItems.length} item${pendingItems.length > 1 ? 's' : ''} awaiting data`,
+        icon: ClipboardCheck,
+        action: 'validate_items' as const,
+        targetCategory: pendingItems[0]?.category as IntakeFocus | undefined,
+      }
+    }
+
+    // Priority 3: All done - ready for analysis
+    if (percentage === 100) {
+      return {
+        label: 'Start nexus analysis',
+        description: 'All intake items complete',
+        icon: Play,
+        action: 'start_analysis' as const,
+        targetCategory: undefined,
+      }
+    }
+
+    // Fallback
+    return {
+      label: 'Review intake items',
+      description: 'Check item status',
+      icon: ArrowRight,
+      action: 'review' as const,
+      targetCategory: undefined,
+    }
+  }, [metrics])
+}
+
+// Progress Card
+function ProgressCard({ metrics }: { metrics: ReturnType<typeof useIntakeMetrics> }) {
+  return (
+    <Card className="p-4">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-muted-foreground">Intake Progress</h3>
+        <span className="text-2xl font-bold">{metrics.percentage}%</span>
+      </div>
+      <Progress value={metrics.percentage} className="h-2 mb-3" />
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <span className="text-muted-foreground">Required: </span>
+          <span className="font-medium">{metrics.requiredComplete}/{metrics.requiredTotal}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Open requests: </span>
+          <span className="font-medium">{metrics.openRequests}</span>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+// Primary CTA Card
+function PrimaryCTACard({
+  cta,
+  onAction
+}: {
+  cta: ReturnType<typeof usePrimaryCTA>
+  onAction: (action: string, category?: IntakeFocus) => void
+}) {
+  const Icon = cta.icon
+
+  return (
+    <Card className="p-4 bg-primary/5 border-primary/20">
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-primary">{cta.label}</p>
+          <p className="text-xs text-muted-foreground truncate">{cta.description}</p>
+        </div>
+        <Button
+          size="sm"
+          onClick={() => onAction(cta.action, cta.targetCategory)}
+        >
+          Go
+          <ArrowRight className="h-4 w-4 ml-1" />
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
+// Blockers Card
+function BlockersCard({
+  blockers,
+  onBlockerClick
+}: {
+  blockers: IntakeItem[]
+  onBlockerClick: (item: IntakeItem) => void
+}) {
+  if (blockers.length === 0) {
     return (
-      <Card className="p-8 text-center">
-        <CheckCircle2 className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-        <p className="text-muted-foreground">No items match the current filter</p>
+      <Card className="p-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          <span>No blockers</span>
+        </div>
       </Card>
     )
   }
 
   return (
-    <div className="space-y-4">
-      {Object.entries(grouped).map(([category, categoryItems]) => (
-        <Card key={category} className="overflow-hidden">
-          <div className="bg-muted/50 px-4 py-2 border-b">
-            <h4 className="text-sm font-semibold">{categoryLabels[category] || category}</h4>
-          </div>
-          <div className="divide-y">
-            {categoryItems.map((item) => (
-              <IntakeItemRow
-                key={item.id}
-                item={item}
-                onStatusChange={onStatusChange}
-              />
-            ))}
-          </div>
-        </Card>
-      ))}
-    </div>
+    <Card className="p-4 border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10">
+      <div className="flex items-center gap-2 mb-2">
+        <AlertTriangle className="h-4 w-4 text-red-600" />
+        <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
+          Blocking ({blockers.length})
+        </h3>
+      </div>
+      <div className="space-y-1">
+        {blockers.slice(0, 3).map((item) => (
+          <button
+            key={item.id}
+            onClick={() => onBlockerClick(item)}
+            className="w-full text-left flex items-center gap-2 text-xs py-1 px-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+          >
+            <span className="truncate flex-1">{item.label}</span>
+            <Badge variant="outline" className="text-[10px] shrink-0">
+              {CATEGORY_CONFIG[item.category as IntakeFocus]?.label || item.category}
+            </Badge>
+            <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0" />
+          </button>
+        ))}
+        {blockers.length > 3 && (
+          <p className="text-xs text-red-600 px-2">+{blockers.length - 3} more</p>
+        )}
+      </div>
+    </Card>
+  )
+}
+
+// Category Tile
+function CategoryTile({
+  category,
+  stats,
+  onViewItems
+}: {
+  category: typeof CATEGORY_CONFIG[keyof typeof CATEGORY_CONFIG]
+  stats: { total: number; complete: number; required: number; requiredComplete: number; items: IntakeItem[] }
+  onViewItems: () => void
+}) {
+  const Icon = category.icon
+  const missingRequired = stats.items
+    .filter(i => i.is_required && !COMPLETE_STATUSES.includes(i.status))
+    .slice(0, 2)
+
+  return (
+    <Card className="p-4 hover:border-primary/50 transition-colors">
+      <div className="flex items-start gap-3 mb-3">
+        <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
+          <Icon className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-sm">{category.label}</h3>
+          <p className="text-xs text-muted-foreground">{category.description}</p>
+        </div>
+      </div>
+
+      {/* Micro-metric */}
+      <div className="text-xs mb-2">
+        <span className="text-muted-foreground">Required: </span>
+        <span className={cn(
+          'font-medium',
+          stats.requiredComplete === stats.required ? 'text-emerald-600' : 'text-foreground'
+        )}>
+          {stats.requiredComplete}/{stats.required} complete
+        </span>
+      </div>
+
+      {/* Missing items preview */}
+      {missingRequired.length > 0 && (
+        <div className="space-y-1 mb-3">
+          {missingRequired.map((item) => (
+            <div key={item.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <AlertTriangle className="h-3 w-3 text-amber-500 shrink-0" />
+              <span className="truncate">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full h-8"
+        onClick={onViewItems}
+      >
+        View items
+        <ChevronRight className="h-4 w-4 ml-1" />
+      </Button>
+    </Card>
   )
 }
 
 // Loading skeleton
 function IntakeHubSkeleton() {
   return (
-    <div className="space-y-4">
-      <Skeleton className="h-24 w-full" />
-      <Skeleton className="h-20 w-full" />
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-40 w-full" />
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Skeleton className="h-28" />
+        <Skeleton className="h-28" />
+        <Skeleton className="h-28" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Skeleton className="h-40" />
+        <Skeleton className="h-40" />
+        <Skeleton className="h-40" />
+        <Skeleton className="h-40" />
+      </div>
     </div>
   )
 }
@@ -358,138 +374,138 @@ export function IntakeHub({
   discoveryInitialData,
   onRefreshClient,
 }: IntakeHubProps) {
-  const [activeFilter, setActiveFilter] = useState<IntakeStatusFilter>('all')
-  const [profileDrawerOpen, setProfileDrawerOpen] = useState(false)
-  const [wizardDrawerOpen, setWizardDrawerOpen] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
+  // Drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [drawerCategory, setDrawerCategory] = useState<IntakeFocus | null>(null)
+  const [highlightItemId, setHighlightItemId] = useState<string | null>(null)
+
+  // Data fetching
   const { data: intakeItems, isLoading: itemsLoading } = useClientIntakeItems(clientId)
   const { data: intakeStatus, isLoading: statusLoading } = useClientIntakeStatus(clientId)
-  const { data: client, isLoading: clientLoading } = useClient(clientId)
   const updateItem = useUpdateClientIntakeItem(clientId)
 
-  // Filter items
-  const filteredItems = useMemo(() => {
-    if (!intakeItems) return []
+  // Computed metrics
+  const metrics = useIntakeMetrics(intakeItems)
+  const primaryCTA = usePrimaryCTA(metrics)
 
-    switch (activeFilter) {
-      case 'all':
-        return intakeItems
-      case 'blocking':
-        return intakeItems.filter(item =>
-          item.is_required &&
-          (item.status === 'not_requested' || item.status === 'requested')
-        )
-      default:
-        return intakeItems.filter(item => item.status === activeFilter)
+  // Handle deep-link focus param
+  useEffect(() => {
+    const focus = searchParams.get('focus') as IntakeFocus | null
+    const itemId = searchParams.get('item')
+
+    if (focus && CATEGORY_CONFIG[focus]) {
+      setDrawerCategory(focus)
+      setDrawerOpen(true)
+      if (itemId) {
+        setHighlightItemId(itemId)
+      }
     }
-  }, [intakeItems, activeFilter])
+  }, [searchParams])
 
-  // Count items by status
-  const statusCounts = useMemo(() => {
-    if (!intakeItems) return {}
+  // Open drawer for a category
+  const openDrawer = (category: IntakeFocus, itemId?: string) => {
+    setDrawerCategory(category)
+    setHighlightItemId(itemId || null)
+    setDrawerOpen(true)
 
-    const counts: Record<string, number> = {
-      all: intakeItems.length,
-      blocking: intakeItems.filter(item =>
-        item.is_required &&
-        (item.status === 'not_requested' || item.status === 'requested')
-      ).length,
+    // Update URL with focus param
+    const url = new URL(window.location.href)
+    url.searchParams.set('focus', category)
+    if (itemId) {
+      url.searchParams.set('item', itemId)
+    } else {
+      url.searchParams.delete('item')
+    }
+    window.history.replaceState({}, '', url.toString())
+  }
+
+  // Close drawer and clear URL params
+  const closeDrawer = () => {
+    setDrawerOpen(false)
+    setDrawerCategory(null)
+    setHighlightItemId(null)
+
+    // Clear focus param from URL
+    const url = new URL(window.location.href)
+    url.searchParams.delete('focus')
+    url.searchParams.delete('item')
+    window.history.replaceState({}, '', url.toString())
+  }
+
+  // Handle blocker click
+  const handleBlockerClick = (item: IntakeItem) => {
+    const category = item.category as IntakeFocus
+    if (CATEGORY_CONFIG[category]) {
+      openDrawer(category, item.id)
+    }
+  }
+
+  // Handle primary CTA action
+  const handleCTAAction = (action: string, category?: IntakeFocus) => {
+    if (action === 'start_analysis') {
+      // Navigate to analysis creation (you can adjust this route)
+      router.push(`/clients/${clientId}?section=execution`)
+      return
     }
 
-    Object.keys(STATUS_CONFIG).forEach(status => {
-      counts[status] = intakeItems.filter(item => item.status === status).length
-    })
+    if (category && CATEGORY_CONFIG[category]) {
+      openDrawer(category)
+    } else {
+      // Open first category with issues
+      const firstIncomplete = Object.entries(metrics.byCategory).find(
+        ([_, stats]) => stats.requiredComplete < stats.required
+      )
+      if (firstIncomplete) {
+        openDrawer(firstIncomplete[0] as IntakeFocus)
+      }
+    }
+  }
 
-    return counts
-  }, [intakeItems])
-
-  // Handle status change
+  // Handle status change from drawer
   const handleStatusChange = (itemId: string, status: string) => {
     updateItem.mutate({ itemId, data: { status } })
   }
 
-  if (itemsLoading || statusLoading || clientLoading) {
+  if (itemsLoading || statusLoading) {
     return <IntakeHubSkeleton />
   }
 
   return (
     <div className="space-y-6">
-      {/* Top row: Completeness + Profile */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <CompletenessMeter
-          total={intakeStatus?.total_items || 0}
-          completed={intakeStatus?.completed_items || 0}
-          percentage={intakeStatus?.completion_percentage || 0}
-          blocking={intakeStatus?.blocking_items?.length || 0}
-        />
-        <ProfileSnapshot
-          client={client}
-          onEdit={() => setProfileDrawerOpen(true)}
-        />
+      {/* Top row: 3 cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <ProgressCard metrics={metrics} />
+        <PrimaryCTACard cta={primaryCTA} onAction={handleCTAAction} />
+        <BlockersCard blockers={metrics.blockers} onBlockerClick={handleBlockerClick} />
       </div>
 
-      {/* Actions bar */}
-      <div className="flex items-center justify-between gap-4">
-        <StatusFilterTabs
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-          counts={statusCounts}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setWizardDrawerOpen(true)}
-        >
-          <ListChecks className="h-4 w-4 mr-1.5" />
-          Open Wizard
-        </Button>
+      {/* Category tiles */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Object.values(CATEGORY_CONFIG).map((category) => (
+          <CategoryTile
+            key={category.id}
+            category={category}
+            stats={metrics.byCategory[category.id] || { total: 0, complete: 0, required: 0, requiredComplete: 0, items: [] }}
+            onViewItems={() => openDrawer(category.id)}
+          />
+        ))}
       </div>
 
-      {/* Intake items list */}
-      <IntakeItemsList
-        items={filteredItems}
+      {/* Intake Detail Drawer */}
+      <IntakeDetailDrawer
+        open={drawerOpen}
+        onOpenChange={(open) => {
+          if (!open) closeDrawer()
+        }}
+        category={drawerCategory}
+        items={drawerCategory ? (metrics.byCategory[drawerCategory]?.items || []) : []}
+        highlightItemId={highlightItemId}
         onStatusChange={handleStatusChange}
+        isUpdating={updateItem.isPending}
       />
-
-      {/* Profile Edit Drawer */}
-      <Sheet open={profileDrawerOpen} onOpenChange={setProfileDrawerOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Edit Business Profile</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            <DiscoveryProfile
-              clientId={clientId}
-              initialData={discoveryInitialData}
-              onUpdate={() => {
-                onRefreshClient()
-              }}
-              onComplete={() => {
-                onRefreshClient()
-                setProfileDrawerOpen(false)
-              }}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Wizard Drawer */}
-      <Sheet open={wizardDrawerOpen} onOpenChange={setWizardDrawerOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Data Collection Wizard</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            <IntakeStepper
-              clientId={clientId}
-              onComplete={() => {
-                onRefreshClient()
-                setWizardDrawerOpen(false)
-              }}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   )
 }
