@@ -211,17 +211,21 @@ export function EngagementManager({
           onSuccess: async () => {
             // Log activity note for new engagement
             const serviceLabels = selectedServices.map(s => SERVICE_OPTIONS.find(o => o.id === s)?.label || s).join(', ')
+            let noteCreated = true
             try {
               await createClientNote(clientId, {
                 content: `New engagement created: "${title}"\n\nServices: ${serviceLabels || 'None specified'}`,
                 note_type: 'engagement'
               })
             } catch {
-              // Silent fail - note creation is not critical
+              noteCreated = false
             }
             setDialogOpen(false)
             resetForm()
             onEngagementChange?.()
+            if (!noteCreated) {
+              toast.warning('Engagement created (activity note failed to save)')
+            }
           },
         }
       )
@@ -234,7 +238,7 @@ export function EngagementManager({
       { engagementId, data: { status: newStatus } },
       {
         onSuccess: async () => {
-          toast.success(`Engagement marked as ${newStatus}`)
+          let noteCreated = true
 
           // Log activity note for sent/signed status changes
           if (newStatus === 'sent' || newStatus === 'signed') {
@@ -248,8 +252,14 @@ export function EngagementManager({
                 note_type: 'engagement'
               })
             } catch {
-              // Silent fail - note creation is not critical
+              noteCreated = false
             }
+          }
+
+          if (!noteCreated) {
+            toast.warning(`Engagement marked as ${newStatus} (activity note failed to save)`)
+          } else {
+            toast.success(`Engagement marked as ${newStatus}`)
           }
         },
       }

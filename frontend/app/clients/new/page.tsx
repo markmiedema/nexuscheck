@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { createClient, createClientNote, type CreateClientData, type DuplicateClient, ClientDuplicateError } from '@/lib/api/clients'
 import apiClient from '@/lib/api/client'
 import { handleApiError, showSuccess } from '@/lib/utils/errorHandler'
+import { toast } from 'sonner'
 import {
   Building2,
   Loader2,
@@ -67,6 +68,9 @@ export default function NewClientPage() {
   const completeClientCreation = async (payload: CreateClientData, force: boolean = false) => {
     const newClient = await createClient(payload, force)
 
+    // Track partial failures for user feedback
+    const failures: string[] = []
+
     // Create primary contact in Team Roster if contact info was provided
     if (payload.contact_name) {
       try {
@@ -78,8 +82,7 @@ export default function NewClientPage() {
           is_primary: true
         })
       } catch {
-        // Silently fail - contact creation is not critical
-        console.warn('Failed to create primary contact')
+        failures.push('contact')
       }
     }
 
@@ -93,11 +96,15 @@ export default function NewClientPage() {
         note_type: 'call'
       })
     } catch {
-      // Silently fail - note creation is not critical
-      console.warn('Failed to create activity note')
+      failures.push('activity note')
     }
 
-    showSuccess(`Client "${newClient.company_name}" added successfully`)
+    // Show appropriate success message
+    if (failures.length > 0) {
+      toast.warning(`Client "${newClient.company_name}" created (${failures.join(', ')} failed to save)`)
+    } else {
+      showSuccess(`Client "${newClient.company_name}" added successfully`)
+    }
 
     // Navigate based on which button was clicked
     if (submitAction === 'discovery') {
