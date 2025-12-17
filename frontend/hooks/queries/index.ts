@@ -123,3 +123,15 @@ export {
   type ActionStatus,
   type TaskStatus,
 } from '@/lib/api/stateWorklist'
+
+// Engagement hooks
+export {
+  useClientEngagements,
+  useEngagement,
+  useActiveEngagement,
+  useCanCreateProject,
+  useCreateEngagement,
+  useUpdateEngagement,
+  useDeleteEngagement,
+} from './useEngagements'
+export type { Engagement, CreateEngagementData, UpdateEngagementData } from './useEngagements'

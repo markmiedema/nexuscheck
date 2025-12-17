@@ -49,4 +49,14 @@ export const queryKeys = {
     thresholds: () => [...queryKeys.compliance.all, 'thresholds'] as const,
     stateDetail: (stateCode: string) => [...queryKeys.compliance.all, 'state', stateCode] as const,
   },
+  engagements: {
+    all: ['engagements'] as const,
+    lists: () => [...queryKeys.engagements.all, 'list'] as const,
+    list: (clientId: string) => [...queryKeys.engagements.lists(), { clientId }] as const,
+    details: () => [...queryKeys.engagements.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.engagements.details(), id] as const,
+    active: (clientId: string) => [...queryKeys.engagements.all, 'active', clientId] as const,
+    canCreateProject: (clientId: string, serviceType: string) =>
+      [...queryKeys.engagements.all, 'can-create', clientId, serviceType] as const,
+  },
 } as const

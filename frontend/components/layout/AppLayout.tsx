@@ -20,6 +20,8 @@ interface AppLayoutProps {
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '7xl' | 'full'
   breadcrumbs?: BreadcrumbItem[]
   breadcrumbsRightContent?: ReactNode
+  /** Remove default padding from main content area */
+  noPadding?: boolean
 }
 
 const maxWidthClasses = {
@@ -100,6 +102,7 @@ function AppLayoutInner({
   maxWidth = '7xl',
   breadcrumbs,
   breadcrumbsRightContent,
+  noPadding = false,
 }: AppLayoutProps) {
   return (
     <div className="flex min-h-screen bg-background">
@@ -113,7 +116,7 @@ function AppLayoutInner({
       <div className="flex flex-1 flex-col">
         <AppHeader />
 
-        <main className={`flex-1 ${maxWidthClasses[maxWidth]} w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8`}>
+        <main className={`flex-1 ${maxWidthClasses[maxWidth]} w-full mx-auto ${noPadding ? '' : 'px-4 sm:px-6 lg:px-8 pt-4 pb-8'}`}>
           {breadcrumbs && (
             <Breadcrumbs items={breadcrumbs} rightContent={breadcrumbsRightContent} />
           )}
