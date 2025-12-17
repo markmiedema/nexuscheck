@@ -118,16 +118,27 @@ async def list_analyses(
 async def get_analysis(
     request: Request,
     analysis_id: str,
-    user_id: str = Depends(require_auth)
+    auth: Tuple[str, str] = Depends(require_organization)
 ):
     """
     Get analysis details by ID.
+
+    Uses organization scoping so any authorized team member can view
+    analyses that belong to their organization.
     """
+    user_id, org_id = auth
+
     try:
         supabase = get_supabase()
 
-        # Get analysis
-        analysis_result = supabase.table('analyses').select('*').eq('id', analysis_id).eq('user_id', user_id).execute()
+        # Get analysis scoped to organization (team-visible)
+        analysis_result = supabase.table('analyses')\
+            .select('*')\
+            .eq('id', analysis_id)\
+            .eq('organization_id', org_id)\
+            .is_('deleted_at', 'null')\
+            .maybe_single()\
+            .execute()
 
         if not analysis_result.data:
             raise HTTPException(
@@ -135,7 +146,7 @@ async def get_analysis(
                 detail="Analysis not found"
             )
 
-        analysis = analysis_result.data[0]
+        analysis = analysis_result.data
 
         # Get transaction stats if available
         transactions_result = supabase.table('sales_transactions') \
