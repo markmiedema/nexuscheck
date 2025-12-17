@@ -22,9 +22,6 @@ import {
   Send,
   ClipboardCheck,
   Play,
-  Building2,
-  MapPin,
-  FileCheck,
   FileText,
   ChevronRight,
 } from 'lucide-react'
@@ -32,31 +29,15 @@ import {
 // Complete statuses (item is "done")
 const COMPLETE_STATUSES = ['received', 'validated', 'not_applicable']
 
-// Category configuration
+// Category configuration - only data_request is tracked via intake_items
+// Discovery profile data (business model, physical presence, registrations)
+// is stored directly in the clients table and managed via the Discovery tab
 const CATEGORY_CONFIG = {
-  business_model: {
-    id: 'business_model',
-    label: 'Business Model',
-    icon: Building2,
-    description: 'Sales channels, product types, tech stack',
-  },
-  physical_presence: {
-    id: 'physical_presence',
-    label: 'Physical Presence',
-    icon: MapPin,
-    description: 'Employees, inventory, offices by state',
-  },
-  registrations: {
-    id: 'registrations',
-    label: 'Registrations',
-    icon: FileCheck,
-    description: 'Current state registrations',
-  },
   data_request: {
     id: 'data_request',
     label: 'Data Requests',
     icon: FileText,
-    description: 'Sales data, transaction files',
+    description: 'Sales data, tax returns, exemption certificates',
   },
 } as const
 
@@ -357,12 +338,7 @@ function IntakeHubSkeleton() {
         <Skeleton className="h-28" />
         <Skeleton className="h-28" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Skeleton className="h-40" />
-        <Skeleton className="h-40" />
-        <Skeleton className="h-40" />
-        <Skeleton className="h-40" />
-      </div>
+      <Skeleton className="h-40" />
     </div>
   )
 }
@@ -482,17 +458,12 @@ export function IntakeHub({
         <BlockersCard blockers={metrics.blockers} onBlockerClick={handleBlockerClick} />
       </div>
 
-      {/* Category tiles */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {Object.values(CATEGORY_CONFIG).map((category) => (
-          <CategoryTile
-            key={category.id}
-            category={category}
-            stats={metrics.byCategory[category.id] || { total: 0, complete: 0, required: 0, requiredComplete: 0, items: [] }}
-            onViewItems={() => openDrawer(category.id)}
-          />
-        ))}
-      </div>
+      {/* Data Requests tile - single category now */}
+      <CategoryTile
+        category={CATEGORY_CONFIG.data_request}
+        stats={metrics.byCategory.data_request || { total: 0, complete: 0, required: 0, requiredComplete: 0, items: [] }}
+        onViewItems={() => openDrawer('data_request')}
+      />
 
       {/* Intake Detail Drawer */}
       <IntakeDetailDrawer

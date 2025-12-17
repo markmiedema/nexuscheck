@@ -40,11 +40,8 @@ const STATUS_CONFIG = {
   not_applicable: { label: 'N/A', icon: Minus, color: 'text-muted-foreground', bg: 'bg-muted' },
 } as const
 
-// Category labels
+// Category labels - only data_request is now tracked via intake_items
 const CATEGORY_LABELS: Record<string, string> = {
-  business_model: 'Business Model',
-  physical_presence: 'Physical Presence',
-  registrations: 'Registrations',
   data_request: 'Data Requests',
 }
 
