@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, createContext, useContext, useEffect } from 'react'
+import { useState, createContext, useContext } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -100,14 +100,6 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // Sync with localStorage on mount (handles SSR hydration)
-  useEffect(() => {
-    const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
-    if (stored !== null) {
-      setIsCollapsedState(stored === 'true')
-    }
-  }, [])
-
   return (
     <SidebarContext.Provider
       value={{ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }}
@@ -180,7 +172,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'hidden lg:flex flex-col border-r border-border bg-card/50 transition-all duration-300 sticky top-0 h-screen',
+        'hidden lg:flex flex-col border-r border-border bg-card transition-all duration-300 sticky top-0 h-screen',
         isCollapsed ? 'w-16' : 'w-64'
       )}
     >
