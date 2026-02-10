@@ -317,23 +317,23 @@ export default function ResultsPage() {
                     <span className="text-muted-foreground">Registered</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(142 71% 40%)' }}></div>
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(152 36% 42%)' }}></div>
                     <span className="text-muted-foreground">No Nexus</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(38 92% 50%)' }}></div>
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(35 50% 46%)' }}></div>
                     <span className="text-muted-foreground">Approaching</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(0 60% 45%)' }}></div>
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(0 42% 44%)' }}></div>
                     <span className="text-muted-foreground">Economic Nexus</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(217 32.6% 45%)' }}></div>
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(217 33% 45%)' }}></div>
                     <span className="text-muted-foreground">Physical Nexus</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(289 46% 45%)' }}></div>
+                    <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(270 30% 45%)' }}></div>
                     <span className="text-muted-foreground">Both Nexus Types</span>
                   </div>
                 </div>
