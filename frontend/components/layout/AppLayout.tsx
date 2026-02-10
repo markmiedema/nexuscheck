@@ -55,7 +55,7 @@ function AppHeader() {
   const logoUrl = organization?.settings?.portal_branding?.logo_url
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-card/80 backdrop-blur-sm px-4 lg:px-6">
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-card px-4 lg:px-6">
       {/* Mobile menu trigger */}
       <MobileSidebarTrigger />
 

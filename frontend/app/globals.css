@@ -8,10 +8,9 @@
     /* Reduces eye strain with cool platinum tones and improved contrast */
 
     /* Background: Soft "Platinum" (Cool Off-White) */
-    /* Reduces eye strain by tinting white with a tiny bit of blue-gray */
     --background: 220 20% 97%;                    /* Cool platinum gray */
 
-    /* Foreground: Deep Slate (High contrast, but softer than black) */
+    /* Foreground: Deep Slate */
     --foreground: 222 47% 11%;                    /* Deep slate */
 
     /* Cards: Pure White to pop against the cool gray background */
@@ -22,46 +21,42 @@
     --popover: 0 0% 100%;                         /* Pure white */
     --popover-foreground: 222 47% 11%;            /* Deep slate */
 
-    /* Primary: Brand Blue */
+    /* Primary: Brand Slate */
     --primary: 217.2 32.6% 17.5%;                 /* Slate-800 */
     --primary-foreground: 210 40% 98%;            /* Slate-50 */
 
-    /* Secondary: Button Grey - Darkened significantly for contrast */
-    /* Was: 210 20% 96% (almost invisible) */
-    /* Now: 214 30% 85% (Slate 300 - clearly visible) */
-    --secondary: 214 30% 85%;                     /* Slate-300 button grey */
+    /* Secondary: Button surfaces — the heaviest of the three neutral roles */
+    --secondary: 214 30% 85%;                     /* Slate-300 — clickable surfaces */
     --secondary-foreground: 222 47% 11%;          /* Deep slate */
 
-    /* Muted: Matching the button grey */
-    --muted: 214 30% 85%;                         /* Slate-300 grey */
+    /* Muted: Backgrounds, placeholders — the lightest neutral role */
+    --muted: 220 16% 93%;                         /* Light neutral gray — recedes */
     --muted-foreground: 215 16% 47%;              /* Medium slate */
 
-    /* Accent (Hover States) */
-    --accent: 214 30% 85%;                        /* Slate-300 grey */
+    /* Accent: Hover/focus highlights — between secondary and muted */
+    --accent: 214 22% 89%;                        /* Mid neutral — interactive feedback */
     --accent-foreground: 222 47% 11%;             /* Deep slate */
 
     /* Destructive */
-    --destructive: 0 84.2% 60.2%;                 /* Red for destructive actions */
-    --destructive-foreground: 210 40% 98%;        /* Slate-50 */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    /* Borders: Darkened to frame inputs and outline buttons */
-    /* Was: 214 20% 88% (too faint) */
-    /* Now: 214 25% 80% (darker grey for better framing) */
+    /* Borders & Inputs */
     --border: 214 25% 80%;                        /* Darker slate border */
-    --input: 214 25% 80%;                         /* Darker slate input */
+    --input: 214 25% 80%;                         /* Matches border for consistency */
     --ring: 217.2 32.6% 17.5%;                    /* Slate-800 */
 
     /* Success State */
-    --success: 142.1 76.2% 36.3%;                 /* Green for success */
-    --success-foreground: 210 40% 98%;            /* Slate-50 */
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 210 40% 98%;
 
     /* Warning State */
-    --warning: 32.1 94.6% 43.7%;                  /* Amber for warnings */
-    --warning-foreground: 217.2 32.6% 17.5%;      /* Slate-800 */
+    --warning: 32.1 94.6% 43.7%;
+    --warning-foreground: 217.2 32.6% 17.5%;
 
     /* Info State */
-    --info: 221.2 83.2% 53.3%;                    /* Blue for info */
-    --info-foreground: 210 40% 98%;               /* Slate-50 */
+    --info: 221.2 83.2% 53.3%;
+    --info-foreground: 210 40% 98%;
 
     /* Radius */
     --radius: 0.5rem;
@@ -71,8 +66,7 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 
-    /* Shadow Color: Slate Blue (The "Cool Glow" Shadow) */
-    /* Replaces dirty black shadow with a soft blue-grey shadow */
+    /* Shadow Color */
     --shadow-color: 220 25% 80%;                  /* Slate-blue shadow */
 
     /* Chart Colors */
@@ -84,14 +78,14 @@
   }
 
   .dark {
-    /* ===== DARK MODE: ORIGINAL (Reverted) ===== */
-    /* Original "Slate" dark mode configuration - technical and professional */
+    /* ===== DARK MODE ===== */
+    /* Depth comes from background stepping (800 → 700 → 600), not heavy shadows */
 
     /* Slate-800 Background */
     --background: 217.2 32.6% 17.5%;              /* Slate-800 */
     --foreground: 214.3 31.8% 91.4%;              /* Slate-200 */
 
-    /* Slate-700 Cards */
+    /* Slate-700 Cards — one step up from background */
     --card: 215.3 25% 26.7%;                      /* Slate-700 */
     --card-foreground: 214.3 31.8% 91.4%;         /* Slate-200 */
 
@@ -103,53 +97,54 @@
     --primary: 210 40% 98%;                       /* Slate-50 */
     --primary-foreground: 217.2 32.6% 17.5%;      /* Slate-800 */
 
-    /* Secondary Interactive */
+    /* Secondary: Interactive surfaces — slightly lighter than card */
     --secondary: 215.3 19.3% 34.5%;               /* Slate-600 */
     --secondary-foreground: 210 40% 98%;          /* Slate-50 */
 
-    /* Muted/Disabled States */
+    /* Muted: Quiet backgrounds — same weight as secondary but distinct role */
     --muted: 215.3 19.3% 34.5%;                   /* Slate-600 */
     --muted-foreground: 215 20.2% 65.1%;          /* Slate-400 */
 
-    /* Accent (Hover States) */
-    --accent: 215.4 16.3% 46.9%;                  /* Slate-500 */
+    /* Accent: Hover/focus — one step above secondary for visible feedback */
+    --accent: 215.4 16.3% 42%;                    /* Between Slate-500 and 600 */
     --accent-foreground: 210 40% 98%;             /* Slate-50 */
 
     /* Destructive */
-    --destructive: 0 62.8% 50%;                   /* Red for destructive actions */
-    --destructive-foreground: 210 40% 98%;        /* Slate-50 */
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 210 40% 98%;
 
-    /* Borders */
-    --border: 215 20.2% 65.1%;                    /* Slate-400 */
-    --input: 215.3 19.3% 34.5%;                   /* Slate-600 */
-    --ring: 215 20.2% 65.1%;                      /* Slate-400 */
+    /* Borders: Subtle separation, not bright lines */
+    /* Was Slate-400 (65%) — way too bright against 17.5% background */
+    --border: 215.3 19.3% 34.5%;                  /* Slate-600 — ~17pt gap, matches light mode ratio */
+    --input: 215.4 16.3% 46.9%;                   /* Slate-500 — slightly brighter so form fields are distinct */
+    --ring: 215 20.2% 65.1%;                      /* Slate-400 — focus rings SHOULD be prominent */
 
     /* Success State */
-    --success: 142.1 70.6% 45.3%;                 /* Brighter green for dark backgrounds */
-    --success-foreground: 210 40% 98%;            /* Slate-50 */
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 210 40% 98%;
 
     /* Warning State */
-    --warning: 32.1 94.6% 43.7%;                  /* Amber for warnings */
-    --warning-foreground: 217.2 32.6% 17.5%;      /* Slate-800 */
+    --warning: 32.1 94.6% 43.7%;
+    --warning-foreground: 217.2 32.6% 17.5%;
 
     /* Info State */
-    --info: 221.2 83.2% 53.3%;                    /* Blue for info */
-    --info-foreground: 210 40% 98%;               /* Slate-50 */
+    --info: 221.2 83.2% 53.3%;
+    --info-foreground: 210 40% 98%;
 
-    /* Shadows - Stronger for visibility */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+    /* Shadows — subtle reinforcement, not primary depth mechanism */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.15);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.2);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.25);
 
-    /* Shadow Color - Dark mode needs black for visibility */
+    /* Shadow Color */
     --shadow-color: 0 0% 0%;                      /* Black */
 
-    /* Chart Colors */
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* Chart Colors — bumped lightness for visibility on dark backgrounds */
+    --chart-1: 220 70% 65%;
+    --chart-2: 160 60% 58%;
+    --chart-3: 30 80% 65%;
+    --chart-4: 280 65% 70%;
+    --chart-5: 340 75% 65%;
   }
 }
 
@@ -166,7 +161,7 @@
 @layer utilities {
   /* ===== Shadow System for Depth Hierarchy ===== */
 
-  /* Light Mode Shadows - Cool slate-blue shadows */
+  /* Light Mode Shadows — cool slate-blue tinted */
   .shadow-soft {
     box-shadow: 0 2px 4px -1px hsl(var(--shadow-color) / 0.5),
                 0 1px 2px -1px hsl(var(--shadow-color) / 0.4);
@@ -187,94 +182,59 @@
                 0 8px 10px -6px hsl(var(--shadow-color) / 0.3);
   }
 
-  /* Dark Mode Shadows - Much stronger and more visible */
+  /* Dark Mode Shadows — gentle, let background stepping do the heavy lifting */
   .dark .shadow-soft {
-    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.8),
-                0 1px 3px 0 rgb(0 0 0 / 0.6);
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.2),
+                0 1px 3px 0 rgb(0 0 0 / 0.15);
   }
 
   .dark .shadow-card {
-    box-shadow: 0 6px 12px -2px rgb(0 0 0 / 0.9),
-                0 3px 7px -3px rgb(0 0 0 / 0.7),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.05);  /* Subtle inner glow */
+    box-shadow: 0 6px 12px -2px rgb(0 0 0 / 0.3),
+                0 3px 7px -3px rgb(0 0 0 / 0.2);
   }
 
   .dark .shadow-elevated {
-    box-shadow: 0 12px 20px -4px rgb(0 0 0 / 0.95),
-                0 6px 10px -5px rgb(0 0 0 / 0.8),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 20px -4px rgb(0 0 0 / 0.35),
+                0 6px 10px -5px rgb(0 0 0 / 0.25);
   }
 
   .dark .shadow-floating {
-    box-shadow: 0 24px 38px -6px rgb(0 0 0 / 1),
-                0 12px 18px -8px rgb(0 0 0 / 0.9),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 38px -6px rgb(0 0 0 / 0.4),
+                0 12px 18px -8px rgb(0 0 0 / 0.3);
   }
 
-  /* Override Tailwind's default shadow-md in dark mode */
+  /* Tailwind shadow overrides for dark mode — no !important needed */
+  /* These selectors are specific enough to win over Tailwind defaults */
   .dark .shadow-md {
-    box-shadow: 0 6px 12px -2px rgb(0 0 0 / 0.9),
-                0 3px 7px -3px rgb(0 0 0 / 0.7),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 6px 12px -2px rgb(0 0 0 / 0.3),
+                0 3px 7px -3px rgb(0 0 0 / 0.2);
   }
 
   .dark .shadow-lg {
-    box-shadow: 0 12px 20px -4px rgb(0 0 0 / 0.95),
-                0 6px 10px -5px rgb(0 0 0 / 0.8),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
-  }
-
-  /* ===== Input Interactive States (Dark Mode) ===== */
-  .dark input[type="text"],
-  .dark input[type="email"],
-  .dark input[type="password"],
-  .dark input[type="date"],
-  .dark textarea {
-    background-color: hsl(215.3 19.3% 34.5%);  /* slate-600: Input fields (default) */
-    border-color: hsl(215 20.2% 65.1%);        /* slate-400: Borders */
-  }
-
-  .dark input[type="text"]:hover,
-  .dark input[type="email"]:hover,
-  .dark input[type="password"]:hover,
-  .dark input[type="date"]:hover,
-  .dark textarea:hover {
-    background-color: hsl(215.4 16.3% 46.9%);  /* slate-500: Input hover state */
-  }
-
-  .dark input[type="text"]:focus,
-  .dark input[type="email"]:focus,
-  .dark input[type="password"]:focus,
-  .dark input[type="date"]:focus,
-  .dark textarea:focus {
-    background-color: hsl(215.4 16.3% 46.9%);  /* slate-500: Input hover state */
-    border-color: hsl(215 20.2% 65.1%);        /* slate-400: Borders */
+    box-shadow: 0 12px 20px -4px rgb(0 0 0 / 0.35),
+                0 6px 10px -5px rgb(0 0 0 / 0.25);
   }
 
   /* ===== Table Fixes ===== */
-  /* Prevent text cursor blinking in tables */
   table, table * {
     cursor: default !important;
     caret-color: transparent !important;
   }
 
   /* ===== Sub-component Elevation ===== */
-  /* Add subtle shadows to muted sections to create depth */
   .bg-muted,
   .bg-muted\/50 {
     box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05),
                 0 1px 1px 0 rgb(0 0 0 / 0.03);
   }
 
-  /* Stronger shadows in dark mode */
   .dark .bg-muted,
   .dark .bg-muted\/50 {
-    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.5),
-                0 1px 2px 0 rgb(0 0 0 / 0.4);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.15),
+                0 1px 2px 0 rgb(0 0 0 / 0.1);
   }
 
   /* ===== Badge Dark Mode Support ===== */
-  /* Switch badge colors in dark mode */
   .dark span[style*="--badge-bg-light"] {
     background-color: var(--badge-bg-dark) !important;
     color: var(--badge-color-dark) !important;
@@ -282,13 +242,11 @@
   }
 
   /* ===== Threshold Dot Dark Mode Support ===== */
-  /* Switch threshold status dot colors in dark mode */
   .dark div[style*="--dot-color-light"] {
     background-color: var(--dot-color-dark) !important;
   }
 
   /* ===== Banner Dark Mode Support ===== */
-  /* Switch banner background and border in dark mode */
   .dark div[style*="--banner-bg-light"] {
     background-color: var(--banner-bg-dark) !important;
     border-color: var(--banner-border-dark) !important;
@@ -300,20 +258,16 @@
     background-color: hsl(var(--background));
   }
 
-  /* The Noise Layer */
   .bg-grainy::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
-    /* SVG Turbulence Filter for Noise */
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
     pointer-events: none;
-    /* Mask fades the noise out at the edges for softness */
     mask-image: radial-gradient(circle at center, black, transparent 80%);
   }
 
-  /* Light Mode: Cool Blue-Gray "North Light" Effect */
   .bg-grainy::after {
     content: "";
     position: fixed;
@@ -326,13 +280,11 @@
     );
   }
 
-  /* Dark Mode Adjustments - Minimal spotlight for classic look */
   .dark .bg-grainy::before {
-    opacity: 0.3; /* Subtle grain */
+    opacity: 0.3;
   }
 
   .dark .bg-grainy::after {
-    /* Very faint blue tint, almost invisible for classic look */
     background: radial-gradient(
       circle at 50% 0%,
       hsl(220 70% 50% / 0.05) 0%,
