@@ -23,6 +23,23 @@ interface USMapProps {
   registeredStates?: string[]  // States where client is registered to collect tax
 }
 
+/*
+ * Map Color Palette — Muted Professional Tones
+ *
+ * All status colors target ~30-45% saturation and low-40s lightness
+ * to match the physical nexus blue (the reference tone).
+ * This creates a cohesive, muted map that communicates status
+ * without screaming.
+ *
+ * Reference:  Physical Nexus blue  hsl(217, 33%, 45%)  ← anchor
+ *             No Nexus green       hsl(152, 36%, 42%)  ← teal-shifted, desaturated
+ *             Economic Nexus red   hsl(0, 42%, 44%)    ← muted brick, not alarm
+ *             Both Types purple    hsl(270, 30%, 45%)  ← dusty violet
+ *             Approaching amber    hsl(35, 50%, 46%)   ← warm clay, not traffic cone
+ *             Registered gray      hsl(215, 15%, 35%)  ← dark slate
+ *             No data / unknown    hsl(215, 20%, 75%)  ← light slate
+ */
+
 const USMap = memo(function USMap({ stateData, analysisId, onStateClick, registeredStates = [] }: USMapProps) {
   const router = useRouter()
   const [hoveredState, setHoveredState] = useState<string | null>(null)
@@ -45,7 +62,7 @@ const USMap = memo(function USMap({ stateData, analysisId, onStateClick, registe
   // Get color based on nexus status, type, and registration
   const getStateColor = (geoName: string) => {
     const stateCode = getStateCode(geoName)
-    if (!stateCode) return 'hsl(215 20.2% 75%)' // Darker gray for unknown states (visible in light mode)
+    if (!stateCode) return 'hsl(215 20.2% 75%)' // Light slate for unknown states
 
     const state = stateDataMap[stateCode]
 
@@ -54,28 +71,28 @@ const USMap = memo(function USMap({ stateData, analysisId, onStateClick, registe
       return 'hsl(215 15% 35%)' // Dark slate grey for registered states
     }
 
-    if (!state) return 'hsl(215 20.2% 75%)' // Darker gray for no data (visible in light mode)
+    if (!state) return 'hsl(215 20.2% 75%)' // Light slate for no data
 
-    // If has nexus, differentiate by type (using professional, muted tones)
+    // If has nexus, differentiate by type (muted professional tones)
     if (state.nexus_status === 'has_nexus') {
       switch (state.nexus_type) {
         case 'physical':
-          return 'hsl(217 32.6% 45%)' // Muted blue-slate - physical nexus only (darker, professional)
+          return 'hsl(217 33% 45%)' // Muted blue-slate — the reference tone
         case 'economic':
-          return 'hsl(0 60% 45%)' // Darker muted red - economic nexus only (professional tone)
+          return 'hsl(0 42% 44%)' // Muted brick red — alert without alarm
         case 'both':
-          return 'hsl(289 46% 45%)' // Blended purple - mathematical blend of blue and red
+          return 'hsl(270 30% 45%)' // Dusty violet — clearly distinct from both parents
         default:
-          return 'hsl(0 60% 45%)' // Default darker muted red for unknown type
+          return 'hsl(0 42% 44%)' // Default to economic red for unknown type
       }
     }
 
     // Other statuses
     switch (state.nexus_status) {
       case 'approaching':
-        return 'hsl(38 92% 50%)' // Amber - approaching threshold (matches warning)
+        return 'hsl(35 50% 46%)' // Warm clay amber — caution without screaming
       case 'none':
-        return 'hsl(142 71% 40%)' // Darker muted green - no nexus (professional)
+        return 'hsl(152 36% 42%)' // Muted teal-green — safe without traffic-light vibes
       default:
         return 'hsl(var(--muted))' // Muted gray
     }
