@@ -10,9 +10,7 @@ const Card = React.forwardRef<
     ref={ref}
     className={cn(
       "rounded-xl border text-card-foreground shadow-card",
-      // Light mode: Solid white (paper effect)
-      // Dark mode: Glass morphism with blur
-      "bg-white dark:bg-card dark:backdrop-blur-sm",
+      "bg-card",
       "border-border",
       className
     )}
