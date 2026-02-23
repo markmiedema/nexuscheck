@@ -1251,8 +1251,7 @@ class NexusCalculatorV2:
 
             # Get state results from the analysis
             results = self.supabase.table('state_results').select(
-                'state, has_nexus, physical_nexus, economic_nexus, total_sales, '
-                'estimated_total_liability, threshold_percentage, first_nexus_date'
+                'state, nexus_type, nexus_date, total_sales, estimated_liability'
             ).eq('analysis_id', analysis_id).execute()
 
             if not results.data:
@@ -1272,23 +1271,15 @@ class NexusCalculatorV2:
                 if result['state'] in existing_states:
                     continue
 
-                # Determine nexus status
+                # Determine nexus status from nexus_type column
+                nexus_type = result.get('nexus_type')
                 nexus_status = 'unknown'
-                if result.get('has_nexus'):
+                if nexus_type and nexus_type != 'none':
                     nexus_status = 'has_nexus'
-                elif result.get('threshold_percentage') and result['threshold_percentage'] >= 75:
-                    nexus_status = 'approaching'
                 elif result.get('total_sales', 0) == 0:
                     nexus_status = 'no_nexus'
-
-                # Determine nexus type
-                nexus_type = None
-                if result.get('physical_nexus') and result.get('economic_nexus'):
-                    nexus_type = 'both'
-                elif result.get('physical_nexus'):
-                    nexus_type = 'physical'
-                elif result.get('economic_nexus'):
-                    nexus_type = 'economic'
+                else:
+                    nexus_status = 'no_nexus'
 
                 assessments_to_create.append({
                     'client_id': client_id,
@@ -1298,9 +1289,8 @@ class NexusCalculatorV2:
                     'nexus_status': nexus_status,
                     'nexus_type': nexus_type,
                     'total_sales': result.get('total_sales'),
-                    'estimated_liability': result.get('estimated_total_liability'),
-                    'threshold_percentage': result.get('threshold_percentage'),
-                    'first_exposure_date': result.get('first_nexus_date'),
+                    'estimated_liability': result.get('estimated_liability'),
+                    'first_exposure_date': result.get('nexus_date'),
                     'assessed_at': datetime.utcnow().isoformat(),
                 })
 
