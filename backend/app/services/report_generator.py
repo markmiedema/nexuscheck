@@ -118,6 +118,20 @@ class ReportGeneratorV2:
         env = _get_jinja_env()
         font_config = _get_font_config()
 
+        # Generate SVG charts and add to report data
+        report_data['liability_chart_svg'] = self._generate_liability_bar_chart(
+            report_data.get('top_states', [])
+        )
+
+        # Generate nexus map SVG and add nexus type counts
+        report_data['nexus_map_svg'] = self._generate_nexus_map_svg(
+            report_data.get('all_states', [])
+        )
+        nexus_type_counts = self._count_nexus_types(report_data.get('state_details', []))
+        report_data['economic_nexus_count'] = nexus_type_counts.get('economic', 0)
+        report_data['physical_nexus_count'] = nexus_type_counts.get('physical', 0)
+        report_data['both_nexus_count'] = nexus_type_counts.get('both', 0)
+
         # Generate HTML for each section
         html_sections = []
 
@@ -127,15 +141,18 @@ class ReportGeneratorV2:
         # 2. Executive summary
         html_sections.append(self._render_template(env, 'report/executive_summary.html', report_data))
 
-        # 3. Action items
+        # 3. Nexus map
+        html_sections.append(self._render_template(env, 'report/nexus_map.html', report_data))
+
+        # 4. Action items
         html_sections.append(self._render_template(env, 'report/action_items.html', report_data))
 
-        # 4. State details (for nexus and approaching states only)
+        # 5. State details (for nexus and approaching states only)
         if options.get('include_state_details', True):
             for state_data in report_data['state_details']:
                 html_sections.append(self._render_template(env, 'report/state_detail.html', state_data))
 
-        # 5. Appendix
+        # 6. Appendix
         html_sections.append(self._render_template(env, 'report/appendix.html', report_data))
 
         # Combine all sections
@@ -640,6 +657,137 @@ class ReportGeneratorV2:
         status_order = {'has_nexus': 0, 'approaching': 1, 'no_nexus': 2}
         summaries.sort(key=lambda x: (status_order.get(x['nexus_status'], 3), -x['total_sales']))
         return summaries
+
+    def _generate_liability_bar_chart(self, top_states: list) -> str:
+        """Generate an inline SVG horizontal bar chart of top states by liability."""
+        top_states = [s for s in top_states if s.get('estimated_liability', 0) > 0][:8]
+
+        if not top_states:
+            return ""
+
+        max_liability = top_states[0]['estimated_liability']
+        bar_height = 26
+        gap = 6
+        label_width = 40
+        bar_area_width = 380
+        value_offset = 10
+        chart_width = label_width + bar_area_width + 120
+        chart_height = len(top_states) * (bar_height + gap) - gap
+
+        svg_parts = [
+            f'<svg xmlns="http://www.w3.org/2000/svg" '
+            f'width="{chart_width}" height="{chart_height}" '
+            f'viewBox="0 0 {chart_width} {chart_height}">'
+        ]
+
+        for i, state in enumerate(top_states):
+            y = i * (bar_height + gap)
+            bar_width = (state['estimated_liability'] / max_liability) * bar_area_width if max_liability > 0 else 0
+            bar_width = max(bar_width, 4)  # minimum visible bar
+            amount = f"${state['estimated_liability']:,.0f}"
+
+            # State label
+            svg_parts.append(
+                f'<text x="{label_width - 8}" y="{y + bar_height / 2 + 4}" '
+                f'text-anchor="end" font-size="10" fill="#475569" '
+                f'font-family="Helvetica, Arial, sans-serif" font-weight="600">'
+                f'{state.get("state_code", state.get("state_name", "")[:2].upper())}</text>'
+            )
+            # Bar
+            svg_parts.append(
+                f'<rect x="{label_width}" y="{y + 1}" '
+                f'width="{bar_width:.0f}" height="{bar_height - 2}" '
+                f'rx="3" fill="#0D9488" opacity="0.85"/>'
+            )
+            # Value label
+            svg_parts.append(
+                f'<text x="{label_width + bar_width + value_offset:.0f}" '
+                f'y="{y + bar_height / 2 + 4}" '
+                f'font-size="10" fill="#475569" '
+                f'font-family="Helvetica, Arial, sans-serif">'
+                f'{amount}</text>'
+            )
+
+        svg_parts.append('</svg>')
+        return '\n'.join(svg_parts)
+
+    def _generate_nexus_map_svg(self, all_states: list) -> str:
+        """Generate a simplified US map SVG with states colored by nexus status."""
+        # Build a lookup of state_code -> nexus_status
+        state_status = {}
+        for state in all_states:
+            state_status[state.get('state_code', '')] = state.get('nexus_status', 'no_nexus')
+
+        # Color mapping
+        colors = {
+            'has_nexus': '#0D9488',
+            'approaching': '#D97706',
+            'no_nexus': '#E2E8F0',
+        }
+
+        # Simplified US state positions for a grid-style map
+        # Each state is a small rectangle positioned in an approximate geographic layout
+        # Grid: each cell is 40x28, with 2px gap
+        state_grid = {
+            'ME': (10, 0), 'VT': (9, 0), 'NH': (10, 1), 'MA': (10, 2),
+            'RI': (10, 3), 'CT': (9, 3), 'NY': (9, 1), 'NJ': (9, 2),
+            'PA': (8, 2), 'DE': (9, 4), 'MD': (8, 3), 'DC': (8, 4),
+            'WV': (7, 3), 'VA': (8, 3), 'NC': (8, 4), 'SC': (8, 5),
+            'GA': (7, 5), 'FL': (8, 6),
+            'AL': (6, 5), 'MS': (5, 5), 'TN': (6, 4), 'KY': (7, 3),
+            'OH': (7, 2), 'IN': (6, 2), 'IL': (5, 2), 'MI': (7, 1),
+            'WI': (5, 1), 'MN': (4, 0), 'IA': (4, 1), 'MO': (5, 3),
+            'AR': (5, 4), 'LA': (5, 6), 'TX': (4, 5), 'OK': (4, 4),
+            'KS': (4, 3), 'NE': (3, 2), 'SD': (3, 1), 'ND': (3, 0),
+            'MT': (2, 0), 'WY': (2, 1), 'CO': (3, 3), 'NM': (3, 4),
+            'AZ': (2, 4), 'UT': (2, 2), 'NV': (1, 2), 'ID': (1, 1),
+            'WA': (0, 0), 'OR': (0, 1), 'CA': (0, 3),
+            'AK': (0, 6), 'HI': (1, 6),
+        }
+
+        cell_w = 42
+        cell_h = 28
+        gap = 3
+        cols = 11
+        rows = 7
+        svg_w = cols * (cell_w + gap) + 20
+        svg_h = rows * (cell_h + gap) + 10
+
+        svg_parts = [
+            f'<svg xmlns="http://www.w3.org/2000/svg" '
+            f'width="{svg_w}" height="{svg_h}" '
+            f'viewBox="0 0 {svg_w} {svg_h}">'
+        ]
+
+        for state_code, (col, row) in state_grid.items():
+            x = 10 + col * (cell_w + gap)
+            y = 5 + row * (cell_h + gap)
+            status = state_status.get(state_code, 'no_nexus')
+            fill = colors.get(status, colors['no_nexus'])
+
+            svg_parts.append(
+                f'<rect x="{x}" y="{y}" width="{cell_w}" height="{cell_h}" '
+                f'rx="3" fill="{fill}" stroke="#FFFFFF" stroke-width="1"/>'
+            )
+            svg_parts.append(
+                f'<text x="{x + cell_w / 2}" y="{y + cell_h / 2 + 4}" '
+                f'text-anchor="middle" font-size="9" '
+                f'fill="{"#FFFFFF" if status != "no_nexus" else "#94A3B8"}" '
+                f'font-family="Helvetica, Arial, sans-serif" font-weight="600">'
+                f'{state_code}</text>'
+            )
+
+        svg_parts.append('</svg>')
+        return '\n'.join(svg_parts)
+
+    def _count_nexus_types(self, state_details: list) -> Dict[str, int]:
+        """Count states by nexus type from state detail data."""
+        counts = {'economic': 0, 'physical': 0, 'both': 0}
+        for state in state_details:
+            nexus_type = state.get('nexus_type', '')
+            if nexus_type in counts:
+                counts[nexus_type] += 1
+        return counts
 
     def _render_template(self, env, template_name: str, context: Dict) -> str:
         """Render a Jinja2 template with the given context."""

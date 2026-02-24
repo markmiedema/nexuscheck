@@ -3,53 +3,60 @@
 {% block content %}
 <!-- Executive Summary Page -->
 <div class="page">
-    <!-- Navy Header Bar -->
+    <!-- Page Header -->
     <div class="page-header">
         <table>
             <tr>
-                <td style="width: 100pt;">
+                <td>
                     <span class="header-logo"><span class="header-logo-a">A</span>ST</span>
                 </td>
                 <td>
-                    <span class="header-divider"></span>
-                    <span class="header-title">NEXUS ANALYSIS REPORT</span>
-                    <div class="header-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+                    <span class="header-title">Nexus Analysis Report &mdash; {{ client_name }}</span>
                 </td>
             </tr>
         </table>
     </div>
 
     <div class="page-content">
+        <div class="section-label">Overview</div>
         <h2>Executive Summary</h2>
 
-        <!-- Three Metric Cards using table -->
-        <table class="metrics-table">
+        <!-- Three Metric Cards -->
+        <table class="metrics-row">
             <tr>
-                <td class="{% if states_with_nexus > 0 %}metric-red{% else %}metric-navy{% endif %}">
+                <td class="metric-card-teal">
                     <div class="metric-value">{{ states_with_nexus }}</div>
                     <div class="metric-label">States with Nexus</div>
                 </td>
-                <td class="{% if total_exposure > 0 %}metric-red{% else %}metric-navy{% endif %}">
+                <td class="metric-card-rose">
                     <div class="metric-value">${{ "{:,.0f}".format(total_exposure) }}</div>
-                    <div class="metric-label">Total Exposure</div>
+                    <div class="metric-label">Total Estimated Liability</div>
                 </td>
-                <td class="metric-green">
+                <td class="metric-card-amber">
                     <div class="metric-value">${{ "{:,.0f}".format(vda_savings) }}</div>
-                    <div class="metric-label">VDA Savings</div>
+                    <div class="metric-label">Potential VDA Savings</div>
                 </td>
             </tr>
         </table>
 
-        <!-- Narrative Box -->
+        <!-- Narrative -->
         <div class="narrative-box">
             {{ narrative }}
         </div>
 
-        <!-- Data Cards using table -->
-        <table class="data-cards-table">
+        <!-- Liability by State Chart -->
+        {% if liability_chart_svg %}
+        <div class="section-label mt-2">Top states by liability</div>
+        <div class="chart-container">
+            {{ liability_chart_svg | safe }}
+        </div>
+        {% endif %}
+
+        <!-- Two-column data summary -->
+        <table class="cards-row">
             <tr>
                 <td>
-                    <div class="data-card-title">ANALYSIS SUMMARY</div>
+                    <div class="card-title">Analysis Summary</div>
                     <table class="data-row-table">
                         <tr>
                             <td class="label">Total States Analyzed</td>
@@ -64,161 +71,54 @@
                             <td class="value highlight">{{ states_with_nexus }}</td>
                         </tr>
                         <tr>
-                            <td class="label">States Approaching</td>
-                            <td class="value warning">{{ states_approaching }}</td>
+                            <td class="label">States Approaching Threshold</td>
+                            <td class="value amber">{{ states_approaching }}</td>
                         </tr>
                     </table>
                 </td>
                 <td>
-                    <div class="data-card-title">FINANCIAL SUMMARY</div>
+                    <div class="card-title">Financial Summary</div>
                     <table class="data-row-table">
                         <tr>
                             <td class="label">Total Sales</td>
-                            <td class="value currency">${{ "{:,.0f}".format(total_sales) }}</td>
+                            <td class="value">${{ "{:,.0f}".format(total_sales) }}</td>
                         </tr>
                         <tr>
                             <td class="label">Taxable Sales</td>
-                            <td class="value currency">${{ "{:,.0f}".format(taxable_sales) }}</td>
+                            <td class="value">${{ "{:,.0f}".format(taxable_sales) }}</td>
                         </tr>
                         <tr>
                             <td class="label">Estimated Tax Liability</td>
-                            <td class="value highlight currency">${{ "{:,.0f}".format(total_liability) }}</td>
+                            <td class="value rose">${{ "{:,.0f}".format(total_liability) }}</td>
                         </tr>
                         <tr>
-                            <td class="label">Interest & Penalties</td>
-                            <td class="value currency">${{ "{:,.0f}".format(interest_and_penalties) }}</td>
+                            <td class="label">Interest &amp; Penalties</td>
+                            <td class="value">${{ "{:,.0f}".format(interest_and_penalties) }}</td>
                         </tr>
                     </table>
                 </td>
             </tr>
         </table>
-    </div>
 
-    <!-- Red Footer Bar -->
-    <div class="page-footer">
-        <table>
-            <tr>
-                <td>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</td>
-                <td style="text-align: right;"><span class="page-number">PAGE 2</span></td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-<!-- Top States by Liability Page -->
-{% if states_with_nexus > 0 %}
-<div class="page">
-    <!-- Navy Header Bar -->
-    <div class="page-header">
-        <table>
-            <tr>
-                <td style="width: 100pt;">
-                    <span class="header-logo"><span class="header-logo-a">A</span>ST</span>
-                </td>
-                <td>
-                    <span class="header-divider"></span>
-                    <span class="header-title">NEXUS ANALYSIS REPORT</span>
-                    <div class="header-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="page-content">
-        <h2>Top States by Liability</h2>
-
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>State</th>
-                    <th class="text-right">Total Sales</th>
-                    <th class="text-right">Taxable Sales</th>
-                    <th class="text-right">Estimated Liability</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for state in top_states %}
-                <tr>
-                    <td>
-                        <span class="status-dot red"></span>
-                        <strong>{{ state.state_name }}</strong>
-                    </td>
-                    <td class="text-right currency">${{ "{:,.0f}".format(state.total_sales) }}</td>
-                    <td class="text-right currency">${{ "{:,.0f}".format(state.taxable_sales) }}</td>
-                    <td class="text-right currency font-bold">${{ "{:,.0f}".format(state.estimated_liability) }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <p class="source-ref">[source: 28]</p>
-
+        <!-- VDA savings callout -->
         {% if total_vda_savings > 0 %}
-        <div class="vda-box">
-            <div class="vda-title">CONSIDER VDA {{ consider_vda | length }} STATES &nbsp;&nbsp;&nbsp; SAVE UP TO ${{ "{:,.0f}".format(total_vda_savings) }}</div>
-            <p style="font-size: 8pt; color: #047857; margin-bottom: 12pt;">
-                Voluntary Disclosure Agreements can reduce or eliminate penalties. Consider VDA before registering.
-            </p>
-            <table class="data-table vda-table">
-                <thead>
-                    <tr>
-                        <th>STATE</th>
-                        <th class="text-right">WITHOUT VDA</th>
-                        <th class="text-right">WITH VDA</th>
-                        <th class="text-right">POTENTIAL SAVINGS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for state in consider_vda %}
-                    <tr>
-                        <td><strong>{{ state.state_name }}</strong></td>
-                        <td class="text-right currency">${{ "{:,.0f}".format(state.before_vda) }}</td>
-                        <td class="text-right currency">${{ "{:,.0f}".format(state.with_vda) }}</td>
-                        <td class="text-right currency" style="color: #059669; font-weight: 700;">
-                            ${{ "{:,.0f}".format(state.savings) }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <p class="source-ref">[source: 32]</p>
-            <div style="text-align: center; margin-top: 12pt;">
-                <span style="font-size: 10pt; color: #047857; font-weight: 600;">Total Potential VDA Savings: </span>
-                <span class="vda-amount">${{ "{:,.0f}".format(total_vda_savings) }}</span>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if monitor | length > 0 %}
-        <div style="background: #f0fdf4; border: 1px solid #86efac; padding: 12pt 15pt; margin-top: 15pt;">
-            <table style="width: 100%;">
+        <div class="vda-summary-box">
+            <table style="width: 100%; border-collapse: collapse;">
                 <tr>
-                    <td style="width: 30pt;">
-                        <span style="display: inline-block; width: 20pt; height: 20pt; background: #059669; border-radius: 50%; text-align: center; line-height: 20pt; color: white; font-weight: 700;">~</span>
+                    <td style="border: none; padding: 0; vertical-align: middle; width: 70%;">
+                        <div class="vda-summary-title">Voluntary Disclosure Agreement Opportunity</div>
+                        <div style="font-size: 8.5pt; color: #059669;">
+                            {{ consider_vda | length }} state{{ 's' if consider_vda | length != 1 else '' }} eligible &mdash; reduce or eliminate penalties by registering proactively.
+                        </div>
                     </td>
-                    <td>
-                        <span style="font-size: 10pt; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 1px;">MONITOR</span>
-                    </td>
-                    <td style="text-align: right;">
-                        <span style="font-size: 9pt; color: #059669;">{{ monitor | length }} state{% if monitor | length != 1 %}s{% endif %}</span>
+                    <td style="border: none; padding: 0; text-align: right; vertical-align: middle;">
+                        <div style="font-size: 8pt; color: #059669;">Potential Savings</div>
+                        <div class="vda-summary-amount">${{ "{:,.0f}".format(total_vda_savings) }}</div>
                     </td>
                 </tr>
             </table>
-            <p style="font-size: 8pt; color: #047857; margin: 8pt 0 0 0;">
-                No states are currently approaching threshold.
-            </p>
         </div>
         {% endif %}
     </div>
-
-    <!-- Red Footer Bar -->
-    <div class="page-footer">
-        <table>
-            <tr>
-                <td>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</td>
-                <td style="text-align: right;"><span class="page-number">PAGE 3</span></td>
-            </tr>
-        </table>
-    </div>
 </div>
-{% endif %}
 {% endblock %}

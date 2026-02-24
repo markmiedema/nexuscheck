@@ -1,42 +1,50 @@
 {% extends "report/base.html" %}
 
 {% block content %}
-<div class="page cover-page">
-    <!-- Logo Section (centered on white background) -->
-    <div class="cover-logo-section">
-        <img src="assets/ast-logo.png" alt="AST Logo" class="cover-logo-img">
+<div class="cover-page">
+    <!-- Top dark section with geometric accent -->
+    <div class="cover-top">
+        <div class="cover-accent-circle"></div>
+        <div class="cover-accent-line"></div>
+
+        <!-- Logo -->
+        <div class="cover-logo">
+            <span class="logo-a">A</span>ST
+        </div>
+
+        <!-- Title -->
+        <div class="cover-title">Nexus Analysis<br>Report</div>
+        <div class="cover-subtitle">Sales Tax Nexus Determination &amp; Liability Assessment</div>
     </div>
 
-    <!-- Main Content -->
-    <div class="cover-main">
-        <div class="cover-title">NEXUS ANALYSIS REPORT</div>
-        <div class="cover-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
-
-        <div class="cover-meta">
-            <div class="cover-meta-item">
-                <span class="cover-meta-label">PREPARED FOR:</span>
-                <span class="cover-meta-value">{{ client_name }}</span>
-            </div>
-            <div class="cover-meta-item">
-                <span class="cover-meta-label">Date:</span>
-                <span class="cover-meta-value">{{ report_date }}</span>
-            </div>
-            <div class="cover-meta-item">
-                <span class="cover-meta-label">Analysis Period:</span>
-                <span class="cover-meta-value">
+    <!-- Bottom light section with metadata -->
+    <div class="cover-bottom">
+        <table class="cover-meta-table">
+            <tr>
+                <td class="cover-meta-label">Prepared for</td>
+                <td class="cover-meta-value">{{ client_name }}</td>
+            </tr>
+            <tr>
+                <td class="cover-meta-label">Report date</td>
+                <td class="cover-meta-value">{{ report_date }}</td>
+            </tr>
+            <tr>
+                <td class="cover-meta-label">Analysis period</td>
+                <td class="cover-meta-value">
                     {% if period_start and period_end %}
-                    {{ period_start }} — {{ period_end }}
+                    {{ period_start }} &mdash; {{ period_end }}
                     {% else %}
                     As of {{ report_date }}
                     {% endif %}
-                </span>
-            </div>
-        </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="cover-meta-label">Prepared by</td>
+                <td class="cover-meta-value">AST &middot; Advisory &amp; Compliance</td>
+            </tr>
+        </table>
     </div>
 
-    <!-- Navy Footer -->
-    <div class="cover-footer">
-        <span class="cover-footer-text"><span class="cover-footer-label">PREPARED BY:</span> AST | Advisory & Compliance | www.filewithast.com</span>
-    </div>
+    <div class="cover-footer-bar"></div>
 </div>
 {% endblock %}
