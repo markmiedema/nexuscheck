@@ -737,21 +737,23 @@ class ReportGeneratorV2:
             nexus_type = state.get('nexus_type', '')
             status_map[code] = (status, nexus_type)
 
+        # Colors match the frontend USMap.tsx palette — muted professional tones
+        # anchored on the physical nexus blue at hsl(217, 33%, 45%).
         def get_fill(status, nexus_type):
             if status == 'has_nexus':
                 if nexus_type == 'physical':
-                    return '#3B82F6'    # Blue
+                    return '#4D6A99'    # Muted blue-slate  hsl(217, 33%, 45%)
                 elif nexus_type == 'both':
-                    return '#8B5CF6'    # Purple
+                    return '#735095'    # Dusty violet      hsl(270, 30%, 45%)
                 else:
-                    return '#DC2626'    # Red (economic)
+                    return '#9F4141'    # Muted brick red   hsl(0, 42%, 44%)
             elif status == 'approaching':
-                return '#D97706'        # Amber
+                return '#B07F3B'        # Warm clay amber   hsl(35, 50%, 46%)
             else:
-                return '#86EFAC'        # Light green (no nexus)
+                return '#45926E'        # Muted teal-green  hsl(152, 36%, 42%)
 
         # Default fill for states not in data
-        default_fill = '#E2E8F0'        # Light gray (no data)
+        default_fill = '#B2BDCC'        # Light slate       hsl(215, 20%, 75%)
 
         # Use explicit pixel dimensions — WeasyPrint/CairoSVG cannot resolve
         # width="100%" or height="auto" on inline SVGs, resulting in 0 height.
