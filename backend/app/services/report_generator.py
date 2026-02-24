@@ -356,6 +356,7 @@ class ReportGeneratorV2:
             'transaction_count': 0,
             'nexus_status': 'no_nexus',
             'nexus_type': None,
+            'nexus_date': None,
             'threshold': 100000,
             'threshold_percent': 0,
             'year_data': [],
@@ -393,6 +394,11 @@ class ReportGeneratorV2:
             # Take nexus type if not already set
             if nexus_type and not agg['nexus_type']:
                 agg['nexus_type'] = nexus_type
+
+            # Track earliest nexus_date
+            nd = result.get('nexus_date')
+            if nd and (agg['nexus_date'] is None or nd < agg['nexus_date']):
+                agg['nexus_date'] = nd
 
             # Threshold info
             if result.get('revenue_threshold') or result.get('threshold'):
@@ -610,6 +616,7 @@ class ReportGeneratorV2:
                 'amount_until_nexus': max(0, data.get('threshold', 100000) - data.get('total_sales', 0)),
                 'transaction_threshold': thresholds.get('transaction_threshold'),
                 'threshold_operator': thresholds.get('threshold_operator', 'OR'),
+                'nexus_date': data.get('nexus_date'),
                 'first_nexus_year': None,
                 'state_rate': state_rate,
                 'avg_local_rate': avg_local_rate,
@@ -627,6 +634,25 @@ class ReportGeneratorV2:
         details.sort(key=lambda x: x['estimated_liability'], reverse=True)
         return details
 
+    def _format_nexus_date(self, nexus_date) -> Optional[str]:
+        """Format a nexus_date value into a readable month/year string.
+
+        Handles ISO date strings (YYYY-MM-DD) and datetime objects.
+        Returns None if the date is missing or unparseable.
+        """
+        if not nexus_date:
+            return None
+        try:
+            if isinstance(nexus_date, str):
+                dt = datetime.fromisoformat(nexus_date.replace('Z', '+00:00'))
+            elif isinstance(nexus_date, datetime):
+                dt = nexus_date
+            else:
+                return None
+            return dt.strftime('%B %Y')  # e.g., "March 2024"
+        except (ValueError, TypeError):
+            return None
+
     def _generate_state_narrative(self, detail: Dict) -> str:
         """Generate a brief narrative paragraph for a state detail page."""
         state_name = detail.get('state_name', 'This state')
@@ -638,18 +664,22 @@ class ReportGeneratorV2:
         with_vda = detail.get('with_vda', 0)
         nexus_status = detail.get('nexus_status', 'no_nexus')
         threshold_percent = detail.get('threshold_percent', 0)
+        nexus_date_str = self._format_nexus_date(detail.get('nexus_date'))
 
         parts = []
 
         if nexus_status == 'has_nexus':
-            # Nexus trigger sentence
+            # Nexus trigger sentence (with optional date)
             type_descriptions = {
                 'economic': 'exceeding the economic nexus sales threshold',
                 'physical': 'physical presence (employees or property in-state)',
                 'both': 'both physical presence and exceeding the economic sales threshold',
             }
             trigger = type_descriptions.get(nexus_type, 'exceeding the economic nexus sales threshold')
-            parts.append(f"{state_name} nexus was triggered by {trigger}.")
+            if nexus_date_str:
+                parts.append(f"{state_name} nexus was first triggered in {nexus_date_str} by {trigger}.")
+            else:
+                parts.append(f"{state_name} nexus was triggered by {trigger}.")
 
             # Sales and liability sentence
             parts.append(
