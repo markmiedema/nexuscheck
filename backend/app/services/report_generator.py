@@ -18,6 +18,8 @@ from datetime import datetime
 from pathlib import Path
 from collections import defaultdict
 
+from app.services.us_map_data import US_STATE_PATHS
+
 logger = logging.getLogger(__name__)
 
 # Template directory
@@ -394,10 +396,16 @@ class ReportGeneratorV2:
             # Threshold info
             if result.get('revenue_threshold') or result.get('threshold'):
                 agg['threshold'] = float(result.get('revenue_threshold') or result.get('threshold') or 100000)
-            if result.get('threshold_percent'):
-                agg['threshold_percent'] = max(agg['threshold_percent'], float(result['threshold_percent']))
 
             agg['year_data'].append(result)
+
+        # Calculate threshold_percent from aggregated total_sales / threshold
+        for state_code, agg in aggregates.items():
+            threshold = agg.get('threshold', 100000)
+            if threshold > 0:
+                agg['threshold_percent'] = round((agg['total_sales'] / threshold) * 100, 1)
+            else:
+                agg['threshold_percent'] = 0
 
         return dict(aggregates)
 
@@ -627,6 +635,8 @@ class ReportGeneratorV2:
         """Format year data for state detail template."""
         formatted = []
         for row in year_data:
+            nexus_type = row.get('nexus_type')
+            has_nexus = nexus_type in ('economic', 'physical', 'both')
             formatted.append({
                 'year': row.get('year'),
                 'total_sales': float(row.get('total_sales', 0) or 0),
@@ -635,6 +645,8 @@ class ReportGeneratorV2:
                 'interest': float(row.get('interest', 0) or 0),
                 'penalties': float(row.get('penalties', 0) or 0),
                 'estimated_liability': float(row.get('estimated_liability', 0) or 0),
+                'nexus_type': nexus_type,
+                'has_nexus': has_nexus,
             })
         return sorted(formatted, key=lambda x: x['year'] if x['year'] else 0)
 
@@ -648,6 +660,7 @@ class ReportGeneratorV2:
                 'state_code': state_code,
                 'state_name': STATE_NAMES.get(state_code, state_code),
                 'nexus_status': data['nexus_status'],
+                'nexus_type': data.get('nexus_type'),
                 'total_sales': data['total_sales'],
                 'threshold': data.get('threshold', 100000),
                 'threshold_percent': data.get('threshold_percent', 0),
@@ -712,69 +725,48 @@ class ReportGeneratorV2:
         return '\n'.join(svg_parts)
 
     def _generate_nexus_map_svg(self, all_states: list) -> str:
-        """Generate a simplified US map SVG with states colored by nexus status."""
-        # Build a lookup of state_code -> nexus_status
-        state_status = {}
+        """Generate a geographic US map SVG with states colored by nexus status."""
+        # Build state_code -> (nexus_status, nexus_type) lookup
+        status_map = {}
         for state in all_states:
-            state_status[state.get('state_code', '')] = state.get('nexus_status', 'no_nexus')
+            code = state.get('state_code', state.get('state', ''))
+            status = state.get('nexus_status', 'no_nexus')
+            nexus_type = state.get('nexus_type', '')
+            status_map[code] = (status, nexus_type)
 
-        # Color mapping
-        colors = {
-            'has_nexus': '#0D9488',
-            'approaching': '#D97706',
-            'no_nexus': '#E2E8F0',
-        }
+        def get_fill(status, nexus_type):
+            if status == 'has_nexus':
+                if nexus_type == 'physical':
+                    return '#3B82F6'    # Blue
+                elif nexus_type == 'both':
+                    return '#8B5CF6'    # Purple
+                else:
+                    return '#DC2626'    # Red (economic)
+            elif status == 'approaching':
+                return '#D97706'        # Amber
+            else:
+                return '#86EFAC'        # Light green (no nexus)
 
-        # Simplified US state positions for a grid-style map
-        # Each state is a small rectangle positioned in an approximate geographic layout
-        # Grid: each cell is 40x28, with 2px gap
-        state_grid = {
-            'ME': (10, 0), 'VT': (9, 0), 'NH': (10, 1), 'MA': (10, 2),
-            'RI': (10, 3), 'CT': (9, 3), 'NY': (9, 1), 'NJ': (9, 2),
-            'PA': (8, 2), 'DE': (9, 4), 'MD': (8, 3), 'DC': (8, 4),
-            'WV': (7, 3), 'VA': (8, 3), 'NC': (8, 4), 'SC': (8, 5),
-            'GA': (7, 5), 'FL': (8, 6),
-            'AL': (6, 5), 'MS': (5, 5), 'TN': (6, 4), 'KY': (7, 3),
-            'OH': (7, 2), 'IN': (6, 2), 'IL': (5, 2), 'MI': (7, 1),
-            'WI': (5, 1), 'MN': (4, 0), 'IA': (4, 1), 'MO': (5, 3),
-            'AR': (5, 4), 'LA': (5, 6), 'TX': (4, 5), 'OK': (4, 4),
-            'KS': (4, 3), 'NE': (3, 2), 'SD': (3, 1), 'ND': (3, 0),
-            'MT': (2, 0), 'WY': (2, 1), 'CO': (3, 3), 'NM': (3, 4),
-            'AZ': (2, 4), 'UT': (2, 2), 'NV': (1, 2), 'ID': (1, 1),
-            'WA': (0, 0), 'OR': (0, 1), 'CA': (0, 3),
-            'AK': (0, 6), 'HI': (1, 6),
-        }
-
-        cell_w = 42
-        cell_h = 28
-        gap = 3
-        cols = 11
-        rows = 7
-        svg_w = cols * (cell_w + gap) + 20
-        svg_h = rows * (cell_h + gap) + 10
+        # Default fill for states not in data
+        default_fill = '#E2E8F0'        # Light gray (no data)
 
         svg_parts = [
-            f'<svg xmlns="http://www.w3.org/2000/svg" '
-            f'width="{svg_w}" height="{svg_h}" '
-            f'viewBox="0 0 {svg_w} {svg_h}">'
+            '<svg xmlns="http://www.w3.org/2000/svg" '
+            'viewBox="0 0 959 593" '
+            'width="100%" height="auto" '
+            'style="max-width: 680px;">'
         ]
 
-        for state_code, (col, row) in state_grid.items():
-            x = 10 + col * (cell_w + gap)
-            y = 5 + row * (cell_h + gap)
-            status = state_status.get(state_code, 'no_nexus')
-            fill = colors.get(status, colors['no_nexus'])
+        for state_code, path_d in US_STATE_PATHS.items():
+            status, nexus_type = status_map.get(state_code, ('no_data', ''))
+            if status == 'no_data':
+                fill = default_fill
+            else:
+                fill = get_fill(status, nexus_type)
 
             svg_parts.append(
-                f'<rect x="{x}" y="{y}" width="{cell_w}" height="{cell_h}" '
-                f'rx="3" fill="{fill}" stroke="#FFFFFF" stroke-width="1"/>'
-            )
-            svg_parts.append(
-                f'<text x="{x + cell_w / 2}" y="{y + cell_h / 2 + 4}" '
-                f'text-anchor="middle" font-size="9" '
-                f'fill="{"#FFFFFF" if status != "no_nexus" else "#94A3B8"}" '
-                f'font-family="Helvetica, Arial, sans-serif" font-weight="600">'
-                f'{state_code}</text>'
+                f'<path d="{path_d}" fill="{fill}" '
+                f'stroke="#FFFFFF" stroke-width="1.5"/>'
             )
 
         svg_parts.append('</svg>')
