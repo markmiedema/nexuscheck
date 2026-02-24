@@ -520,17 +520,25 @@
         .state-detail-page {
             page: state-detail;
             page-break-before: always;
-            position: relative;
             height: 100%;
         }
 
-        .analysis-summary {
-            position: absolute;
-            bottom: 8px;
-            left: 0;
-            right: 0;
-            z-index: 1;
-            background: white;
+        .state-detail-outer {
+            display: table;
+            width: 100%;
+            height: 100%;
+            table-layout: fixed;
+        }
+
+        .state-detail-content {
+            display: table-row;
+            vertical-align: top;
+        }
+
+        .state-detail-footer {
+            display: table-row;
+            vertical-align: bottom;
+            height: 1px;
         }
 
         .state-header-bar {
@@ -562,7 +570,6 @@
             border-collapse: separate;
             border-spacing: 12px 0;
             margin: 0 -6px;
-            margin-bottom: 80px;
         }
 
         .state-columns > tbody > tr > td {
