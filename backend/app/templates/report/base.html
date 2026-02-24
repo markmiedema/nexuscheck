@@ -5,13 +5,64 @@
     <title>{{ title | default('Nexus Analysis Report') }}</title>
     <style>
         /* ============================================
-           PROFESSIONAL REPORT STYLES
-           WeasyPrint Compatible - No CSS Variables
+           NEXUSCHECK REPORT DESIGN SYSTEM
+           WeasyPrint Compatible
            ============================================ */
 
         @page {
             size: letter;
+            margin: 0.75in 0.75in 1in 0.75in;
+
+            @bottom-left {
+                content: "Prepared by AST  |  Advisory & Compliance";
+                font-size: 7.5pt;
+                color: #94A3B8;
+                font-family: Helvetica, Arial, sans-serif;
+            }
+            @bottom-center {
+                content: "CONFIDENTIAL";
+                font-size: 6.5pt;
+                color: #CBD5E1;
+                letter-spacing: 2px;
+                font-family: Helvetica, Arial, sans-serif;
+            }
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 7.5pt;
+                color: #94A3B8;
+                font-family: Helvetica, Arial, sans-serif;
+            }
+        }
+
+        @page :first {
             margin: 0;
+            @bottom-left { content: none; }
+            @bottom-center { content: none; }
+            @bottom-right { content: none; }
+        }
+
+        @page state-detail {
+            margin: 0.75in 0.75in 1in 0.75in;
+
+            @bottom-left {
+                content: "Prepared by AST  |  Advisory & Compliance";
+                font-size: 7.5pt;
+                color: #94A3B8;
+                font-family: Helvetica, Arial, sans-serif;
+            }
+            @bottom-center {
+                content: "CONFIDENTIAL";
+                font-size: 6.5pt;
+                color: #CBD5E1;
+                letter-spacing: 2px;
+                font-family: Helvetica, Arial, sans-serif;
+            }
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 7.5pt;
+                color: #94A3B8;
+                font-family: Helvetica, Arial, sans-serif;
+            }
         }
 
         * {
@@ -21,53 +72,49 @@
         }
 
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif;
             font-size: 10pt;
             line-height: 1.5;
-            color: #343a40;
-            background: white;
+            color: #475569;
+            background: #FFFFFF;
         }
 
-        /* Typography */
+        /* ========== TYPOGRAPHY ========== */
         h1 {
-            font-size: 28pt;
-            font-weight: 700;
-            color: #1a2b4a;
+            font-size: 20pt;
+            font-weight: 600;
+            color: #1B2A4A;
+            margin-bottom: 12px;
         }
 
         h2 {
-            font-size: 14pt;
-            font-weight: 700;
-            color: #1a2b4a;
-            margin-bottom: 12pt;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+            font-size: 15pt;
+            font-weight: 600;
+            color: #1B2A4A;
+            margin-bottom: 10px;
         }
 
         h3 {
-            font-size: 11pt;
+            font-size: 12pt;
             font-weight: 600;
-            color: #1a2b4a;
-            margin-bottom: 8pt;
+            color: #1B2A4A;
+            margin-bottom: 8px;
         }
 
         h4 {
             font-size: 9pt;
-            font-weight: 700;
-            color: #1a2b4a;
-            margin-bottom: 6pt;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: #1B2A4A;
+            margin-bottom: 6px;
         }
 
-        /* Page Layout */
+        p {
+            margin-bottom: 8px;
+        }
+
+        /* ========== PAGE LAYOUT ========== */
         .page {
-            position: relative;
-            width: 8.5in;
-            min-height: 11in;
-            padding: 0;
             page-break-after: always;
-            background: white;
         }
 
         .page:last-child {
@@ -75,15 +122,14 @@
         }
 
         .page-content {
-            padding: 0.5in 0.6in 1in 0.6in;
+            padding: 0;
         }
 
-        /* ========== HEADER BAR ========== */
+        /* ========== PAGE HEADER (non-cover pages) ========== */
         .page-header {
-            background: #1a2b4a;
-            color: white;
-            padding: 0.25in 0.5in;
-            height: 0.8in;
+            border-bottom: 2px solid #1B2A4A;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
         }
 
         .page-header table {
@@ -98,393 +144,329 @@
         }
 
         .header-logo {
-            font-size: 22pt;
+            font-size: 16pt;
             font-weight: 800;
             font-style: italic;
-            color: white;
+            color: #1B2A4A;
         }
 
         .header-logo-a {
-            color: #c8102e;
-        }
-
-        .header-divider {
-            width: 2px;
-            height: 0.4in;
-            background: rgba(255,255,255,0.3);
-            margin: 0 0.2in;
-            display: inline-block;
-            vertical-align: middle;
+            color: #DC2626;
         }
 
         .header-title {
-            font-size: 11pt;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: white;
-        }
-
-        .header-subtitle {
-            font-size: 7pt;
-            color: rgba(255,255,255,0.7);
-            margin-top: 2pt;
-        }
-
-        /* ========== FOOTER BAR ========== */
-        .page-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #c8102e;
-            color: white;
-            padding: 0.12in 0.5in;
-            font-size: 7pt;
-        }
-
-        .page-footer table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .page-footer td {
-            padding: 0;
-            border: none;
-            vertical-align: middle;
-        }
-
-        .page-number {
-            background: white;
-            color: #c8102e;
-            padding: 3pt 10pt;
-            font-weight: 700;
             font-size: 8pt;
+            color: #94A3B8;
+            text-align: right;
         }
 
         /* ========== COVER PAGE ========== */
         .cover-page {
-            min-height: 11in;
+            width: 8.5in;
+            height: 11in;
             position: relative;
-            background: white;
+            overflow: hidden;
         }
 
-        .cover-logo-section {
-            text-align: center;
-            padding-top: 2.2in;
-            padding-bottom: 0.2in;
+        .cover-top {
+            background: #1B2A4A;
+            height: 6.6in;
+            padding: 0.8in;
+            position: relative;
+            overflow: hidden;
         }
 
-        .cover-logo-svg {
-            width: 200pt;
-            height: auto;
+        .cover-accent-circle {
+            position: absolute;
+            top: -2in;
+            right: -2in;
+            width: 7in;
+            height: 7in;
+            border-radius: 50%;
+            background: rgba(13, 148, 136, 0.08);
         }
 
-        .cover-logo-img {
-            width: 180pt;
-            height: auto;
-        }
-
-        .cover-main {
-            text-align: center;
-            padding: 0 0.8in;
-        }
-
-        .cover-title {
-            font-size: 26pt;
-            font-weight: 800;
-            color: #c8102e;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            line-height: 1.2;
-            margin-bottom: 0.06in;
-            font-style: italic;
-        }
-
-        .cover-subtitle {
-            font-size: 12pt;
-            color: #1a2b4a;
-            margin-bottom: 0.5in;
-        }
-
-        .cover-meta {
-            text-align: left;
-            padding-left: 0.9in;
-        }
-
-        .cover-meta-item {
-            margin-bottom: 0.05in;
-            font-size: 10.5pt;
-            color: #4a5568;
-        }
-
-        .cover-meta-label {
-            font-weight: 600;
-            color: #4a5568;
-        }
-
-        .cover-meta-value {
-            color: #1a202c;
-        }
-
-        .cover-footer {
+        .cover-accent-line {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #1a2b4a;
-            padding: 0.16in 0.6in;
+            height: 4px;
+            background: #0D9488;
+        }
+
+        .cover-logo {
+            font-size: 28pt;
+            font-weight: 800;
+            font-style: italic;
             color: white;
-            font-size: 9pt;
-            text-align: center;
+            margin-bottom: 2in;
+            position: relative;
         }
 
-        .cover-footer-text {
-            letter-spacing: 0.5px;
+        .cover-logo .logo-a {
+            color: #DC2626;
         }
 
-        .cover-footer-label {
-            font-weight: 700;
+        .cover-title {
+            font-size: 30pt;
+            font-weight: 300;
+            color: white;
+            line-height: 1.15;
+            margin-bottom: 12px;
+            position: relative;
         }
 
-        /* ========== METRIC CARDS ========== */
-        .metrics-table {
+        .cover-subtitle {
+            font-size: 12pt;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 300;
+            position: relative;
+        }
+
+        .cover-bottom {
+            padding: 0.6in 0.8in 0;
+            position: relative;
+        }
+
+        .cover-meta-table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 10pt;
-            margin: 0.2in 0;
+            border-collapse: collapse;
         }
 
-        .metrics-table td {
-            width: 33.33%;
-            text-align: center;
-            padding: 0.2in 0.15in;
-            border-radius: 4px;
+        .cover-meta-table td {
+            padding: 4px 0;
+            border: none;
             vertical-align: top;
         }
 
-        .metric-navy {
-            background: #1a2b4a;
-            color: white;
+        .cover-meta-label {
+            font-size: 7.5pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94A3B8;
+            width: 120px;
+            padding-top: 2px;
         }
 
-        .metric-red {
-            background: #c8102e;
-            color: white;
+        .cover-meta-value {
+            font-size: 11pt;
+            color: #1B2A4A;
+            font-weight: 500;
         }
 
-        .metric-green {
-            background: #059669;
-            color: white;
+        .cover-footer-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #0D9488;
         }
+
+        /* ========== SECTION LABEL ========== */
+        .section-label {
+            font-size: 8pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #94A3B8;
+            margin-bottom: 4px;
+        }
+
+        /* ========== METRIC CARDS ========== */
+        .metrics-row {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 12px 0;
+            margin: 0 -12px 16px -12px;
+        }
+
+        .metrics-row td {
+            width: 33.33%;
+            vertical-align: top;
+            padding: 16px 20px;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+
+        .metric-card-teal { border-left-color: #0D9488; }
+        .metric-card-rose { border-left-color: #DC2626; }
+        .metric-card-amber { border-left-color: #D97706; }
 
         .metric-value {
-            font-size: 22pt;
+            font-size: 26pt;
             font-weight: 700;
-            line-height: 1.2;
+            line-height: 1.1;
+            color: #1B2A4A;
+            font-variant-numeric: tabular-nums;
         }
 
         .metric-label {
             font-size: 8pt;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 4pt;
-            opacity: 0.9;
-        }
-
-        /* ========== STATE HEADER ========== */
-        .state-header {
-            background: #1a2b4a;
-            color: white;
-            padding: 0.25in 0.5in;
-        }
-
-        .state-header table {
-            width: 100%;
-        }
-
-        .state-header td {
-            padding: 0;
-            border: none;
-            vertical-align: middle;
-        }
-
-        .state-name {
-            font-size: 18pt;
-            font-weight: 700;
-        }
-
-        .state-code {
-            font-size: 10pt;
-            opacity: 0.8;
-        }
-
-        .nexus-badge {
-            background: white;
-            color: #c8102e;
-            padding: 6pt 12pt;
-            font-size: 9pt;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* ========== TABLES ========== */
-        table.data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 0.15in 0;
-            font-size: 9pt;
-        }
-
-        table.data-table th {
-            background: #1a2b4a;
-            color: white;
-            padding: 8pt 10pt;
-            text-align: left;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94A3B8;
+            margin-top: 4px;
+        }
+
+        /* ========== CARDS ========== */
+        .card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
             font-size: 8pt;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            color: #94A3B8;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #F1F5F9;
         }
 
-        table.data-table td {
-            padding: 8pt 10pt;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        table.data-table tr:nth-child(even) td {
-            background: #f8f9fa;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        /* ========== DATA CARDS ========== */
-        .data-cards-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 10pt;
-            margin: 0.15in 0;
-        }
-
-        .data-cards-table > tbody > tr > td {
-            width: 50%;
-            vertical-align: top;
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-left: 3px solid #1a2b4a;
-            padding: 0.15in;
-        }
-
-        .data-card-title {
-            font-size: 9pt;
-            font-weight: 700;
-            color: #1a2b4a;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #e9ecef;
-            padding-bottom: 6pt;
-            margin-bottom: 8pt;
-        }
-
+        /* ========== DATA ROWS (inside cards) ========== */
         .data-row-table {
             width: 100%;
             border-collapse: collapse;
         }
 
         .data-row-table td {
-            padding: 4pt 0;
-            font-size: 9pt;
+            padding: 4px 0;
+            font-size: 9.5pt;
             border: none;
         }
 
         .data-row-table .label {
-            color: #6c757d;
+            color: #64748B;
         }
 
         .data-row-table .value {
             text-align: right;
             font-weight: 600;
-            color: #343a40;
+            color: #1B2A4A;
+            font-variant-numeric: tabular-nums;
         }
 
         .data-row-table .value.highlight {
-            color: #1a2b4a;
-        }
-
-        .data-row-table .value.warning {
-            color: #d97706;
-        }
-
-        /* ========== VDA BOX ========== */
-        .vda-box {
-            background: #ecfdf5;
-            border: 1px solid #a7f3d0;
-            padding: 0.2in;
-            margin: 0.15in 0;
-        }
-
-        .vda-title {
-            color: #047857;
+            color: #1B2A4A;
             font-weight: 700;
-            font-size: 10pt;
+        }
+
+        .data-row-table .value.rose {
+            color: #DC2626;
+        }
+
+        .data-row-table .value.amber {
+            color: #D97706;
+        }
+
+        .data-row-table .value.teal {
+            color: #0D9488;
+        }
+
+        /* ========== TWO COLUMN CARD LAYOUT ========== */
+        .cards-row {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 12px 0;
+            margin: 0 -6px 12px -6px;
+        }
+
+        .cards-row > tbody > tr > td {
+            width: 50%;
+            vertical-align: top;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        /* ========== TABLES ========== */
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 9pt;
+            font-variant-numeric: tabular-nums;
+        }
+
+        table.data-table th {
+            background: #1B2A4A;
+            color: white;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 7.5pt;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 8pt;
         }
 
-        .vda-amount {
-            font-size: 20pt;
+        table.data-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 9pt;
+        }
+
+        table.data-table tr:nth-child(even) td {
+            background: #F8FAFC;
+        }
+
+        table.data-table .totals-row td {
+            border-top: 2px solid #1B2A4A;
             font-weight: 700;
-            color: #059669;
+            color: #1B2A4A;
+            background: #F1F5F9;
         }
 
-        .vda-table th {
-            background: #d1fae5 !important;
-            color: #047857 !important;
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+
+        /* ========== BADGES ========== */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 7.5pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        /* ========== NARRATIVE BOX ========== */
-        .narrative-box {
-            background: #eff6ff;
-            border-left: 3px solid #1a2b4a;
-            padding: 0.15in 0.2in;
-            margin: 0.2in 0;
-            font-size: 10pt;
-            line-height: 1.6;
-        }
+        .badge-nexus { background: #CCFBF1; color: #0D9488; }
+        .badge-register { background: #FEE2E2; color: #DC2626; }
+        .badge-approaching { background: #FEF3C7; color: #D97706; }
+        .badge-none { background: #F1F5F9; color: #94A3B8; }
+        .badge-economic { background: #EFF6FF; color: #2563EB; }
+        .badge-physical { background: #F5F3FF; color: #7C3AED; }
+        .badge-both { background: #FDF4FF; color: #A855F7; }
 
         /* ========== ACTION SECTIONS ========== */
         .action-section {
-            margin-bottom: 0.25in;
-            border: 1px solid #e9ecef;
+            margin-bottom: 16px;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            overflow: hidden;
         }
 
         .action-header {
-            padding: 0.12in 0.15in;
-            color: white;
-        }
-
-        .action-header.urgent {
-            background: #c8102e;
-        }
-
-        .action-header.caution {
-            background: #d97706;
-        }
-
-        .action-header.monitor {
-            background: #059669;
+            padding: 10px 16px;
+            border-left: 4px solid;
         }
 
         .action-header table {
             width: 100%;
+            border-collapse: collapse;
         }
 
         .action-header td {
@@ -493,107 +475,306 @@
             vertical-align: middle;
         }
 
-        .action-icon {
-            width: 24pt;
-            height: 24pt;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            text-align: center;
-            line-height: 24pt;
-            font-weight: 700;
-            font-size: 12pt;
-            display: inline-block;
+        .action-header.urgent {
+            background: #FEF2F2;
+            border-left-color: #DC2626;
+        }
+
+        .action-header.caution {
+            background: #FFFBEB;
+            border-left-color: #D97706;
+        }
+
+        .action-header.monitor {
+            background: #F8FAFC;
+            border-left-color: #94A3B8;
         }
 
         .action-title {
-            font-size: 10pt;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding-left: 8pt;
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1B2A4A;
         }
 
+        .action-title-urgent { color: #DC2626; }
+        .action-title-caution { color: #D97706; }
+        .action-title-monitor { color: #475569; }
+
         .action-count {
-            text-align: right;
-            font-size: 9pt;
+            font-size: 8pt;
+            color: #64748B;
         }
 
         .action-body {
-            padding: 0.12in 0.15in;
+            padding: 12px 16px;
             background: white;
         }
 
         .action-description {
-            font-size: 8pt;
-            color: #6c757d;
-            margin-bottom: 8pt;
+            font-size: 8.5pt;
+            color: #64748B;
+            margin-bottom: 8px;
         }
 
-        /* ========== UTILITIES ========== */
-        .mt-1 { margin-top: 10pt; }
-        .mt-2 { margin-top: 16pt; }
-        .mb-1 { margin-bottom: 10pt; }
-        .mb-2 { margin-bottom: 16pt; }
+        /* ========== STATE DETAIL PAGE ========== */
+        .state-detail-page {
+            page: state-detail;
+            page-break-before: always;
+        }
 
-        .text-muted { color: #6c757d; }
-        .text-small { font-size: 7.5pt; }
-        .font-bold { font-weight: 700; }
+        .state-header-bar {
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            border-bottom: 3px solid;
+        }
 
+        .state-header-bar.nexus-has_nexus { border-bottom-color: #0D9488; }
+        .state-header-bar.nexus-approaching { border-bottom-color: #D97706; }
+        .state-header-bar.nexus-no_nexus { border-bottom-color: #94A3B8; }
+
+        .state-name {
+            font-size: 22pt;
+            font-weight: 600;
+            color: #1B2A4A;
+            line-height: 1.2;
+        }
+
+        .state-code-label {
+            font-size: 10pt;
+            color: #94A3B8;
+            font-weight: 400;
+        }
+
+        /* State detail two-column layout */
+        .state-columns {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 12px 0;
+            margin: 0 -6px;
+        }
+
+        .state-columns > tbody > tr > td {
+            vertical-align: top;
+        }
+
+        .state-col-left {
+            width: 58%;
+        }
+
+        .state-col-right {
+            width: 42%;
+        }
+
+        .liability-big {
+            font-size: 22pt;
+            font-weight: 700;
+            color: #DC2626;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 8px;
+        }
+
+        /* VDA card on state detail */
+        .vda-card {
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .vda-card .card-title {
+            color: #D97706;
+            border-bottom-color: #FDE68A;
+        }
+
+        .vda-savings-amount {
+            font-size: 18pt;
+            font-weight: 700;
+            color: #D97706;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Progress bar */
+        .progress-bar-container {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* ========== NARRATIVE BOX ========== */
+        .narrative-box {
+            background: #F8FAFC;
+            border-left: 3px solid #1B2A4A;
+            padding: 14px 18px;
+            margin: 16px 0;
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #475569;
+        }
+
+        /* ========== VDA SUMMARY BOX ========== */
+        .vda-summary-box {
+            background: #F0FDF4;
+            border: 1px solid #BBF7D0;
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin: 12px 0;
+        }
+
+        .vda-summary-title {
+            font-size: 9pt;
+            font-weight: 600;
+            color: #059669;
+            margin-bottom: 6px;
+        }
+
+        .vda-summary-amount {
+            font-size: 20pt;
+            font-weight: 700;
+            color: #059669;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ========== MAP SECTION ========== */
+        .map-container {
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .map-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .map-legend {
+            margin-top: 12px;
+        }
+
+        .map-legend-item {
+            display: inline-block;
+            margin-right: 20px;
+            font-size: 8.5pt;
+            color: #475569;
+        }
+
+        .map-legend-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        /* ========== APPENDIX TABLE GROUPS ========== */
+        .table-group-header td {
+            background: #F1F5F9;
+            padding: 6px 10px;
+            font-size: 8pt;
+            font-weight: 700;
+            color: #1B2A4A;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #CBD5E1;
+        }
+
+        .summary-row td {
+            border-top: 2px solid #1B2A4A;
+            font-weight: 700;
+            color: #1B2A4A;
+            background: #F1F5F9;
+            padding: 8px 10px;
+        }
+
+        /* ========== STATUS DOTS ========== */
         .status-dot {
             display: inline-block;
-            width: 8px;
-            height: 8px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
-            margin-right: 6pt;
-        }
-        .status-dot.red { background: #c8102e; }
-        .status-dot.yellow { background: #d97706; }
-        .status-dot.green { background: #059669; }
-
-        .currency {
-            font-family: 'Consolas', 'Monaco', monospace;
+            margin-right: 6px;
+            vertical-align: middle;
         }
 
-        .source-ref {
-            font-size: 7pt;
-            color: #adb5bd;
-            margin-top: 4pt;
-        }
+        .status-dot.nexus { background: #0D9488; }
+        .status-dot.approaching { background: #D97706; }
+        .status-dot.no-nexus { background: #CBD5E1; }
 
-        /* Methodology */
+        /* ========== METHODOLOGY ========== */
         .methodology-section {
-            background: #f8f9fa;
-            border-left: 3px solid #1a2b4a;
-            padding: 0.15in;
-            margin: 0.12in 0;
+            background: #F8FAFC;
+            border-left: 3px solid #CBD5E1;
+            padding: 12px 16px;
+            margin: 10px 0;
+            border-radius: 0 6px 6px 0;
         }
 
         .methodology-section h4 {
-            margin-bottom: 6pt;
+            color: #1B2A4A;
+            margin-bottom: 4px;
         }
 
         .methodology-section p {
-            font-size: 8pt;
+            font-size: 8.5pt;
             line-height: 1.5;
-            color: #495057;
+            color: #64748B;
         }
 
         .disclaimer-box {
-            background: #fef3c7;
-            border: 1px solid #fcd34d;
-            padding: 0.15in;
-            margin-top: 0.15in;
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 6px;
+            padding: 14px 16px;
+            margin-top: 12px;
         }
 
         .disclaimer-box h4 {
-            color: #b45309;
-            margin-bottom: 6pt;
+            color: #D97706;
+            font-size: 9pt;
+            margin-bottom: 6px;
         }
 
         .disclaimer-box p {
-            font-size: 7.5pt;
-            color: #495057;
+            font-size: 8pt;
+            color: #64748B;
             line-height: 1.5;
+        }
+
+        /* ========== CHART CONTAINER ========== */
+        .chart-container {
+            margin: 16px 0;
+            padding: 16px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+        }
+
+        .chart-container svg {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* ========== UTILITIES ========== */
+        .mt-1 { margin-top: 8px; }
+        .mt-2 { margin-top: 16px; }
+        .mt-3 { margin-top: 24px; }
+        .mb-1 { margin-bottom: 8px; }
+        .mb-2 { margin-bottom: 16px; }
+        .mb-3 { margin-bottom: 24px; }
+
+        .text-muted { color: #94A3B8; }
+        .text-small { font-size: 8pt; }
+        .text-slate { color: #64748B; }
+        .text-navy { color: #1B2A4A; }
+        .text-teal { color: #0D9488; }
+        .text-rose { color: #DC2626; }
+        .text-amber { color: #D97706; }
+        .font-bold { font-weight: 700; }
+        .font-tabular { font-variant-numeric: tabular-nums; }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #E2E8F0;
+            margin: 16px 0;
         }
     </style>
 </head>

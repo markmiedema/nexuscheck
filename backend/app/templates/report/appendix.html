@@ -3,27 +3,48 @@
 {% block content %}
 <!-- Complete State Summary Page -->
 <div class="page">
-    <!-- Navy Header Bar -->
+    <!-- Page Header -->
     <div class="page-header">
         <table>
             <tr>
-                <td style="width: 100pt;">
+                <td>
                     <span class="header-logo"><span class="header-logo-a">A</span>ST</span>
                 </td>
                 <td>
-                    <span class="header-divider"></span>
-                    <span class="header-title">NEXUS ANALYSIS REPORT</span>
-                    <div class="header-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+                    <span class="header-title">Nexus Analysis Report &mdash; {{ client_name }}</span>
                 </td>
             </tr>
         </table>
     </div>
 
     <div class="page-content">
+        <div class="section-label">Appendix</div>
         <h2>Complete State Summary</h2>
         <p class="text-muted text-small mb-1">
-            Full list of all states with sales activity during the analysis period.
+            All states with sales activity during the analysis period, grouped by nexus status.
         </p>
+
+        {% set ns = namespace(
+            nexus_states=[],
+            approaching_states=[],
+            no_nexus_states=[],
+            total_sales=0,
+            total_liability=0,
+            nexus_count=0
+        ) %}
+
+        {% for state in all_states %}
+            {% if state.nexus_status == 'has_nexus' %}
+                {% set ns.nexus_states = ns.nexus_states + [state] %}
+            {% elif state.nexus_status == 'approaching' %}
+                {% set ns.approaching_states = ns.approaching_states + [state] %}
+            {% else %}
+                {% set ns.no_nexus_states = ns.no_nexus_states + [state] %}
+            {% endif %}
+            {% set ns.total_sales = ns.total_sales + state.total_sales %}
+            {% set ns.total_liability = ns.total_liability + state.estimated_liability %}
+        {% endfor %}
+        {% set ns.nexus_count = ns.nexus_states | length %}
 
         <table class="data-table">
             <thead>
@@ -32,104 +53,187 @@
                     <th class="text-center">Status</th>
                     <th class="text-right">Total Sales</th>
                     <th class="text-right">Threshold</th>
-                    <th class="text-center">% of Threshold</th>
+                    <th class="text-center">Progress</th>
                     <th class="text-right">Est. Liability</th>
                 </tr>
             </thead>
             <tbody>
-                {% for state in all_states %}
+                <!-- Nexus States Group -->
+                {% if ns.nexus_states %}
+                <tr class="table-group-header">
+                    <td colspan="6">
+                        <span class="status-dot nexus"></span>
+                        States with Nexus ({{ ns.nexus_states | length }})
+                    </td>
+                </tr>
+                {% for state in ns.nexus_states %}
                 <tr>
                     <td>
-                        <span class="status-dot {% if state.nexus_status == 'has_nexus' %}red{% elif state.nexus_status == 'approaching' %}yellow{% else %}green{% endif %}"></span>
-                        {{ state.state_name }}
+                        <span class="status-dot nexus"></span>
+                        <strong>{{ state.state_name }}</strong>
                     </td>
                     <td class="text-center">
-                        {% if state.nexus_status == 'has_nexus' %}
-                        <strong style="color: #c8102e;">Nexus</strong>
-                        {% elif state.nexus_status == 'approaching' %}
-                        <span style="color: #d97706;">Approaching</span>
-                        {% else %}
-                        <span style="color: #059669;">No Nexus</span>
-                        {% endif %}
+                        <span class="badge badge-nexus">Nexus</span>
                     </td>
-                    <td class="text-right currency">${{ "{:,.0f}".format(state.total_sales) }}</td>
-                    <td class="text-right currency">${{ "{:,.0f}".format(state.threshold) }}</td>
-                    <td class="text-center">{{ state.threshold_percent | round(0) | int }}%</td>
-                    <td class="text-right currency font-bold">
+                    <td class="text-right font-tabular">${{ "{:,.0f}".format(state.total_sales) }}</td>
+                    <td class="text-right font-tabular">${{ "{:,.0f}".format(state.threshold) }}</td>
+                    <td class="text-center">
+                        <svg width="50" height="6" style="vertical-align: middle; margin-right: 3px;">
+                            <rect x="0" y="0" width="50" height="6" rx="3" fill="#E2E8F0"/>
+                            {% set pct = [state.threshold_percent, 100] | min %}
+                            <rect x="0" y="0" width="{{ (pct / 100 * 50) | round | int }}" height="6" rx="3"
+                                  fill="{% if pct >= 100 %}#0D9488{% elif pct >= 75 %}#D97706{% else %}#0D9488{% endif %}"/>
+                        </svg>
+                        <span style="font-size: 8pt;">{{ state.threshold_percent | round(0) | int }}%</span>
+                    </td>
+                    <td class="text-right font-tabular font-bold text-rose">
                         {% if state.estimated_liability > 0 %}
                         ${{ "{:,.0f}".format(state.estimated_liability) }}
                         {% else %}
-                        -
+                        &mdash;
                         {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
+                {% endif %}
+
+                <!-- Approaching States Group -->
+                {% if ns.approaching_states %}
+                <tr class="table-group-header">
+                    <td colspan="6">
+                        <span class="status-dot approaching"></span>
+                        Approaching Threshold ({{ ns.approaching_states | length }})
+                    </td>
+                </tr>
+                {% for state in ns.approaching_states %}
+                <tr>
+                    <td>
+                        <span class="status-dot approaching"></span>
+                        {{ state.state_name }}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge badge-approaching">Approaching</span>
+                    </td>
+                    <td class="text-right font-tabular">${{ "{:,.0f}".format(state.total_sales) }}</td>
+                    <td class="text-right font-tabular">${{ "{:,.0f}".format(state.threshold) }}</td>
+                    <td class="text-center">
+                        <svg width="50" height="6" style="vertical-align: middle; margin-right: 3px;">
+                            <rect x="0" y="0" width="50" height="6" rx="3" fill="#E2E8F0"/>
+                            {% set pct = [state.threshold_percent, 100] | min %}
+                            <rect x="0" y="0" width="{{ (pct / 100 * 50) | round | int }}" height="6" rx="3"
+                                  fill="#D97706"/>
+                        </svg>
+                        <span style="font-size: 8pt;">{{ state.threshold_percent | round(0) | int }}%</span>
+                    </td>
+                    <td class="text-right font-tabular">
+                        {% if state.estimated_liability > 0 %}
+                        ${{ "{:,.0f}".format(state.estimated_liability) }}
+                        {% else %}
+                        &mdash;
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+
+                <!-- No Nexus States Group -->
+                {% if ns.no_nexus_states %}
+                <tr class="table-group-header">
+                    <td colspan="6">
+                        <span class="status-dot no-nexus"></span>
+                        No Nexus ({{ ns.no_nexus_states | length }})
+                    </td>
+                </tr>
+                {% for state in ns.no_nexus_states %}
+                <tr>
+                    <td>
+                        <span class="status-dot no-nexus"></span>
+                        {{ state.state_name }}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge badge-none">No Nexus</span>
+                    </td>
+                    <td class="text-right font-tabular">${{ "{:,.0f}".format(state.total_sales) }}</td>
+                    <td class="text-right font-tabular">${{ "{:,.0f}".format(state.threshold) }}</td>
+                    <td class="text-center">
+                        <svg width="50" height="6" style="vertical-align: middle; margin-right: 3px;">
+                            <rect x="0" y="0" width="50" height="6" rx="3" fill="#E2E8F0"/>
+                            {% set pct = [state.threshold_percent, 100] | min %}
+                            <rect x="0" y="0" width="{{ (pct / 100 * 50) | round | int }}" height="6" rx="3"
+                                  fill="#CBD5E1"/>
+                        </svg>
+                        <span style="font-size: 8pt;">{{ state.threshold_percent | round(0) | int }}%</span>
+                    </td>
+                    <td class="text-right font-tabular">
+                        &mdash;
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+
+                <!-- Summary Row -->
+                <tr class="summary-row">
+                    <td><strong>Total ({{ all_states | length }} states)</strong></td>
+                    <td class="text-center">
+                        <strong>{{ ns.nexus_count }}</strong> <span style="font-size: 7.5pt; color: #64748B;">with nexus</span>
+                    </td>
+                    <td class="text-right font-tabular"><strong>${{ "{:,.0f}".format(ns.total_sales) }}</strong></td>
+                    <td></td>
+                    <td></td>
+                    <td class="text-right font-tabular"><strong>${{ "{:,.0f}".format(ns.total_liability) }}</strong></td>
+                </tr>
             </tbody>
         </table>
 
-        <table class="data-cards-table mt-2">
-            <tr>
-                <td>
-                    <div class="data-card-title">DATA PERIOD SUMMARY</div>
-                    <table class="data-row-table">
-                        <tr>
-                            <td class="label">Analysis Period</td>
-                            <td class="value">
-                                {% if period_start and period_end %}
-                                {{ period_start }} - {{ period_end }}
-                                {% else %}
-                                As of {{ report_date }}
-                                {% endif %}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label">Total Transactions Analyzed</td>
-                            <td class="value">{{ "{:,}".format(total_transactions) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">States with Activity</td>
-                            <td class="value">{{ states_with_activity }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Report Generated</td>
-                            <td class="value">{{ report_date }}</td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <!-- Red Footer Bar -->
-    <div class="page-footer">
-        <table>
-            <tr>
-                <td>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</td>
-                <td style="text-align: right;"><span class="page-number">PAGE</span></td>
-            </tr>
-        </table>
+        <!-- Data Period Summary -->
+        <div class="card mt-2">
+            <div class="card-title">Data Period Summary</div>
+            <table class="data-row-table">
+                <tr>
+                    <td class="label">Analysis Period</td>
+                    <td class="value">
+                        {% if period_start and period_end %}
+                        {{ period_start }} &mdash; {{ period_end }}
+                        {% else %}
+                        As of {{ report_date }}
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Total Transactions Analyzed</td>
+                    <td class="value font-tabular">{{ "{:,}".format(total_transactions) }}</td>
+                </tr>
+                <tr>
+                    <td class="label">States with Activity</td>
+                    <td class="value">{{ states_with_activity }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Report Generated</td>
+                    <td class="value">{{ report_date }}</td>
+                </tr>
+            </table>
+        </div>
     </div>
 </div>
 
-<!-- Methodology Page -->
+<!-- Methodology & Disclaimers Page -->
 <div class="page">
-    <!-- Navy Header Bar -->
+    <!-- Page Header -->
     <div class="page-header">
         <table>
             <tr>
-                <td style="width: 100pt;">
+                <td>
                     <span class="header-logo"><span class="header-logo-a">A</span>ST</span>
                 </td>
                 <td>
-                    <span class="header-divider"></span>
-                    <span class="header-title">NEXUS ANALYSIS REPORT</span>
-                    <div class="header-subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
+                    <span class="header-title">Nexus Analysis Report &mdash; {{ client_name }}</span>
                 </td>
             </tr>
         </table>
     </div>
 
     <div class="page-content">
+        <div class="section-label">Reference</div>
         <h2>Methodology</h2>
 
         <div class="methodology-section">
@@ -171,7 +275,7 @@
             </p>
         </div>
 
-        <h2 class="mt-2">Disclaimers</h2>
+        <h2 class="mt-3">Disclaimers</h2>
 
         <div class="disclaimer-box">
             <h4>Important Notice</h4>
@@ -190,42 +294,28 @@
         </div>
 
         {% if preparer_name or preparer_firm %}
-        <table class="data-cards-table mt-2">
-            <tr>
-                <td>
-                    <div class="data-card-title">REPORT PREPARED BY</div>
-                    <table class="data-row-table">
-                        {% if preparer_name %}
-                        <tr>
-                            <td class="label">Preparer</td>
-                            <td class="value">{{ preparer_name }}</td>
-                        </tr>
-                        {% endif %}
-                        {% if preparer_firm %}
-                        <tr>
-                            <td class="label">Firm</td>
-                            <td class="value">{{ preparer_firm }}</td>
-                        </tr>
-                        {% endif %}
-                        <tr>
-                            <td class="label">Date</td>
-                            <td class="value">{{ report_date }}</td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
+        <div class="card mt-2">
+            <div class="card-title">Report Prepared By</div>
+            <table class="data-row-table">
+                {% if preparer_name %}
+                <tr>
+                    <td class="label">Preparer</td>
+                    <td class="value">{{ preparer_name }}</td>
+                </tr>
+                {% endif %}
+                {% if preparer_firm %}
+                <tr>
+                    <td class="label">Firm</td>
+                    <td class="value">{{ preparer_firm }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td class="label">Date</td>
+                    <td class="value">{{ report_date }}</td>
+                </tr>
+            </table>
+        </div>
         {% endif %}
-    </div>
-
-    <!-- Red Footer Bar -->
-    <div class="page-footer">
-        <table>
-            <tr>
-                <td>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</td>
-                <td style="text-align: right;"><span class="page-number">PAGE</span></td>
-            </tr>
-        </table>
     </div>
 </div>
 {% endblock %}

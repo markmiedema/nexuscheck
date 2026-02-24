@@ -4,84 +4,106 @@
 <div class="page">
     <!-- Page Header -->
     <div class="page-header">
-        <div class="page-header-left">
-            {% if logo_data_uri %}
-            <img src="{{ logo_data_uri }}" alt="Logo" class="page-header-logo" />
-            {% endif %}
-            <div class="page-header-title">
-                <h1>NEXUS ANALYSIS REPORT</h1>
-                <div class="subtitle">Sales Tax Nexus Determination & Liability Assessment</div>
-            </div>
-        </div>
+        <table>
+            <tr>
+                <td>
+                    <span class="header-logo"><span class="header-logo-a">A</span>ST</span>
+                </td>
+                <td>
+                    <span class="header-title">Nexus Analysis Report &mdash; {{ client_name }}</span>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="page-content">
-        <h2>Nexus Map Overview</h2>
+        <div class="section-label">Visual overview</div>
+        <h2>Nexus Map</h2>
         <p class="text-muted text-small mb-1">
-            Visual representation of sales tax nexus status across all U.S. states based on the analysis period.
+            Sales tax nexus status across all U.S. states based on the analysis period.
         </p>
 
+        <!-- Map SVG -->
         <div class="map-container">
+            {% if nexus_map_svg %}
             {{ nexus_map_svg | safe }}
+            {% else %}
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 40px; text-align: center;">
+                <p class="text-muted">Map visualization will be available in a future update.</p>
+            </div>
+            {% endif %}
         </div>
 
-        <div class="data-grid">
-            <div class="data-card">
-                <h4>Nexus Summary</h4>
-                <div class="data-row">
-                    <span class="data-label">
-                        <span class="status-dot red"></span>
-                        States with Nexus
-                    </span>
-                    <span class="data-value highlight">{{ states_with_nexus }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">
-                        <span class="status-dot yellow"></span>
-                        States Approaching
-                    </span>
-                    <span class="data-value" style="color: #d97706;">{{ states_approaching }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">
-                        <span class="status-dot green"></span>
-                        States with Activity (No Nexus)
-                    </span>
-                    <span class="data-value">{{ states_with_activity - states_with_nexus - states_approaching }}</span>
-                </div>
-            </div>
-
-            <div class="data-card">
-                <h4>Nexus Types Breakdown</h4>
-                <div class="data-row">
-                    <span class="data-label">
-                        <span class="status-dot" style="background: #b83030;"></span>
-                        Economic Nexus
-                    </span>
-                    <span class="data-value">{{ economic_nexus_count | default(0) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">
-                        <span class="status-dot" style="background: #5a6d8a;"></span>
-                        Physical Nexus
-                    </span>
-                    <span class="data-value">{{ physical_nexus_count | default(0) }}</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">
-                        <span class="status-dot" style="background: #9144a3;"></span>
-                        Both Types
-                    </span>
-                    <span class="data-value">{{ both_nexus_count | default(0) }}</span>
-                </div>
-            </div>
+        <!-- Legend -->
+        <div class="map-legend" style="text-align: center; margin-bottom: 20px;">
+            <span class="map-legend-item">
+                <span class="map-legend-dot" style="background: #0D9488;"></span> Has Nexus
+            </span>
+            <span class="map-legend-item">
+                <span class="map-legend-dot" style="background: #D97706;"></span> Approaching Threshold
+            </span>
+            <span class="map-legend-item">
+                <span class="map-legend-dot" style="background: #E2E8F0;"></span> No Nexus / No Data
+            </span>
         </div>
-    </div>
 
-    <!-- Footer -->
-    <div class="page-footer">
-        <span>PREPARED BY: AST | Advisory & Compliance | www.NexusCheck.com</span>
-        <span class="page-number">PAGE 2</span>
+        <!-- Summary Cards -->
+        <table class="cards-row">
+            <tr>
+                <td>
+                    <div class="card-title">Nexus Summary</div>
+                    <table class="data-row-table">
+                        <tr>
+                            <td class="label">
+                                <span class="status-dot nexus"></span>
+                                States with Nexus
+                            </td>
+                            <td class="value highlight">{{ states_with_nexus }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">
+                                <span class="status-dot approaching"></span>
+                                States Approaching
+                            </td>
+                            <td class="value amber">{{ states_approaching }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">
+                                <span class="status-dot no-nexus"></span>
+                                States with Activity (No Nexus)
+                            </td>
+                            <td class="value">{{ states_with_activity - states_with_nexus - states_approaching }}</td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <div class="card-title">Nexus Types Breakdown</div>
+                    <table class="data-row-table">
+                        <tr>
+                            <td class="label">
+                                <span class="badge badge-economic" style="margin-right: 4px;">E</span>
+                                Economic Nexus
+                            </td>
+                            <td class="value">{{ economic_nexus_count | default(0) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">
+                                <span class="badge badge-physical" style="margin-right: 4px;">P</span>
+                                Physical Nexus
+                            </td>
+                            <td class="value">{{ physical_nexus_count | default(0) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">
+                                <span class="badge badge-both" style="margin-right: 4px;">B</span>
+                                Both Types
+                            </td>
+                            <td class="value">{{ both_nexus_count | default(0) }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
     </div>
 </div>
 {% endblock %}
