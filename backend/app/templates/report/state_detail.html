@@ -110,14 +110,6 @@
                     </tbody>
                 </table>
                 {% endif %}
-
-                <!-- Analysis Summary Narrative -->
-                {% if state_narrative %}
-                <div class="card" style="margin-top: 8px;">
-                    <div class="card-title">Analysis Summary</div>
-                    <p style="font-size: 8.5pt; line-height: 1.5; color: #475569; margin: 0;">{{ state_narrative }}</p>
-                </div>
-                {% endif %}
             </td>
 
             <!-- RIGHT COLUMN (40%) -->
@@ -222,5 +214,13 @@
             </td>
         </tr>
     </table>
+
+    <!-- Full-Width Analysis Summary (below two-column layout) -->
+    {% if state_narrative %}
+    <div class="card" style="margin-top: 10px;">
+        <div class="card-title">Analysis Summary</div>
+        <p style="font-size: 8.5pt; line-height: 1.5; color: #475569; margin: 0;">{{ state_narrative }}</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
