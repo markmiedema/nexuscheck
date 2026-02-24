@@ -53,7 +53,7 @@
                         {% for state in register_now %}
                         <tr>
                             <td>
-                                <span class="status-dot nexus"></span>
+                                <span class="status-dot" style="background: {% if state.nexus_type == 'physical' %}#4D6A99{% elif state.nexus_type == 'both' %}#735095{% elif state.nexus_type == 'approaching' %}#B07F3B{% else %}#9F4141{% endif %};"></span>
                                 <strong>{{ state.state_name }}</strong>
                             </td>
                             <td class="text-center">
@@ -104,7 +104,7 @@
                         {% for state in consider_vda %}
                         <tr>
                             <td>
-                                <span class="status-dot approaching"></span>
+                                <span class="status-dot" style="background: {% if state.nexus_type == 'physical' %}#4D6A99{% elif state.nexus_type == 'both' %}#735095{% elif state.nexus_type == 'approaching' %}#B07F3B{% else %}#9F4141{% endif %};"></span>
                                 <strong>{{ state.state_name }}</strong>
                             </td>
                             <td class="text-right font-tabular">${{ "{:,.0f}".format(state.before_vda) }}</td>
