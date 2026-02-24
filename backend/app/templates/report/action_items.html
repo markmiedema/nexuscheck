@@ -175,7 +175,7 @@
                                     <rect x="0" y="0" width="60" height="8" rx="4" fill="#E2E8F0"/>
                                     {% set pct = [state.threshold_percent, 100] | min %}
                                     <rect x="0" y="0" width="{{ (pct / 100 * 60) | round | int }}" height="8" rx="4"
-                                          fill="{% if pct >= 90 %}#DC2626{% elif pct >= 75 %}#D97706{% else %}#0D9488{% endif %}"/>
+                                          fill="{% if pct >= 90 %}#9F4141{% elif pct >= 75 %}#B07F3B{% else %}#45926E{% endif %}"/>
                                 </svg>
                                 <span style="font-size: 8.5pt;">{{ state.threshold_percent | round(0) | int }}%</span>
                             </td>
