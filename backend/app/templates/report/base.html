@@ -42,7 +42,7 @@
         }
 
         @page state-detail {
-            margin: 0.75in 0.75in 1in 0.75in;
+            margin: 0.5in 0.5in 0.75in 0.5in;
 
             @bottom-left {
                 content: "Prepared by AST  |  Advisory & Compliance";
@@ -523,8 +523,8 @@
         }
 
         .state-header-bar {
-            padding-bottom: 10px;
-            margin-bottom: 12px;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
             border-bottom: 3px solid;
         }
 
@@ -533,7 +533,7 @@
         .state-header-bar.nexus-no_nexus { border-bottom-color: #1B2A4A; }
 
         .state-name {
-            font-size: 22pt;
+            font-size: 18pt;
             font-weight: 600;
             color: #1B2A4A;
             line-height: 1.2;
@@ -592,6 +592,56 @@
             font-weight: 700;
             color: #B07F3B;
             font-variant-numeric: tabular-nums;
+        }
+
+        /* State detail compact overrides */
+        .state-detail-page .card {
+            padding: 8px 10px;
+            margin-bottom: 6px;
+        }
+
+        .state-detail-page .card-title {
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+        }
+
+        .state-detail-page .vda-card {
+            padding: 8px 10px;
+            margin-bottom: 6px;
+        }
+
+        .state-detail-page .liability-big {
+            font-size: 18pt;
+            margin-bottom: 4px;
+        }
+
+        .state-detail-page .vda-savings-amount {
+            font-size: 16pt;
+        }
+
+        .state-detail-page .section-label {
+            margin-bottom: 2px;
+        }
+
+        .state-detail-page table.data-table {
+            margin: 6px 0;
+        }
+
+        .state-detail-page table.data-table th {
+            padding: 5px 8px;
+        }
+
+        .state-detail-page table.data-table td {
+            padding: 4px 8px;
+        }
+
+        .state-col-right .data-row-table td {
+            padding: 3px 0;
+            font-size: 8.5pt;
+        }
+
+        .state-col-right .card-title {
+            font-size: 7.5pt;
         }
 
         /* Progress bar */
