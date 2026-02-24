@@ -215,11 +215,13 @@
         </tr>
     </table>
 
-    <!-- Full-Width Analysis Summary (below two-column layout) -->
+    <!-- Full-Width Analysis Summary (pinned to bottom of page) -->
     {% if state_narrative %}
-    <div class="card" style="margin-top: 6px;">
-        <div class="card-title">Analysis Summary</div>
-        <p style="font-size: 8.5pt; line-height: 1.4; color: #475569; margin: 0;">{{ state_narrative }}</p>
+    <div class="analysis-summary">
+        <div class="card" style="margin-bottom: 0;">
+            <div class="card-title">Analysis Summary</div>
+            <p style="font-size: 8.5pt; line-height: 1.4; color: #475569; margin: 0;">{{ state_narrative }}</p>
+        </div>
     </div>
     {% endif %}
 </div>

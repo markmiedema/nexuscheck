@@ -62,14 +62,12 @@
                 {% if ns.nexus_states %}
                 <tr class="table-group-header">
                     <td colspan="6">
-                        <span class="status-dot nexus"></span>
                         States with Nexus ({{ ns.nexus_states | length }})
                     </td>
                 </tr>
                 {% for state in ns.nexus_states %}
                 <tr>
                     <td>
-                        <span class="status-dot nexus"></span>
                         <strong>{{ state.state_name }}</strong>
                     </td>
                     <td class="text-center">
@@ -101,14 +99,12 @@
                 {% if ns.approaching_states %}
                 <tr class="table-group-header">
                     <td colspan="6">
-                        <span class="status-dot approaching"></span>
                         Approaching Threshold ({{ ns.approaching_states | length }})
                     </td>
                 </tr>
                 {% for state in ns.approaching_states %}
                 <tr>
                     <td>
-                        <span class="status-dot approaching"></span>
                         {{ state.state_name }}
                     </td>
                     <td class="text-center">
@@ -140,14 +136,12 @@
                 {% if ns.no_nexus_states %}
                 <tr class="table-group-header">
                     <td colspan="6">
-                        <span class="status-dot no-nexus"></span>
                         No Nexus ({{ ns.no_nexus_states | length }})
                     </td>
                 </tr>
                 {% for state in ns.no_nexus_states %}
                 <tr>
                     <td>
-                        <span class="status-dot no-nexus"></span>
                         {{ state.state_name }}
                     </td>
                     <td class="text-center text-muted" style="font-size: 8pt;">
