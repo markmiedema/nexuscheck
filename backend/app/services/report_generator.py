@@ -127,8 +127,9 @@ class ReportGeneratorV2:
         )
 
         # Generate nexus map SVG and add nexus type counts
+        # Use unfiltered state list so every analyzed state gets a color on the map
         report_data['nexus_map_svg'] = self._generate_nexus_map_svg(
-            report_data.get('all_states', [])
+            report_data.get('all_states_for_map', report_data.get('all_states', []))
         )
         nexus_type_counts = self._count_nexus_types(report_data.get('state_details', []))
         report_data['economic_nexus_count'] = nexus_type_counts.get('economic', 0)
@@ -222,8 +223,10 @@ class ReportGeneratorV2:
             # State details (only nexus and approaching states)
             'state_details': self._build_state_details(state_results, vda_results, categorized, tax_rates, threshold_info),
 
-            # Appendix
+            # Appendix (filtered: only states with sales activity)
             'all_states': self._build_all_states_summary(state_results),
+            # Map (unfiltered: every analyzed state needs a color)
+            'all_states_for_map': self._build_all_states_for_map(state_results),
             'total_transactions': totals['total_transactions'],
         }
 
@@ -761,6 +764,22 @@ class ReportGeneratorV2:
         status_order = {'has_nexus': 0, 'approaching': 1, 'no_nexus': 2}
         summaries.sort(key=lambda x: (status_order.get(x['nexus_status'], 3), -x['total_sales']))
         return summaries
+
+    def _build_all_states_for_map(self, state_results: List[Dict]) -> List[Dict]:
+        """Build unfiltered state list for the nexus map.
+
+        Unlike the appendix version, this includes ALL states (even $0 sales)
+        so every analyzed state gets a proper color on the map.
+        """
+        aggregates = self._aggregate_by_state(state_results)
+        return [
+            {
+                'state_code': state_code,
+                'nexus_status': data['nexus_status'],
+                'nexus_type': data.get('nexus_type'),
+            }
+            for state_code, data in aggregates.items()
+        ]
 
     def _generate_liability_bar_chart(self, top_states: list) -> str:
         """Generate an inline SVG horizontal bar chart of top states by liability."""
