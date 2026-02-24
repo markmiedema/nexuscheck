@@ -726,6 +726,9 @@ class ReportGeneratorV2:
 
     def _generate_nexus_map_svg(self, all_states: list) -> str:
         """Generate a geographic US map SVG with states colored by nexus status."""
+        logger.info(f"Generating nexus map SVG: {len(all_states)} states in data, "
+                     f"{len(US_STATE_PATHS)} state paths available")
+
         # Build state_code -> (nexus_status, nexus_type) lookup
         status_map = {}
         for state in all_states:
@@ -750,11 +753,14 @@ class ReportGeneratorV2:
         # Default fill for states not in data
         default_fill = '#E2E8F0'        # Light gray (no data)
 
+        # Use explicit pixel dimensions — WeasyPrint/CairoSVG cannot resolve
+        # width="100%" or height="auto" on inline SVGs, resulting in 0 height.
+        # viewBox aspect ratio: 593/959 ≈ 0.618 → 680 × 420
         svg_parts = [
             '<svg xmlns="http://www.w3.org/2000/svg" '
             'viewBox="0 0 959 593" '
-            'width="100%" height="auto" '
-            'style="max-width: 680px;">'
+            'width="680" height="420" '
+            'preserveAspectRatio="xMidYMid meet">'
         ]
 
         for state_code, path_d in US_STATE_PATHS.items():
@@ -770,7 +776,10 @@ class ReportGeneratorV2:
             )
 
         svg_parts.append('</svg>')
-        return '\n'.join(svg_parts)
+        svg_str = '\n'.join(svg_parts)
+        logger.info(f"Nexus map SVG generated: {len(svg_str)} chars, "
+                     f"{len(svg_parts) - 2} state paths rendered")
+        return svg_str
 
     def _count_nexus_types(self, state_details: list) -> Dict[str, int]:
         """Count states by nexus type from state detail data."""
@@ -802,14 +811,28 @@ class ReportGeneratorV2:
             else:
                 body_contents.append(section)
 
-        # Combine
         combined_body = '\n'.join(body_contents)
-        final_html = re.sub(
-            r'(<body[^>]*>).*?(</body>)',
-            rf'\1\n{combined_body}\n\2',
-            base_html,
-            flags=re.DOTALL
-        )
+
+        # Use string slicing instead of re.sub to inject combined body.
+        # re.sub interprets \digit sequences in the replacement string as
+        # backreferences, which silently corrupts content containing those
+        # patterns (e.g., large SVG path data).
+        body_open = re.search(r'<body[^>]*>', base_html)
+        body_close_idx = base_html.rfind('</body>')
+
+        if body_open and body_close_idx >= 0:
+            final_html = (
+                base_html[:body_open.end()]
+                + '\n' + combined_body + '\n'
+                + base_html[body_close_idx:]
+            )
+        else:
+            # Fallback: wrap in minimal HTML
+            final_html = (
+                '<!DOCTYPE html><html><head></head><body>\n'
+                + combined_body
+                + '\n</body></html>'
+            )
 
         return final_html
 
