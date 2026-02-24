@@ -139,11 +139,11 @@
                     <div class="card-title">Threshold Requirements</div>
                     <table class="data-row-table">
                         <tr>
-                            <td class="label">Revenue Threshold</td>
+                            <td class="label">Revenue</td>
                             <td class="value font-tabular">${{ "{:,.0f}".format(threshold) }}</td>
                         </tr>
                         <tr>
-                            <td class="label">Current Progress</td>
+                            <td class="label">Progress</td>
                             <td class="value">
                                 {% set tp = threshold_percent | default(0) | float %}
                                 <svg width="50" height="8" style="vertical-align: middle; margin-right: 4px;">
@@ -157,13 +157,13 @@
                         </tr>
                         {% if transaction_threshold %}
                         <tr>
-                            <td class="label">Transaction Threshold</td>
+                            <td class="label">Txn Threshold</td>
                             <td class="value">{{ transaction_threshold }} transactions</td>
                         </tr>
                         {% endif %}
                         {% if amount_until_nexus > 0 %}
                         <tr>
-                            <td class="label">Amount Until Nexus</td>
+                            <td class="label">Until Nexus</td>
                             <td class="value font-tabular">${{ "{:,.0f}".format(amount_until_nexus) }}</td>
                         </tr>
                         {% endif %}
@@ -179,15 +179,15 @@
                             <td class="value">{{ "{:.2f}%".format(state_rate) }}</td>
                         </tr>
                         <tr>
-                            <td class="label">Avg. Local Rate</td>
+                            <td class="label">Local Rate</td>
                             <td class="value">{{ "{:.2f}%".format(avg_local_rate) }}</td>
                         </tr>
                         <tr>
-                            <td class="label">Combined Rate</td>
+                            <td class="label">Combined</td>
                             <td class="value highlight">{{ "{:.2f}%".format(combined_rate) }}</td>
                         </tr>
                         <tr>
-                            <td class="label">Filing Frequency</td>
+                            <td class="label">Filing Freq.</td>
                             <td class="value">{{ filing_frequency | default('Monthly') }}</td>
                         </tr>
                     </table>
@@ -197,11 +197,11 @@
                 {% if vda_savings and vda_savings > 0 %}
                 <div class="vda-card">
                     <div class="card-title">VDA Opportunity</div>
-                    <div class="vda-savings-amount" style="margin-bottom: 8px;">${{ "{:,.0f}".format(vda_savings) }}</div>
-                    <div style="font-size: 7.5pt; color: #B07F3B; margin-bottom: 8px;">potential savings</div>
+                    <div class="vda-savings-amount" style="margin-bottom: 4px;">${{ "{:,.0f}".format(vda_savings) }}</div>
+                    <div style="font-size: 7.5pt; color: #B07F3B; margin-bottom: 6px;">savings</div>
                     <table class="data-row-table">
                         <tr>
-                            <td class="label">Without VDA</td>
+                            <td class="label">Before VDA</td>
                             <td class="value font-tabular">${{ "{:,.2f}".format(before_vda) }}</td>
                         </tr>
                         <tr>
@@ -217,9 +217,9 @@
 
     <!-- Full-Width Analysis Summary (below two-column layout) -->
     {% if state_narrative %}
-    <div class="card" style="margin-top: 10px;">
+    <div class="card" style="margin-top: 6px;">
         <div class="card-title">Analysis Summary</div>
-        <p style="font-size: 8.5pt; line-height: 1.5; color: #475569; margin: 0;">{{ state_narrative }}</p>
+        <p style="font-size: 8.5pt; line-height: 1.4; color: #475569; margin: 0;">{{ state_narrative }}</p>
     </div>
     {% endif %}
 </div>
