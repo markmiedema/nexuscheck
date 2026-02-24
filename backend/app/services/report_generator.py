@@ -65,7 +65,8 @@ STATE_NAMES = {
     'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
     'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
     'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia',
-    'WI': 'Wisconsin', 'WY': 'Wyoming', 'DC': 'District of Columbia'
+    'WI': 'Wisconsin', 'WY': 'Wyoming', 'DC': 'District of Columbia',
+    'PR': 'Puerto Rico',
 }
 
 
@@ -444,6 +445,7 @@ class ReportGeneratorV2:
                     consider_vda.append({
                         'state_code': state_code,
                         'state_name': state_name,
+                        'nexus_type': data.get('nexus_type', 'economic'),
                         'before_vda': vda['before_vda'],
                         'with_vda': vda['with_vda'],
                         'savings': vda['savings'],
@@ -490,7 +492,7 @@ class ReportGeneratorV2:
 
         if len(nexus_states) == 0 and len(approaching_states) == 0:
             return (
-                f"Good news! {company_name} has not established economic nexus in any new states "
+                f"Good news! {company_name} has not established sales tax nexus in any new states "
                 "based on the sales data analyzed. Continue monitoring sales thresholds as "
                 "your business grows."
             )
@@ -504,7 +506,7 @@ class ReportGeneratorV2:
         elif total_vda_savings > 0:
             approaching_text = f" and is approaching thresholds in {len(approaching_states)} more" if approaching_states else ""
             return (
-                f"{company_name} has established economic nexus in {len(nexus_states)} "
+                f"{company_name} has established sales tax nexus in {len(nexus_states)} "
                 f"state{'s' if len(nexus_states) > 1 else ''}{approaching_text}. "
                 f"Total estimated exposure is ${total_liability:,.0f}, but you could save approximately "
                 f"${total_vda_savings:,.0f} through voluntary disclosure agreements."
@@ -512,7 +514,7 @@ class ReportGeneratorV2:
         else:
             approaching_text = f" and is approaching thresholds in {len(approaching_states)} more" if approaching_states else ""
             return (
-                f"{company_name} has established economic nexus in {len(nexus_states)} "
+                f"{company_name} has established sales tax nexus in {len(nexus_states)} "
                 f"state{'s' if len(nexus_states) > 1 else ''}{approaching_text}. "
                 f"Total estimated exposure is ${total_liability:,.0f}. Immediate registration "
                 "is recommended to avoid additional penalties and interest."
@@ -540,9 +542,11 @@ class ReportGeneratorV2:
         states_with_nexus = sum(1 for d in aggregates.values() if d['nexus_status'] == 'has_nexus')
         states_approaching = sum(1 for d in aggregates.values() if d['nexus_status'] == 'approaching')
 
+        states_with_activity = sum(1 for d in aggregates.values() if d['total_sales'] > 0)
+
         return {
-            'total_states_analyzed': len(aggregates),  # States with actual sales activity
-            'states_with_activity': len(aggregates),
+            'total_states_analyzed': len(aggregates),
+            'states_with_activity': states_with_activity,
             'states_with_nexus': states_with_nexus,
             'states_approaching': states_approaching,
             'total_sales': sum(d['total_sales'] for d in aggregates.values()),
@@ -617,10 +621,60 @@ class ReportGeneratorV2:
                 'before_vda': vda.get('before_vda', 0),
                 'with_vda': vda.get('with_vda', 0),
             }
+            detail['state_narrative'] = self._generate_state_narrative(detail)
             details.append(detail)
 
         details.sort(key=lambda x: x['estimated_liability'], reverse=True)
         return details
+
+    def _generate_state_narrative(self, detail: Dict) -> str:
+        """Generate a brief narrative paragraph for a state detail page."""
+        state_name = detail.get('state_name', 'This state')
+        nexus_type = detail.get('nexus_type', 'economic')
+        total_sales = detail.get('total_sales', 0)
+        estimated_liability = detail.get('estimated_liability', 0)
+        vda_savings = detail.get('vda_savings', 0)
+        before_vda = detail.get('before_vda', 0)
+        with_vda = detail.get('with_vda', 0)
+        nexus_status = detail.get('nexus_status', 'no_nexus')
+        threshold_percent = detail.get('threshold_percent', 0)
+
+        parts = []
+
+        if nexus_status == 'has_nexus':
+            # Nexus trigger sentence
+            type_descriptions = {
+                'economic': 'exceeding the economic nexus sales threshold',
+                'physical': 'physical presence (employees or property in-state)',
+                'both': 'both physical presence and exceeding the economic sales threshold',
+            }
+            trigger = type_descriptions.get(nexus_type, 'exceeding the economic nexus sales threshold')
+            parts.append(f"{state_name} nexus was triggered by {trigger}.")
+
+            # Sales and liability sentence
+            parts.append(
+                f"With ${total_sales:,.0f} in total sales and an estimated liability of "
+                f"${estimated_liability:,.0f}, this represents "
+                f"{'a significant' if estimated_liability > 50000 else 'an'} exposure state."
+            )
+
+            # VDA sentence
+            if vda_savings > 0:
+                parts.append(
+                    f"VDA enrollment could reduce the total obligation from "
+                    f"${before_vda:,.0f} to ${with_vda:,.0f}."
+                )
+        elif nexus_status == 'approaching':
+            parts.append(
+                f"{state_name} is currently at {threshold_percent:.0f}% of the economic nexus threshold "
+                f"with ${total_sales:,.0f} in total sales."
+            )
+            parts.append(
+                "Continue monitoring sales volume — proactive registration planning is recommended "
+                "before the threshold is reached."
+            )
+
+        return ' '.join(parts)
 
     def _get_filing_frequency(self, taxable_sales: float) -> str:
         """Determine likely filing frequency based on sales volume."""
@@ -645,17 +699,24 @@ class ReportGeneratorV2:
                 'interest': float(row.get('interest', 0) or 0),
                 'penalties': float(row.get('penalties', 0) or 0),
                 'estimated_liability': float(row.get('estimated_liability', 0) or 0),
+                'transaction_count': int(row.get('transaction_count', 0) or 0),
                 'nexus_type': nexus_type,
                 'has_nexus': has_nexus,
             })
         return sorted(formatted, key=lambda x: x['year'] if x['year'] else 0)
 
     def _build_all_states_summary(self, state_results: List[Dict]) -> List[Dict]:
-        """Build summary list of all states for appendix."""
+        """Build summary list of all states for appendix.
+
+        Only includes states with actual sales activity (total_sales > 0).
+        """
         aggregates = self._aggregate_by_state(state_results)
 
         summaries = []
         for state_code, data in aggregates.items():
+            # Filter out states with no sales activity
+            if (data['total_sales'] or 0) <= 0:
+                continue
             summaries.append({
                 'state_code': state_code,
                 'state_name': STATE_NAMES.get(state_code, state_code),

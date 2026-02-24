@@ -60,6 +60,7 @@
 
                 <!-- Year-by-Year Breakdown -->
                 {% if year_data and year_data | length > 0 %}
+                {% set has_txn_data = year_data | selectattr('transaction_count') | list | length > 0 %}
                 <div class="section-label mt-1">Year-by-year breakdown</div>
                 <table class="data-table">
                     <thead>
@@ -68,12 +69,13 @@
                             <th class="text-center">Status</th>
                             <th class="text-right">Total Sales</th>
                             <th class="text-right">Taxable Sales</th>
+                            {% if has_txn_data %}<th class="text-right">Txns</th>{% endif %}
                             <th class="text-right">Base Tax</th>
-                            <th class="text-right">Est. Liability</th>
+                            <th class="text-right">Est. Liab.</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% set ns = namespace(total_sales_sum=0, taxable_sum=0, tax_sum=0, liability_sum=0) %}
+                        {% set ns = namespace(total_sales_sum=0, taxable_sum=0, tax_sum=0, liability_sum=0, txn_sum=0) %}
                         {% for year in year_data %}
                         <tr>
                             <td><strong>{{ year.year }}</strong></td>
@@ -86,6 +88,7 @@
                             </td>
                             <td class="text-right font-tabular">${{ "{:,.0f}".format(year.total_sales) }}</td>
                             <td class="text-right font-tabular">${{ "{:,.0f}".format(year.taxable_sales) }}</td>
+                            {% if has_txn_data %}<td class="text-right font-tabular">{{ "{:,}".format(year.transaction_count) }}</td>{% endif %}
                             <td class="text-right font-tabular">${{ "{:,.2f}".format(year.base_tax) }}</td>
                             <td class="text-right font-tabular font-bold">${{ "{:,.0f}".format(year.estimated_liability) }}</td>
                         </tr>
@@ -93,12 +96,14 @@
                         {% set ns.taxable_sum = ns.taxable_sum + year.taxable_sales %}
                         {% set ns.tax_sum = ns.tax_sum + year.base_tax %}
                         {% set ns.liability_sum = ns.liability_sum + year.estimated_liability %}
+                        {% set ns.txn_sum = ns.txn_sum + year.transaction_count %}
                         {% endfor %}
                         <tr class="totals-row">
                             <td><strong>Total</strong></td>
                             <td></td>
                             <td class="text-right font-tabular">${{ "{:,.0f}".format(ns.total_sales_sum) }}</td>
                             <td class="text-right font-tabular">${{ "{:,.0f}".format(ns.taxable_sum) }}</td>
+                            {% if has_txn_data %}<td class="text-right font-tabular">{{ "{:,}".format(ns.txn_sum) }}</td>{% endif %}
                             <td class="text-right font-tabular">${{ "{:,.2f}".format(ns.tax_sum) }}</td>
                             <td class="text-right font-tabular">${{ "{:,.0f}".format(ns.liability_sum) }}</td>
                         </tr>
@@ -209,5 +214,13 @@
             </td>
         </tr>
     </table>
+
+    <!-- State Narrative -->
+    {% if state_narrative %}
+    <div style="background: #F8FAFC; border-left: 3px solid #CBD5E1; padding: 12px 16px; margin-top: 12px; border-radius: 0 6px 6px 0;">
+        <div style="font-size: 8pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; margin-bottom: 4px;">Analysis Summary</div>
+        <p style="font-size: 9pt; line-height: 1.6; color: #475569; margin: 0;">{{ state_narrative }}</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
