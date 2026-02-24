@@ -2,7 +2,7 @@
 
 {% block content %}
 <!-- Complete State Summary Page -->
-<div class="page">
+<div class="page" style="page-break-before: always;">
     <!-- Page Header -->
     <div class="page-header">
         <table>
@@ -80,11 +80,11 @@
                     <td class="text-center">
                         <svg width="50" height="6" style="vertical-align: middle; margin-right: 3px;">
                             <rect x="0" y="0" width="50" height="6" rx="3" fill="#E2E8F0"/>
-                            {% set pct = [state.threshold_percent, 100] | min %}
+                            {% set pct = [state.threshold_percent | default(0) | float, 100] | min %}
                             <rect x="0" y="0" width="{{ (pct / 100 * 50) | round | int }}" height="6" rx="3"
                                   fill="{% if pct >= 100 %}#0D9488{% elif pct >= 75 %}#D97706{% else %}#0D9488{% endif %}"/>
                         </svg>
-                        <span style="font-size: 8pt;">{{ state.threshold_percent | round(0) | int }}%</span>
+                        <span style="font-size: 8pt;">{{ state.threshold_percent | default(0) | float | round(0) | int }}%</span>
                     </td>
                     <td class="text-right font-tabular font-bold text-rose">
                         {% if state.estimated_liability > 0 %}
@@ -119,11 +119,11 @@
                     <td class="text-center">
                         <svg width="50" height="6" style="vertical-align: middle; margin-right: 3px;">
                             <rect x="0" y="0" width="50" height="6" rx="3" fill="#E2E8F0"/>
-                            {% set pct = [state.threshold_percent, 100] | min %}
+                            {% set pct = [state.threshold_percent | default(0) | float, 100] | min %}
                             <rect x="0" y="0" width="{{ (pct / 100 * 50) | round | int }}" height="6" rx="3"
                                   fill="#D97706"/>
                         </svg>
-                        <span style="font-size: 8pt;">{{ state.threshold_percent | round(0) | int }}%</span>
+                        <span style="font-size: 8pt;">{{ state.threshold_percent | default(0) | float | round(0) | int }}%</span>
                     </td>
                     <td class="text-right font-tabular">
                         {% if state.estimated_liability > 0 %}
@@ -150,19 +150,19 @@
                         <span class="status-dot no-nexus"></span>
                         {{ state.state_name }}
                     </td>
-                    <td class="text-center">
-                        <span class="badge badge-none">No Nexus</span>
+                    <td class="text-center text-muted" style="font-size: 8pt;">
+                        &mdash;
                     </td>
                     <td class="text-right font-tabular">${{ "{:,.0f}".format(state.total_sales) }}</td>
                     <td class="text-right font-tabular">${{ "{:,.0f}".format(state.threshold) }}</td>
                     <td class="text-center">
                         <svg width="50" height="6" style="vertical-align: middle; margin-right: 3px;">
                             <rect x="0" y="0" width="50" height="6" rx="3" fill="#E2E8F0"/>
-                            {% set pct = [state.threshold_percent, 100] | min %}
+                            {% set pct = [state.threshold_percent | default(0) | float, 100] | min %}
                             <rect x="0" y="0" width="{{ (pct / 100 * 50) | round | int }}" height="6" rx="3"
                                   fill="#CBD5E1"/>
                         </svg>
-                        <span style="font-size: 8pt;">{{ state.threshold_percent | round(0) | int }}%</span>
+                        <span style="font-size: 8pt;">{{ state.threshold_percent | default(0) | float | round(0) | int }}%</span>
                     </td>
                     <td class="text-right font-tabular">
                         &mdash;
