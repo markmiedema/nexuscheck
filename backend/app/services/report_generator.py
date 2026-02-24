@@ -710,7 +710,7 @@ class ReportGeneratorV2:
             svg_parts.append(
                 f'<rect x="{label_width}" y="{y + 1}" '
                 f'width="{bar_width:.0f}" height="{bar_height - 2}" '
-                f'rx="3" fill="#0D9488" opacity="0.85"/>'
+                f'rx="3" fill="#45926E" opacity="0.85"/>'
             )
             # Value label
             svg_parts.append(

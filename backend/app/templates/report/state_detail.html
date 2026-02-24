@@ -145,7 +145,7 @@
                                     <rect x="0" y="0" width="50" height="8" rx="4" fill="#E2E8F0"/>
                                     {% set bar_pct = [tp, 100] | min %}
                                     <rect x="0" y="0" width="{{ (bar_pct / 100 * 50) | round | int }}" height="8" rx="4"
-                                          fill="{% if tp >= 100 %}#DC2626{% elif tp >= 75 %}#D97706{% else %}#0D9488{% endif %}"/>
+                                          fill="{% if tp >= 100 %}#9F4141{% elif tp >= 75 %}#B07F3B{% else %}#45926E{% endif %}"/>
                                 </svg>
                                 {{ "{:.1f}%".format(tp) }}
                             </td>
@@ -193,7 +193,7 @@
                 <div class="vda-card">
                     <div class="card-title">VDA Opportunity</div>
                     <div class="vda-savings-amount" style="margin-bottom: 8px;">${{ "{:,.0f}".format(vda_savings) }}</div>
-                    <div style="font-size: 7.5pt; color: #D97706; margin-bottom: 8px;">potential savings</div>
+                    <div style="font-size: 7.5pt; color: #B07F3B; margin-bottom: 8px;">potential savings</div>
                     <table class="data-row-table">
                         <tr>
                             <td class="label">Without VDA</td>
