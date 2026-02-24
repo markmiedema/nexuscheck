@@ -138,6 +138,65 @@ class NexusCalculatorV2:
             raise
 
     # ========================================================================
+    # Helpers
+    # ========================================================================
+
+    def _parse_txn_date(self, date_str: str) -> datetime:
+        """Parse a transaction/nexus date string to timezone-naive datetime."""
+        return datetime.fromisoformat(date_str.replace('Z', '').replace('+00:00', ''))
+
+    def _group_transactions_by_year(self, transactions: List[Dict]) -> Dict[int, List[Dict]]:
+        """Group transactions by calendar year."""
+        groups = defaultdict(list)
+        for txn in transactions:
+            year = self._parse_txn_date(txn['transaction_date']).year
+            groups[year].append(txn)
+        return groups
+
+    def _determine_nexus_type(
+        self,
+        has_physical_nexus: bool,
+        nexus_date: Optional[datetime],
+        obligation_start_date: Optional[datetime],
+        physical_date: Optional[datetime],
+        physical_nexus_year: Optional[int],
+        year: int
+    ) -> tuple:
+        """
+        Determine nexus type and adjust dates for physical-only nexus.
+
+        Returns (nexus_type, nexus_date, obligation_start_date).
+        """
+        if has_physical_nexus and nexus_date:
+            return 'both', nexus_date, obligation_start_date
+        elif has_physical_nexus:
+            if not nexus_date and physical_date:
+                nexus_date = physical_date
+                obligation_start_date = (
+                    datetime(physical_nexus_year, 1, 1)
+                    if physical_nexus_year <= year
+                    else physical_date
+                )
+            return 'physical', nexus_date, obligation_start_date
+        else:
+            return 'economic', nexus_date, obligation_start_date
+
+    # ========================================================================
+    # Strategy Dispatch
+    # ========================================================================
+
+    def _get_nexus_strategy(self, lookback_period: str):
+        """Return the appropriate nexus-checking function for this lookback type."""
+        strategies = {
+            'Previous Calendar Year': self._check_calendar_year_nexus,
+            'Current or Previous Calendar Year': self._check_calendar_year_nexus,
+            'Rolling 12 Months': self._check_rolling_12_month_nexus,
+            'Preceding 4 Sales Tax Quarters': self._check_quarterly_nexus,
+            '12-month period ending on September 30': self._check_ct_september_nexus,
+        }
+        return strategies.get(lookback_period)
+
+    # ========================================================================
     # State-Level Nexus Calculation (Multi-Year)
     # ========================================================================
 
@@ -153,239 +212,101 @@ class NexusCalculatorV2:
         """
         Calculate nexus for a state across multiple years.
 
-        Args:
-            physical_nexus_date: If state has physical nexus, the date it was established
-
         Returns list of results, one per year.
         """
         if not transactions:
-            # No transactions for this state
             return self._create_zero_sales_results(state_code, threshold_config)
 
-        # Get lookback period type
         lookback_period = threshold_config.get('lookback_period', 'Current or Previous Calendar Year')
+        strategy = self._get_nexus_strategy(lookback_period)
 
-        # Route to appropriate lookback handler
+        # Determine lookback_type for calendar year strategies
         if lookback_period in ['Previous Calendar Year', 'Current or Previous Calendar Year']:
-            return self._calculate_calendar_year_lookback(
-                state_code=state_code,
-                transactions=transactions,
-                threshold_config=threshold_config,
-                tax_rate_config=tax_rate_config,
-                mf_rule=mf_rule,
-                lookback_type=lookback_period,
-                physical_nexus_date=physical_nexus_date
-            )
-        elif lookback_period == 'Rolling 12 Months':
-            # Phase 1B: Rolling 12-month lookback
-            return self._calculate_rolling_12_month_lookback(
-                state_code=state_code,
-                transactions=transactions,
-                threshold_config=threshold_config,
-                tax_rate_config=tax_rate_config,
-                mf_rule=mf_rule,
-                physical_nexus_date=physical_nexus_date
-            )
-        elif lookback_period == 'Preceding 4 Sales Tax Quarters':
-            # NY, VT: Quarterly lookback
-            return self._calculate_quarterly_lookback(
-                state_code=state_code,
-                transactions=transactions,
-                threshold_config=threshold_config,
-                tax_rate_config=tax_rate_config,
-                mf_rule=mf_rule,
-                physical_nexus_date=physical_nexus_date
-            )
-        elif lookback_period == '12-month period ending on September 30':
-            # CT: Fixed period ending Sept 30
-            return self._calculate_connecticut_september_lookback(
-                state_code=state_code,
-                transactions=transactions,
-                threshold_config=threshold_config,
-                tax_rate_config=tax_rate_config,
-                mf_rule=mf_rule,
-                physical_nexus_date=physical_nexus_date
-            )
+            lookback_type = lookback_period
         else:
-            # Unsupported lookback period
+            lookback_type = None
+
+        # Fall back for unsupported lookback periods
+        if strategy is None:
             logger.warning(
                 f"State {state_code} uses unsupported lookback period: {lookback_period}. "
                 f"Falling back to 'Current or Previous Calendar Year'"
             )
-            return self._calculate_calendar_year_lookback(
-                state_code=state_code,
-                transactions=transactions,
-                threshold_config=threshold_config,
-                tax_rate_config=tax_rate_config,
-                mf_rule=mf_rule,
-                lookback_type='Current or Previous Calendar Year',
-                physical_nexus_date=physical_nexus_date
-            )
+            strategy = self._check_calendar_year_nexus
+            lookback_type = 'Current or Previous Calendar Year'
+
+        return self._process_state_years(
+            state_code=state_code,
+            transactions=transactions,
+            threshold_config=threshold_config,
+            tax_rate_config=tax_rate_config,
+            mf_rule=mf_rule,
+            physical_nexus_date=physical_nexus_date,
+            strategy=strategy,
+            lookback_type=lookback_type
+        )
 
     # ========================================================================
-    # Calendar Year Lookback Implementation (Phase 1A)
+    # Shared Pipeline
     # ========================================================================
 
-    def _calculate_calendar_year_lookback(
-        self,
-        state_code: str,
-        transactions: List[Dict],
-        threshold_config: Dict,
-        tax_rate_config: Optional[Dict],
-        mf_rule: Optional[Dict],
-        lookback_type: str,
-        physical_nexus_date: Optional[str] = None
-    ) -> List[Dict]:
-        """
-        Calculate nexus using calendar year lookback.
-
-        Supports:
-        - "Previous Calendar Year" - only look at prior year
-        - "Current or Previous Calendar Year" - check current OR prior year
-
-        Args:
-            physical_nexus_date: If state has physical nexus, the date it was established
-        """
-        # Group transactions by year
-        transactions_by_year = defaultdict(list)
-        for txn in transactions:
-            # Parse as timezone-naive
-            txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
-            txn_date = datetime.fromisoformat(txn_date_str)
-            year = txn_date.year
-            transactions_by_year[year].append(txn)
-
-        # Track first nexus establishment
+    def _process_state_years(self, state_code, transactions, threshold_config,
+                             tax_rate_config, mf_rule, physical_nexus_date,
+                             strategy, lookback_type):
+        """Shared year-by-year pipeline for all lookback types."""
+        transactions_by_year = self._group_transactions_by_year(transactions)
         first_nexus_year = None
         first_nexus_date = None
-
-        # Results for each year
         results = []
+
+        # Pre-parse physical nexus date once (used every iteration)
+        physical_date = self._parse_txn_date(physical_nexus_date) if physical_nexus_date else None
+        physical_nexus_year = physical_date.year if physical_date else None
 
         for year in sorted(transactions_by_year.keys()):
             year_transactions = transactions_by_year[year]
-            prior_year_transactions = transactions_by_year.get(year - 1, [])
-
-            # Check if state has physical nexus
-            has_physical_nexus = False
-            physical_nexus_year = None
-            if physical_nexus_date:
-                # Parse physical nexus date
-                physical_date = datetime.fromisoformat(physical_nexus_date.replace('Z', '').replace('+00:00', ''))
-                physical_nexus_year = physical_date.year
-                # Physical nexus applies if established on or before this year
-                if physical_nexus_year <= year:
-                    has_physical_nexus = True
-
-            # Determine nexus status for this year
-            has_nexus_this_year = has_physical_nexus  # Start with physical nexus if exists
+            has_physical_nexus = physical_date is not None and physical_nexus_year <= year
+            has_nexus_this_year = has_physical_nexus
             nexus_date = None
             obligation_start_date = None
-            nexus_from_prior_year_lookback = False
 
             if first_nexus_year and first_nexus_year < year:
                 # Sticky nexus - already had nexus from a prior year
-                logger.info(f"{state_code} {year}: STICKY NEXUS detected (first nexus: {first_nexus_year}), obligation starts Jan 1")
+                logger.info(
+                    f"{state_code} {year}: STICKY NEXUS detected "
+                    f"(first nexus: {first_nexus_year}), obligation starts Jan 1"
+                )
                 has_nexus_this_year = True
                 nexus_date = first_nexus_date
-                obligation_start_date = datetime(year, 1, 1)  # Full year obligation
+                obligation_start_date = datetime(year, 1, 1)
             else:
-                # Check if we establish nexus this year based on lookback rules
-                nexus_info = None
-
-                if lookback_type == 'Previous Calendar Year':
-                    # Check prior year first
-                    if prior_year_transactions:
-                        prior_nexus = self._find_threshold_crossing(
-                            prior_year_transactions, threshold_config
-                        )
-                        if prior_nexus.get('has_nexus'):
-                            # Prior year crossed threshold, so current year has nexus from Jan 1
-                            nexus_info = prior_nexus
-                            nexus_from_prior_year_lookback = True
-
-                    # If no prior year nexus, check current year
-                    if not nexus_info:
-                        current_nexus = self._find_threshold_crossing(
-                            year_transactions, threshold_config
-                        )
-                        if current_nexus.get('has_nexus'):
-                            nexus_info = current_nexus
-
-                elif lookback_type == 'Current or Previous Calendar Year':
-                    # Check current year first
-                    current_nexus = self._find_threshold_crossing(
-                        year_transactions, threshold_config
-                    )
-
-                    if current_nexus.get('has_nexus'):
-                        nexus_info = current_nexus
-                    else:
-                        # Check prior year
-                        if prior_year_transactions:
-                            prior_nexus = self._find_threshold_crossing(
-                                prior_year_transactions, threshold_config
-                            )
-                            if prior_nexus.get('has_nexus'):
-                                nexus_info = prior_nexus
-                                nexus_from_prior_year_lookback = True
-
-                # Process nexus_info if we found nexus
-                if nexus_info and nexus_info.get('has_nexus'):
+                nexus_info = strategy(
+                    year=year, all_transactions=transactions,
+                    threshold_config=threshold_config,
+                    state_code=state_code, lookback_type=lookback_type
+                )
+                if nexus_info.get('has_nexus'):
                     has_nexus_this_year = True
-
-                    if nexus_from_prior_year_lookback:
-                        # Found nexus via prior year lookback - obligation starts Jan 1 of current year
-                        logger.info(f"{state_code} {year}: PRIOR YEAR LOOKBACK nexus, obligation starts Jan 1")
-                        nexus_date = nexus_info['nexus_date']  # Keep original date for reference
-                        obligation_start_date = datetime(year, 1, 1)
-                    else:
-                        # Nexus established in current year - obligation starts month after crossing
-                        nexus_date = nexus_info['nexus_date']
-                        obligation_start_date = self._calculate_obligation_start_date(nexus_date)
-                        logger.info(f"{state_code} {year}: NEW NEXUS on {nexus_date.date()}, obligation starts {obligation_start_date.date()}")
-
-                    # Record first nexus
+                    nexus_date = nexus_info['nexus_date']
+                    obligation_start_date = nexus_info['obligation_start_date']
                     if first_nexus_year is None:
                         first_nexus_year = year
                         first_nexus_date = nexus_date
 
-            # Calculate liability for this year
             if has_nexus_this_year:
-                # Determine nexus type
-                has_economic_nexus = has_nexus_this_year and not has_physical_nexus
-                if has_physical_nexus and nexus_date:
-                    # Both physical and economic
-                    nexus_type = 'both'
-                elif has_physical_nexus:
-                    # Only physical nexus
-                    nexus_type = 'physical'
-                    # Use physical nexus date if no economic nexus date
-                    if not nexus_date and physical_nexus_date:
-                        nexus_date = physical_date
-                        obligation_start_date = datetime(physical_nexus_year, 1, 1) if physical_nexus_year <= year else physical_date
-                else:
-                    # Only economic nexus
-                    nexus_type = 'economic'
-
-                # Get interest/penalty config for Phase 2
-                interest_penalty_config = self._get_interest_penalty_config(state_code)
-
+                nexus_type, nexus_date, obligation_start_date = self._determine_nexus_type(
+                    has_physical_nexus, nexus_date, obligation_start_date,
+                    physical_date, physical_nexus_year, year
+                )
                 liability_result = self._calculate_liability_for_year(
                     transactions=year_transactions,
                     obligation_start_date=obligation_start_date,
-                    tax_rate_config=tax_rate_config,
-                    mf_rule=mf_rule,
-                    state_code=state_code,
-                    year=year,
-                    interest_penalty_config=interest_penalty_config
+                    tax_rate_config=tax_rate_config, mf_rule=mf_rule,
+                    state_code=state_code, year=year,
+                    interest_penalty_config=self._get_interest_penalty_config(state_code)
                 )
-
-                # Build result for this year
                 result = {
-                    'state': state_code,
-                    'year': year,
-                    'nexus_type': nexus_type,
+                    'state': state_code, 'year': year, 'nexus_type': nexus_type,
                     'nexus_date': nexus_date.date().isoformat() if nexus_date else None,
                     'obligation_start_date': obligation_start_date.date().isoformat() if obligation_start_date else None,
                     'first_nexus_year': first_nexus_year,
@@ -393,519 +314,246 @@ class NexusCalculatorV2:
                     'threshold': threshold_config.get('revenue_threshold', 100000)
                 }
             else:
-                # No nexus this year
                 result = self._create_no_nexus_result(
-                    state_code=state_code,
-                    year=year,
-                    transactions=year_transactions,
-                    threshold_config=threshold_config
+                    state_code=state_code, year=year,
+                    transactions=year_transactions, threshold_config=threshold_config
                 )
-
             results.append(result)
 
         return results if results else self._create_zero_sales_results(state_code, threshold_config)
 
     # ========================================================================
-    # Rolling 12-Month Lookback Implementation (Phase 1B)
+    # Nexus Strategy: Calendar Year Lookback
     # ========================================================================
 
-    def _calculate_rolling_12_month_lookback(
+    def _check_calendar_year_nexus(
         self,
-        state_code: str,
-        transactions: List[Dict],
+        year: int,
+        all_transactions: List[Dict],
         threshold_config: Dict,
-        tax_rate_config: Optional[Dict],
-        mf_rule: Optional[Dict],
-        physical_nexus_date: Optional[str] = None
-    ) -> List[Dict]:
+        state_code: str = None,
+        lookback_type: str = None
+    ) -> Dict:
         """
-        Calculate nexus using rolling 12-month lookback window.
+        Check economic nexus using calendar year lookback.
 
-        For each month, sums sales from that month and the previous 11 months.
-        Nexus is established when the rolling 12-month total first exceeds the threshold.
-
-        Args:
-            physical_nexus_date: If state has physical nexus, the date it was established
-
-        Example (Illinois $100K threshold):
-            Jan 2023: $20K → Rolling 12-month: $20K → No nexus
-            Feb 2023: $25K → Rolling 12-month: $45K → No nexus
-            Mar 2023: $30K → Rolling 12-month: $75K → No nexus
-            Apr 2023: $35K → Rolling 12-month: $110K → NEXUS! (April 2023)
-            May 2023: $10K → Rolling 12-month: $120K → Has nexus (sticky)
+        Supports "Previous Calendar Year" and "Current or Previous Calendar Year".
         """
-        if not transactions:
-            return self._create_zero_sales_results(state_code, threshold_config)
+        year_txns = [
+            t for t in all_transactions
+            if self._parse_txn_date(t['transaction_date']).year == year
+        ]
+        prior_txns = [
+            t for t in all_transactions
+            if self._parse_txn_date(t['transaction_date']).year == year - 1
+        ]
 
-        # Group transactions by year-month
-        from collections import defaultdict
+        nexus_info = None
+        nexus_from_prior = False
+
+        if lookback_type == 'Previous Calendar Year':
+            if prior_txns:
+                prior_nexus = self._find_threshold_crossing(prior_txns, threshold_config)
+                if prior_nexus.get('has_nexus'):
+                    nexus_info = prior_nexus
+                    nexus_from_prior = True
+            if not nexus_info:
+                current_nexus = self._find_threshold_crossing(year_txns, threshold_config)
+                if current_nexus.get('has_nexus'):
+                    nexus_info = current_nexus
+
+        elif lookback_type == 'Current or Previous Calendar Year':
+            current_nexus = self._find_threshold_crossing(year_txns, threshold_config)
+            if current_nexus.get('has_nexus'):
+                nexus_info = current_nexus
+            elif prior_txns:
+                prior_nexus = self._find_threshold_crossing(prior_txns, threshold_config)
+                if prior_nexus.get('has_nexus'):
+                    nexus_info = prior_nexus
+                    nexus_from_prior = True
+
+        if nexus_info and nexus_info.get('has_nexus'):
+            nexus_date = nexus_info['nexus_date']
+            if nexus_from_prior:
+                logger.info(f"{state_code} {year}: PRIOR YEAR LOOKBACK nexus, obligation starts Jan 1")
+                return {
+                    'has_nexus': True,
+                    'nexus_date': nexus_date,
+                    'obligation_start_date': datetime(year, 1, 1)
+                }
+            else:
+                obligation_start_date = self._calculate_obligation_start_date(nexus_date)
+                logger.info(
+                    f"{state_code} {year}: NEW NEXUS on {nexus_date.date()}, "
+                    f"obligation starts {obligation_start_date.date()}"
+                )
+                return {
+                    'has_nexus': True,
+                    'nexus_date': nexus_date,
+                    'obligation_start_date': obligation_start_date
+                }
+
+        return {'has_nexus': False}
+
+    # ========================================================================
+    # Nexus Strategy: Rolling 12-Month Lookback
+    # ========================================================================
+
+    def _check_rolling_12_month_nexus(self, year, all_transactions,
+                                      threshold_config, state_code=None,
+                                      lookback_type=None):
+        """Check economic nexus using rolling 12-month window for the given year."""
         transactions_by_month = defaultdict(list)
+        for txn in all_transactions:
+            txn_date = self._parse_txn_date(txn['transaction_date'])
+            transactions_by_month[(txn_date.year, txn_date.month)].append(txn)
 
-        for txn in transactions:
-            txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
-            txn_date = datetime.fromisoformat(txn_date_str)
-            year_month = (txn_date.year, txn_date.month)
-            transactions_by_month[year_month].append(txn)
-
-        # Get sorted list of all months
         all_months = sorted(transactions_by_month.keys())
-
         if not all_months:
-            return self._create_zero_sales_results(state_code, threshold_config)
+            return {'has_nexus': False}
 
-        # Get threshold info
         revenue_threshold = threshold_config.get('revenue_threshold')
         transaction_threshold = threshold_config.get('transaction_threshold')
         operator = threshold_config.get('threshold_operator', 'or')
 
-        # Track nexus establishment
-        first_nexus_month = None
-        first_nexus_date = None
-        first_nexus_year = None
+        for current_month in all_months:
+            if current_month[0] != year:
+                continue
+            window_start = datetime(current_month[0], current_month[1], 1) - relativedelta(months=11)
+            window_end = datetime(current_month[0], current_month[1], 1)
 
-        # Calculate rolling 12-month totals for each month
-        for i, current_month in enumerate(all_months):
-            # Get the 12-month window ending with current month
-            window_start_date = datetime(current_month[0], current_month[1], 1) - relativedelta(months=11)
-            window_start = (window_start_date.year, window_start_date.month)
-
-            # Sum sales in rolling window (use taxable_amount for nexus determination)
             rolling_total = 0
             rolling_count = 0
-
             for check_month in all_months:
-                # Convert to datetime for comparison
                 check_date = datetime(check_month[0], check_month[1], 1)
-                window_end = datetime(current_month[0], current_month[1], 1)
-
-                if window_start_date <= check_date <= window_end:
-                    month_txns = transactions_by_month[check_month]
-                    # Use sales_amount (gross sales) for threshold calculation - most states use gross revenue
-                    rolling_total += sum(float(t['sales_amount']) for t in month_txns)
-                    rolling_count += len(month_txns)
+                if window_start <= check_date <= window_end:
+                    rolling_total += sum(float(t['sales_amount']) for t in transactions_by_month[check_month])
+                    rolling_count += len(transactions_by_month[check_month])
 
             # Check if threshold is met
-            threshold_met = False
             if operator == 'or':
-                if revenue_threshold and rolling_total >= revenue_threshold:
-                    threshold_met = True
-                if transaction_threshold and rolling_count >= transaction_threshold:
-                    threshold_met = True
+                threshold_met = (
+                    (revenue_threshold and rolling_total >= revenue_threshold) or
+                    (transaction_threshold and rolling_count >= transaction_threshold)
+                )
             else:  # 'and'
-                revenue_met = revenue_threshold and rolling_total >= revenue_threshold
-                transaction_met = transaction_threshold and rolling_count >= transaction_threshold
-                threshold_met = revenue_met and transaction_met
+                threshold_met = (
+                    (revenue_threshold and rolling_total >= revenue_threshold) and
+                    (transaction_threshold and rolling_count >= transaction_threshold)
+                )
 
-            if threshold_met and not first_nexus_month:
-                # Nexus first established this month
-                first_nexus_month = current_month
-                first_nexus_year = current_month[0]
-
-                # Find the exact date within the month (use first transaction of the month)
+            if threshold_met:
                 month_txns = sorted(
                     transactions_by_month[current_month],
-                    key=lambda t: datetime.fromisoformat(t['transaction_date'].replace('Z', '').replace('+00:00', ''))
+                    key=lambda t: self._parse_txn_date(t['transaction_date'])
                 )
-                first_txn_date_str = month_txns[0]['transaction_date'].replace('Z', '').replace('+00:00', '')
-                first_nexus_date = datetime.fromisoformat(first_txn_date_str)
-
+                nexus_date = self._parse_txn_date(month_txns[0]['transaction_date'])
+                obligation_start = self._calculate_obligation_start_date(nexus_date)
                 logger.info(
                     f"{state_code}: Nexus established {current_month[0]}-{current_month[1]:02d} "
-                    f"with rolling 12-month total ${rolling_total:,.2f} (threshold: ${revenue_threshold:,.2f})"
+                    f"with rolling 12-month total ${rolling_total:,.2f} "
+                    f"(threshold: ${revenue_threshold:,.2f})"
                 )
-                break
-
-        # Now generate year-by-year results
-        transactions_by_year = defaultdict(list)
-        for txn in transactions:
-            txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
-            txn_date = datetime.fromisoformat(txn_date_str)
-            year = txn_date.year
-            transactions_by_year[year].append(txn)
-
-        results = []
-
-        for year in sorted(transactions_by_year.keys()):
-            year_transactions = transactions_by_year[year]
-
-            # Determine nexus status for this year
-            has_nexus_this_year = False
-            nexus_date = None
-            obligation_start_date = None
-
-            if first_nexus_year and year >= first_nexus_year:
-                # Has nexus (either established this year or sticky from prior)
-                has_nexus_this_year = True
-                nexus_date = first_nexus_date
-
-                if year == first_nexus_year:
-                    # Nexus established this year - obligation starts next month
-                    obligation_start_date = self._calculate_obligation_start_date(first_nexus_date)
-                    logger.info(
-                        f"{state_code} {year}: Nexus established {first_nexus_date.date()}, "
-                        f"obligation starts {obligation_start_date.date()}"
-                    )
-                else:
-                    # Sticky nexus from prior year - full year obligation
-                    obligation_start_date = datetime(year, 1, 1)
-                    logger.info(
-                        f"{state_code} {year}: STICKY NEXUS detected (first nexus: {first_nexus_year}), "
-                        f"obligation starts Jan 1"
-                    )
-
-                # Calculate liability
-                # Get interest/penalty config for Phase 2
-                interest_penalty_config = self._get_interest_penalty_config(state_code)
-
-                liability_result = self._calculate_liability_for_year(
-                    transactions=year_transactions,
-                    obligation_start_date=obligation_start_date,
-                    tax_rate_config=tax_rate_config,
-                    mf_rule=mf_rule,
-                    state_code=state_code,
-                    year=year,
-                    interest_penalty_config=interest_penalty_config
+                logger.info(
+                    f"{state_code} {year}: Nexus established {nexus_date.date()}, "
+                    f"obligation starts {obligation_start.date()}"
                 )
+                return {'has_nexus': True, 'nexus_date': nexus_date,
+                        'obligation_start_date': obligation_start}
 
-                result = {
-                    'state': state_code,
-                    'year': year,
-                    'nexus_type': 'economic',
-                    'nexus_date': nexus_date.date().isoformat() if nexus_date else None,
-                    'obligation_start_date': obligation_start_date.date().isoformat() if obligation_start_date else None,
-                    'first_nexus_year': first_nexus_year,
-                    **liability_result,
-                    'threshold': threshold_config.get('revenue_threshold', 100000)
-                }
-            else:
-                # No nexus this year
-                result = self._create_no_nexus_result(
-                    state_code=state_code,
-                    year=year,
-                    transactions=year_transactions,
-                    threshold_config=threshold_config
-                )
-
-            results.append(result)
-
-        return results if results else self._create_zero_sales_results(state_code, threshold_config)
+        return {'has_nexus': False}
 
     # ========================================================================
-    # Quarterly Lookback Implementation (NY, VT)
+    # Nexus Strategy: Quarterly Lookback (NY, VT)
     # ========================================================================
 
-    def _calculate_quarterly_lookback(
+    def _check_quarterly_nexus(
         self,
-        state_code: str,
-        transactions: List[Dict],
+        year: int,
+        all_transactions: List[Dict],
         threshold_config: Dict,
-        tax_rate_config: Optional[Dict],
-        mf_rule: Optional[Dict],
-        physical_nexus_date: Optional[str] = None
-    ) -> List[Dict]:
+        state_code: str = None,
+        lookback_type: str = None
+    ) -> Dict:
         """
-        Calculate nexus using quarterly lookback (preceding 4 quarters).
+        Check economic nexus using preceding 4 sales tax quarters.
 
-        Used by:
-        - New York: "Preceding 4 Sales Tax Quarters"
-        - Vermont: "Preceding 4 Calendar Quarters"
-
-        Quarters align with calendar:
-        Q1: Jan 1 - Mar 31
-        Q2: Apr 1 - Jun 30
-        Q3: Jul 1 - Sep 30
-        Q4: Oct 1 - Dec 31
-
-        For each quarter, check if sales in the preceding 4 complete quarters
-        exceed the threshold.
-
-        Example (checking Q2 2024):
-        - Current quarter: Q2 2024 (Apr-Jun)
-        - Preceding 4 quarters: Q2 2023, Q3 2023, Q4 2023, Q1 2024
-        - Sum sales from those 4 quarters and check threshold
+        For each quarter in the year, defines a lookback window of the preceding
+        4 complete quarters and checks if threshold is crossed.
         """
-        if not transactions:
-            return self._create_zero_sales_results(state_code, threshold_config)
+        for quarter in range(1, 5):
+            quarter_start, quarter_end = self._get_quarter_dates(year, quarter)
+            lookback_start = quarter_end - relativedelta(months=12) + timedelta(days=1)
 
-        # Group transactions by year
-        transactions_by_year = defaultdict(list)
-        for txn in transactions:
-            txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
-            txn_date = datetime.fromisoformat(txn_date_str)
-            year = txn_date.year
-            transactions_by_year[year].append(txn)
+            period_transactions = [
+                txn for txn in all_transactions
+                if lookback_start <= self._parse_txn_date(txn['transaction_date']) <= quarter_end
+            ]
 
-        # Track first nexus establishment
-        first_nexus_year = None
-        first_nexus_date = None
+            if not period_transactions:
+                continue
 
-        # Results for each year
-        results = []
+            nexus_info = self._find_threshold_crossing(period_transactions, threshold_config)
 
-        for year in sorted(transactions_by_year.keys()):
-            year_transactions = transactions_by_year[year]
-
-            # Check if state has physical nexus
-            has_physical_nexus = False
-            physical_nexus_year = None
-            if physical_nexus_date:
-                physical_date = datetime.fromisoformat(physical_nexus_date.replace('Z', '').replace('+00:00', ''))
-                physical_nexus_year = physical_date.year
-                if physical_nexus_year <= year:
-                    has_physical_nexus = True
-
-            # Determine nexus status for this year
-            has_nexus_this_year = has_physical_nexus
-            nexus_date = None
-            obligation_start_date = None
-
-            if first_nexus_year and first_nexus_year < year:
-                # Sticky nexus - already had nexus from a prior year
-                logger.info(f"{state_code} {year}: STICKY NEXUS detected (first nexus: {first_nexus_year}), obligation starts Jan 1")
-                has_nexus_this_year = True
-                nexus_date = first_nexus_date
-                obligation_start_date = datetime(year, 1, 1)
-            else:
-                # Check each quarter of this year to see if preceding 4 quarters establish nexus
-                for quarter in range(1, 5):  # Q1, Q2, Q3, Q4
-                    # Get all transactions from the preceding 4 quarters
-                    quarter_start, quarter_end = self._get_quarter_dates(year, quarter)
-
-                    # Calculate start of preceding 4 quarters (go back 12 months from end of current quarter)
-                    lookback_start = quarter_end - relativedelta(months=12) + timedelta(days=1)
-
-                    # Get transactions in this 12-month period (preceding 4 quarters)
-                    # Filter to only relevant date range for better performance
-                    period_transactions = []
-                    for txn in transactions:
-                        txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
-                        txn_date = datetime.fromisoformat(txn_date_str)
-                        # Only include transactions within the 12-month lookback window
-                        if lookback_start <= txn_date <= quarter_end:
-                            period_transactions.append(txn)
-
-                    if not period_transactions:
-                        continue
-
-                    # Check if threshold crossed in this period
-                    nexus_info = self._find_threshold_crossing(
-                        period_transactions, threshold_config
-                    )
-
-                    if nexus_info.get('has_nexus'):
-                        # Found nexus in this quarter's lookback period
-                        has_nexus_this_year = True
-                        nexus_date = nexus_info['nexus_date']
-                        obligation_start_date = self._calculate_obligation_start_date(nexus_date)
-                        logger.info(
-                            f"{state_code} {year} Q{quarter}: QUARTERLY LOOKBACK nexus on {nexus_date.date()}, "
-                            f"obligation starts {obligation_start_date.date()}"
-                        )
-
-                        # Record first nexus
-                        if first_nexus_year is None:
-                            first_nexus_year = year
-                            first_nexus_date = nexus_date
-                        break  # Stop checking quarters once nexus is found
-
-            # Calculate liability for this year
-            if has_nexus_this_year:
-                # Determine nexus type
-                if has_physical_nexus and nexus_date:
-                    nexus_type = 'both'
-                elif has_physical_nexus:
-                    nexus_type = 'physical'
-                    if not nexus_date and physical_nexus_date:
-                        physical_date = datetime.fromisoformat(physical_nexus_date.replace('Z', '').replace('+00:00', ''))
-                        nexus_date = physical_date
-                        obligation_start_date = datetime(physical_nexus_year, 1, 1) if physical_nexus_year <= year else physical_date
-                else:
-                    nexus_type = 'economic'
-
-                # Get interest/penalty config
-                interest_penalty_config = self._get_interest_penalty_config(state_code)
-
-                liability_result = self._calculate_liability_for_year(
-                    transactions=year_transactions,
-                    obligation_start_date=obligation_start_date,
-                    tax_rate_config=tax_rate_config,
-                    mf_rule=mf_rule,
-                    state_code=state_code,
-                    year=year,
-                    interest_penalty_config=interest_penalty_config
+            if nexus_info.get('has_nexus'):
+                nexus_date = nexus_info['nexus_date']
+                obligation_start_date = self._calculate_obligation_start_date(nexus_date)
+                logger.info(
+                    f"{state_code} {year} Q{quarter}: QUARTERLY LOOKBACK nexus on "
+                    f"{nexus_date.date()}, obligation starts {obligation_start_date.date()}"
                 )
-
-                result = {
-                    'state': state_code,
-                    'year': year,
-                    'nexus_type': nexus_type,
-                    'nexus_date': nexus_date.date().isoformat() if nexus_date else None,
-                    'obligation_start_date': obligation_start_date.date().isoformat() if obligation_start_date else None,
-                    'first_nexus_year': first_nexus_year,
-                    **liability_result,
-                    'threshold': threshold_config.get('revenue_threshold', 100000)
+                return {
+                    'has_nexus': True,
+                    'nexus_date': nexus_date,
+                    'obligation_start_date': obligation_start_date
                 }
-            else:
-                # No nexus this year
-                result = self._create_no_nexus_result(
-                    state_code=state_code,
-                    year=year,
-                    transactions=year_transactions,
-                    threshold_config=threshold_config
-                )
 
-            results.append(result)
-
-        return results if results else self._create_zero_sales_results(state_code, threshold_config)
+        return {'has_nexus': False}
 
     # ========================================================================
-    # Connecticut September 30 Lookback Implementation
+    # Nexus Strategy: Connecticut September 30 Lookback
     # ========================================================================
 
-    def _calculate_connecticut_september_lookback(
+    def _check_ct_september_nexus(
         self,
-        state_code: str,
-        transactions: List[Dict],
+        year: int,
+        all_transactions: List[Dict],
         threshold_config: Dict,
-        tax_rate_config: Optional[Dict],
-        mf_rule: Optional[Dict],
-        physical_nexus_date: Optional[str] = None
-    ) -> List[Dict]:
+        state_code: str = None,
+        lookback_type: str = None
+    ) -> Dict:
         """
-        Calculate nexus for Connecticut's special lookback period.
+        Check economic nexus for Connecticut's 12-month period ending Sep 30.
 
-        Connecticut uses: "12-month period ending on September 30"
-
-        For each year, measure sales from Oct 1 (prior year) to Sep 30 (current year).
-
-        Example (checking 2024):
-        - Measurement period: Oct 1, 2023 - Sep 30, 2024
-        - If threshold exceeded in this period, nexus for 2024
+        Measurement period: Oct 1 (prior year) to Sep 30 (current year).
         """
-        if not transactions:
-            return self._create_zero_sales_results(state_code, threshold_config)
+        period_start = datetime(year - 1, 10, 1)
+        period_end = datetime(year, 9, 30)
 
-        # Group transactions by year
-        transactions_by_year = defaultdict(list)
-        for txn in transactions:
-            txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
-            txn_date = datetime.fromisoformat(txn_date_str)
-            year = txn_date.year
-            transactions_by_year[year].append(txn)
+        period_transactions = [
+            txn for txn in all_transactions
+            if period_start <= self._parse_txn_date(txn['transaction_date']) <= period_end
+        ]
 
-        # Track first nexus establishment
-        first_nexus_year = None
-        first_nexus_date = None
+        if not period_transactions:
+            return {'has_nexus': False}
 
-        # Results for each year
-        results = []
+        nexus_info = self._find_threshold_crossing(period_transactions, threshold_config)
 
-        for year in sorted(transactions_by_year.keys()):
-            year_transactions = transactions_by_year[year]
+        if nexus_info.get('has_nexus'):
+            nexus_date = nexus_info['nexus_date']
+            obligation_start_date = self._calculate_obligation_start_date(nexus_date)
+            logger.info(
+                f"{state_code} {year}: CT SEPTEMBER LOOKBACK nexus on "
+                f"{nexus_date.date()}, obligation starts {obligation_start_date.date()}"
+            )
+            return {
+                'has_nexus': True,
+                'nexus_date': nexus_date,
+                'obligation_start_date': obligation_start_date
+            }
 
-            # Check if state has physical nexus
-            has_physical_nexus = False
-            physical_nexus_year = None
-            if physical_nexus_date:
-                physical_date = datetime.fromisoformat(physical_nexus_date.replace('Z', '').replace('+00:00', ''))
-                physical_nexus_year = physical_date.year
-                if physical_nexus_year <= year:
-                    has_physical_nexus = True
-
-            # Determine nexus status for this year
-            has_nexus_this_year = has_physical_nexus
-            nexus_date = None
-            obligation_start_date = None
-
-            if first_nexus_year and first_nexus_year < year:
-                # Sticky nexus
-                logger.info(f"{state_code} {year}: STICKY NEXUS detected (first nexus: {first_nexus_year}), obligation starts Jan 1")
-                has_nexus_this_year = True
-                nexus_date = first_nexus_date
-                obligation_start_date = datetime(year, 1, 1)
-            else:
-                # Connecticut's measurement period for this year: Oct 1 (prior year) to Sep 30 (current year)
-                period_start = datetime(year - 1, 10, 1)
-                period_end = datetime(year, 9, 30)
-
-                # Get all transactions in this period
-                period_transactions = []
-                for txn in transactions:
-                    txn_date_str = txn['transaction_date'].replace('Z', '').replace('+00:00', '')
-                    txn_date = datetime.fromisoformat(txn_date_str)
-                    if period_start <= txn_date <= period_end:
-                        period_transactions.append(txn)
-
-                if period_transactions:
-                    # Check if threshold crossed
-                    nexus_info = self._find_threshold_crossing(
-                        period_transactions, threshold_config
-                    )
-
-                    if nexus_info.get('has_nexus'):
-                        # Found nexus in CT's measurement period
-                        has_nexus_this_year = True
-                        nexus_date = nexus_info['nexus_date']
-                        obligation_start_date = self._calculate_obligation_start_date(nexus_date)
-                        logger.info(
-                            f"{state_code} {year}: CT SEPTEMBER LOOKBACK nexus on {nexus_date.date()}, "
-                            f"obligation starts {obligation_start_date.date()}"
-                        )
-
-                        # Record first nexus
-                        if first_nexus_year is None:
-                            first_nexus_year = year
-                            first_nexus_date = nexus_date
-
-            # Calculate liability for this year
-            if has_nexus_this_year:
-                # Determine nexus type
-                if has_physical_nexus and nexus_date:
-                    nexus_type = 'both'
-                elif has_physical_nexus:
-                    nexus_type = 'physical'
-                    if not nexus_date and physical_nexus_date:
-                        physical_date = datetime.fromisoformat(physical_nexus_date.replace('Z', '').replace('+00:00', ''))
-                        nexus_date = physical_date
-                        obligation_start_date = datetime(physical_nexus_year, 1, 1) if physical_nexus_year <= year else physical_date
-                else:
-                    nexus_type = 'economic'
-
-                # Get interest/penalty config
-                interest_penalty_config = self._get_interest_penalty_config(state_code)
-
-                liability_result = self._calculate_liability_for_year(
-                    transactions=year_transactions,
-                    obligation_start_date=obligation_start_date,
-                    tax_rate_config=tax_rate_config,
-                    mf_rule=mf_rule,
-                    state_code=state_code,
-                    year=year,
-                    interest_penalty_config=interest_penalty_config
-                )
-
-                result = {
-                    'state': state_code,
-                    'year': year,
-                    'nexus_type': nexus_type,
-                    'nexus_date': nexus_date.date().isoformat() if nexus_date else None,
-                    'obligation_start_date': obligation_start_date.date().isoformat() if obligation_start_date else None,
-                    'first_nexus_year': first_nexus_year,
-                    **liability_result,
-                    'threshold': threshold_config.get('revenue_threshold', 100000)
-                }
-            else:
-                # No nexus this year
-                result = self._create_no_nexus_result(
-                    state_code=state_code,
-                    year=year,
-                    transactions=year_transactions,
-                    threshold_config=threshold_config
-                )
-
-            results.append(result)
-
-        return results if results else self._create_zero_sales_results(state_code, threshold_config)
+        return {'has_nexus': False}
 
     # ========================================================================
     # Helper Functions
@@ -1603,8 +1251,7 @@ class NexusCalculatorV2:
 
             # Get state results from the analysis
             results = self.supabase.table('state_results').select(
-                'state, has_nexus, physical_nexus, economic_nexus, total_sales, '
-                'estimated_total_liability, threshold_percentage, first_nexus_date'
+                'state, nexus_type, nexus_date, total_sales, estimated_liability'
             ).eq('analysis_id', analysis_id).execute()
 
             if not results.data:
@@ -1624,23 +1271,15 @@ class NexusCalculatorV2:
                 if result['state'] in existing_states:
                     continue
 
-                # Determine nexus status
+                # Determine nexus status from nexus_type column
+                nexus_type = result.get('nexus_type')
                 nexus_status = 'unknown'
-                if result.get('has_nexus'):
+                if nexus_type and nexus_type != 'none':
                     nexus_status = 'has_nexus'
-                elif result.get('threshold_percentage') and result['threshold_percentage'] >= 75:
-                    nexus_status = 'approaching'
                 elif result.get('total_sales', 0) == 0:
                     nexus_status = 'no_nexus'
-
-                # Determine nexus type
-                nexus_type = None
-                if result.get('physical_nexus') and result.get('economic_nexus'):
-                    nexus_type = 'both'
-                elif result.get('physical_nexus'):
-                    nexus_type = 'physical'
-                elif result.get('economic_nexus'):
-                    nexus_type = 'economic'
+                else:
+                    nexus_status = 'no_nexus'
 
                 assessments_to_create.append({
                     'client_id': client_id,
@@ -1650,9 +1289,8 @@ class NexusCalculatorV2:
                     'nexus_status': nexus_status,
                     'nexus_type': nexus_type,
                     'total_sales': result.get('total_sales'),
-                    'estimated_liability': result.get('estimated_total_liability'),
-                    'threshold_percentage': result.get('threshold_percentage'),
-                    'first_exposure_date': result.get('first_nexus_date'),
+                    'estimated_liability': result.get('estimated_liability'),
+                    'first_exposure_date': result.get('nexus_date'),
                     'assessed_at': datetime.utcnow().isoformat(),
                 })
 
