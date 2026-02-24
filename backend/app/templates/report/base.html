@@ -520,15 +520,25 @@
         .state-detail-page {
             page: state-detail;
             page-break-before: always;
-            position: relative;
             height: 100%;
         }
 
-        .analysis-summary {
-            position: absolute;
-            bottom: 24px;
-            left: 0;
-            right: 0;
+        .state-detail-outer {
+            display: table;
+            width: 100%;
+            height: 100%;
+            table-layout: fixed;
+        }
+
+        .state-detail-content {
+            display: table-row;
+            vertical-align: top;
+        }
+
+        .state-detail-footer {
+            display: table-row;
+            vertical-align: bottom;
+            height: 1px;
         }
 
         .state-header-bar {

@@ -2,227 +2,232 @@
 
 {% block content %}
 <div class="state-detail-page">
-    <!-- State Header -->
-    <div class="state-header-bar nexus-{{ nexus_status }}">
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-                <td style="border: none; padding: 0; vertical-align: bottom;">
-                    <span class="state-name">{{ state_name }}</span>
-                    <span class="state-code-label">({{ state_code }})</span>
-                </td>
-                <td style="border: none; padding: 0; text-align: right; vertical-align: bottom;">
-                    {% if nexus_status == 'has_nexus' %}
-                    <span class="badge badge-nexus">Has Nexus</span>
-                    {% elif nexus_status == 'approaching' %}
-                    <span class="badge badge-approaching">Approaching</span>
-                    {% else %}
-                    <span class="badge badge-none">No Nexus</span>
-                    {% endif %}
-                    {% if nexus_type %}
-                    <span class="badge badge-{{ nexus_type | default('economic') }}" style="margin-left: 4px;">{{ nexus_type | title }}</span>
-                    {% endif %}
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <!-- Two Column Layout -->
-    <table class="state-columns">
-        <tr>
-            <!-- LEFT COLUMN (60%) -->
-            <td class="state-col-left">
-                <!-- Sales Summary Card -->
-                <div class="card">
-                    <div class="card-title">Sales Summary</div>
-                    <table class="data-row-table">
-                        <tr>
-                            <td class="label">Total Sales</td>
-                            <td class="value font-tabular">${{ "{:,.0f}".format(total_sales) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Direct Sales</td>
-                            <td class="value font-tabular">${{ "{:,.0f}".format(direct_sales) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Marketplace Sales</td>
-                            <td class="value font-tabular">${{ "{:,.0f}".format(marketplace_sales) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Taxable Sales</td>
-                            <td class="value highlight font-tabular">${{ "{:,.0f}".format(taxable_sales) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Exempt Sales</td>
-                            <td class="value font-tabular">${{ "{:,.0f}".format(exempt_sales) }}</td>
-                        </tr>
-                    </table>
-                </div>
-
-                <!-- Year-by-Year Breakdown -->
-                {% if year_data and year_data | length > 0 %}
-                {% set has_txn_data = year_data | selectattr('transaction_count') | list | length > 0 %}
-                <div class="section-label mt-1">Year-by-year breakdown</div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Year</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-right">Total Sales</th>
-                            <th class="text-right">Taxable Sales</th>
-                            {% if has_txn_data %}<th class="text-right">Txns</th>{% endif %}
-                            <th class="text-right">Base Tax</th>
-                            <th class="text-right">Est. Liab.</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set ns = namespace(total_sales_sum=0, taxable_sum=0, tax_sum=0, liability_sum=0, txn_sum=0) %}
-                        {% for year in year_data %}
-                        <tr>
-                            <td><strong>{{ year.year }}</strong></td>
-                            <td class="text-center">
-                                {% if year.has_nexus %}
-                                <span class="badge badge-nexus">Nexus</span>
-                                {% else %}
-                                <span class="badge badge-none">No Nexus</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-right font-tabular">${{ "{:,.0f}".format(year.total_sales) }}</td>
-                            <td class="text-right font-tabular">${{ "{:,.0f}".format(year.taxable_sales) }}</td>
-                            {% if has_txn_data %}<td class="text-right font-tabular">{{ "{:,}".format(year.transaction_count) }}</td>{% endif %}
-                            <td class="text-right font-tabular">${{ "{:,.2f}".format(year.base_tax) }}</td>
-                            <td class="text-right font-tabular font-bold">${{ "{:,.0f}".format(year.estimated_liability) }}</td>
-                        </tr>
-                        {% set ns.total_sales_sum = ns.total_sales_sum + year.total_sales %}
-                        {% set ns.taxable_sum = ns.taxable_sum + year.taxable_sales %}
-                        {% set ns.tax_sum = ns.tax_sum + year.base_tax %}
-                        {% set ns.liability_sum = ns.liability_sum + year.estimated_liability %}
-                        {% set ns.txn_sum = ns.txn_sum + year.transaction_count %}
-                        {% endfor %}
-                        <tr class="totals-row">
-                            <td><strong>Total</strong></td>
-                            <td></td>
-                            <td class="text-right font-tabular">${{ "{:,.0f}".format(ns.total_sales_sum) }}</td>
-                            <td class="text-right font-tabular">${{ "{:,.0f}".format(ns.taxable_sum) }}</td>
-                            {% if has_txn_data %}<td class="text-right font-tabular">{{ "{:,}".format(ns.txn_sum) }}</td>{% endif %}
-                            <td class="text-right font-tabular">${{ "{:,.2f}".format(ns.tax_sum) }}</td>
-                            <td class="text-right font-tabular">${{ "{:,.0f}".format(ns.liability_sum) }}</td>
-                        </tr>
-                    </tbody>
+    <div class="state-detail-outer">
+        <!-- Row 1: All existing content -->
+        <div class="state-detail-content">
+            <!-- State Header -->
+            <div class="state-header-bar nexus-{{ nexus_status }}">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="border: none; padding: 0; vertical-align: bottom;">
+                            <span class="state-name">{{ state_name }}</span>
+                            <span class="state-code-label">({{ state_code }})</span>
+                        </td>
+                        <td style="border: none; padding: 0; text-align: right; vertical-align: bottom;">
+                            {% if nexus_status == 'has_nexus' %}
+                            <span class="badge badge-nexus">Has Nexus</span>
+                            {% elif nexus_status == 'approaching' %}
+                            <span class="badge badge-approaching">Approaching</span>
+                            {% else %}
+                            <span class="badge badge-none">No Nexus</span>
+                            {% endif %}
+                            {% if nexus_type %}
+                            <span class="badge badge-{{ nexus_type | default('economic') }}" style="margin-left: 4px;">{{ nexus_type | title }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
                 </table>
-                {% endif %}
-            </td>
+            </div>
 
-            <!-- RIGHT COLUMN (40%) -->
-            <td class="state-col-right">
-                <!-- Liability Summary Card -->
-                <div class="card">
-                    <div class="card-title">Estimated Liability</div>
-                    <div class="liability-big">${{ "{:,.2f}".format(estimated_liability) }}</div>
-                    <table class="data-row-table">
-                        <tr>
-                            <td class="label">Base Tax</td>
-                            <td class="value font-tabular">${{ "{:,.2f}".format(base_tax) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Interest</td>
-                            <td class="value font-tabular">${{ "{:,.2f}".format(interest) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Penalties</td>
-                            <td class="value font-tabular">${{ "{:,.2f}".format(penalties) }}</td>
-                        </tr>
-                    </table>
-                </div>
+            <!-- Two Column Layout -->
+            <table class="state-columns">
+                <tr>
+                    <!-- LEFT COLUMN (60%) -->
+                    <td class="state-col-left">
+                        <!-- Sales Summary Card -->
+                        <div class="card">
+                            <div class="card-title">Sales Summary</div>
+                            <table class="data-row-table">
+                                <tr>
+                                    <td class="label">Total Sales</td>
+                                    <td class="value font-tabular">${{ "{:,.0f}".format(total_sales) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Direct Sales</td>
+                                    <td class="value font-tabular">${{ "{:,.0f}".format(direct_sales) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Marketplace Sales</td>
+                                    <td class="value font-tabular">${{ "{:,.0f}".format(marketplace_sales) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Taxable Sales</td>
+                                    <td class="value highlight font-tabular">${{ "{:,.0f}".format(taxable_sales) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Exempt Sales</td>
+                                    <td class="value font-tabular">${{ "{:,.0f}".format(exempt_sales) }}</td>
+                                </tr>
+                            </table>
+                        </div>
 
-                <!-- Threshold Info Card -->
-                <div class="card">
-                    <div class="card-title">Threshold Requirements</div>
-                    <table class="data-row-table">
-                        <tr>
-                            <td class="label">Revenue</td>
-                            <td class="value font-tabular">${{ "{:,.0f}".format(threshold) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Progress</td>
-                            <td class="value">
-                                {% set tp = threshold_percent | default(0) | float %}
-                                <svg width="50" height="8" style="vertical-align: middle; margin-right: 4px;">
-                                    <rect x="0" y="0" width="50" height="8" rx="4" fill="#E2E8F0"/>
-                                    {% set bar_pct = [tp, 100] | min %}
-                                    <rect x="0" y="0" width="{{ (bar_pct / 100 * 50) | round | int }}" height="8" rx="4"
-                                          fill="{% if tp >= 100 %}#9F4141{% elif tp >= 75 %}#B07F3B{% else %}#45926E{% endif %}"/>
-                                </svg>
-                                {{ "{:.1f}%".format(tp) }}
-                            </td>
-                        </tr>
-                        {% if transaction_threshold %}
-                        <tr>
-                            <td class="label">Txn Threshold</td>
-                            <td class="value">{{ transaction_threshold }} transactions</td>
-                        </tr>
+                        <!-- Year-by-Year Breakdown -->
+                        {% if year_data and year_data | length > 0 %}
+                        {% set has_txn_data = year_data | selectattr('transaction_count') | list | length > 0 %}
+                        <div class="section-label mt-1">Year-by-year breakdown</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-right">Total Sales</th>
+                                    <th class="text-right">Taxable Sales</th>
+                                    {% if has_txn_data %}<th class="text-right">Txns</th>{% endif %}
+                                    <th class="text-right">Base Tax</th>
+                                    <th class="text-right">Est. Liab.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set ns = namespace(total_sales_sum=0, taxable_sum=0, tax_sum=0, liability_sum=0, txn_sum=0) %}
+                                {% for year in year_data %}
+                                <tr>
+                                    <td><strong>{{ year.year }}</strong></td>
+                                    <td class="text-center">
+                                        {% if year.has_nexus %}
+                                        <span class="badge badge-nexus">Nexus</span>
+                                        {% else %}
+                                        <span class="badge badge-none">No Nexus</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-right font-tabular">${{ "{:,.0f}".format(year.total_sales) }}</td>
+                                    <td class="text-right font-tabular">${{ "{:,.0f}".format(year.taxable_sales) }}</td>
+                                    {% if has_txn_data %}<td class="text-right font-tabular">{{ "{:,}".format(year.transaction_count) }}</td>{% endif %}
+                                    <td class="text-right font-tabular">${{ "{:,.2f}".format(year.base_tax) }}</td>
+                                    <td class="text-right font-tabular font-bold">${{ "{:,.0f}".format(year.estimated_liability) }}</td>
+                                </tr>
+                                {% set ns.total_sales_sum = ns.total_sales_sum + year.total_sales %}
+                                {% set ns.taxable_sum = ns.taxable_sum + year.taxable_sales %}
+                                {% set ns.tax_sum = ns.tax_sum + year.base_tax %}
+                                {% set ns.liability_sum = ns.liability_sum + year.estimated_liability %}
+                                {% set ns.txn_sum = ns.txn_sum + year.transaction_count %}
+                                {% endfor %}
+                                <tr class="totals-row">
+                                    <td><strong>Total</strong></td>
+                                    <td></td>
+                                    <td class="text-right font-tabular">${{ "{:,.0f}".format(ns.total_sales_sum) }}</td>
+                                    <td class="text-right font-tabular">${{ "{:,.0f}".format(ns.taxable_sum) }}</td>
+                                    {% if has_txn_data %}<td class="text-right font-tabular">{{ "{:,}".format(ns.txn_sum) }}</td>{% endif %}
+                                    <td class="text-right font-tabular">${{ "{:,.2f}".format(ns.tax_sum) }}</td>
+                                    <td class="text-right font-tabular">${{ "{:,.0f}".format(ns.liability_sum) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                         {% endif %}
-                        {% if amount_until_nexus > 0 %}
-                        <tr>
-                            <td class="label">Until Nexus</td>
-                            <td class="value font-tabular">${{ "{:,.0f}".format(amount_until_nexus) }}</td>
-                        </tr>
+                    </td>
+
+                    <!-- RIGHT COLUMN (40%) -->
+                    <td class="state-col-right">
+                        <!-- Liability Summary Card -->
+                        <div class="card">
+                            <div class="card-title">Estimated Liability</div>
+                            <div class="liability-big">${{ "{:,.2f}".format(estimated_liability) }}</div>
+                            <table class="data-row-table">
+                                <tr>
+                                    <td class="label">Base Tax</td>
+                                    <td class="value font-tabular">${{ "{:,.2f}".format(base_tax) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Interest</td>
+                                    <td class="value font-tabular">${{ "{:,.2f}".format(interest) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Penalties</td>
+                                    <td class="value font-tabular">${{ "{:,.2f}".format(penalties) }}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Threshold Info Card -->
+                        <div class="card">
+                            <div class="card-title">Threshold Requirements</div>
+                            <table class="data-row-table">
+                                <tr>
+                                    <td class="label">Revenue</td>
+                                    <td class="value font-tabular">${{ "{:,.0f}".format(threshold) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Progress</td>
+                                    <td class="value">
+                                        {% set tp = threshold_percent | default(0) | float %}
+                                        <svg width="50" height="8" style="vertical-align: middle; margin-right: 4px;">
+                                            <rect x="0" y="0" width="50" height="8" rx="4" fill="#E2E8F0"/>
+                                            {% set bar_pct = [tp, 100] | min %}
+                                            <rect x="0" y="0" width="{{ (bar_pct / 100 * 50) | round | int }}" height="8" rx="4"
+                                                  fill="{% if tp >= 100 %}#9F4141{% elif tp >= 75 %}#B07F3B{% else %}#45926E{% endif %}"/>
+                                        </svg>
+                                        {{ "{:.1f}%".format(tp) }}
+                                    </td>
+                                </tr>
+                                {% if transaction_threshold %}
+                                <tr>
+                                    <td class="label">Txn Threshold</td>
+                                    <td class="value">{{ transaction_threshold }} transactions</td>
+                                </tr>
+                                {% endif %}
+                                {% if amount_until_nexus > 0 %}
+                                <tr>
+                                    <td class="label">Until Nexus</td>
+                                    <td class="value font-tabular">${{ "{:,.0f}".format(amount_until_nexus) }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+
+                        <!-- Tax Rates Card -->
+                        <div class="card">
+                            <div class="card-title">Tax Rates &amp; Filing</div>
+                            <table class="data-row-table">
+                                <tr>
+                                    <td class="label">State Rate</td>
+                                    <td class="value">{{ "{:.2f}%".format(state_rate) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Local Rate</td>
+                                    <td class="value">{{ "{:.2f}%".format(avg_local_rate) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Combined</td>
+                                    <td class="value highlight">{{ "{:.2f}%".format(combined_rate) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Filing Freq.</td>
+                                    <td class="value">{{ filing_frequency | default('Monthly') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- VDA Opportunity Card (only if savings > 0) -->
+                        {% if vda_savings and vda_savings > 0 %}
+                        <div class="vda-card">
+                            <div class="card-title">VDA Opportunity</div>
+                            <div class="vda-savings-amount" style="margin-bottom: 4px;">${{ "{:,.0f}".format(vda_savings) }}</div>
+                            <div style="font-size: 7.5pt; color: #B07F3B; margin-bottom: 6px;">savings</div>
+                            <table class="data-row-table">
+                                <tr>
+                                    <td class="label">Before VDA</td>
+                                    <td class="value font-tabular">${{ "{:,.2f}".format(before_vda) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">With VDA</td>
+                                    <td class="value teal font-tabular">${{ "{:,.2f}".format(with_vda) }}</td>
+                                </tr>
+                            </table>
+                        </div>
                         {% endif %}
-                    </table>
-                </div>
-
-                <!-- Tax Rates Card -->
-                <div class="card">
-                    <div class="card-title">Tax Rates &amp; Filing</div>
-                    <table class="data-row-table">
-                        <tr>
-                            <td class="label">State Rate</td>
-                            <td class="value">{{ "{:.2f}%".format(state_rate) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Local Rate</td>
-                            <td class="value">{{ "{:.2f}%".format(avg_local_rate) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Combined</td>
-                            <td class="value highlight">{{ "{:.2f}%".format(combined_rate) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Filing Freq.</td>
-                            <td class="value">{{ filing_frequency | default('Monthly') }}</td>
-                        </tr>
-                    </table>
-                </div>
-
-                <!-- VDA Opportunity Card (only if savings > 0) -->
-                {% if vda_savings and vda_savings > 0 %}
-                <div class="vda-card">
-                    <div class="card-title">VDA Opportunity</div>
-                    <div class="vda-savings-amount" style="margin-bottom: 4px;">${{ "{:,.0f}".format(vda_savings) }}</div>
-                    <div style="font-size: 7.5pt; color: #B07F3B; margin-bottom: 6px;">savings</div>
-                    <table class="data-row-table">
-                        <tr>
-                            <td class="label">Before VDA</td>
-                            <td class="value font-tabular">${{ "{:,.2f}".format(before_vda) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">With VDA</td>
-                            <td class="value teal font-tabular">${{ "{:,.2f}".format(with_vda) }}</td>
-                        </tr>
-                    </table>
-                </div>
-                {% endif %}
-            </td>
-        </tr>
-    </table>
-
-    <!-- Full-Width Analysis Summary (pinned to bottom of page) -->
-    {% if state_narrative %}
-    <div class="analysis-summary">
-        <div class="card" style="margin-bottom: 0;">
-            <div class="card-title">Analysis Summary</div>
-            <p style="font-size: 8.5pt; line-height: 1.4; color: #475569; margin: 0;">{{ state_narrative }}</p>
+                    </td>
+                </tr>
+            </table>
         </div>
+
+        <!-- Row 2: Analysis Summary pinned to bottom -->
+        {% if state_narrative %}
+        <div class="state-detail-footer">
+            <div class="card" style="margin-bottom: 0;">
+                <div class="card-title">Analysis Summary</div>
+                <p style="font-size: 8.5pt; line-height: 1.4; color: #475569; margin: 0;">{{ state_narrative }}</p>
+            </div>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 {% endblock %}
